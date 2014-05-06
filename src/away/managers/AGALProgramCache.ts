@@ -2,10 +2,9 @@
 
 module away.managers
 {
-	import StageGLEvent						= away.events.StageGLEvent;
-
-	import AGALProgramCache					= away.managers.AGALProgramCache;
 	import StageGL							= away.base.StageGL;
+	import StageGLEvent						= away.events.StageGLEvent;
+	import AGALProgramCache					= away.managers.AGALProgramCache;
 
 	export class AGALProgramCache
 	{

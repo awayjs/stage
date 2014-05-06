@@ -5,20 +5,22 @@
  */
 module away.pool
 {
+	import StageGL						= away.base.StageGL;
+
 	/**
 	 * @class away.pool.TextureDataPool
 	 */
 	export class TextureDataPool
 	{
 		private _pool:Object = new Object();
-		private _stage:away.base.IStage;
+		private _stage:StageGL;
 
 		/**
 		 * //TODO
 		 *
 		 * @param textureDataClass
 		 */
-		constructor(stage:away.base.IStage)
+		constructor(stage:StageGL)
 		{
 			this._stage = stage;
 		}

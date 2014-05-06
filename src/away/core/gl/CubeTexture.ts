@@ -2,7 +2,7 @@
 
 module away.gl
 {
-	export class CubeTexture extends away.gl.TextureBase
+	export class CubeTexture extends TextureBase
 	{
 
 		public textureType:string = "textureCube";

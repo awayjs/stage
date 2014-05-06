@@ -5,6 +5,8 @@
  */
 module away.pool
 {
+	import SubGeometryBase				= away.base.SubGeometryBase;
+
 	/**
 	 *
 	 */
@@ -16,10 +18,10 @@ module away.pool
 		{
 		}
 
-		public static getItem(subGeometry:away.base.SubGeometryBase, indexData:IndexData, dataType:string):away.pool.VertexData
+		public static getItem(subGeometry:SubGeometryBase, indexData:IndexData, dataType:string):VertexData
 		{
 			if (subGeometry.concatenateArrays)
-				dataType = away.base.SubGeometryBase.VERTEX_DATA;
+				dataType = SubGeometryBase.VERTEX_DATA;
 
 			var subGeometryDictionary:Object = <Object> (VertexDataPool._pool[subGeometry.id] || (VertexDataPool._pool[subGeometry.id] = new Object()));
 			var subGeometryData:Array<VertexData> = <Array<VertexData>> (subGeometryDictionary[dataType] || (subGeometryDictionary[dataType] = new Array<VertexData>()));
@@ -30,7 +32,7 @@ module away.pool
 			return vertexData;
 		}
 
-		public static disposeItem(subGeometry:away.base.SubGeometryBase, level:number, dataType:string)
+		public static disposeItem(subGeometry:SubGeometryBase, level:number, dataType:string)
 		{
 			var subGeometryDictionary:Object = <Object> VertexDataPool._pool[subGeometry.id];
 			var subGeometryData:Array<VertexData> = <Array<VertexData>> subGeometryDictionary[dataType];
@@ -39,7 +41,7 @@ module away.pool
 			subGeometryData[level] = null;
 		}
 
-		public disposeData(subGeometry:away.base.SubGeometryBase)
+		public disposeData(subGeometry:SubGeometryBase)
 		{
 			var subGeometryDictionary:Object = <Object> VertexDataPool._pool[subGeometry.id];
 

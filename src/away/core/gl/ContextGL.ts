@@ -20,7 +20,7 @@ module away.gl
 		private _textureList:TextureBase[] = [];
 		private _programList:Program[] = [];
 
-		private _samplerStates:away.gl.SamplerState[] = [];
+		private _samplerStates:SamplerState[] = [];
 
 		public static MAX_SAMPLERS:number = 8;
 
@@ -49,7 +49,7 @@ module away.gl
 			}
 
 			for (var i:number = 0; i < ContextGL.MAX_SAMPLERS; ++i) {
-				this._samplerStates[ i ] = new away.gl.SamplerState();
+				this._samplerStates[ i ] = new SamplerState();
 				this._samplerStates[ i ].wrap = this._gl.REPEAT;
 				this._samplerStates[ i ].filter = this._gl.LINEAR;
 				this._samplerStates[ i ].mipfilter = 0;
@@ -86,23 +86,23 @@ module away.gl
 			this._gl.viewport(0, 0, width, height);
 		}
 
-		public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):away.gl.CubeTexture
+		public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTexture
 		{
-			var texture:away.gl.CubeTexture = new away.gl.CubeTexture(this._gl, size);
+			var texture:CubeTexture = new CubeTexture(this._gl, size);
 			this._textureList.push(texture);
 			return texture;
 		}
 
-		public createIndexBuffer(numIndices:number):away.gl.IndexBuffer
+		public createIndexBuffer(numIndices:number):IndexBuffer
 		{
-			var indexBuffer:IndexBuffer = new away.gl.IndexBuffer(this._gl, numIndices);
+			var indexBuffer:IndexBuffer = new IndexBuffer(this._gl, numIndices);
 			this._indexBufferList.push(indexBuffer);
 			return indexBuffer;
 		}
 
 		public createProgram():Program
 		{
-			var program:Program = new away.gl.Program(this._gl);
+			var program:Program = new Program(this._gl);
 			this._programList.push(program);
 			return program;
 		}
@@ -110,14 +110,14 @@ module away.gl
 		public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):Texture
 		{
 			//TODO streaming
-			var texture:Texture = new away.gl.Texture(this._gl, width, height);
+			var texture:Texture = new Texture(this._gl, width, height);
 			this._textureList.push(texture);
 			return texture;
 		}
 
-		public createVertexBuffer(numVertices:number, data32PerVertex:number):away.gl.VertexBuffer
+		public createVertexBuffer(numVertices:number, data32PerVertex:number):VertexBuffer
 		{
-			var vertexBuffer:VertexBuffer = new away.gl.VertexBuffer(this._gl, numVertices, data32PerVertex);
+			var vertexBuffer:VertexBuffer = new VertexBuffer(this._gl, numVertices, data32PerVertex);
 			this._vertexBufferList.push(vertexBuffer);
 			return vertexBuffer;
 		}
@@ -183,37 +183,37 @@ module away.gl
 			this._blendEnabled = true;
 
 			switch (sourceFactor) {
-				case away.gl.ContextGLBlendFactor.ONE:
+				case ContextGLBlendFactor.ONE:
 					this._blendSourceFactor = this._gl.ONE;
 					break;
-				case away.gl.ContextGLBlendFactor.DESTINATION_ALPHA:
+				case ContextGLBlendFactor.DESTINATION_ALPHA:
 					this._blendSourceFactor = this._gl.DST_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.DESTINATION_COLOR:
+				case ContextGLBlendFactor.DESTINATION_COLOR:
 					this._blendSourceFactor = this._gl.DST_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE:
+				case ContextGLBlendFactor.ONE:
 					this._blendSourceFactor = this._gl.ONE;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA:
+				case ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA:
 					this._blendSourceFactor = this._gl.ONE_MINUS_DST_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR:
+				case ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR:
 					this._blendSourceFactor = this._gl.ONE_MINUS_DST_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA:
+				case ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA:
 					this._blendSourceFactor = this._gl.ONE_MINUS_SRC_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR:
+				case ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR:
 					this._blendSourceFactor = this._gl.ONE_MINUS_SRC_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.SOURCE_ALPHA:
+				case ContextGLBlendFactor.SOURCE_ALPHA:
 					this._blendSourceFactor = this._gl.SRC_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.SOURCE_COLOR:
+				case ContextGLBlendFactor.SOURCE_COLOR:
 					this._blendSourceFactor = this._gl.SRC_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.ZERO:
+				case ContextGLBlendFactor.ZERO:
 					this._blendSourceFactor = this._gl.ZERO;
 					break;
 				default:
@@ -222,37 +222,37 @@ module away.gl
 			}
 
 			switch (destinationFactor) {
-				case away.gl.ContextGLBlendFactor.ONE:
+				case ContextGLBlendFactor.ONE:
 					this._blendDestinationFactor = this._gl.ONE;
 					break;
-				case away.gl.ContextGLBlendFactor.DESTINATION_ALPHA:
+				case ContextGLBlendFactor.DESTINATION_ALPHA:
 					this._blendDestinationFactor = this._gl.DST_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.DESTINATION_COLOR:
+				case ContextGLBlendFactor.DESTINATION_COLOR:
 					this._blendDestinationFactor = this._gl.DST_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE:
+				case ContextGLBlendFactor.ONE:
 					this._blendDestinationFactor = this._gl.ONE;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA:
+				case ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA:
 					this._blendDestinationFactor = this._gl.ONE_MINUS_DST_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR:
+				case ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR:
 					this._blendDestinationFactor = this._gl.ONE_MINUS_DST_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA:
+				case ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA:
 					this._blendDestinationFactor = this._gl.ONE_MINUS_SRC_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR:
+				case ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR:
 					this._blendDestinationFactor = this._gl.ONE_MINUS_SRC_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.SOURCE_ALPHA:
+				case ContextGLBlendFactor.SOURCE_ALPHA:
 					this._blendDestinationFactor = this._gl.SRC_ALPHA;
 					break;
-				case away.gl.ContextGLBlendFactor.SOURCE_COLOR:
+				case ContextGLBlendFactor.SOURCE_COLOR:
 					this._blendDestinationFactor = this._gl.SRC_COLOR;
 					break;
-				case away.gl.ContextGLBlendFactor.ZERO:
+				case ContextGLBlendFactor.ZERO:
 					this._blendDestinationFactor = this._gl.ZERO;
 					break;
 				default:
@@ -327,7 +327,7 @@ module away.gl
 			this._gl.depthMask(depthMask);
 		}
 
-		public setProgram(program:away.gl.Program)
+		public setProgram(program:Program)
 		{
 			//TODO decide on construction/reference resposibilities
 			this._currentProgram = program;
@@ -403,7 +403,7 @@ module away.gl
 			this._gl.scissor(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 		}
 
-		public setTextureAt(sampler:number, texture:away.gl.TextureBase)
+		public setTextureAt(sampler:number, texture:TextureBase)
 		{
 			var locationName:string = "fs" + sampler;
 			this.setGLSLTextureAt(locationName, texture, sampler);
@@ -450,9 +450,9 @@ module away.gl
 			var location:WebGLUniformLocation = this._gl.getUniformLocation(this._currentProgram.glProgram, locationName);
 
 			if (texture.textureType == "texture2d") {
-				this._gl.bindTexture(this._gl.TEXTURE_2D, (<away.gl.Texture>texture).glTexture);
+				this._gl.bindTexture(this._gl.TEXTURE_2D, (<Texture>texture).glTexture);
 				this._gl.uniform1i(location, textureIndex);
-				var samplerState:away.gl.SamplerState = this._samplerStates[ textureIndex ];
+				var samplerState:SamplerState = this._samplerStates[ textureIndex ];
 
 				if (samplerState.wrap != this._currentWrap) {
 					//this._currentWrap = samplerState.wrap;
@@ -475,9 +475,9 @@ module away.gl
 				//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
 			} else if (texture.textureType == "textureCube") {
 
-				this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, (<away.gl.CubeTexture>texture).glTexture);
+				this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, (<CubeTexture>texture).glTexture);
 				this._gl.uniform1i(location, textureIndex);
-				var samplerState:away.gl.SamplerState = this._samplerStates[ textureIndex ];
+				var samplerState:SamplerState = this._samplerStates[ textureIndex ];
 
 				if (samplerState.wrap != this._currentWrap) {
 					//this._currentWrap = samplerState.wrap;
@@ -599,9 +599,9 @@ module away.gl
 			this._gl.vertexAttribPointer(location, dimension, type, false, buffer.data32PerVertex*numBytes, bufferOffset*numBytes);
 		}
 
-		public setRenderToTexture(target:away.gl.TextureBase, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0)
+		public setRenderToTexture(target:TextureBase, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0)
 		{
-			var texture : away.gl.Texture = <away.gl.Texture>target;
+			var texture : Texture = <Texture>target;
 			var frameBuffer:WebGLFramebuffer = texture.frameBuffer;
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
 

@@ -2,23 +2,18 @@
 
 module away.managers
 {
-	//import away.arcane;
-
-	//import flash.base.Stage;
-	//import flash.utils.Dictionary;
-
-	//use namespace arcane;
+	import StageGL							= away.base.StageGL;
 
 	/**
 	 * The StageGLManager class provides a multiton object that handles management for StageGL objects. StageGL objects
 	 * should not be requested directly, but are exposed by a StageGLProxy.
 	 *
-	 * @see away.base.StageGLProxy
+	 * @see away.base.StageGL
 	 */
 	export class StageGLManager extends away.events.EventDispatcher
 	{
 		private static STAGEGL_MAX_QUANTITY:number = 8;
-		private _stageGLs:Array<away.base.StageGL>;
+		private _stageGLs:Array<StageGL>;
 
 		//private static _instances:Object;
 		private static _instance:StageGLManager;
@@ -36,7 +31,7 @@ module away.managers
 			if (!StageGLManagerSingletonEnforcer)
 				throw new Error("This class is a multiton and cannot be instantiated manually. Use StageGLManager.getInstance instead.");
 
-			this._stageGLs = new Array<away.base.StageGL>(StageGLManager.STAGEGL_MAX_QUANTITY);
+			this._stageGLs = new Array<StageGL>(StageGLManager.STAGEGL_MAX_QUANTITY);
 
 			this._onContextCreatedDelegate = away.utils.Delegate.create(this, this.onContextCreated);
 		}
@@ -63,7 +58,7 @@ module away.managers
 		 * @param profile The compatibility profile, an enumeration of ContextGLProfile
 		 * @return The StageGL for the given index.
 		 */
-		public getStageGLAt(index:number, forceSoftware:boolean = false, profile:string = "baseline"):away.base.StageGL
+		public getStageGLAt(index:number, forceSoftware:boolean = false, profile:string = "baseline"):StageGL
 		{
 			if (index < 0 || index >= StageGLManager.STAGEGL_MAX_QUANTITY)
 				throw new away.errors.ArgumentError("Index is out of bounds [0.." + StageGLManager.STAGEGL_MAX_QUANTITY + "]");
@@ -72,7 +67,7 @@ module away.managers
 				StageGLManager._numStageGLs++;
 
 				var canvas:HTMLCanvasElement = document.createElement("canvas");
-				var stageGL:away.base.StageGL = this._stageGLs[index] = new away.base.StageGL(canvas, index, this, forceSoftware, profile);
+				var stageGL:StageGL = this._stageGLs[index] = new StageGL(canvas, index, this, forceSoftware, profile);
 				stageGL.addEventListener(away.events.StageGLEvent.CONTEXTGL_CREATED, this._onContextCreatedDelegate);
 				stageGL.requestContext(true, forceSoftware, profile);
 			}
@@ -85,7 +80,7 @@ module away.managers
 		 * @param stageGL
 		 * @private
 		 */
-		public iRemoveStageGL(stageGL:away.base.StageGL)
+		public iRemoveStageGL(stageGL:StageGL)
 		{
 			StageGLManager._numStageGLs--;
 
@@ -100,12 +95,10 @@ module away.managers
 		 * @param profile The compatibility profile, an enumeration of ContextGLProfile
 		 * @return The allocated stageGL
 		 */
-		public getFreeStageGL(forceSoftware:boolean = false, profile:string = "baseline"):away.base.StageGL
+		public getFreeStageGL(forceSoftware:boolean = false, profile:string = "baseline"):StageGL
 		{
 			var i:number = 0;
 			var len:number = this._stageGLs.length;
-
-			//console.log( StageGLManager._stageProxies );
 
 			while (i < len) {
 				if (!this._stageGLs[i])
@@ -154,7 +147,7 @@ module away.managers
 
 		private onContextCreated(e:away.events.Event):void
 		{
-			var stageGL:away.base.StageGL = <away.base.StageGL> e.target;
+			var stageGL:StageGL = <StageGL> e.target;
 			document.body.appendChild(stageGL.canvas)
 		}
 	}

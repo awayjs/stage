@@ -13,7 +13,7 @@
  *********************************************************************************************************************************************************************************************************/
 
 ///<reference path="../../libs/ref/js.d.ts"/>
-///<reference path="../../libs/awayjs.next.d.ts"/>
+///<reference path="../../libs/awayjs-core.next.d.ts"/>
 
 ///<reference path="../aglsl/Sampler.ts"/>
 ///<reference path="../aglsl/Token.ts"/>

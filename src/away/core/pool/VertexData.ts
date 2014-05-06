@@ -5,9 +5,9 @@
  */
 module away.pool
 {
-	import SubGeometryEvent				= away.events.SubGeometryEvent;
 	import SubGeometryBase				= away.base.SubGeometryBase;
 	import StageGL						= away.base.StageGL;
+	import SubGeometryEvent				= away.events.SubGeometryEvent;
 	import VertexBuffer					= away.gl.VertexBuffer;
 
 	/**

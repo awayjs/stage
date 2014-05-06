@@ -7,6 +7,7 @@ module away.pool
 {
 	import StageGL						= away.base.StageGL;
 	import TextureBase					= away.gl.TextureBase;
+	import TextureProxyBase				= away.textures.TextureProxyBase;
 
 	/**
 	 *
@@ -22,7 +23,7 @@ module away.pool
 
 		public invalid:boolean;
 
-		constructor(stageGL:away.base.IStage, textureProxy:away.textures.TextureProxyBase)
+		constructor(stageGL:StageGL, textureProxy:TextureProxyBase)
 		{
 			this.stageGL = stageGL;
 			this.textureProxy = textureProxy;
