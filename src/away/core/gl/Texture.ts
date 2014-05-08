@@ -51,7 +51,6 @@ module away.gl
 				data = (<away.base.BitmapData> data).imageData;
 
 			this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-			//this._gl.pixelStorei( this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, this._gl.ZERO );
 			this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 			this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 		}
@@ -71,16 +70,7 @@ module away.gl
 		{
 			this._frameBuffer = this._gl.createFramebuffer();
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._frameBuffer);
-			//this._frameBuffer.width = this._width;
-			//this._frameBuffer.height = this._height;
-
 			this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-			//this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.LINEAR);
-			//this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.LINEAR_MIPMAP_NEAREST);
-			//this._gl.generateMipmap(this._gl.TEXTURE_2D);
-
-			//this._gl.texImage2D( this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data.imageData );
-
 			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 
 			var renderBuffer:WebGLRenderbuffer = this._gl.createRenderbuffer();
@@ -97,6 +87,7 @@ module away.gl
 
 		public generateMipmaps()
 		{
+			//TODO: implement generating mipmaps
 			//this._gl.bindTexture( this._gl.TEXTURE_2D, this._glTexture );
 			//this._gl.generateMipmap(this._gl.TEXTURE_2D);
 			//this._gl.bindTexture( this._gl.TEXTURE_2D, null );

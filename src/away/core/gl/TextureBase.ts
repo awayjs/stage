@@ -17,5 +17,10 @@ module away.gl
 		{
 			throw "Abstract method must be overridden.";
 		}
+
+		public get glTexture():WebGLTexture
+		{
+			throw new away.errors.AbstractMethodError();
+		}
 	}
 }

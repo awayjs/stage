@@ -5,6 +5,8 @@ module away.gl
 	export class CubeTexture extends TextureBase
 	{
 
+		private _textureSelectorDictionary:Array<number> = new Array<number>(6);
+
 		public textureType:string = "textureCube";
 		private _texture:WebGLTexture;
 		private _size:number;
@@ -14,6 +16,13 @@ module away.gl
 			super(gl);
 			this._size = size;
 			this._texture = this._gl.createTexture();
+
+			this._textureSelectorDictionary[0] = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
+			this._textureSelectorDictionary[1] = gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
+			this._textureSelectorDictionary[2] = gl.TEXTURE_CUBE_MAP_POSITIVE_Y;
+			this._textureSelectorDictionary[3] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
+			this._textureSelectorDictionary[4] = gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
+			this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 		}
 
 		public dispose()
@@ -29,31 +38,7 @@ module away.gl
 				data = (<away.base.BitmapData> data).imageData;
 
 			this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._texture);
-
-			switch (side) {
-				case 0:
-					this._gl.texImage2D(this._gl.TEXTURE_CUBE_MAP_POSITIVE_X, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
-
-					break;
-				case 1:
-					this._gl.texImage2D(this._gl.TEXTURE_CUBE_MAP_NEGATIVE_X, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
-					break;
-				case 2:
-					this._gl.texImage2D(this._gl.TEXTURE_CUBE_MAP_POSITIVE_Y, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
-					break;
-				case 3:
-					this._gl.texImage2D(this._gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
-					break;
-				case 4:
-					this._gl.texImage2D(this._gl.TEXTURE_CUBE_MAP_POSITIVE_Z, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
-					break;
-				case 5:
-					this._gl.texImage2D(this._gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
-					break;
-				default :
-					throw "unknown side type";
-			}
-
+			this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 			this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 		}
 

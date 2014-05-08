@@ -4,8 +4,9 @@ module away.gl
 {
 	export class SamplerState
 	{
-		public wrap:number = 0;
-		public filter:number = 0;
-		public mipfilter:number = 0;
+		public type:number;
+		public wrap:number;
+		public filter:number;
+		public mipfilter:number;
 	}
 }
