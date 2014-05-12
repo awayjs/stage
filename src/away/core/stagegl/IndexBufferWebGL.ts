@@ -1,8 +1,8 @@
 ///<reference path="../../_definitions.ts"/>
 
-module away.gl
+module away.stagegl
 {
-	export class IndexBuffer
+	export class IndexBufferWebGL implements IIndexBuffer
 	{
 
 		private _gl:WebGLRenderingContext;

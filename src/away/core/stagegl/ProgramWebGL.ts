@@ -1,9 +1,13 @@
 ///<reference path="../../_definitions.ts"/>
 
-module away.gl
+module away.stagegl
 {
-	export class Program
+	import ByteArray				= away.utils.ByteArray;
+
+	export class ProgramWebGL implements IProgram
 	{
+		private static _tokenizer:aglsl.AGALTokenizer = new aglsl.AGALTokenizer();
+		private static _aglslParser:aglsl.AGLSLParser = new aglsl.AGLSLParser();
 
 		private _gl:WebGLRenderingContext;
 		private _program:WebGLProgram;
@@ -16,13 +20,21 @@ module away.gl
 			this._program = this._gl.createProgram();
 		}
 
-		public upload(vertexProgram:string, fragmentProgram:string)
+		public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray)
 		{
+			var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram));
+			var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram));
+
+			console.log('===GLSL=========================================================');
+			console.log('vertString');
+			console.log(vertexString);
+			console.log('fragString');
+			console.log(fragmentString);
 
 			this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 			this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
 
-			this._gl.shaderSource(this._vertexShader, vertexProgram);
+			this._gl.shaderSource(this._vertexShader, vertexString);
 			this._gl.compileShader(this._vertexShader);
 
 			if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS)) {
@@ -30,7 +42,7 @@ module away.gl
 				return null; //TODO throw errors
 			}
 
-			this._gl.shaderSource(this._fragmentShader, fragmentProgram);
+			this._gl.shaderSource(this._fragmentShader, fragmentString);
 			this._gl.compileShader(this._fragmentShader);
 
 			if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS)) {

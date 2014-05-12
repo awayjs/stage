@@ -20,7 +20,7 @@ module away.pool
 
 		public stageGLs:Array<away.base.StageGL> = new Array<away.base.StageGL>(8);
 
-		public buffers:Array<away.gl.IndexBuffer> = new Array<away.gl.IndexBuffer>(8);
+		public buffers:Array<away.stagegl.IIndexBuffer> = new Array<away.stagegl.IIndexBuffer>(8);
 
 		public data:Array<number>;
 

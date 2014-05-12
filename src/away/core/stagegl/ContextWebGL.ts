@@ -1,10 +1,12 @@
 ///<reference path="../../_definitions.ts"/>
 
-module away.gl
+module away.stagegl
 {
 
-	export class ContextGL
+	export class ContextWebGL implements IContext
 	{
+		private _container:HTMLElement;
+
 		private _blendFactorDictionary:Object = new Object();
 		private _depthTestDictionary:Object = new Object();
 		private _textureIndexDictionary:Array<number> = new Array<number>(8);
@@ -20,10 +22,10 @@ module away.gl
 		private _blendSourceFactor:number;
 		private _blendDestinationFactor:number;
 
-		private _indexBufferList:Array<IndexBuffer> = new Array<IndexBuffer>();
-		private _vertexBufferList:Array<VertexBuffer> = new Array<VertexBuffer>();
-		private _textureList:Array<TextureBase> = new Array<TextureBase>();
-		private _programList:Array<Program> = new Array<Program>();
+		private _indexBufferList:Array<IndexBufferWebGL> = new Array<IndexBufferWebGL>();
+		private _vertexBufferList:Array<VertexBufferWebGL> = new Array<VertexBufferWebGL>();
+		private _textureList:Array<TextureBaseWebGL> = new Array<TextureBaseWebGL>();
+		private _programList:Array<ProgramWebGL> = new Array<ProgramWebGL>();
 
 		private _samplerStates:Array<SamplerState> = new Array<SamplerState>(8);
 
@@ -33,11 +35,19 @@ module away.gl
 		public _gl:WebGLRenderingContext;
 
 		//@protected
-		public _currentProgram:Program;
+		public _currentProgram:ProgramWebGL;
 		private _activeTexture:number;
+
+
+		public get container():HTMLElement
+		{
+			return this._container;
+		}
 
 		constructor(canvas:HTMLCanvasElement)
 		{
+			this._container = canvas;
+
 			try {
 				this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", { premultipliedAlpha:false, alpha:false });
 
@@ -112,7 +122,7 @@ module away.gl
 			}
 
 			//defaults
-			for (var i:number = 0; i < ContextGL.MAX_SAMPLERS; ++i) {
+			for (var i:number = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
 				this._samplerStates[i] = new SamplerState();
 				this._samplerStates[i].wrap = this._gl.REPEAT;
 				this._samplerStates[i].filter = this._gl.LINEAR;
@@ -132,10 +142,15 @@ module away.gl
 				this._drawing = true;
 			}
 
+			var glmask:number = 0;
+			if (mask & ContextGLClearMask.COLOR) glmask |= this._gl.COLOR_BUFFER_BIT;
+			if (mask & ContextGLClearMask.STENCIL) glmask |= this._gl.STENCIL_BUFFER_BIT;
+			if (mask & ContextGLClearMask.DEPTH) glmask |= this._gl.DEPTH_BUFFER_BIT;
+
 			this._gl.clearColor(red, green, blue, alpha);
 			this._gl.clearDepth(depth);
 			this._gl.clearStencil(stencil);
-			this._gl.clear(mask);
+			this._gl.clear(glmask);
 		}
 
 		public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true)
@@ -151,38 +166,38 @@ module away.gl
 			this._gl.viewport(0, 0, width, height);
 		}
 
-		public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTexture
+		public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureWebGL
 		{
-			var texture:CubeTexture = new CubeTexture(this._gl, size);
+			var texture:CubeTextureWebGL = new CubeTextureWebGL(this._gl, size);
 			this._textureList.push(texture);
 			return texture;
 		}
 
-		public createIndexBuffer(numIndices:number):IndexBuffer
+		public createIndexBuffer(numIndices:number):IndexBufferWebGL
 		{
-			var indexBuffer:IndexBuffer = new IndexBuffer(this._gl, numIndices);
+			var indexBuffer:IndexBufferWebGL = new IndexBufferWebGL(this._gl, numIndices);
 			this._indexBufferList.push(indexBuffer);
 			return indexBuffer;
 		}
 
-		public createProgram():Program
+		public createProgram():ProgramWebGL
 		{
-			var program:Program = new Program(this._gl);
+			var program:ProgramWebGL = new ProgramWebGL(this._gl);
 			this._programList.push(program);
 			return program;
 		}
 
-		public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):Texture
+		public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureWebGL
 		{
 			//TODO streaming
-			var texture:Texture = new Texture(this._gl, width, height);
+			var texture:TextureWebGL = new TextureWebGL(this._gl, width, height);
 			this._textureList.push(texture);
 			return texture;
 		}
 
-		public createVertexBuffer(numVertices:number, data32PerVertex:number):VertexBuffer
+		public createVertexBuffer(numVertices:number, data32PerVertex:number):VertexBufferWebGL
 		{
-			var vertexBuffer:VertexBuffer = new VertexBuffer(this._gl, numVertices, data32PerVertex);
+			var vertexBuffer:VertexBufferWebGL = new VertexBufferWebGL(this._gl, numVertices, data32PerVertex);
 			this._vertexBufferList.push(vertexBuffer);
 			return vertexBuffer;
 		}
@@ -226,7 +241,7 @@ module away.gl
 			destination.setPixels(new away.geom.Rectangle(0, 0, destination.width, destination.height), byteArray);
 		}
 
-		public drawTriangles(indexBuffer:IndexBuffer, firstIndex:number = 0, numTriangles:number = -1)
+		public drawTriangles(indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numTriangles:number = -1)
 		{
 			if (!this._drawing)
 				throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
@@ -286,7 +301,7 @@ module away.gl
 			this._gl.depthMask(depthMask);
 		}
 
-		public setProgram(program:Program)
+		public setProgram(program:ProgramWebGL)
 		{
 			//TODO decide on construction/reference resposibilities
 			this._currentProgram = program;
@@ -295,7 +310,21 @@ module away.gl
 
 		public setProgramConstantsFromMatrix(programType:string, firstRegister:number, matrix:away.geom.Matrix3D, transposedMatrix:boolean = false)
 		{
-			this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
+			//this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
+
+			//TODO remove special case for WebGL matrix calls?
+			var d:number[] = matrix.rawData;
+			if (transposedMatrix) {
+				this.setProgramConstantsFromArray(programType, firstRegister, [ d[0], d[4], d[8], d[12] ], 1);
+				this.setProgramConstantsFromArray(programType, firstRegister + 1, [ d[1], d[5], d[9], d[13] ], 1);
+				this.setProgramConstantsFromArray(programType, firstRegister + 2, [ d[2], d[6], d[10], d[14] ], 1);
+				this.setProgramConstantsFromArray(programType, firstRegister + 3, [ d[3], d[7], d[11], d[15] ], 1);
+			} else {
+				this.setProgramConstantsFromArray(programType, firstRegister, [ d[0], d[1], d[2], d[3] ], 1);
+				this.setProgramConstantsFromArray(programType, firstRegister + 1, [ d[4], d[5], d[6], d[7] ], 1);
+				this.setProgramConstantsFromArray(programType, firstRegister + 2, [ d[8], d[9], d[10], d[11] ], 1);
+				this.setProgramConstantsFromArray(programType, firstRegister + 3, [ d[12], d[13], d[14], d[15] ], 1);
+			}
 		}
 
 		public static modulo:number = 0;
@@ -321,7 +350,7 @@ module away.gl
 			this._gl.scissor(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 		}
 
-		public setTextureAt(sampler:number, texture:TextureBase)
+		public setTextureAt(sampler:number, texture:TextureBaseWebGL)
 		{
 			var samplerState:SamplerState = this._samplerStates[sampler];
 
@@ -355,7 +384,7 @@ module away.gl
 
 		public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
 		{
-			if (0 <= sampler && sampler < ContextGL.MAX_SAMPLERS) {
+			if (0 <= sampler && sampler < ContextWebGL.MAX_SAMPLERS) {
 				this._samplerStates[sampler].wrap = this._wrapDictionary[wrap];
 				this._samplerStates[sampler].filter = this._filterDictionary[filter];
 				this._samplerStates[sampler].mipfilter = this._mipmapFilterDictionary[filter][mipfilter];
@@ -364,7 +393,7 @@ module away.gl
 			}
 		}
 
-		public setVertexBufferAt(index:number, buffer:VertexBuffer, bufferOffset:number = 0, format:string = null)
+		public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:string = null)
 		{
 			var location:number = this._currentProgram? this._gl.getAttribLocation(this._currentProgram.glProgram, "va" + index) : -1;
 
@@ -380,9 +409,9 @@ module away.gl
 			this._gl.vertexAttribPointer(location, this._vertexBufferDimensionDictionary[format], this._gl.FLOAT, false, buffer.data32PerVertex*4, bufferOffset*4);
 		}
 
-		public setRenderToTexture(target:TextureBase, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0)
+		public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0)
 		{
-			var texture : Texture = <Texture>target;
+			var texture:TextureWebGL = <TextureWebGL> target;
 			var frameBuffer:WebGLFramebuffer = texture.frameBuffer;
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
 

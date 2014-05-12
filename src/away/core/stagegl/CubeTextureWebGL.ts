@@ -1,8 +1,8 @@
 ///<reference path="../../_definitions.ts"/>
 
-module away.gl
+module away.stagegl
 {
-	export class CubeTexture extends TextureBase
+	export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 	{
 
 		private _textureSelectorDictionary:Array<number> = new Array<number>(6);

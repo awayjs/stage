@@ -4,18 +4,18 @@ module away.managers
 {
 	import StageGL							= away.base.StageGL;
 	import Rectangle						= away.geom.Rectangle;
-	import ContextGL						= away.gl.ContextGL;
-	import IndexBuffer						= away.gl.IndexBuffer;
-	import VertexBuffer						= away.gl.VertexBuffer;
+	import IContext							= away.stagegl.IContext;
+	import IIndexBuffer						= away.stagegl.IIndexBuffer;
+	import IVertexBuffer						= away.stagegl.IVertexBuffer;
 	
 	export class RTTBufferManager extends away.events.EventDispatcher
 	{
 		private static _instances:RTTBufferManagerVO[];
 
-		private _renderToTextureVertexBuffer:VertexBuffer;
-		private _renderToScreenVertexBuffer:VertexBuffer;
+		private _renderToTextureVertexBuffer:IVertexBuffer;
+		private _renderToScreenVertexBuffer:IVertexBuffer;
 
-		private _indexBuffer:IndexBuffer;
+		private _indexBuffer:IIndexBuffer;
 		private _stageGL:StageGL;
 		private _viewWidth:number = -1;
 		private _viewHeight:number = -1;
@@ -166,7 +166,7 @@ module away.managers
 			this.dispatchEvent(new away.events.Event(away.events.Event.RESIZE));
 		}
 
-		public get renderToTextureVertexBuffer():VertexBuffer
+		public get renderToTextureVertexBuffer():IVertexBuffer
 		{
 			if (this._buffersInvalid)
 				this.updateRTTBuffers();
@@ -174,7 +174,7 @@ module away.managers
 			return this._renderToTextureVertexBuffer;
 		}
 
-		public get renderToScreenVertexBuffer():VertexBuffer
+		public get renderToScreenVertexBuffer():IVertexBuffer
 		{
 			if (this._buffersInvalid)
 				this.updateRTTBuffers();
@@ -183,7 +183,7 @@ module away.managers
 
 		}
 
-		public get indexBuffer():IndexBuffer
+		public get indexBuffer():IIndexBuffer
 		{
 			return this._indexBuffer;
 		}
@@ -225,7 +225,7 @@ module away.managers
 		// needs to be stored per view of course
 		private updateRTTBuffers()
 		{
-			var context:ContextGL = this._stageGL.contextGL;
+			var context:IContext = this._stageGL.contextGL;
 			var textureVerts:number[];
 			var screenVerts:number[];
 

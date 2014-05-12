@@ -3,7 +3,7 @@
 module away.base
 {
 	/**
-	 * StageGL provides a proxy class to handle the creation and attachment of the ContextGL
+	 * StageGL provides a proxy class to handle the creation and attachment of the ContextWebGL
 	 * (and in turn the back buffer) it uses. StageGL should never be created directly,
 	 * but requested through StageGLManager.
 	 *
@@ -16,8 +16,8 @@ module away.base
 	{
 		private _texturePool:away.pool.TextureDataPool;
 
-		private _contextGL:away.gl.ContextGL;
-		private _canvas:HTMLCanvasElement;
+		private _contextGL:away.stagegl.IContext;
+		private _container:HTMLElement;
 		private _width:number;
 		private _height:number;
 		private _x:number = 0;
@@ -29,7 +29,7 @@ module away.base
 
 		private _usesSoftwareRendering:boolean;
 		private _profile:string;
-		private _activeProgram:away.gl.Program;
+		private _activeProgram:away.stagegl.IProgram;
 		private _stageGLManager:away.managers.StageGLManager;
 		private _antiAlias:number = 0;
 		private _enableDepthAndStencil:boolean;
@@ -53,13 +53,13 @@ module away.base
 
 		private _initialised:boolean = false;
 
-		constructor(canvas:HTMLCanvasElement, stageGLIndex:number, stageGLManager:away.managers.StageGLManager, forceSoftware:boolean = false, profile:string = "baseline")
+		constructor(container:HTMLCanvasElement, stageGLIndex:number, stageGLManager:away.managers.StageGLManager, forceSoftware:boolean = false, profile:string = "baseline")
 		{
 			super();
 
 			this._texturePool = new away.pool.TextureDataPool(this);
 
-			this._canvas = canvas;
+			this._container = container;
 
 			this._iStageGLIndex = stageGLIndex;
 
@@ -69,19 +69,19 @@ module away.base
 
 			this._enableDepthAndStencil = true;
 
-			away.utils.CSS.setCanvasX(this._canvas, 0);
-			away.utils.CSS.setCanvasY(this._canvas, 0);
+			away.utils.CSS.setElementX(this._container, 0);
+			away.utils.CSS.setElementY(this._container, 0);
 
 			this.visible = true;
 		}
 
 		/**
-		 * Requests a ContextGL object to attach to the managed gl canvas.
+		 * Requests a ContextWebGL object to attach to the managed gl canvas.
 		 */
-		public requestContext(aglslContext:boolean = false, forceSoftware:boolean = false, profile:string = "baseline")
+		public requestContext(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto")
 		{
 			// If forcing software, we can be certain that the
-			// returned ContextGL will be running software mode.
+			// returned ContextWebGL will be running software mode.
 			// If not, we can't be sure and should stick to the
 			// old value (will likely be same if re-requesting.)
 
@@ -91,39 +91,41 @@ module away.base
 			this._profile = profile;
 
 			try {
-				if (aglslContext)
-					this._contextGL = new away.gl.AGLSLContextGL(this._canvas);
+				if (mode == away.stagegl.ContextGLMode.FLASH)
+					new away.stagegl.ContextStage3D(<HTMLCanvasElement> this._container, (context:away.stagegl.IContext) => this._callback(context));
 				else
-					this._contextGL = new away.gl.ContextGL(this._canvas);
+					this._contextGL = new away.stagegl.ContextWebGL(<HTMLCanvasElement> this._container);
 
 			} catch (e) {
-				this.dispatchEvent(new away.events.Event(away.events.Event.ERROR));
+				try {
+					if (mode == away.stagegl.ContextGLMode.AUTO)
+						new away.stagegl.ContextStage3D(<HTMLCanvasElement> this._container, (context:away.stagegl.IContext) => this._callback(context));
+					else
+						this.dispatchEvent(new away.events.Event(away.events.Event.ERROR));
+				} catch (e) {
+					this.dispatchEvent(new away.events.Event(away.events.Event.ERROR));
+				}
+
 			}
 
-			if (this._contextGL) {
-				// Only configure back buffer if width and height have been set,
-				// which they may not have been if View.render() has yet to be
-				// invoked for the first time.
-				if (this._width && this._height)
-					this._contextGL.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
-
-				// Dispatch the appropriate event depending on whether context was
-				// created for the first time or recreated after a device loss.
-				this.dispatchEvent(new away.events.StageGLEvent(this._initialised? away.events.StageGLEvent.CONTEXTGL_RECREATED : away.events.StageGLEvent.CONTEXTGL_CREATED));
-
-				this._initialised = true;
-			}
+			if (this._contextGL)
+				this._callback(this._contextGL);
 		}
 
 		/**
 		 * The width of the gl canvas
 		 */
+		public get width()
+		{
+			return this._width;
+		}
+
 		public set width(val:number)
 		{
 			if (this._width == val)
 				return;
 
-			away.utils.CSS.setCanvasWidth(this._canvas, val);
+			away.utils.CSS.setElementWidth(this._container, val);
 
 			this._width = this._viewPort.width = val;
 
@@ -132,20 +134,20 @@ module away.base
 			this.notifyViewportUpdated();
 		}
 
-		public get width()
-		{
-			return this._width;
-		}
-
 		/**
 		 * The height of the gl canvas
 		 */
+		public get height()
+		{
+			return this._height;
+		}
+
 		public set height(val:number)
 		{
 			if (this._height == val)
 				return;
 
-			away.utils.CSS.setCanvasHeight(this._canvas, val);
+			away.utils.CSS.setElementHeight(this._container, val);
 
 			this._height = this._viewPort.height = val;
 
@@ -154,70 +156,65 @@ module away.base
 			this.notifyViewportUpdated();
 		}
 
-		public get height()
-		{
-			return this._height;
-		}
-
 		/**
 		 * The x position of the gl canvas
 		 */
+		public get x()
+		{
+			return this._x;
+		}
+
 		public set x(val:number)
 		{
 			if (this._x == val)
 				return;
 
-			away.utils.CSS.setCanvasX(this._canvas, val);
+			away.utils.CSS.setElementX(this._container, val);
 
 			this._x = this._viewPort.x = val;
 
 			this.notifyViewportUpdated();
 		}
 
-		public get x()
-		{
-			return this._x;
-		}
-
 		/**
 		 * The y position of the gl canvas
 		 */
+		public get y()
+		{
+			return this._y;
+		}
+
 		public set y(val:number)
 		{
 			if (this._y == val)
 				return;
 
-			away.utils.CSS.setCanvasY(this._canvas, val);
+			away.utils.CSS.setElementY(this._container, val);
 
 			this._y = this._viewPort.y = val;
 
 			this.notifyViewportUpdated();
 		}
 
-		public get y()
-		{
-			return this._y;
-		}
-
 		public set visible(val:boolean)
 		{
-			away.utils.CSS.setCanvasVisibility(this._canvas, val);
+			away.utils.CSS.setElementVisibility(this._container, val);
 		}
 
 		public get visible()
 		{
-			return away.utils.CSS.getCanvasVisibility(this._canvas);
+			return away.utils.CSS.getElementVisibility(this._container);
 		}
 
-		public get canvas():HTMLCanvasElement
+		public get container():HTMLElement
 		{
-			return this._canvas;
+			return this._container;
 		}
 
 		/**
-		 * The ContextGL object associated with the given gl canvas object.
+		 * The ContextWebGL object associated with the given gl canvas object.
 		 */
-		public get contextGL():away.gl.ContextGL
+		public get contextGL():away.stagegl.IContext
 		{
 			return this._contextGL;
 		}
@@ -267,7 +264,7 @@ module away.base
 		}
 
 		/**
-		 * Disposes the StageGL object, freeing the ContextGL attached to the StageGL.
+		 * Disposes the StageGL object, freeing the ContextWebGL attached to the StageGL.
 		 */
 		public dispose()
 		{
@@ -336,20 +333,12 @@ module away.base
 			}
 		}
 
-		public getRenderTexture(textureProxy:away.textures.RenderTexture):away.gl.TextureBase
+		public getRenderTexture(textureProxy:away.textures.RenderTexture):away.stagegl.ITextureBase
 		{
 			var textureData:away.pool.TextureData = <away.pool.TextureData> this._texturePool.getItem(textureProxy);
 
-			if (!textureData.texture) {
-				textureData.texture = this._contextGL.createTexture(textureProxy.width, textureProxy.height, away.gl.ContextGLTextureFormat.BGRA, true);
-				textureData.invalid = true;
-			}
-
-			if (textureData.invalid) {
-				textureData.invalid = false;
-				// fake data, to complete texture for sampling
-				(<away.gl.Texture> textureData.texture).generateFromRenderBuffer();
-			}
+			if (!textureData.texture)
+				textureData.texture = this._contextGL.createTexture(textureProxy.width, textureProxy.height, away.stagegl.ContextGLTextureFormat.BGRA, true);
 
 			return textureData.texture;
 		}
@@ -574,7 +563,7 @@ module away.base
 			var textureData:away.pool.TextureData = <away.pool.TextureData> this._texturePool.getItem(textureProxy);
 
 			if (!textureData.texture) {
-				textureData.texture = this._contextGL.createTexture(textureProxy.width, textureProxy.height, away.gl.ContextGLTextureFormat.BGRA, true);
+				textureData.texture = this._contextGL.createTexture(textureProxy.width, textureProxy.height, away.stagegl.ContextGLTextureFormat.BGRA, true);
 				textureData.invalid = true;
 			}
 
@@ -584,9 +573,9 @@ module away.base
 					var mipmapData:Array<away.base.BitmapData> = textureProxy._iGetMipmapData();
 					var len:number = mipmapData.length;
 					for (var i:number = 0; i < len; i++)
-						(<away.gl.Texture> textureData.texture).uploadFromData(mipmapData[i], i);
+						(<away.stagegl.ITexture> textureData.texture).uploadFromData(mipmapData[i], i);
 				} else {
-					(<away.gl.Texture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(), 0);
+					(<away.stagegl.ITexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(), 0);
 				}
 			}
 
@@ -598,7 +587,7 @@ module away.base
 			var textureData:away.pool.TextureData = <away.pool.TextureData> this._texturePool.getItem(textureProxy);
 
 			if (!textureData.texture) {
-				textureData.texture = this._contextGL.createCubeTexture(textureProxy.size, away.gl.ContextGLTextureFormat.BGRA, false);
+				textureData.texture = this._contextGL.createCubeTexture(textureProxy.size, away.stagegl.ContextGLTextureFormat.BGRA, false);
 				textureData.invalid = true;
 			}
 
@@ -609,9 +598,9 @@ module away.base
 						var mipmapData:Array<away.base.BitmapData> = textureProxy._iGetMipmapData(i);
 						var len:number = mipmapData.length;
 						for (var j:number = 0; j < len; j++)
-							(<away.gl.CubeTexture> textureData.texture).uploadFromData(mipmapData[j], i, j);
+							(<away.stagegl.ICubeTexture> textureData.texture).uploadFromData(mipmapData[j], i, j);
 					} else {
-						(<away.gl.CubeTexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(i), i, 0);
+						(<away.stagegl.ICubeTexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(i), i, 0);
 					}
 				}
 			}
@@ -621,21 +610,21 @@ module away.base
 
 		/**
 		 * Retrieves the VertexBuffer object that contains triangle indices.
-		 * @param context The ContextGL for which we request the buffer
+		 * @param context The ContextWebGL for which we request the buffer
 		 * @return The VertexBuffer object that contains triangle indices.
 		 */
-		public getIndexBuffer(buffer:away.pool.IndexData):away.gl.IndexBuffer
+		public getIndexBuffer(buffer:away.pool.IndexData):away.stagegl.IIndexBuffer
 		{
 			if (!buffer.stageGLs[this._iStageGLIndex])
 				buffer.stageGLs[this._iStageGLIndex] = this;
 
 			if (!buffer.buffers[this._iStageGLIndex]) {
-				buffer.buffers[this._iStageGLIndex] = this._contextGL.createIndexBuffer(buffer.data.length/3);
+				buffer.buffers[this._iStageGLIndex] = this._contextGL.createIndexBuffer(buffer.data.length);
 				buffer.invalid[this._iStageGLIndex] = true;
 			}
 
 			if (buffer.invalid[this._iStageGLIndex]) {
-				buffer.buffers[this._iStageGLIndex].uploadFromArray(buffer.data, 0, buffer.data.length/3);
+				buffer.buffers[this._iStageGLIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
 				buffer.invalid[this._iStageGLIndex] = false;
 			}
 
@@ -674,7 +663,7 @@ module away.base
 		 */
 
 		/**
-		 * Frees the ContextGL associated with this StageGLProxy.
+		 * Frees the ContextWebGL associated with this StageGLProxy.
 		 */
 		private freeContextGL()
 		{
@@ -733,7 +722,26 @@ module away.base
 			if (!this._contextGL)
 				return;
 
-			this._contextGL.clear(0, 0, 0, 1, 1, 0, away.gl.ContextGLClearMask.DEPTH);
+			this._contextGL.clear(0, 0, 0, 1, 1, 0, away.stagegl.ContextGLClearMask.DEPTH);
+		}
+
+		private _callback(context:away.stagegl.IContext)
+		{
+			this._contextGL = context;
+
+			this._container = this._contextGL.container;
+
+			// Only configure back buffer if width and height have been set,
+			// which they may not have been if View.render() has yet to be
+			// invoked for the first time.
+			if (this._width && this._height)
+				this._contextGL.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+
+			// Dispatch the appropriate event depending on whether context was
+			// created for the first time or recreated after a device loss.
+			this.dispatchEvent(new away.events.StageGLEvent(this._initialised? away.events.StageGLEvent.CONTEXTGL_RECREATED : away.events.StageGLEvent.CONTEXTGL_CREATED));
+
+			this._initialised = true;
 		}
 	}
 }

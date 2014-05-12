@@ -8,7 +8,7 @@ module away.pool
 	import SubGeometryBase				= away.base.SubGeometryBase;
 	import StageGL						= away.base.StageGL;
 	import SubGeometryEvent				= away.events.SubGeometryEvent;
-	import VertexBuffer					= away.gl.VertexBuffer;
+	import IVertexBuffer				= away.stagegl.IVertexBuffer;
 
 	/**
 	 *
@@ -22,7 +22,7 @@ module away.pool
 
 		public invalid:Array<boolean> = new Array<boolean>(8);
 
-		public buffers:Array<VertexBuffer> = new Array<VertexBuffer>(8);
+		public buffers:Array<IVertexBuffer> = new Array<IVertexBuffer>(8);
 
 		public stageGLs:Array<StageGL> = new Array<StageGL>(8);
 

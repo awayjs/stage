@@ -1,8 +1,8 @@
 ///<reference path="../../_definitions.ts"/>
 
-module away.gl
+module away.stagegl
 {
-	export class TextureBase
+	export class TextureBaseWebGL
 	{
 
 		public textureType:string = "";

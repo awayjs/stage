@@ -6,7 +6,7 @@
 module away.pool
 {
 	import StageGL						= away.base.StageGL;
-	import TextureBase					= away.gl.TextureBase;
+	import ITextureBase					= away.stagegl.ITextureBase;
 	import TextureProxyBase				= away.textures.TextureProxyBase;
 
 	/**
@@ -17,9 +17,9 @@ module away.pool
 	{
 		public stageGL:StageGL;
 
-		public texture:TextureBase;
+		public texture:ITextureBase;
 
-		public textureProxy:away.textures.TextureProxyBase;
+		public textureProxy:TextureProxyBase;
 
 		public invalid:boolean;
 

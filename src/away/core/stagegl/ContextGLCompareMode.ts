@@ -1,5 +1,5 @@
 ///<reference path="../../_definitions.ts"/>
-module away.gl
+module away.stagegl
 {
 	export class ContextGLCompareMode
 	{

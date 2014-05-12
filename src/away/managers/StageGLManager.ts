@@ -58,7 +58,7 @@ module away.managers
 		 * @param profile The compatibility profile, an enumeration of ContextGLProfile
 		 * @return The StageGL for the given index.
 		 */
-		public getStageGLAt(index:number, forceSoftware:boolean = false, profile:string = "baseline"):StageGL
+		public getStageGLAt(index:number, forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):StageGL
 		{
 			if (index < 0 || index >= StageGLManager.STAGEGL_MAX_QUANTITY)
 				throw new away.errors.ArgumentError("Index is out of bounds [0.." + StageGLManager.STAGEGL_MAX_QUANTITY + "]");
@@ -67,9 +67,11 @@ module away.managers
 				StageGLManager._numStageGLs++;
 
 				var canvas:HTMLCanvasElement = document.createElement("canvas");
+				canvas.id = "stagegl" + index;
+				document.body.appendChild(canvas);
 				var stageGL:StageGL = this._stageGLs[index] = new StageGL(canvas, index, this, forceSoftware, profile);
 				stageGL.addEventListener(away.events.StageGLEvent.CONTEXTGL_CREATED, this._onContextCreatedDelegate);
-				stageGL.requestContext(true, forceSoftware, profile);
+				stageGL.requestContext(forceSoftware, profile, mode);
 			}
 
 			return stageGL;
@@ -95,14 +97,14 @@ module away.managers
 		 * @param profile The compatibility profile, an enumeration of ContextGLProfile
 		 * @return The allocated stageGL
 		 */
-		public getFreeStageGL(forceSoftware:boolean = false, profile:string = "baseline"):StageGL
+		public getFreeStageGL(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):StageGL
 		{
 			var i:number = 0;
 			var len:number = this._stageGLs.length;
 
 			while (i < len) {
 				if (!this._stageGLs[i])
-					return this.getStageGLAt(i, forceSoftware, profile);
+					return this.getStageGLAt(i, forceSoftware, profile, mode);
 
 				++i;
 			}
@@ -147,8 +149,8 @@ module away.managers
 
 		private onContextCreated(e:away.events.Event):void
 		{
-			var stageGL:StageGL = <StageGL> e.target;
-			document.body.appendChild(stageGL.canvas)
+			//var stageGL:StageGL = <StageGL> e.target;
+			//document.body.appendChild(stageGL.canvas)
 		}
 	}
 }

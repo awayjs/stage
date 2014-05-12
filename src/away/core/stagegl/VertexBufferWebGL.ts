@@ -1,9 +1,9 @@
 ///<reference path="../../_definitions.ts"/>
 
-module away.gl
+module away.stagegl
 {
 
-	export class VertexBuffer
+	export class VertexBufferWebGL implements IVertexBuffer
 	{
 
 		private _gl:WebGLRenderingContext;
