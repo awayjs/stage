@@ -25,12 +25,6 @@ module away.stagegl
 			var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram));
 			var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram));
 
-			console.log('===GLSL=========================================================');
-			console.log('vertString');
-			console.log(vertexString);
-			console.log('fragString');
-			console.log(fragmentString);
-
 			this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 			this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
 

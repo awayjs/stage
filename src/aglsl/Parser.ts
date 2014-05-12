@@ -24,7 +24,7 @@ module aglsl
 					}
 				}
 			} else {
-				header += "uniform vec4 " + tag + "carrr[" + ContextGL.maxvertexconstants + "];\n";                // use max const count instead
+				header += "uniform vec4 " + tag + "carrr[" + away.stagegl.ContextStage3D.maxvertexconstants + "];\n";                // use max const count instead
 			}
 
 			// declare temps

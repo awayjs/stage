@@ -69,20 +69,6 @@ declare module aglsl {
     }
 }
 declare module aglsl {
-    class ContextGL {
-        public enableErrorChecking: boolean;
-        public resources: any[];
-        public driverInfo: string;
-        static maxvertexconstants: number;
-        static maxfragconstants: number;
-        static maxtemp: number;
-        static maxstreams: number;
-        static maxtextures: number;
-        static defaultsampler: Sampler;
-        constructor();
-    }
-}
-declare module aglsl {
     class Mapping {
         static agal2glsllut: OpLUT[];
     }
@@ -296,6 +282,12 @@ declare module away.stagegl {
     class ContextStage3D implements IContext {
         private _container;
         static contexts: Object;
+        static maxvertexconstants: number;
+        static maxfragconstants: number;
+        static maxtemp: number;
+        static maxstreams: number;
+        static maxtextures: number;
+        static defaultsampler: aglsl.Sampler;
         public _iDriverInfo: any;
         private _cmdStream;
         private _errorCheckingEnabled;

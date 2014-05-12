@@ -115,25 +115,6 @@ var aglsl;
 ///<reference path="../away/_definitions.ts" />
 var aglsl;
 (function (aglsl) {
-    var ContextGL = (function () {
-        function ContextGL() {
-            this.enableErrorChecking = false;
-            this.resources = [];
-            this.driverInfo = "Call getter function instead";
-        }
-        ContextGL.maxvertexconstants = 128;
-        ContextGL.maxfragconstants = 28;
-        ContextGL.maxtemp = 8;
-        ContextGL.maxstreams = 8;
-        ContextGL.maxtextures = 8;
-        ContextGL.defaultsampler = new aglsl.Sampler();
-        return ContextGL;
-    })();
-    aglsl.ContextGL = ContextGL;
-})(aglsl || (aglsl = {}));
-///<reference path="../away/_definitions.ts" />
-var aglsl;
-(function (aglsl) {
     var Mapping = (function () {
         function Mapping() {
         }
@@ -943,7 +924,7 @@ var aglsl;
                     }
                 }
             } else {
-                header += "uniform vec4 " + tag + "carrr[" + aglsl.ContextGL.maxvertexconstants + "];\n"; // use max const count instead
+                header += "uniform vec4 " + tag + "carrr[" + away.stagegl.ContextStage3D.maxvertexconstants + "];\n"; // use max const count instead
             }
 
             for (var i = 0; i < desc.regread[0x2].length || i < desc.regwrite[0x2].length; i++) {
@@ -1738,6 +1719,12 @@ var away;
                 return Number(result);
             };
             ContextStage3D.contexts = new Object();
+            ContextStage3D.maxvertexconstants = 128;
+            ContextStage3D.maxfragconstants = 28;
+            ContextStage3D.maxtemp = 8;
+            ContextStage3D.maxstreams = 8;
+            ContextStage3D.maxtextures = 8;
+            ContextStage3D.defaultsampler = new aglsl.Sampler();
 
             ContextStage3D.debug = false;
             ContextStage3D.logStream = false;
@@ -2575,12 +2562,6 @@ var away;
             ProgramWebGL.prototype.upload = function (vertexProgram, fragmentProgram) {
                 var vertexString = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram));
                 var fragmentString = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram));
-
-                console.log('===GLSL=========================================================');
-                console.log('vertString');
-                console.log(vertexString);
-                console.log('fragString');
-                console.log(fragmentString);
 
                 this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
                 this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
@@ -4707,7 +4688,6 @@ var StageGLManagerSingletonEnforcer = (function () {
 ///<reference path="../aglsl/Header.ts"/>
 ///<reference path="../aglsl/Description.ts"/>
 ///<reference path="../aglsl/Destination.ts"/>
-///<reference path="../aglsl/ContextGL.ts"/>
 ///<reference path="../aglsl/Mapping.ts"/>
 ///<reference path="../aglsl/assembler/OpCode.ts"/>
 ///<reference path="../aglsl/assembler/OpcodeMap.ts"/>

@@ -23,7 +23,6 @@
 ///<reference path="../aglsl/Header.ts"/>
 ///<reference path="../aglsl/Description.ts"/>
 ///<reference path="../aglsl/Destination.ts"/>
-///<reference path="../aglsl/ContextGL.ts"/>
 ///<reference path="../aglsl/Mapping.ts"/>
 ///<reference path="../aglsl/assembler/OpCode.ts"/>
 ///<reference path="../aglsl/assembler/OpcodeMap.ts"/>

@@ -8,6 +8,12 @@ module away.stagegl
 		private _container:HTMLElement;
 
 		public static contexts:Object = new Object();
+		public static maxvertexconstants:number = 128;
+		public static maxfragconstants:number = 28;
+		public static maxtemp:number = 8;
+		public static maxstreams:number = 8;
+		public static maxtextures:number = 8;
+		public static defaultsampler = new aglsl.Sampler();
 
 		public _iDriverInfo;
 
