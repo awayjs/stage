@@ -37,7 +37,7 @@ module tests.textures
 			var image : HTMLImageElement = <HTMLImageElement> event.target;
             var stageGLManager       : away.managers.StageGLManager        = away.managers.StageGLManager.getInstance();
             var stage3D     : away.base.StageGL      = stageGLManager.getStageGLAt( 0 );
-            var context3D   : away.gl.ContextGL  = new away.gl.ContextGL( stage3D.canvas );
+            var context3D   : away.gl.ContextWebGL  = new away.gl.ContextWebGL( stage3D.canvas );
 
             console.log( 'away.events.Event.COMPLETE' , image );
 
