@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Molehill.js master tests page</title>
+		<meta charset="utf-8" />
+        <link rel="icon" type="image/png" href="res/nyan.png">        
+        <style>
+        .buttonclass {
+            -moz-border-radius:3px;
+            -webkit-border-radius:3px;
+            border-radius:3px;
+            border:2px solid #969696;
+            display:inline-block;
+            color:#000000;
+            font-family:Arial;
+            font-size:12px;            
+            text-decoration:none;        
+            margin:4px;
+        }
+        .buttonclass:active {
+            position:relative;
+            top:2px;
+            left:2px;
+        }
+        </style>
+	</head>    
+    
+    
+	<body>				
+        <div id="theprof">
+            <canvas id="prof" width=640 height=40></canvas>                    
+        </div>
+        <div id="thecan">
+            <canvas id="can" width=640 height=480></canvas>        
+        </div>        
+        <div id="themode">
+            Molehill rendering mode:            
+            <select name="seltestmode" id="testmode">
+                <option value="auto">Auto</option>
+                <option value="webgl">Web GL</option>
+                <option value="flash">Flash</option>
+            </select>            
+        </div>
+        <div>Pick a test to run:</div>
+        <div id="testlist"></div>                    
+        <div id="testall"></div>     
+        <script src="loader.js"></script>      
+	</body>
+</html>
