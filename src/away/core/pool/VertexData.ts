@@ -6,8 +6,8 @@
 module away.pool
 {
 	import SubGeometryBase				= away.base.SubGeometryBase;
-	import StageGL						= away.base.StageGL;
 	import SubGeometryEvent				= away.events.SubGeometryEvent;
+	import ContextGLBase				= away.stagegl.ContextGLBase;
 	import IVertexBuffer				= away.stagegl.IVertexBuffer;
 
 	/**
@@ -24,7 +24,7 @@ module away.pool
 
 		public buffers:Array<IVertexBuffer> = new Array<IVertexBuffer>(8);
 
-		public stageGLs:Array<StageGL> = new Array<StageGL>(8);
+		public contexts:Array<ContextGLBase> = new Array<ContextGLBase>(8);
 
 		public data:Array<number>;
 
@@ -76,9 +76,9 @@ module away.pool
 		public dispose()
 		{
 			for (var i:number = 0; i < 8; ++i) {
-				if (this.stageGLs[i]) {
-					this.stageGLs[i].disposeVertexData(this);
-					this.stageGLs[i] = null;
+				if (this.contexts[i]) {
+					this.contexts[i].disposeVertexData(this);
+					this.contexts[i] = null;
 				}
 			}
 		}

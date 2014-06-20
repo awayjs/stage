@@ -3,10 +3,8 @@
 module away.stagegl
 {
 
-	export class ContextStage3D implements IContext
+	export class ContextStage3D extends ContextGLBase implements IContextStageGL
 	{
-		private _container:HTMLElement;
-
 		public static contexts:Object = new Object();
 		public static maxvertexconstants:number = 128;
 		public static maxfragconstants:number = 28;
@@ -27,11 +25,11 @@ module away.stagegl
 		public static debug:boolean = false;
 		public static logStream:boolean = false;
 
-		public _iCallback:(context:away.stagegl.IContext) => void;
+		public _iCallback:(context:away.stagegl.IContextStageGL) => void;
 
 		public get container():HTMLElement
 		{
-			return this._container;
+			return this._pContainer;
 		}
 
 		public get driverInfo()
@@ -55,8 +53,10 @@ module away.stagegl
 			this.execute();
 		}
 
-		constructor(container:HTMLCanvasElement, callback:(context:away.stagegl.IContext) => void)
+		constructor(container:HTMLCanvasElement, callback:(context:away.stagegl.IContextStageGL) => void)
 		{
+			super();
+
 			this._resources = new Array<ResourceBaseFlash>();
 
 			var swfVersionStr = "11.0.0";
@@ -94,7 +94,7 @@ module away.stagegl
 				if (!callbackInfo.success)
 					return;
 
-				context3dObj._container = callbackInfo.ref;
+				context3dObj._pContainer = callbackInfo.ref;
 				context3dObj._iCallback = callback;
 			}
 
@@ -249,6 +249,8 @@ module away.stagegl
 
 		public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true)
 		{
+			super.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
+
 			//TODO: add Anitalias setting
 			this.addStream(String.fromCharCode(away.stagegl.OpCodes.configureBackBuffer) + width + "," + height + ",");
 		}
@@ -329,7 +331,7 @@ module away.stagegl
 
 		public dispose()
 		{
-			if (this._container == null)
+			if (this._pContainer == null)
 				return;
 
 			console.log("Context3D dispose, releasing " + this._resources.length + " resources.");
@@ -337,7 +339,7 @@ module away.stagegl
 			while (this._resources.length)
 				this._resources[0].dispose();
 
-			if (this._container) {
+			if (this._pContainer) {
 				// encode command
 				this.addStream(String.fromCharCode(away.stagegl.OpCodes.disposeContext));
 				this.execute();
@@ -346,7 +348,7 @@ module away.stagegl
 					this._oldParent.appendChild(this._oldCanvas);
 					this._oldParent = null;
 				}
-				this._container = null;
+				this._pContainer = null;
 			}
 
 			this._oldCanvas = null;
@@ -362,7 +364,7 @@ module away.stagegl
 			if (ContextStage3D.logStream)
 				console.log(this._cmdStream);
 
-			var result:number = this._container["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
+			var result:number = this._pContainer["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
 
 			if (Number(result) <= -3)
 				throw "Exec stream failed";

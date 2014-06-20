@@ -3,10 +3,8 @@
 module away.stagegl
 {
 
-	export class ContextWebGL implements IContext
+	export class ContextWebGL extends ContextGLBase implements IContextStageGL
 	{
-		private _container:HTMLElement;
-
 		private _blendFactorDictionary:Object = new Object();
 		private _depthTestDictionary:Object = new Object();
 		private _textureIndexDictionary:Array<number> = new Array<number>(8);
@@ -41,12 +39,14 @@ module away.stagegl
 
 		public get container():HTMLElement
 		{
-			return this._container;
+			return this._pContainer;
 		}
 
 		constructor(canvas:HTMLCanvasElement)
 		{
-			this._container = canvas;
+			super();
+
+			this._pContainer = canvas;
 
 			try {
 				this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", { premultipliedAlpha:false, alpha:false });
@@ -155,6 +155,8 @@ module away.stagegl
 
 		public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true)
 		{
+			super.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
+
 			if (enableDepthAndStencil) {
 				this._gl.enable(this._gl.STENCIL_TEST);
 				this._gl.enable(this._gl.DEPTH_TEST);

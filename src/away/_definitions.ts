@@ -33,6 +33,14 @@
 ///<reference path="../aglsl/AGALTokenizer.ts"/>
 ///<reference path="../aglsl/Parser.ts"/>
 
+///<reference path="core/pool/IndexData.ts" />
+///<reference path="core/pool/IndexDataPool.ts" />
+///<reference path="core/pool/TextureData.ts"/>
+///<reference path="core/pool/TextureDataPool.ts"/>
+///<reference path="core/pool/VertexData.ts" />
+///<reference path="core/pool/VertexDataPool.ts" />
+
+///<reference path="core/stagegl/ContextGLBase.ts"/>
 ///<reference path="core/stagegl/ContextGLClearMask.ts"/>
 ///<reference path="core/stagegl/ContextGLTextureFormat.ts"/>
 ///<reference path="core/stagegl/ContextGLTriangleFace.ts"/>
@@ -41,7 +49,6 @@
 ///<reference path="core/stagegl/ContextGLBlendFactor.ts"/>
 ///<reference path="core/stagegl/ContextGLCompareMode.ts"/>
 ///<reference path="core/stagegl/ContextGLMipFilter.ts"/>
-///<reference path="core/stagegl/ContextGLMode.ts"/>
 ///<reference path="core/stagegl/ContextGLProfile.ts"/>
 ///<reference path="core/stagegl/ContextGLStencilAction.ts"/>
 ///<reference path="core/stagegl/ContextGLTextureFilter.ts"/>
@@ -52,7 +59,7 @@
 ///<reference path="core/stagegl/TextureBaseWebGL.ts"/>
 ///<reference path="core/stagegl/CubeTextureFlash.ts" />
 ///<reference path="core/stagegl/CubeTextureWebGL.ts" />
-///<reference path="core/stagegl/IContext.ts" />
+///<reference path="core/stagegl/IContextStageGL.ts" />
 ///<reference path="core/stagegl/ICubeTexture.ts" />
 ///<reference path="core/stagegl/IIndexBuffer.ts"/>
 ///<reference path="core/stagegl/IndexBufferFlash.ts"/>
@@ -70,15 +77,5 @@
 ///<reference path="core/stagegl/VertexBufferFlash.ts"/>
 ///<reference path="core/stagegl/VertexBufferWebGL.ts"/>
 
-///<reference path="core/base/StageGL.ts" />
-
-///<reference path="core/pool/IndexData.ts" />
-///<reference path="core/pool/IndexDataPool.ts" />
-///<reference path="core/pool/TextureData.ts"/>
-///<reference path="core/pool/TextureDataPool.ts"/>
-///<reference path="core/pool/VertexData.ts" />
-///<reference path="core/pool/VertexDataPool.ts" />
-
 ///<reference path="managers/AGALProgramCache.ts"/>
 ///<reference path="managers/RTTBufferManager.ts"/>
-///<reference path="managers/StageGLManager.ts"/>

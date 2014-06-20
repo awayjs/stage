@@ -5,7 +5,7 @@
  */
 module away.pool
 {
-	import StageGL						= away.base.StageGL;
+	import ContextGLBase				= away.stagegl.ContextGLBase;
 	import ITextureBase					= away.stagegl.ITextureBase;
 	import TextureProxyBase				= away.textures.TextureProxyBase;
 
@@ -15,7 +15,7 @@ module away.pool
 	 */
 	export class TextureData implements ITextureData
 	{
-		public stageGL:StageGL;
+		public context:ContextGLBase;
 
 		public texture:ITextureBase;
 
@@ -23,9 +23,9 @@ module away.pool
 
 		public invalid:boolean;
 
-		constructor(stageGL:StageGL, textureProxy:TextureProxyBase)
+		constructor(context:ContextGLBase, textureProxy:TextureProxyBase)
 		{
-			this.stageGL = stageGL;
+			this.context = context;
 			this.textureProxy = textureProxy;
 		}
 

@@ -5,7 +5,8 @@
  */
 module away.pool
 {
-	import StageGL						= away.base.StageGL;
+	import ContextGLBase				= away.stagegl.ContextGLBase;
+	import TextureProxyBase				= away.textures.TextureProxyBase;
 
 	/**
 	 * @class away.pool.TextureDataPool
@@ -13,16 +14,16 @@ module away.pool
 	export class TextureDataPool
 	{
 		private _pool:Object = new Object();
-		private _stage:StageGL;
+		private _context:ContextGLBase;
 
 		/**
 		 * //TODO
 		 *
 		 * @param textureDataClass
 		 */
-		constructor(stage:StageGL)
+		constructor(context:ContextGLBase)
 		{
-			this._stage = stage;
+			this._context = context;
 		}
 
 		/**
@@ -31,9 +32,9 @@ module away.pool
 		 * @param materialOwner
 		 * @returns ITexture
 		 */
-		public getItem(textureProxy:away.textures.TextureProxyBase):TextureData
+		public getItem(textureProxy:TextureProxyBase):TextureData
 		{
-			return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this._stage, textureProxy))))
+			return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this._context, textureProxy))))
 		}
 
 		/**
@@ -41,7 +42,7 @@ module away.pool
 		 *
 		 * @param materialOwner
 		 */
-		public disposeItem(textureProxy:away.textures.TextureProxyBase)
+		public disposeItem(textureProxy:TextureProxyBase)
 		{
 			textureProxy._iRemoveTextureData(this._pool[textureProxy.id]);
 

@@ -5,6 +5,10 @@
  */
 module away.pool
 {
+	import SubGeometryBase				= away.base.SubGeometryBase;
+	import ContextGLBase						= away.stagegl.ContextGLBase;
+	import IIndexBuffer					= away.stagegl.IIndexBuffer;
+	
 	/**
 	 *
 	 */
@@ -18,9 +22,9 @@ module away.pool
 
 		public invalid:Array<boolean> = new Array(8);
 
-		public stageGLs:Array<away.base.StageGL> = new Array<away.base.StageGL>(8);
+		public contexts:Array<ContextGLBase> = new Array<ContextGLBase>(8);
 
-		public buffers:Array<away.stagegl.IIndexBuffer> = new Array<away.stagegl.IIndexBuffer>(8);
+		public buffers:Array<IIndexBuffer> = new Array<IIndexBuffer>(8);
 
 		public data:Array<number>;
 
@@ -112,9 +116,9 @@ module away.pool
 		public dispose()
 		{
 			for (var i:number = 0; i < 8; ++i) {
-				if (this.stageGLs[i]) {
-					this.stageGLs[i].disposeIndexData(this);
-					this.stageGLs[i] = null
+				if (this.contexts[i]) {
+					this.contexts[i].disposeIndexData(this);
+					this.contexts[i] = null
 				}
 			}
 		}

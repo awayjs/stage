@@ -4,10 +4,32 @@ module away.stagegl
 {
 	import Matrix3D							= away.geom.Matrix3D;
 	import Rectangle						= away.geom.Rectangle;
+	import IndexData						= away.pool.IndexData;
+	import VertexData						= away.pool.VertexData;
+	import CubeTextureBase					= away.textures.CubeTextureBase;
+	import RenderTexture					= away.textures.RenderTexture;
+	import Texture2DBase					= away.textures.Texture2DBase;
+	import TextureProxyBase					= away.textures.TextureProxyBase;
 
-	export interface IContext
+	export interface IContextStageGL extends away.display.IContext
 	{
-		container:HTMLElement;
+		setRenderTarget(target:TextureProxyBase, enableDepthAndStencil?:boolean, surfaceSelector?:number);
+
+		getRenderTexture(textureProxy:RenderTexture):ITextureBase;
+
+		activateBuffer(index:number, buffer:VertexData, offset:number, format:string);
+
+		disposeVertexData(buffer:VertexData);
+
+		activateRenderTexture(index:number, textureProxy:RenderTexture);
+
+		activateTexture(index:number, textureProxy:Texture2DBase);
+
+		activateCubeTexture(index:number, textureProxy:CubeTextureBase);
+
+		getIndexBuffer(buffer:IndexData):IIndexBuffer;
+
+		disposeIndexData(buffer:IndexData);
 
 		clear(red?:number, green?:number, blue?:number, alpha?:number, depth?:number, stencil?:number, mask?:number);
 
