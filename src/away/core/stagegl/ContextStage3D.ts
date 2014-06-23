@@ -53,9 +53,9 @@ module away.stagegl
 			this.execute();
 		}
 
-		constructor(container:HTMLCanvasElement, callback:(context:away.stagegl.IContextStageGL) => void)
+		constructor(container:HTMLCanvasElement, stageIndex:number, callback:(context:away.stagegl.IContextStageGL) => void)
 		{
-			super();
+			super(stageIndex);
 
 			this._resources = new Array<ResourceBaseFlash>();
 

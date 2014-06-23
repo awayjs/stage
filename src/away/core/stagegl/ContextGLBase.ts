@@ -33,7 +33,7 @@ module away.stagegl
 
 		//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver / request animation frame
 
-		public _iStageIndex:number = -1;
+		private _stageIndex:number = -1;
 		private _antiAlias:number = 0;
 		private _enableDepthAndStencil:boolean;
 		private _renderTarget:TextureProxyBase = null;
@@ -44,8 +44,9 @@ module away.stagegl
 			return this._pContainer;
 		}
 
-		constructor()
+		constructor(stageIndex:number)
 		{
+			this._stageIndex = stageIndex;
 			this._texturePool = new TextureDataPool(this);
 		}
 
@@ -86,26 +87,26 @@ module away.stagegl
 		 */
 		public activateBuffer(index:number, buffer:VertexData, offset:number, format:string)
 		{
-			if (!buffer.contexts[this._iStageIndex])
-				buffer.contexts[this._iStageIndex] = this;
+			if (!buffer.contexts[this._stageIndex])
+				buffer.contexts[this._stageIndex] = this;
 
-			if (!buffer.buffers[this._iStageIndex]) {
-				buffer.buffers[this._iStageIndex] = this.createVertexBuffer(buffer.data.length/buffer.dataPerVertex, buffer.dataPerVertex);
-				buffer.invalid[this._iStageIndex] = true;
+			if (!buffer.buffers[this._stageIndex]) {
+				buffer.buffers[this._stageIndex] = this.createVertexBuffer(buffer.data.length/buffer.dataPerVertex, buffer.dataPerVertex);
+				buffer.invalid[this._stageIndex] = true;
 			}
 
-			if (buffer.invalid[this._iStageIndex]) {
-				buffer.buffers[this._iStageIndex].uploadFromArray(buffer.data, 0, buffer.data.length/buffer.dataPerVertex);
-				buffer.invalid[this._iStageIndex] = false;
+			if (buffer.invalid[this._stageIndex]) {
+				buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length/buffer.dataPerVertex);
+				buffer.invalid[this._stageIndex] = false;
 			}
 
-			this.setVertexBufferAt(index, buffer.buffers[this._iStageIndex], offset, format);
+			this.setVertexBufferAt(index, buffer.buffers[this._stageIndex], offset, format);
 		}
 
 		public disposeVertexData(buffer:VertexData)
 		{
-			buffer.buffers[this._iStageIndex].dispose();
-			buffer.buffers[this._iStageIndex] = null;
+			buffer.buffers[this._stageIndex].dispose();
+			buffer.buffers[this._stageIndex] = null;
 		}
 
 		public activateRenderTexture(index:number, textureProxy:RenderTexture)
@@ -170,26 +171,26 @@ module away.stagegl
 		 */
 		public getIndexBuffer(buffer:IndexData):IIndexBuffer
 		{
-			if (!buffer.contexts[this._iStageIndex])
-				buffer.contexts[this._iStageIndex] = this;
+			if (!buffer.contexts[this._stageIndex])
+				buffer.contexts[this._stageIndex] = this;
 
-			if (!buffer.buffers[this._iStageIndex]) {
-				buffer.buffers[this._iStageIndex] = this.createIndexBuffer(buffer.data.length);
-				buffer.invalid[this._iStageIndex] = true;
+			if (!buffer.buffers[this._stageIndex]) {
+				buffer.buffers[this._stageIndex] = this.createIndexBuffer(buffer.data.length);
+				buffer.invalid[this._stageIndex] = true;
 			}
 
-			if (buffer.invalid[this._iStageIndex]) {
-				buffer.buffers[this._iStageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
-				buffer.invalid[this._iStageIndex] = false;
+			if (buffer.invalid[this._stageIndex]) {
+				buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
+				buffer.invalid[this._stageIndex] = false;
 			}
 
-			return buffer.buffers[this._iStageIndex];
+			return buffer.buffers[this._stageIndex];
 		}
 
 		public disposeIndexData(buffer:IndexData)
 		{
-			buffer.buffers[this._iStageIndex].dispose();
-			buffer.buffers[this._iStageIndex] = null;
+			buffer.buffers[this._stageIndex].dispose();
+			buffer.buffers[this._stageIndex] = null;
 		}
 
 		public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL)

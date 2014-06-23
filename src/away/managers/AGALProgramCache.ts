@@ -38,7 +38,7 @@ module away.managers
 
 		public static getInstance(stage:Stage):away.managers.AGALProgramCache
 		{
-			var index:number = stage._iStageIndex;
+			var index:number = stage.stageIndex;
 
 			if (AGALProgramCache._instances == null)
 				AGALProgramCache._instances = new Array<AGALProgramCache>(8);
@@ -68,7 +68,7 @@ module away.managers
 		{
 			var stage:Stage = <Stage> event.target;
 
-			var index:number = stage._iStageIndex;
+			var index:number = stage.stageIndex;
 
 			AGALProgramCache._instances[index].dispose();
 			AGALProgramCache._instances[index] = null;
@@ -92,7 +92,7 @@ module away.managers
 		public setProgram(programIds:Array<number>, programs:Array<away.stagegl.IProgram>, vertexCode:string, fragmentCode:string)
 		{
 			//TODO move program id arrays into stagegl
-			var stageIndex:number = this._stage._iStageIndex;
+			var stageIndex:number = this._stage.stageIndex;
 			var program:away.stagegl.IProgram;
 			var key:string = this.getKey(vertexCode, fragmentCode);
 

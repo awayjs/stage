@@ -42,9 +42,9 @@ module away.stagegl
 			return this._pContainer;
 		}
 
-		constructor(canvas:HTMLCanvasElement)
+		constructor(canvas:HTMLCanvasElement, stageIndex:number)
 		{
-			super();
+			super(stageIndex);
 
 			this._pContainer = canvas;
 
