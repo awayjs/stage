@@ -2,14 +2,21 @@
 
 module away.stagegl
 {
+	import Stage							= away.base.Stage;
+	import Camera							= away.entities.Camera;
 	import Matrix3D							= away.geom.Matrix3D;
 	import Rectangle						= away.geom.Rectangle;
 	import IndexData						= away.pool.IndexData;
+	import RenderableBase					= away.pool.RenderableBase;
+	import ShaderObjectData					= away.pool.ShaderObjectData;
 	import VertexData						= away.pool.VertexData;
+	import MaterialBase						= away.materials.MaterialBase;
+	import MaterialPassVO					= away.materials.MaterialPassVO;
 	import CubeTextureBase					= away.textures.CubeTextureBase;
 	import RenderTexture					= away.textures.RenderTexture;
 	import Texture2DBase					= away.textures.Texture2DBase;
 	import TextureProxyBase					= away.textures.TextureProxyBase;
+
 
 	export interface IContextStageGL extends away.display.IContext
 	{
@@ -21,6 +28,8 @@ module away.stagegl
 
 		disposeVertexData(buffer:VertexData);
 
+		activateShaderObject(shaderObject:ShaderObjectData, stage:Stage, camera:Camera);
+
 		activateRenderTexture(index:number, textureProxy:RenderTexture);
 
 		activateTexture(index:number, textureProxy:Texture2DBase);
@@ -28,6 +37,10 @@ module away.stagegl
 		activateCubeTexture(index:number, textureProxy:CubeTextureBase);
 
 		getIndexBuffer(buffer:IndexData):IIndexBuffer;
+
+		getShaderObject(materialPassVO:MaterialPassVO, profile:string):ShaderObjectData;
+
+		getRenderOrderId(material:MaterialBase, profile:string):number;
 
 		disposeIndexData(buffer:IndexData);
 
@@ -44,6 +57,8 @@ module away.stagegl
 		createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels?:number):ITexture;
 
 		createVertexBuffer(numVertices:number, data32PerVertex:number):IVertexBuffer;
+
+		deactivateShaderObject(shaderObject:ShaderObjectData, stage:Stage);
 
 		dispose();
 

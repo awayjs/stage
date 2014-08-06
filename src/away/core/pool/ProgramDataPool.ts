@@ -6,12 +6,13 @@
 module away.pool
 {
 	import ContextGLBase				= away.stagegl.ContextGLBase;
+	import ShaderObjectBase				= away.materials.ShaderObjectBase;
 	import TextureProxyBase				= away.textures.TextureProxyBase;
 
 	/**
-	 * @class away.pool.TextureDataPool
+	 * @class away.pool.ProgramDataPool
 	 */
-	export class TextureDataPool
+	export class ProgramDataPool
 	{
 		private _pool:Object = new Object();
 		private _context:ContextGLBase;
@@ -32,9 +33,9 @@ module away.pool
 		 * @param materialOwner
 		 * @returns ITexture
 		 */
-		public getItem(textureProxy:TextureProxyBase):TextureData
+		public getItem(key:string):ProgramData
 		{
-			return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, this._context, textureProxy))))
+			return this._pool[key] || (this._pool[key] = new ProgramData(this, this._context, key));
 		}
 
 		/**
@@ -42,11 +43,9 @@ module away.pool
 		 *
 		 * @param materialOwner
 		 */
-		public disposeItem(textureProxy:TextureProxyBase)
+		public disposeItem(key:string)
 		{
-			textureProxy._iRemoveTextureData(this._pool[textureProxy.id]);
-
-			this._pool[textureProxy.id] = null;
+			this._pool[key] = null;
 		}
 	}
 }

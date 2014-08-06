@@ -15,6 +15,8 @@ module away.pool
 	 */
 	export class TextureData implements ITextureData
 	{
+		private _pool:TextureDataPool;
+
 		public context:ContextGLBase;
 
 		public texture:ITextureBase;
@@ -23,8 +25,9 @@ module away.pool
 
 		public invalid:boolean;
 
-		constructor(context:ContextGLBase, textureProxy:TextureProxyBase)
+		constructor(pool:TextureDataPool, context:ContextGLBase, textureProxy:TextureProxyBase)
 		{
+			this._pool = pool;
 			this.context = context;
 			this.textureProxy = textureProxy;
 		}
@@ -34,6 +37,8 @@ module away.pool
 		 */
 		public dispose()
 		{
+			this._pool.disposeItem(this.textureProxy);
+
 			this.texture.dispose();
 			this.texture = null;
 		}

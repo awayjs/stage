@@ -33,10 +33,24 @@
 ///<reference path="../aglsl/AGALTokenizer.ts"/>
 ///<reference path="../aglsl/Parser.ts"/>
 
+///<reference path="events/AnimatorEvent.ts"/>
+///<reference path="events/ShadingMethodEvent.ts"/>
+
+///<reference path="errors/AnimationSetError.ts"/>
+
+///<reference path="core/pool/RenderableBase.ts" />
+///<reference path="core/pool/BillboardRenderable.ts" />
 ///<reference path="core/pool/IndexData.ts" />
 ///<reference path="core/pool/IndexDataPool.ts" />
+///<reference path="core/pool/LineSubMeshRenderable.ts" />
+///<reference path="core/pool/ProgramData.ts"/>
+///<reference path="core/pool/ProgramDataPool.ts"/>
+///<reference path="core/pool/SkyBoxRenderable.ts" />
+///<reference path="core/pool/ShaderObjectData.ts"/>
+///<reference path="core/pool/ShaderObjectDataPool.ts"/>
 ///<reference path="core/pool/TextureData.ts"/>
 ///<reference path="core/pool/TextureDataPool.ts"/>
+///<reference path="core/pool/TriangleSubMeshRenderable.ts" />
 ///<reference path="core/pool/VertexData.ts" />
 ///<reference path="core/pool/VertexDataPool.ts" />
 
@@ -79,3 +93,60 @@
 
 ///<reference path="managers/AGALProgramCache.ts"/>
 ///<reference path="managers/RTTBufferManager.ts"/>
+
+///<reference path="materials/compilation/ShaderObjectBase.ts"/>
+///<reference path="materials/compilation/ShaderLightingObject.ts"/>
+///<reference path="materials/compilation/MethodVO.ts"/>
+///<reference path="materials/compilation/RegisterPool.ts"/>
+///<reference path="materials/compilation/ShaderRegisterCache.ts"/>
+///<reference path="materials/compilation/ShaderRegisterElement.ts"/>
+///<reference path="materials/compilation/ShaderCompilerBase.ts"/>
+///<reference path="materials/compilation/ShaderLightingCompiler.ts"/>
+///<reference path="materials/compilation/ShaderRegisterCache.ts"/>
+///<reference path="materials/compilation/ShaderRegisterData.ts"/>
+///<reference path="materials/compilation/ShaderRegisterElement.ts"/>
+///<reference path="materials/methods/ShadingMethodBase.ts"/>
+///<reference path="materials/methods/LightingMethodBase.ts"/>
+///<reference path="materials/methods/AmbientBasicMethod.ts"/>
+///<reference path="materials/methods/DiffuseBasicMethod.ts"/>
+///<reference path="materials/methods/EffectMethodBase.ts"/>
+///<reference path="materials/methods/EffectColorTransformMethod.ts"/>
+///<reference path="materials/methods/NormalBasicMethod.ts"/>
+///<reference path="materials/methods/ShadowMapMethodBase.ts"/>
+///<reference path="materials/methods/ShadowMethodBase.ts"/>
+///<reference path="materials/methods/ShadowHardMethod.ts"/>
+///<reference path="materials/methods/SpecularBasicMethod.ts"/>
+///<reference path="materials/passes/MaterialPassBase.ts"/>
+///<reference path="materials/passes/IMaterialPassStageGL.ts"/>
+///<reference path="materials/passes/ILightingPassStageGL.ts"/>
+///<reference path="materials/passes/MaterialPassVO.ts"/>
+///<reference path="materials/passes/DepthMapPass.ts"/>
+///<reference path="materials/passes/DistanceMapPass.ts"/>
+///<reference path="materials/passes/LineBasicPass.ts"/>
+///<reference path="materials/passes/SkyBoxPass.ts"/>
+///<reference path="materials/passes/TrianglePassBase.ts"/>
+///<reference path="materials/passes/TriangleBasicPass.ts"/>
+///<reference path="materials/passes/MaterialPassMode.ts"/>
+///<reference path="materials/passes/TriangleMethodPass.ts"/>
+///<reference path="materials/DepthMaterialBase.ts"/>
+///<reference path="materials/LineBasicMaterial.ts"/>
+///<reference path="materials/SkyBoxMaterial.ts"/>
+///<reference path="materials/TriangleBasicMaterial.ts"/>
+///<reference path="materials/TriangleMaterialMode.ts"/>
+///<reference path="materials/TriangleMethodMaterial.ts"/>
+///<reference path="materials/utils/DefaultMaterialManager.ts"/>
+///<reference path="materials/utils/ShaderCompilerHelper.ts"/>
+
+
+///<reference path="core/render/RendererBase.ts" />
+///<reference path="core/render/DefaultRenderer.ts" />
+///<reference path="core/render/DepthRenderer.ts" />
+///<reference path="core/render/Filter3DRenderer.ts" />
+
+///<reference path="animators/data/AnimationRegisterCache.ts" />
+///<reference path="animators/states/IAnimationState.ts" />
+///<reference path="animators/AnimationSetBase.ts" />
+///<reference path="animators/AnimatorBase.ts" />
+
+///<reference path="filters/tasks/Filter3DTaskBase.ts"/>
+///<reference path="filters/Filter3DBase.ts"/>

@@ -2,17 +2,30 @@
 
 module away.stagegl
 {
+	import Stage							= away.base.Stage;
+	import Camera							= away.entities.Camera;
 	import AbstractMethodError				= away.errors.AbstractMethodError;
 	import Matrix3D							= away.geom.Matrix3D;
 	import Rectangle						= away.geom.Rectangle;
 	import IndexData						= away.pool.IndexData;
+	import ShaderObjectData					= away.pool.ShaderObjectData;
+	import ShaderObjectDataPool				= away.pool.ShaderObjectDataPool;
 	import TextureData						= away.pool.TextureData;
 	import TextureDataPool					= away.pool.TextureDataPool;
+	import ProgramData						= away.pool.ProgramData;
+	import ProgramDataPool					= away.pool.ProgramDataPool;
+	import RenderableBase					= away.pool.RenderableBase;
 	import VertexData						= away.pool.VertexData;
+	import MaterialBase						= away.materials.MaterialBase;
+	import MaterialPassBase					= away.materials.MaterialPassBase;
+	import MaterialPassVO					= away.materials.MaterialPassVO;
+	import ShaderCompilerBase				= away.materials.ShaderCompilerBase;
+	import ShaderObjectBase					= away.materials.ShaderObjectBase;
 	import CubeTextureBase					= away.textures.CubeTextureBase;
 	import RenderTexture					= away.textures.RenderTexture;
 	import Texture2DBase					= away.textures.Texture2DBase;
 	import TextureProxyBase					= away.textures.TextureProxyBase;
+	import ByteArray						= away.utils.ByteArray;
 
 	/**
 	 * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -24,9 +37,18 @@ module away.stagegl
 	 */
 	export class ContextGLBase implements away.display.IContext
 	{
+		private _programData:Array<ProgramData> = new Array<ProgramData>();
+		private _renderOrderIds:Object = new Object();
+		private _numUsedStreams:number = 0;
+		private _numUsedTextures:number = 0;
+
 		public _pContainer:HTMLElement;
 
 		private _texturePool:TextureDataPool;
+
+		private _shaderObjectDataPool:ShaderObjectDataPool;
+
+		private _programDataPool:ProgramDataPool;
 
 		private _width:number;
 		private _height:number;
@@ -48,6 +70,8 @@ module away.stagegl
 		{
 			this._stageIndex = stageIndex;
 			this._texturePool = new TextureDataPool(this);
+			this._shaderObjectDataPool = new ShaderObjectDataPool(this);
+			this._programDataPool = new ProgramDataPool(this);
 		}
 
 		public setRenderTarget(target:TextureProxyBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
@@ -74,6 +98,62 @@ module away.stagegl
 				textureData.texture = this.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
 
 			return textureData.texture;
+		}
+
+		public getShaderObject(materialPassVO:MaterialPassVO, profile:string):ShaderObjectData
+		{
+			var shaderObjectData:ShaderObjectData = this._shaderObjectDataPool.getItem(materialPassVO);
+
+			if (!shaderObjectData.shaderObject) {
+				shaderObjectData.shaderObject = materialPassVO.materialPass.createShaderObject(profile);
+				shaderObjectData.invalid = true;
+			}
+
+			if (shaderObjectData.invalid) {
+				shaderObjectData.invalid = false;
+				var compiler:ShaderCompilerBase = shaderObjectData.shaderObject.createCompiler(materialPassVO);
+				compiler.compile();
+
+				shaderObjectData.vertexCode = compiler.vertexCode;
+				shaderObjectData.fragmentCode = compiler.fragmentCode;
+				shaderObjectData.key = compiler.vertexCode + "---" + compiler.fragmentCode;
+			}
+
+			//check program data hasn't changed, keep count of program usages
+			var programData:ProgramData = this._programDataPool.getItem(shaderObjectData.key);
+			if (shaderObjectData.programData != programData) {
+				if (shaderObjectData.programData)
+					shaderObjectData.programData.dispose();
+
+				shaderObjectData.programData = programData;
+
+				programData.usages++;
+			}
+
+			return shaderObjectData;
+		}
+
+		/**
+		 *
+		 * @param material
+		 */
+		public getRenderOrderId(material:MaterialBase, profile:string):number
+		{
+			if (material._iRenderOrderDirty) {
+				material._iRenderOrderDirty = false;
+
+				var renderOrderId = 0;
+				var len = material.getNumPasses();
+				var mult:number = 1;
+				for (var i:number = 0; i < len; i++) {
+					renderOrderId += mult*this.getShaderObject((<MaterialPassBase> material.getPass(i)).getMaterialPassVO(material.id), profile).programData.id;
+					mult *= 1000;
+				}
+
+				return (this._renderOrderIds[material.id] = renderOrderId);
+			}
+
+			return this._renderOrderIds[material.id];
 		}
 
 		/**
@@ -112,6 +192,40 @@ module away.stagegl
 		public activateRenderTexture(index:number, textureProxy:RenderTexture)
 		{
 			this.setTextureAt(index, this.getRenderTexture(textureProxy));
+		}
+
+		public activateShaderObject(shaderObjectData:ShaderObjectData, stage:Stage, camera:Camera)
+		{
+			//clear unused vertex streams
+			for (var i = shaderObjectData.shaderObject.numUsedStreams; i < this._numUsedStreams; i++)
+				this.setVertexBufferAt(i, null);
+
+			//clear unused texture streams
+			for (var i = shaderObjectData.shaderObject.numUsedTextures; i < this._numUsedTextures; i++)
+				this.setTextureAt(i, null);
+
+			//activate shader object
+			shaderObjectData.shaderObject.iActivate(stage, camera);
+
+			//check program data is uploaded
+			var programData:ProgramData = shaderObjectData.programData;
+			if (!programData.program) {
+				programData.program = this.createProgram();
+				var vertexByteCode:ByteArray = (new aglsl.assembler.AGALMiniAssembler().assemble("part vertex 1\n" + shaderObjectData.vertexCode + "endpart"))['vertex'].data;
+				var fragmentByteCode:ByteArray = (new aglsl.assembler.AGALMiniAssembler().assemble("part fragment 1\n" + shaderObjectData.fragmentCode + "endpart"))['fragment'].data;
+				programData.program.upload(vertexByteCode, fragmentByteCode);
+			}
+
+			//set program data
+			this.setProgram(programData.program);
+		}
+
+		public deactivateShaderObject(shaderObjectData:ShaderObjectData, stage:Stage)
+		{
+			shaderObjectData.shaderObject.iDeactivate(stage);
+
+			this._numUsedStreams = shaderObjectData.shaderObject.numUsedStreams;
+			this._numUsedTextures = shaderObjectData.shaderObject.numUsedTextures;
 		}
 
 		public activateTexture(index:number, textureProxy:Texture2DBase)
@@ -224,6 +338,11 @@ module away.stagegl
 			throw new AbstractMethodError();
 		}
 
+		public createProgram():IProgram
+		{
+			throw new AbstractMethodError();
+		}
+
 		public dispose()
 		{
 
@@ -257,6 +376,27 @@ module away.stagegl
 		public setVertexBufferAt(index:number, buffer:IVertexBuffer, bufferOffset:number = 0, format:string = null)
 		{
 
+		}
+
+		public setProgram(program:IProgram)
+		{
+
+		}
+
+		public registerProgram(programData:ProgramData)
+		{
+			var i:number = 0;
+			while (this._programData[i] != null)
+				i++;
+
+			this._programData[i] = programData;
+			programData.id = i;
+		}
+
+		public unRegisterProgram(programData:ProgramData)
+		{
+			this._programData[programData.id] = null;
+			programData.id = -1;
 		}
 	}
 }
