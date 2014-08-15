@@ -9,7 +9,7 @@ module away.animators
 	import AbstractMethodError				= away.errors.AbstractMethodError;
 	import AnimatorEvent					= away.events.AnimatorEvent;
 	import AssetType						= away.library.AssetType;
-	import IMaterialPass					= away.materials.IMaterialPass;
+	import ShaderObjectBase					= away.materials.ShaderObjectBase;
 	import RenderableBase					= away.pool.RenderableBase;
 
 	/**
@@ -202,7 +202,7 @@ module away.animators
 			this._playbackSpeed = value;
 		}
 
-		public setRenderState(stage:Stage, renderable:RenderableBase, vertexConstantOffset:number /*int*/, vertexStreamOffset:number /*int*/, camera:Camera)
+		public setRenderState(shaderObject:ShaderObjectBase, renderable:RenderableBase, stage:Stage, camera:Camera, vertexConstantOffset:number /*int*/, vertexStreamOffset:number /*int*/)
 		{
 			throw new away.errors.AbstractMethodError();
 		}
@@ -364,7 +364,7 @@ module away.animators
 		/**
 		 * @inheritDoc
 		 */
-		public testGPUCompatibility(pass:IMaterialPass)
+		public testGPUCompatibility(shaderObject:ShaderObjectBase)
 		{
 			throw new AbstractMethodError();
 		}

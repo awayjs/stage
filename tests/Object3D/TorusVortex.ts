@@ -8,7 +8,7 @@ module demos.object3d
 	import ContextMode					= away.display.ContextMode;
 	import Mesh							= away.entities.Mesh;
 	import Vector3D						= away.geom.Vector3D;
-	import TriangleMethodMaterial				= away.materials.TriangleMethodMaterial;
+	import TriangleMethodMaterial		= away.materials.TriangleMethodMaterial;
 	import URLLoader					= away.net.URLLoader;
 	import URLLoaderDataFormat			= away.net.URLLoaderDataFormat;
 	import URLRequest					= away.net.URLRequest;

@@ -3,8 +3,6 @@
 module away.materials
 {
 	import Stage									= away.base.Stage;
-	import Camera									= away.entities.Camera;
-	import RenderableBase							= away.pool.RenderableBase;
 	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
 	import ContextGLTextureFilter					= away.stagegl.ContextGLTextureFilter;
 	import ContextGLWrapMode						= away.stagegl.ContextGLWrapMode;
@@ -19,11 +17,12 @@ module away.materials
 		private _useTexture:boolean = false;
 		private _texture:Texture2DBase;
 
-		private _ambientColor:number = 0xffffff;
+		private _color:number = 0xffffff;
+		private _alpha:number = 1;
 
-		private _ambientR:number = 0;
-		private _ambientG:number = 0;
-		private _ambientB:number = 0;
+		private _colorR:number = 1;
+		private _colorG:number = 1;
+		private _colorB:number = 1;
 
 		private _ambient:number = 1;
 
@@ -44,14 +43,6 @@ module away.materials
 		}
 
 		/**
-		 * @inheritDoc
-		 */
-		public iInitConstants(shaderObject:ShaderObjectBase, methodVO:MethodVO)
-		{
-			shaderObject.fragmentConstantData[methodVO.fragmentConstantsIndex + 3] = 1;
-		}
-
-		/**
 		 * The strength of the ambient reflection of the surface.
 		 */
 		public get ambient():number
@@ -66,25 +57,43 @@ module away.materials
 
 			this._ambient = value;
 
-			this.updateAmbient();
+			this.updateColor();
 		}
 
 		/**
 		 * The colour of the ambient reflection of the surface.
 		 */
-		public get ambientColor():number
+		public get color():number
 		{
-			return this._ambientColor;
+			return this._color;
 		}
 
-		public set ambientColor(value:number)
+		public set color(value:number)
 		{
-			if (this._ambientColor == value)
+			if (this._color == value)
 				return;
 
-			this._ambientColor = value;
+			this._color = value;
 
-			this.updateAmbient();
+			this.updateColor();
+		}
+
+		/**
+		 * The alpha component of the surface.
+		 */
+		public get alpha():number
+		{
+			return this._alpha;
+		}
+
+		public set alpha(value:number)
+		{
+			if (this._alpha == value)
+				return;
+
+			this._alpha = value;
+
+			this.updateColor();
 		}
 
 		/**
@@ -124,7 +133,7 @@ module away.materials
 			var diff:AmbientBasicMethod = b;//AmbientBasicMethod(method);
 
 			this.ambient = diff.ambient;
-			this.ambientColor = diff.ambientColor;
+			this.color = diff.color;
 		}
 
 		/**
@@ -136,20 +145,26 @@ module away.materials
 			var ambientInputRegister:ShaderRegisterElement;
 
 			if (this._useTexture) {
-
 				ambientInputRegister = registerCache.getFreeTextureReg();
 
 				methodVO.texturesIndex = ambientInputRegister.index;
 
-				code += ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedRegisters, ambientInputRegister, this._texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping) + "div " + targetReg + ".xyz, " + targetReg + ".xyz, " + targetReg + ".w\n"; // apparently, still needs to un-premultiply :s
+				code += ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedRegisters, ambientInputRegister, this._texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+
+				if (shaderObject.alphaThreshold > 0) {
+					var cutOffReg:ShaderRegisterElement = registerCache.getFreeFragmentConstant();
+					methodVO.fragmentConstantsIndex = cutOffReg.index*4;
+
+					code += "sub " + targetReg + ".w, " + targetReg + ".w, " + cutOffReg + ".x\n" +
+						"kil " + targetReg + ".w\n" +
+						"add " + targetReg + ".w, " + targetReg + ".w, " + cutOffReg + ".x\n";
+				}
 
 			} else {
-
 				ambientInputRegister = registerCache.getFreeFragmentConstant();
 				methodVO.fragmentConstantsIndex = ambientInputRegister.index*4;
 
 				code += "mov " + targetReg + ", " + ambientInputRegister + "\n";
-
 			}
 
 			return code;
@@ -161,38 +176,29 @@ module away.materials
 		public iActivate(shaderObject:ShaderObjectBase, methodVO:MethodVO, stage:Stage)
 		{
 			if (this._useTexture) {
-
 				(<IContextStageGL> stage.context).setSamplerStateAt(methodVO.texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR:ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR:ContextGLMipFilter.MIPNONE);
 				(<IContextStageGL> stage.context).activateTexture(methodVO.texturesIndex, this._texture);
 
+				if (shaderObject.alphaThreshold > 0)
+					shaderObject.fragmentConstantData[methodVO.fragmentConstantsIndex] = shaderObject.alphaThreshold;
+			} else {
+				var index:number = methodVO.fragmentConstantsIndex;
+				var data:Array<number> = shaderObject.fragmentConstantData;
+				data[index] = this._colorR;
+				data[index + 1] = this._colorG;
+				data[index + 2] = this._colorB;
+				data[index + 3] = this._alpha;
 			}
-
 		}
 
 		/**
 		 * Updates the ambient color data used by the render state.
 		 */
-		private updateAmbient()
+		private updateColor()
 		{
-			this._ambientR = ((this._ambientColor >> 16) & 0xff)/0xff*this._ambient;
-			this._ambientG = ((this._ambientColor >> 8) & 0xff)/0xff*this._ambient;
-			this._ambientB = (this._ambientColor & 0xff)/0xff*this._ambient;
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public iSetRenderState(shaderObject:ShaderLightingObject, methodVO:MethodVO, renderable:RenderableBase, stage:Stage, camera:Camera)
-		{
-			if (!this._useTexture) {
-
-				var index:number = methodVO.fragmentConstantsIndex;
-				var data:Array<number> = shaderObject.fragmentConstantData;
-				data[index] = this._ambientR*shaderObject.ambientLightR;
-				data[index + 1] = this._ambientG*shaderObject.ambientLightG;
-				data[index + 2] = this._ambientB*shaderObject.ambientLightB;
-
-			}
+			this._colorR = ((this._color >> 16) & 0xff)/0xff*this._ambient;
+			this._colorG = ((this._color >> 8) & 0xff)/0xff*this._ambient;
+			this._colorB = (this._color & 0xff)/0xff*this._ambient;
 		}
 	}
 }

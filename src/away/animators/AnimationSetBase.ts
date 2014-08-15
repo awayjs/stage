@@ -77,7 +77,7 @@ module away.animators
 		/**
 		 * @inheritDoc
 		 */
-		public getAGALVertexCode(shaderObject:ShaderObjectBase, sourceRegisters:Array<string>, targetRegisters:Array<string>, profile:string):string
+		public getAGALVertexCode(shaderObject:ShaderObjectBase):string
 		{
 			throw new AbstractMethodError();
 		}
@@ -101,7 +101,7 @@ module away.animators
 		/**
 		 * @inheritDoc
 		 */
-		public getAGALFragmentCode(shaderObject:ShaderObjectBase, shadedTarget:ShaderRegisterElement, profile:string):string
+		public getAGALFragmentCode(shaderObject:ShaderObjectBase, shadedTarget:string):string
 		{
 			throw new AbstractMethodError();
 		}
@@ -109,7 +109,7 @@ module away.animators
 		/**
 		 * @inheritDoc
 		 */
-		public getAGALUVCode(shaderObject:ShaderObjectBase, UVSource:string, UVTarget:string):string
+		public getAGALUVCode(shaderObject:ShaderObjectBase):string
 		{
 			throw new AbstractMethodError();
 		}

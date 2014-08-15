@@ -56,7 +56,7 @@ module away.materials
 				this.repeat = repeat;
 				this.mipmap = mipmap;
 			} else {
-				this.color = textureColor? Number(textureColor) : 0xCCCCCC;
+				this.color = (textureColor == null)? 0xFFFFFF : Number(textureColor);
 				this.alpha = (smoothAlpha == null)? 1 : Number(smoothAlpha);
 			}
 		}
@@ -144,12 +144,12 @@ module away.materials
 		 */
 		public get color():number
 		{
-			return this._diffuseMethod.diffuseColor;
+			return this._ambientMethod.color;
 		}
 
 		public set color(value:number)
 		{
-			this._diffuseMethod.diffuseColor = value;
+			this._ambientMethod.color = value;
 		}
 
 		/**
@@ -157,12 +157,14 @@ module away.materials
 		 */
 		public get texture():Texture2DBase
 		{
-			return this._diffuseMethod.texture;
+			return this._ambientMethod.texture;
 		}
 
 		public set texture(value:Texture2DBase)
 		{
-			this._diffuseMethod.texture = value;
+			this._ambientMethod.texture = value;
+			this._pDistancePass.alphaMask = value;
+			this._pDepthPass.alphaMask = value;
 
 			if (value) {
 				this._pHeight = value.height;
@@ -173,16 +175,14 @@ module away.materials
 		/**
 		 * The texture object to use for the ambient colour.
 		 */
-		public get ambientTexture():Texture2DBase
+		public get diffuseTexture():Texture2DBase
 		{
-			return this.ambientMethod.texture;
+			return this._diffuseMethod.texture;
 		}
 
-		public set ambientTexture(value:Texture2DBase)
+		public set diffuseTexture(value:Texture2DBase)
 		{
-			this._ambientMethod.texture = value;
-
-			this._diffuseMethod.iUseAmbientTexture = (value != null);
+			this._diffuseMethod.texture = value;
 		}
 
 		/**
@@ -441,12 +441,25 @@ module away.materials
 		 */
 		public get ambientColor():number
 		{
-			return this._ambientMethod.ambientColor;
+			return this._diffuseMethod.ambientColor;
 		}
 
 		public set ambientColor(value:number)
 		{
-			this._ambientMethod.ambientColor = value;
+			this._diffuseMethod.ambientColor = value;
+		}
+
+		/**
+		 * The colour of the diffuse reflection.
+		 */
+		public get diffuseColor():number
+		{
+			return this._diffuseMethod.diffuseColor;
+		}
+
+		public set diffuseColor(value:number)
+		{
+			this._diffuseMethod.diffuseColor = value;
 		}
 
 		/**
@@ -555,7 +568,7 @@ module away.materials
 		 */
 		public iActivatePass(index:number, stage:Stage, camera:Camera)
 		{
-			if (index == 0)
+			if (index == 0 && this._materialMode == TriangleMaterialMode.MULTI_PASS)
 				(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 
 			super.iActivatePass(index, stage, camera);
@@ -568,7 +581,8 @@ module away.materials
 		{
 			super.iDeactivate(stage);
 
-			(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
+			if (this._materialMode == TriangleMaterialMode.MULTI_PASS)
+				(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 		}
 
 		/**
@@ -729,10 +743,8 @@ module away.materials
 			if (!this._nonCasterLightPasses)
 				return;
 
-			for (var i:number = 0; i < this._nonCasterLightPasses.length; ++i) {
+			for (var i:number = 0; i < this._nonCasterLightPasses.length; ++i)
 				this.pRemovePass(this._nonCasterLightPasses[i]);
-				this._nonCasterLightPasses[i].dispose();
-			}
 
 			this._nonCasterLightPasses = null;
 		}
@@ -752,8 +764,6 @@ module away.materials
 				this._screenPass.normalMethod.dispose();
 
 			this.pRemovePass(this._screenPass);
-
-			this._screenPass.dispose();
 			this._screenPass = null;
 		}
 
@@ -770,11 +780,11 @@ module away.materials
 				this._screenPass.shadowMethod = this._shadowMethod;
 			} else if (this._materialMode == TriangleMaterialMode.MULTI_PASS) {
 				if (this.numLights == 0) {
-					this._screenPass.diffuseMethod = this._diffuseMethod;
+					this._screenPass.ambientMethod = this._ambientMethod;
 				} else {
-					this._screenPass.diffuseMethod = new DiffuseBasicMethod();
-					this._screenPass.diffuseMethod.diffuseColor = 0x000000;
-					this._screenPass.diffuseMethod.diffuseAlpha = 0;
+					this._screenPass.ambientMethod = new AmbientBasicMethod();
+					this._screenPass.ambientMethod.color = 0x000000;
+					this._screenPass.ambientMethod.alpha = 0;
 				}
 
 				this._screenPass.preserveAlpha = false;

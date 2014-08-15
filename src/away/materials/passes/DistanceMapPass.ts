@@ -20,7 +20,7 @@ module away.materials
 	 * DistanceMapPass is a pass that writes distance values to a depth map as a 32-bit value exploded over the 4 texture channels.
 	 * This is used to render omnidirectional shadow maps.
 	 */
-	export class DistanceMapPass extends MaterialPassBase
+	export class DistanceMapPass extends TrianglePassBase
 	{
 		private _fragmentConstantsIndex:number;
 		private _texturesIndex:number;
@@ -117,22 +117,6 @@ module away.materials
 			code += "sub " + targetReg + ", " + temp1 + ", " + temp2 + "\n";
 
 			return code;
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public iRender(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
-		{
-			super.iRender(renderable, stage, camera, viewProjection);
-
-			var context:IContextStageGL = <IContextStageGL> stage.context;
-
-			context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, 0, this._pActiveShaderObject.shaderObject.vertexConstantData, this._pActiveShaderObject.shaderObject.numUsedVertexConstants);
-			context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, 0, this._pActiveShaderObject.shaderObject.fragmentConstantData, this._pActiveShaderObject.shaderObject.numUsedFragmentConstants);
-
-			context.activateBuffer(0, renderable.getVertexData(TriangleSubGeometry.POSITION_DATA), renderable.getVertexOffset(TriangleSubGeometry.POSITION_DATA), TriangleSubGeometry.POSITION_FORMAT);
-			context.drawTriangles(context.getIndexBuffer(renderable.getIndexData()), 0, renderable.numTriangles);
 		}
 
 		/**

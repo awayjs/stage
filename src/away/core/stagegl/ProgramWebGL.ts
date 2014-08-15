@@ -32,16 +32,16 @@ module away.stagegl
 			this._gl.compileShader(this._vertexShader);
 
 			if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS)) {
-				alert(this._gl.getShaderInfoLog(this._vertexShader));
-				return null; //TODO throw errors
+				throw new Error(this._gl.getShaderInfoLog(this._vertexShader));
+				return;
 			}
 
 			this._gl.shaderSource(this._fragmentShader, fragmentString);
 			this._gl.compileShader(this._fragmentShader);
 
 			if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS)) {
-				alert(this._gl.getShaderInfoLog(this._fragmentShader));
-				return null; //TODO throw errors
+				throw new Error(this._gl.getShaderInfoLog(this._fragmentShader));
+				return;
 			}
 
 			this._gl.attachShader(this._program, this._vertexShader);
@@ -49,7 +49,7 @@ module away.stagegl
 			this._gl.linkProgram(this._program);
 
 			if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
-				alert("Could not link the program."); //TODO throw errors
+				throw new Error(this._gl.getProgramInfoLog(this._program));
 			}
 		}
 

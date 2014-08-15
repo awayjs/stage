@@ -20,7 +20,7 @@ module away.materials
 	 * DepthMapPass is a pass that writes depth values to a depth map as a 32-bit value exploded over the 4 texture channels.
 	 * This is used to render shadow maps, depth maps, etc.
 	 */
-	export class DepthMapPass extends MaterialPassBase
+	export class DepthMapPass extends TrianglePassBase
 	{
 		private _fragmentConstantsIndex:number;
 		private _texturesIndex:number;
@@ -95,7 +95,7 @@ module away.materials
 			var temp2:ShaderRegisterElement = registerCache.getFreeFragmentVectorTemp();
 			registerCache.addFragmentTempUsages(temp2, 1);
 
-			code += "div " + temp1 + "," + sharedRegisters.projectionFragment + ".w\n" + //"sub ft2.z, fc0.x, ft2.z\n" +    //invert
+			code += "div " + temp1 + ", " + sharedRegisters.projectionFragment + ", " + sharedRegisters.projectionFragment + ".w\n" + //"sub ft2.z, fc0.x, ft2.z\n" +    //invert
 				"mul " + temp1 + ", " + dataReg1 + ", " + temp1 + ".z\n" +
 				"frc " + temp1 + ", " + temp1 + "\n" +
 				"mul " + temp2 + ", " + temp1 + ".yzww, " + dataReg2 + "\n";
@@ -128,28 +128,12 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public iRender(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
-		{
-			super.iRender(renderable, stage, camera, viewProjection);
-
-			var context:IContextStageGL = <IContextStageGL> stage.context;
-
-			context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, 0, this._pActiveShaderObject.shaderObject.vertexConstantData, this._pActiveShaderObject.shaderObject.numUsedVertexConstants);
-			context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, 0, this._pActiveShaderObject.shaderObject.fragmentConstantData, this._pActiveShaderObject.shaderObject.numUsedFragmentConstants);
-
-			context.activateBuffer(0, renderable.getVertexData(TriangleSubGeometry.POSITION_DATA), renderable.getVertexOffset(TriangleSubGeometry.POSITION_DATA), TriangleSubGeometry.POSITION_FORMAT);
-			context.drawTriangles(context.getIndexBuffer(renderable.getIndexData()), 0, renderable.numTriangles);
-		}
-
-		/**
-		 * @inheritDoc
-		 */
 		public iActivate(material:MaterialBase, stage:Stage, camera:Camera)
 		{
+			super.iActivate(material, stage, camera);
+
 			var context:IContextStageGL = <IContextStageGL> stage.context;
 			var shaderObject:ShaderObjectBase = this._pActiveShaderObject.shaderObject;
-
-			super.iActivate(material, stage, camera);
 
 			if (shaderObject.alphaThreshold > 0) {
 				context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);

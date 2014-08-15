@@ -23,6 +23,7 @@ module away.materials
 	export class SkyboxPass extends MaterialPassBase
 	{
 		private _cubeTexture:CubeTextureBase;
+		private _texturesIndex:number;
 		private _vertexData:Array<number>;
 
 		/**
@@ -60,7 +61,7 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public _iGetVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
 			return "mul vt0, va0, vc5\n" +
 				"add vt0, vt0, vc4\n" +
@@ -73,13 +74,18 @@ module away.materials
 		 */
 		public _iGetFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
+			//var cubeMapReg:ShaderRegisterElement = registerCache.getFreeTextureReg();
+
+			//this._texturesIndex = cubeMapReg.index;
+
+			//ShaderCompilerHelper.getTexCubeSampleCode(sharedRegisters.shadedTarget, cubeMapReg, this._cubeTexture, shaderObject.useSmoothTextures, shaderObject.useMipmapping);
+
 			var mip:string = ",mipnone";
 
 			if (this._cubeTexture.hasMipmaps)
 				mip = ",miplinear";
 
-			return "tex ft0, v0, fs0 <cube," + ShaderCompilerHelper.getFormatStringForTexture(this._cubeTexture) + "linear,clamp" + mip + ">\n" +
-				"mov oc, ft0\n";
+			return "tex ft0, v0, fs0 <cube," + ShaderCompilerHelper.getFormatStringForTexture(this._cubeTexture) + "linear,clamp" + mip + ">\n";
 		}
 
 		/**

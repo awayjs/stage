@@ -3,6 +3,8 @@
 module away.materials
 {
 	import Stage									= away.base.Stage;
+	import Camera									= away.entities.Camera;
+	import RenderableBase							= away.pool.RenderableBase;
 	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
 	import ContextGLTextureFilter					= away.stagegl.ContextGLTextureFilter;
 	import ContextGLWrapMode						= away.stagegl.ContextGLWrapMode;
@@ -14,7 +16,7 @@ module away.materials
 	 */
 	export class DiffuseBasicMethod extends LightingMethodBase
 	{
-		private _useAmbientTexture:boolean;
+		private _multiply:boolean = true;
 
 		public _pUseTexture:boolean;
 		public _pTotalLightColorReg:ShaderRegisterElement;
@@ -22,10 +24,13 @@ module away.materials
 
 		private _texture:Texture2DBase;
 		private _diffuseColor:number = 0xffffff;
+		private _ambientColor:number = 0xffffff;
 		private _diffuseR:number = 1;
 		private _diffuseG:number = 1;
 		private _diffuseB:number = 1;
-		private _diffuseA:number = 1;
+		private _ambientR:number = 1;
+		private _ambientG:number = 1;
+		private _ambientB:number = 1;
 
 		public _pIsFirstLight:boolean;
 
@@ -37,31 +42,36 @@ module away.materials
 			super();
 		}
 
-		/**
-		 * Set internally if the ambient method uses a texture.
-		 */
-		public get iUseAmbientTexture():boolean
+		public iIsUsed(shaderObject:ShaderLightingObject):boolean
 		{
-			return this._useAmbientTexture;
+			if (!shaderObject.numLights)
+				return false;
+
+			return true;
 		}
 
-		public set iUseAmbientTexture(value:boolean)
+		/**
+		 * Set internally if diffuse color component multiplies or replaces the ambient color
+		 */
+		public get multiply():boolean
 		{
-			if (this._useAmbientTexture == value)
+			return this._multiply;
+		}
+
+		public set multiply(value:boolean)
+		{
+			if (this._multiply == value)
 				return;
 
-			this._useAmbientTexture = value;
+			this._multiply = value;
 
 			this.iInvalidateShaderProgram();
-
 		}
 
 		public iInitVO(shaderObject:ShaderLightingObject, methodVO:MethodVO)
 		{
-
 			methodVO.needsUV = this._pUseTexture;
 			methodVO.needsNormals = shaderObject.numLights > 0;
-
 		}
 
 		/**
@@ -75,19 +85,6 @@ module away.materials
 		}
 
 		/**
-		 * The alpha component of the diffuse reflection.
-		 */
-		public get diffuseAlpha():number
-		{
-			return this._diffuseA;
-		}
-
-		public set diffuseAlpha(value:number)
-		{
-			this._diffuseA = value;
-		}
-
-		/**
 		 * The color of the diffuse reflection when not using a texture.
 		 */
 		public get diffuseColor():number
@@ -95,12 +92,34 @@ module away.materials
 			return this._diffuseColor;
 		}
 
-		public set diffuseColor(diffuseColor:number)
+		public set diffuseColor(value:number)
 		{
-			this._diffuseColor = diffuseColor;
-			this.updateDiffuse();
+			if (this._diffuseColor == value)
+				return;
 
+			this._diffuseColor = value;
+			
+			this.updateDiffuse();
 		}
+
+		/**
+		 * The color of the ambient reflection
+		 */
+		public get ambientColor():number
+		{
+			return this._ambientColor;
+		}
+
+		public set ambientColor(value:number)
+		{
+			if (this._ambientColor == value)
+				return;
+
+			this._ambientColor = value;
+
+			this.updateAmbient();
+		}
+
 
 		/**
 		 * The bitmapData to use to define the diffuse reflection color per texel.
@@ -137,9 +156,9 @@ module away.materials
 			var diff:DiffuseBasicMethod = <DiffuseBasicMethod> method;
 
 			this.texture = diff.texture;
-			this.iUseAmbientTexture = diff.iUseAmbientTexture;
-			this.diffuseAlpha = diff.diffuseAlpha;
+			this.multiply = diff.multiply;
 			this.diffuseColor = diff.diffuseColor;
+			this.ambientColor = diff.ambientColor;
 		}
 
 		/**
@@ -162,10 +181,8 @@ module away.materials
 
 			this._pIsFirstLight = true;
 
-			if (shaderObject.numLights > 0) {
-				this._pTotalLightColorReg = registerCache.getFreeFragmentVectorTemp();
-				registerCache.addFragmentTempUsages(this._pTotalLightColorReg, 1);
-			}
+			this._pTotalLightColorReg = registerCache.getFreeFragmentVectorTemp();
+			registerCache.addFragmentTempUsages(this._pTotalLightColorReg, 1);
 
 			return code;
 		}
@@ -193,7 +210,7 @@ module away.materials
 				code += "mul " + t + ".w, " + t + ".w, " + lightDirReg + ".w\n";
 
 			if (this._iModulateMethod != null)
-				code += this._iModulateMethod(shaderObject, methodVO, t);
+				code += this._iModulateMethod(shaderObject, methodVO, t, registerCache, sharedRegisters);
 
 			code += "mul " + t + ", " + t + ".w, " + lightColReg + "\n";
 
@@ -227,7 +244,7 @@ module away.materials
 					"mul " + t + ".xyz, " + t + ".xyz, " + weightRegister + "\n";
 
 			if (this._iModulateMethod != null)
-				code += this._iModulateMethod(shaderObject, methodVO, t);
+				code += this._iModulateMethod(shaderObject, methodVO, t, registerCache, sharedRegisters);
 
 			if (!this._pIsFirstLight) {
 				code += "add " + this._pTotalLightColorReg + ".xyz, " + this._pTotalLightColorReg + ", " + t + "\n";
@@ -245,19 +262,19 @@ module away.materials
 		public iGetFragmentPostLightingCode(shaderObject:ShaderLightingObject, methodVO:MethodVO, targetReg:ShaderRegisterElement, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
 			var code:string = "";
+
 			var albedo:ShaderRegisterElement;
 			var cutOffReg:ShaderRegisterElement;
 
 			// incorporate input from ambient
-			if (shaderObject.numLights > 0) {
-				if (sharedRegisters.shadowTarget)
-					code += this.pApplyShadow(methodVO, registerCache, sharedRegisters);
+			if (sharedRegisters.shadowTarget)
+				code += this.pApplyShadow(shaderObject, methodVO, registerCache, sharedRegisters);
 
-				albedo = registerCache.getFreeFragmentVectorTemp();
-				registerCache.addFragmentTempUsages(albedo, 1);
-			} else {
-				albedo = targetReg;
-			}
+			albedo = registerCache.getFreeFragmentVectorTemp();
+			registerCache.addFragmentTempUsages(albedo, 1);
+
+			var ambientColorRegister:ShaderRegisterElement = registerCache.getFreeFragmentConstant();
+			methodVO.fragmentConstantsIndex = ambientColorRegister.index*4;
 
 			if (this._pUseTexture) {
 				this._pDiffuseInputRegister = registerCache.getFreeTextureReg();
@@ -266,45 +283,23 @@ module away.materials
 
 				code += ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, this._pDiffuseInputRegister, this._texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
-				if (shaderObject.alphaThreshold > 0) {
-					cutOffReg = registerCache.getFreeFragmentConstant();
-					methodVO.fragmentConstantsIndex = cutOffReg.index*4;
-
-					code += "sub " + albedo + ".w, " + albedo + ".w, " + cutOffReg + ".x\n" +
-							"kil " + albedo + ".w\n" +
-							"add " + albedo + ".w, " + albedo + ".w, " + cutOffReg + ".x\n";
-				}
-
 			} else {
 				this._pDiffuseInputRegister = registerCache.getFreeFragmentConstant();
-
-				methodVO.fragmentConstantsIndex = this._pDiffuseInputRegister.index*4;
 
 				code += "mov " + albedo + ", " + this._pDiffuseInputRegister + "\n";
 			}
 
-			if (shaderObject.numLights == 0)
-				return code;
+			code += "sat " + this._pTotalLightColorReg + ", " + this._pTotalLightColorReg + "\n" +
+				"mul " + albedo + ".xyz, " + albedo + ", " + this._pTotalLightColorReg + "\n";
 
-			//TODO: AGAL <> GLSL
-			code += "sat " + this._pTotalLightColorReg + ", " + this._pTotalLightColorReg + "\n";
-
-			if (this._useAmbientTexture) {
-				code += "mul " + albedo + ".xyz, " + albedo + ", " + this._pTotalLightColorReg + "\n" +
-						"mul " + this._pTotalLightColorReg + ".xyz, " + targetReg + ", " + this._pTotalLightColorReg + "\n" +
-						"sub " + targetReg + ".xyz, " + targetReg + ", " + this._pTotalLightColorReg + "\n" +
-						"add " + targetReg + ".xyz, " + albedo + ", " + targetReg + "\n";
+			if (this._multiply) {
+				code += "add " + albedo + ".xyz, " + albedo + ", " + ambientColorRegister + "\n" +
+					"mul " + targetReg + ".xyz, " + targetReg + ", " + albedo + "\n";
 			} else {
-				code += "add " + targetReg + ".xyz, " + this._pTotalLightColorReg + ", " + targetReg + "\n";
-
-				if (this._pUseTexture) {
-					code += "mul " + targetReg + ".xyz, " + albedo + ", " + targetReg + "\n" +
-							"mov " + targetReg + ".w, " + albedo + ".w\n";
-				} else {
-
-					code += "mul " + targetReg + ".xyz, " + this._pDiffuseInputRegister + ", " + targetReg + "\n" +
-							"mov " + targetReg + ".w, " + this._pDiffuseInputRegister + ".w\n";
-				}
+				code += "mul " + targetReg + ".xyz, " + targetReg + ", " + ambientColorRegister + "\n" +
+					"mul " + this._pTotalLightColorReg + ".xyz, " + targetReg + ", " + this._pTotalLightColorReg + "\n" +
+					"sub " + targetReg + ".xyz, " + targetReg + ", " + this._pTotalLightColorReg + "\n" +
+					"add " + targetReg + ".xyz, " + targetReg + ", " + albedo + "\n";
 			}
 
 			registerCache.removeFragmentTempUsage(this._pTotalLightColorReg);
@@ -318,7 +313,7 @@ module away.materials
 		 * @param methodVO The MethodVO object for which the compilation is currently happening.
 		 * @param regCache The register cache the compiler is currently using for the register management.
 		 */
-		public pApplyShadow(methodVO:MethodVO, regCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public pApplyShadow(shaderObject:ShaderLightingObject, methodVO:MethodVO, regCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
 			return "mul " + this._pTotalLightColorReg + ".xyz, " + this._pTotalLightColorReg + ", " + sharedRegisters.shadowTarget + ".w\n";
 		}
@@ -331,16 +326,13 @@ module away.materials
 			if (this._pUseTexture) {
 				(<IContextStageGL> stage.context).setSamplerStateAt(methodVO.texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
 				(<IContextStageGL> stage.context).activateTexture(methodVO.texturesIndex, this._texture);
-
-				if (shaderObject.alphaThreshold > 0)
-					shaderObject.fragmentConstantData[methodVO.fragmentConstantsIndex] = shaderObject.alphaThreshold;
 			} else {
 				var index:number = methodVO.fragmentConstantsIndex;
 				var data:Array<number> = shaderObject.fragmentConstantData;
-				data[index] = this._diffuseR;
-				data[index + 1] = this._diffuseG;
-				data[index + 2] = this._diffuseB;
-				data[index + 3] = this._diffuseA;
+				data[index + 4] = this._diffuseR;
+				data[index + 5] = this._diffuseG;
+				data[index + 6] = this._diffuseB;
+				data[index + 7] = 1;
 			}
 		}
 
@@ -352,6 +344,32 @@ module away.materials
 			this._diffuseR = ((this._diffuseColor >> 16) & 0xff)/0xff;
 			this._diffuseG = ((this._diffuseColor >> 8) & 0xff)/0xff;
 			this._diffuseB = (this._diffuseColor & 0xff)/0xff;
+		}
+
+		/**
+		 * Updates the ambient color data used by the render state.
+		 */
+		private updateAmbient()
+		{
+			this._ambientR = ((this._ambientColor >> 16) & 0xff)/0xff;
+			this._ambientG = ((this._ambientColor >> 8) & 0xff)/0xff;
+			this._ambientB = (this._ambientColor & 0xff)/0xff;
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public iSetRenderState(shaderObject:ShaderLightingObject, methodVO:MethodVO, renderable:RenderableBase, stage:Stage, camera:Camera)
+		{
+			//TODO move this to Activate (ambientR/G/B currently calc'd in render state)
+			if (shaderObject.numLights > 0) {
+				var index:number = methodVO.fragmentConstantsIndex;
+				var data:Array<number> = shaderObject.fragmentConstantData;
+				data[index] = shaderObject.ambientR*this._ambientR;
+				data[index + 1] = shaderObject.ambientG*this._ambientG;
+				data[index + 2] = shaderObject.ambientB*this._ambientB;
+				data[index + 3] = 1;
+			}
 		}
 	}
 }

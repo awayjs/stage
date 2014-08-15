@@ -60,10 +60,6 @@ module away.materials
 		public lightProbesOffset:number;
 		public lightPicker:LightPickerBase;
 
-		public ambientLightR:number;
-		public ambientLightG:number;
-		public ambientLightB:number;
-
 		/**
 		 * Indicates whether the shader uses any lights.
 		 */
@@ -73,11 +69,6 @@ module away.materials
 		 * Indicates whether the shader uses any light probes.
 		 */
 		public usesProbes:boolean;
-
-		/**
-		 * Indicates whether the lights or probes uses any specular components.
-		 */
-		public usesSpecular:boolean;
 
 		/**
 		 * Indicates whether the lights uses any specular components.
@@ -178,7 +169,7 @@ module away.materials
 			var l:number;
 			var offset:number;
 
-			this.ambientLightR = this.ambientLightG = this.ambientLightB = 0;
+			this.ambientR = this.ambientG = this.ambientB = 0;
 
 			l = this.lightVertexConstantIndex;
 			k = this.lightFragmentConstantIndex;
@@ -206,9 +197,9 @@ module away.materials
 					dirLight = dirLights[offset + i];
 					dirPos = dirLight.sceneDirection;
 
-					this.ambientLightR += dirLight._iAmbientR;
-					this.ambientLightG += dirLight._iAmbientG;
-					this.ambientLightB += dirLight._iAmbientB;
+					this.ambientR += dirLight._iAmbientR;
+					this.ambientG += dirLight._iAmbientG;
+					this.ambientB += dirLight._iAmbientB;
 
 					if (this.usesTangentSpace) {
 						var x:number = -dirPos.x;
@@ -275,9 +266,9 @@ module away.materials
 					pointLight = pointLights[offset + i];
 					dirPos = pointLight.scenePosition;
 
-					this.ambientLightR += pointLight._iAmbientR;
-					this.ambientLightG += pointLight._iAmbientG;
-					this.ambientLightB += pointLight._iAmbientB;
+					this.ambientR += pointLight._iAmbientR;
+					this.ambientG += pointLight._iAmbientG;
+					this.ambientB += pointLight._iAmbientB;
 
 					if (this.usesTangentSpace) {
 						x = dirPos.x;

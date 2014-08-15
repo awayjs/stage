@@ -78,8 +78,6 @@ module away.materials
 		private _writeDepth:boolean = true;
 		private _onLightsChangeDelegate:(event:Event) => void;
 
-		public animationRegisterCache:AnimationRegisterCache;
-
 
 		/**
 		 * Indicates whether or not shadow casting lights need to be included.
@@ -400,24 +398,8 @@ module away.materials
 		{
 			for (var key in this._materialPassVOs)
 				(<MaterialPassVO> this._materialPassVOs[key]).invalidate();
-
-			var oldPasses:Array<IMaterialPass> = this._iPasses;
-			this._iPasses = new Array<MaterialPassBase>();
-
-			if (!oldPasses || this._iPasses.length != oldPasses.length) {
-				this._iPassesDirty = true;
-				return;
-			}
-
-			for (var i:number = 0; i < this._iPasses.length; ++i) {
-				if (this._iPasses[i] != oldPasses[i]) {
-					this._iPassesDirty = true;
-					return;
-				}
-			}
-
-			//if (updateMaterial)
-			//	this._pMaterial.iInvalidatePasses(this);
+			if (updateMaterial)
+				this.dispatchEvent(new Event(Event.CHANGE));
 		}
 
 		/**
@@ -522,10 +504,19 @@ module away.materials
 		{
 			if (this._materialPassVOs[owner.id]) {
 				this._materialPassVOs[owner.id].dispose();
-				this._materialPassVOs[owner.id] = null;
+				delete this._materialPassVOs[owner.id];
 			}
 		}
 
+		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		{
+			return "";
+		}
+
+		public _iGetPreFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		{
+			return "";
+		}
 
 		public _iGetVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{

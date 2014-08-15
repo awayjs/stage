@@ -2,6 +2,9 @@
 
 module away.stagegl
 {
+	import AnimatorBase						= away.animators.AnimatorBase;
+	import AnimationSetBase					= away.animators.AnimationSetBase;
+	import IMaterialOwner					= away.base.IMaterialOwner;
 	import Stage							= away.base.Stage;
 	import Camera							= away.entities.Camera;
 	import AbstractMethodError				= away.errors.AbstractMethodError;
@@ -15,6 +18,8 @@ module away.stagegl
 	import ProgramData						= away.pool.ProgramData;
 	import ProgramDataPool					= away.pool.ProgramDataPool;
 	import RenderableBase					= away.pool.RenderableBase;
+	import RenderOrderData					= away.pool.RenderOrderData;
+	import RenderOrderDataPool				= away.pool.RenderOrderDataPool;
 	import VertexData						= away.pool.VertexData;
 	import MaterialBase						= away.materials.MaterialBase;
 	import MaterialPassBase					= away.materials.MaterialPassBase;
@@ -38,13 +43,14 @@ module away.stagegl
 	export class ContextGLBase implements away.display.IContext
 	{
 		private _programData:Array<ProgramData> = new Array<ProgramData>();
-		private _renderOrderIds:Object = new Object();
 		private _numUsedStreams:number = 0;
 		private _numUsedTextures:number = 0;
 
 		public _pContainer:HTMLElement;
 
 		private _texturePool:TextureDataPool;
+
+		private _renderOrderPool:RenderOrderDataPool
 
 		private _shaderObjectDataPool:ShaderObjectDataPool;
 
@@ -70,6 +76,7 @@ module away.stagegl
 		{
 			this._stageIndex = stageIndex;
 			this._texturePool = new TextureDataPool(this);
+			this._renderOrderPool = new RenderOrderDataPool(this);
 			this._shaderObjectDataPool = new ShaderObjectDataPool(this);
 			this._programDataPool = new ProgramDataPool(this);
 		}
@@ -92,7 +99,7 @@ module away.stagegl
 
 		public getRenderTexture(textureProxy:RenderTexture):ITextureBase
 		{
-			var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
+			var textureData:TextureData = this._texturePool.getItem(textureProxy);
 
 			if (!textureData.texture)
 				textureData.texture = this.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
@@ -114,13 +121,33 @@ module away.stagegl
 				var compiler:ShaderCompilerBase = shaderObjectData.shaderObject.createCompiler(materialPassVO);
 				compiler.compile();
 
+				shaderObjectData.shadedTarget = compiler.shadedTarget;
 				shaderObjectData.vertexCode = compiler.vertexCode;
 				shaderObjectData.fragmentCode = compiler.fragmentCode;
-				shaderObjectData.key = compiler.vertexCode + "---" + compiler.fragmentCode;
+				shaderObjectData.postAnimationFragmentCode = compiler.postAnimationFragmentCode;
+				shaderObjectData.key = "";
 			}
 
-			//check program data hasn't changed, keep count of program usages
+			return shaderObjectData;
+		}
+
+		public getProgram(shaderObjectData:ShaderObjectData):ProgramData
+		{
+			//check key doesn't need re-concatenating
+			if (!shaderObjectData.key.length) {
+				shaderObjectData.key = shaderObjectData.animationVertexCode +
+					shaderObjectData.vertexCode +
+					"---" +
+					shaderObjectData.fragmentCode +
+					shaderObjectData.animationFragmentCode +
+					shaderObjectData.postAnimationFragmentCode;
+			} else {
+				return shaderObjectData.programData;
+			}
+
 			var programData:ProgramData = this._programDataPool.getItem(shaderObjectData.key);
+
+			//check program data hasn't changed, keep count of program usages
 			if (shaderObjectData.programData != programData) {
 				if (shaderObjectData.programData)
 					shaderObjectData.programData.dispose();
@@ -130,7 +157,7 @@ module away.stagegl
 				programData.usages++;
 			}
 
-			return shaderObjectData;
+			return programData;
 		}
 
 		/**
@@ -139,21 +166,44 @@ module away.stagegl
 		 */
 		public getRenderOrderId(material:MaterialBase, profile:string):number
 		{
-			if (material._iRenderOrderDirty) {
-				material._iRenderOrderDirty = false;
+			var renderOrderData:RenderOrderData = this._renderOrderPool.getItem(material);
+			var shaderObjects:Array<ShaderObjectData> = renderOrderData.shaderObjects;
+
+			if (!shaderObjects) {
+				//reset the shader objects in RenderOrderData
+				shaderObjects = renderOrderData.shaderObjects = new Array<ShaderObjectData>(numPasses);
+
+				var passes:Array<MaterialPassBase> = <Array<MaterialPassBase>> material.iPasses;
+				var numPasses:number = passes.length;
+
+				//get the shader object for each pass and store
+				for (var i:number = 0; i < numPasses; i++)
+					shaderObjects[i] = this.getShaderObject(passes[i].getMaterialPassVO(material.id), profile);
+
+				renderOrderData.invalid = true;
+			}
+
+			if (renderOrderData.invalid) {
+				renderOrderData.invalid = false;
+
+				var enabledGPUAnimation:boolean = this.getEnabledGPUAnimation(material, shaderObjects);
 
 				var renderOrderId = 0;
-				var len = material.getNumPasses();
 				var mult:number = 1;
+				var shaderObject:ShaderObjectData;
+				var len:number = shaderObjects.length;
 				for (var i:number = 0; i < len; i++) {
-					renderOrderId += mult*this.getShaderObject((<MaterialPassBase> material.getPass(i)).getMaterialPassVO(material.id), profile).programData.id;
+					shaderObject = shaderObjects[i];
+					shaderObject.shaderObject.usesAnimation = enabledGPUAnimation;
+					this.calcAnimationCode(material, shaderObject)
+					renderOrderId += this.getProgram(shaderObject).id*mult;
 					mult *= 1000;
 				}
 
-				return (this._renderOrderIds[material.id] = renderOrderId);
+				return (renderOrderData.id = renderOrderId);
 			}
 
-			return this._renderOrderIds[material.id];
+			return renderOrderData.id;
 		}
 
 		/**
@@ -208,11 +258,11 @@ module away.stagegl
 			shaderObjectData.shaderObject.iActivate(stage, camera);
 
 			//check program data is uploaded
-			var programData:ProgramData = shaderObjectData.programData;
+			var programData:ProgramData = this.getProgram(shaderObjectData);
 			if (!programData.program) {
 				programData.program = this.createProgram();
-				var vertexByteCode:ByteArray = (new aglsl.assembler.AGALMiniAssembler().assemble("part vertex 1\n" + shaderObjectData.vertexCode + "endpart"))['vertex'].data;
-				var fragmentByteCode:ByteArray = (new aglsl.assembler.AGALMiniAssembler().assemble("part fragment 1\n" + shaderObjectData.fragmentCode + "endpart"))['fragment'].data;
+				var vertexByteCode:ByteArray = (new aglsl.assembler.AGALMiniAssembler().assemble("part vertex 1\n" + shaderObjectData.animationVertexCode + shaderObjectData.vertexCode + "endpart"))['vertex'].data;
+				var fragmentByteCode:ByteArray = (new aglsl.assembler.AGALMiniAssembler().assemble("part fragment 1\n" + shaderObjectData.fragmentCode + shaderObjectData.animationFragmentCode + shaderObjectData.postAnimationFragmentCode + "endpart"))['fragment'].data;
 				programData.program.upload(vertexByteCode, fragmentByteCode);
 			}
 
@@ -397,6 +447,69 @@ module away.stagegl
 		{
 			this._programData[programData.id] = null;
 			programData.id = -1;
+		}
+
+
+		/**
+		 * test if animation will be able to run on gpu BEFORE compiling materials
+		 * test if the shader objects supports animating the animation set in the vertex shader
+		 * if any object using this material fails to support accelerated animations for any of the shader objects,
+		 * we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
+		 */
+		private getEnabledGPUAnimation(material:MaterialBase, shaderObjects:Array<ShaderObjectData>):boolean
+		{
+			if (material.animationSet) {
+				material.animationSet.resetGPUCompatibility();
+
+				var owners:Array<IMaterialOwner> = material.iOwners;
+				var numOwners:number = owners.length;
+
+				var len:number = shaderObjects.length;
+				for (var i:number = 0; i < len; i++)
+					for (var j:number = 0; j < numOwners; j++)
+						if (owners[j].animator)
+							(<AnimatorBase> owners[j].animator).testGPUCompatibility(shaderObjects[i].shaderObject);
+
+				return !material.animationSet.usesCPU;
+			}
+
+			return false;
+		}
+
+		private calcAnimationCode(material:MaterialBase, shaderObjectData:ShaderObjectData)
+		{
+			//reset key so that the program is re-calculated
+			shaderObjectData.key = "";
+			shaderObjectData.animationVertexCode = "";
+			shaderObjectData.animationFragmentCode = "";
+
+			var shaderObject:ShaderObjectBase = shaderObjectData.shaderObject;
+
+			//check to see if GPU animation is used
+			if (shaderObject.usesAnimation) {
+
+				var animationSet:AnimationSetBase = <AnimationSetBase> material.animationSet;
+
+				shaderObjectData.animationVertexCode += animationSet.getAGALVertexCode(shaderObject);
+
+				if (shaderObject.uvDependencies > 0 && !shaderObject.usesUVTransform)
+					shaderObjectData.animationVertexCode += animationSet.getAGALUVCode(shaderObject);
+
+				if (shaderObject.usesFragmentAnimation)
+					shaderObjectData.animationFragmentCode += animationSet.getAGALFragmentCode(shaderObject, shaderObjectData.shadedTarget);
+
+				animationSet.doneAGALCode(shaderObject);
+
+			} else {
+				// simply write attributes to targets, do not animate them
+				// projection will pick up on targets[0] to do the projection
+				var len:number = shaderObject.animatableAttributes.length;
+				for (var i:number = 0; i < len; ++i)
+					shaderObjectData.animationVertexCode += "mov " + shaderObject.animationTargetRegisters[i] + ", " + shaderObject.animatableAttributes[i] + "\n";
+
+				if (shaderObject.uvDependencies > 0 && !shaderObject.usesUVTransform)
+					shaderObjectData.animationVertexCode += "mov " + shaderObject.uvTarget + "," + shaderObject.uvSource + "\n";
+			}
 		}
 	}
 }

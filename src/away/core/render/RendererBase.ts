@@ -401,7 +401,8 @@ module away.render
 		 */
 		public _iRender(entityCollector:ICollector, target:TextureProxyBase = null, scissorRect:Rectangle = null, surfaceSelector:number = 0)
 		{
-			if (!this._pStage || !this._pContext || !entityCollector.entityHead)
+			//TODO refactor setTarget so that rendertextures are created before this check
+			if (!this._pStage || !this._pContext || (!entityCollector.entityHead && !target))
 				return;
 
 			this._pRttViewProjectionMatrix.copyFrom(entityCollector.camera.viewProjection);

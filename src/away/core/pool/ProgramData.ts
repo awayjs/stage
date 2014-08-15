@@ -46,9 +46,12 @@ module away.pool
 				this._pool.disposeItem(this._key);
 
 				this.context.unRegisterProgram(this);
-				this.program.dispose();
-				this.program = null;
+
+				if (this.program)
+					this.program.dispose();
 			}
+
+			this.program = null;
 		}
 	}
 }

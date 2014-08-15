@@ -11,7 +11,7 @@ module away.materials
 		/**
 		 * A method that is exposed to wrappers in case the strength needs to be controlled
 		 */
-		public _iModulateMethod;
+		public _iModulateMethod:(shaderObject:ShaderObjectBase, methodVO:MethodVO, targetReg:ShaderRegisterElement, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData) => string;
 
 		/**
 		 * Creates a new LightingMethodBase.

@@ -3,6 +3,7 @@
 module away.materials
 {
 	import AnimatorBase								= away.animators.AnimatorBase;
+	import AnimationRegisterCache					= away.animators.AnimationRegisterCache;
 	import Stage									= away.base.Stage;
 	import TriangleSubGeometry						= away.base.TriangleSubGeometry;
 	import Camera									= away.entities.Camera;
@@ -26,6 +27,8 @@ module away.materials
 	export class ShaderObjectBase
 	{
 		public _pInverseSceneMatrix:Array<number> = new Array<number>();
+
+		public animationRegisterCache:AnimationRegisterCache;
 
 		public profile:string;
 
@@ -54,14 +57,25 @@ module away.materials
 		 */
 		public numUsedVaryings:number;
 
+		public animatableAttributes:Array<string>;
+		public animationTargetRegisters:Array<string>;
+		public uvSource:string;
+		public uvTarget:string;
+
 		public useAlphaPremultiplied:boolean;
 		public useBothSides:boolean;
 		public useMipmapping:boolean;
 		public useSmoothTextures:boolean;
 		public repeatTextures:boolean;
 		public usesAnimation:boolean;
-		public usesAnimatedUVs:boolean;
+		public usesUVTransform:boolean;
 		public alphaThreshold:number;
+
+
+		//set ambient values to default
+		public ambientR:number = 0xFF;
+		public ambientG:number = 0xFF;
+		public ambientB:number = 0xFF;
 
 		/**
 		 * Indicates whether the pass requires any fragment animation code.
@@ -92,6 +106,12 @@ module away.materials
 		 * The amount of dependencies on the secondary UV coordinates.
 		 */
 		public secondaryUVDependencies:number;
+
+		/**
+		 * The amount of dependencies on the local position. This can be 0 while hasGlobalPosDependencies is true when
+		 * the global position is used as a temporary value (fe to calculate the view direction)
+		 */
+		public localPosDependencies:number;
 
 		/**
 		 * The amount of dependencies on the global position. This can be 0 while hasGlobalPosDependencies is true when
@@ -152,6 +172,11 @@ module away.materials
 		 * The index for the vertex tangent attribute stream.
 		 */
 		public tangentBufferIndex:number;
+
+		/**
+		 * The index of the vertex constant containing the view matrix.
+		 */
+		public viewMatrixIndex:number;
 
 		/**
 		 * The index of the vertex constant containing the scene matrix.
@@ -234,9 +259,9 @@ module away.materials
 		}
 
 		/**
-		 * Initializes the unchanging constant data for this material.
+		 * Initializes the unchanging constant data for this shader object.
 		 */
-		public initConstantData(registerCache:ShaderRegisterCache)
+		public initConstantData(registerCache:ShaderRegisterCache, animatableAttributes:Array<string>, animationTargetRegisters:Array<string>, uvSource:string, uvTarget:string)
 		{
 			//Updates the amount of used register indices.
 			this.numUsedVertexConstants = registerCache.numUsedVertexConstants;
@@ -245,6 +270,11 @@ module away.materials
 			this.numUsedTextures = registerCache.numUsedTextures;
 			this.numUsedVaryings = registerCache.numUsedVaryings;
 			this.numUsedFragmentConstants = registerCache.numUsedFragmentConstants;
+
+			this.animatableAttributes = animatableAttributes;
+			this.animationTargetRegisters = animationTargetRegisters;
+			this.uvSource = uvSource;
+			this.uvTarget = uvTarget;
 
 			this.vertexConstantData.length = this.numUsedVertexConstants*4;
 			this.fragmentConstantData.length = this.numUsedFragmentConstants*4;
@@ -306,7 +336,7 @@ module away.materials
 			var context:IContextStageGL = <IContextStageGL> stage.context;
 
 			if (renderable.materialOwner.animator)
-				(<AnimatorBase> renderable.materialOwner.animator).setRenderState(stage, renderable, this.numUsedVertexConstants, this.numUsedStreams, camera);
+				(<AnimatorBase> renderable.materialOwner.animator).setRenderState(this, renderable, stage, camera, this.numUsedVertexConstants, this.numUsedStreams);
 
 			if (this.uvBufferIndex >= 0)
 				context.activateBuffer(this.uvBufferIndex, renderable.getVertexData(TriangleSubGeometry.UV_DATA), renderable.getVertexOffset(TriangleSubGeometry.UV_DATA), TriangleSubGeometry.UV_FORMAT);
@@ -321,7 +351,7 @@ module away.materials
 				context.activateBuffer(this.tangentBufferIndex, renderable.getVertexData(TriangleSubGeometry.TANGENT_DATA), renderable.getVertexOffset(TriangleSubGeometry.TANGENT_DATA), TriangleSubGeometry.TANGENT_FORMAT);
 
 			
-			if (this.usesAnimatedUVs) {
+			if (this.usesUVTransform) {
 				var uvTransform:Matrix = renderable.materialOwner.uvTransform.matrix;
 
 				if (uvTransform) {
@@ -339,18 +369,6 @@ module away.materials
 					this.vertexConstantData[this.uvTransformIndex + 5] = 1;
 					this.vertexConstantData[this.uvTransformIndex + 7] = 0;
 				}
-			}
-
-			if (this.sceneMatrixIndex >= 0) {
-				renderable.sourceEntity.getRenderSceneTransform(camera).copyRawDataTo(this.vertexConstantData, this.sceneMatrixIndex, true);
-				viewProjection.copyRawDataTo(this.vertexConstantData, 0, true);
-			} else {
-				var matrix3D:Matrix3D = Matrix3DUtils.CALCULATION_MATRIX;
-
-				matrix3D.copyFrom(renderable.sourceEntity.getRenderSceneTransform(camera));
-				matrix3D.append(viewProjection);
-
-				matrix3D.copyRawDataTo(this.vertexConstantData, 0, true);
 			}
 
 			if (this.sceneNormalMatrixIndex >= 0)

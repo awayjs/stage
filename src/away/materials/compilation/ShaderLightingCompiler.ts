@@ -19,9 +19,6 @@ module away.materials
 		public _dirLightFragmentConstants:Array<ShaderRegisterElement>;
 		public _dirLightVertexConstants:Array<ShaderRegisterElement>;
 
-		private _fragmentLightCode:string;
-		private _fragmentPostLightCode:string;
-
 		public _pNumProbeRegisters:number;
 
 		/**
@@ -85,7 +82,6 @@ module away.materials
 
 			if (this._dirLightVertexConstants) {
 				len = this._dirLightVertexConstants.length;
-
 				for (i = 0; i < len; ++i) {
 					this._dirLightVertexConstants[i] = this._pRegisterCache.getFreeVertexConstant();
 
@@ -94,12 +90,14 @@ module away.materials
 				}
 			}
 
-			len = this._pointLightVertexConstants.length;
-			for (i = 0; i < len; ++i) {
-				this._pointLightVertexConstants[i] = this._pRegisterCache.getFreeVertexConstant();
+			if (this._pointLightVertexConstants) {
+				len = this._pointLightVertexConstants.length;
+				for (i = 0; i < len; ++i) {
+					this._pointLightVertexConstants[i] = this._pRegisterCache.getFreeVertexConstant();
 
-				if (this._shaderLightingObject.lightVertexConstantIndex == -1)
-					this._shaderLightingObject.lightVertexConstantIndex = this._pointLightVertexConstants[i].index*4;
+					if (this._shaderLightingObject.lightVertexConstantIndex == -1)
+						this._shaderLightingObject.lightVertexConstantIndex = this._pointLightVertexConstants[i].index*4;
+				}
 			}
 
 			len = this._dirLightFragmentConstants.length;
@@ -111,7 +109,6 @@ module away.materials
 			}
 
 			len = this._pointLightFragmentConstants.length;
-
 			for (i = 0; i < len; ++i) {
 				this._pointLightFragmentConstants[i] = this._pRegisterCache.getFreeFragmentConstant();
 
@@ -141,12 +138,14 @@ module away.materials
 
 					var lightVarying:ShaderRegisterElement = this._pRegisterCache.getFreeVarying();
 
-					this._pVertexCode += "m33 " + lightVarying + ".xyz, " + lightDirReg + ", " + this._pSharedRegisters.animatedTangent + "\n" + "mov " + lightVarying + ".w, " + lightDirReg + ".w\n";
+					this._pVertexCode += "m33 " + lightVarying + ".xyz, " + lightDirReg + ", " + this._pSharedRegisters.animatedTangent + "\n" +
+						"mov " + lightVarying + ".w, " + lightDirReg + ".w\n";
 
 					lightDirReg = this._pRegisterCache.getFreeFragmentVectorTemp();
 					this._pRegisterCache.addVertexTempUsages(lightDirReg, 1);
-					this._pFragmentCode += "nrm " + lightDirReg + ".xyz, " + lightVarying + "\n";
-					this._pFragmentCode += "mov " + lightDirReg + ".w, " + lightVarying + ".w\n";
+
+					this._pFragmentCode += "nrm " + lightDirReg + ".xyz, " + lightVarying + "\n" +
+						"mov " + lightDirReg + ".w, " + lightVarying + ".w\n";
 
 				} else {
 					lightDirReg = this._dirLightFragmentConstants[fragmentRegIndex++];
@@ -170,22 +169,32 @@ module away.materials
 
 			//compile the shading code for point lights
 			for (var i:number = 0; i < this._materialLightingPass.iNumPointLights; ++i) {
-				lightPosReg = this._pointLightVertexConstants[vertexRegIndex++];
+
+				if (this._shaderLightingObject.usesTangentSpace || !this._shaderLightingObject.usesGlobalPosFragment)
+					lightPosReg = this._pointLightVertexConstants[vertexRegIndex++];
+				else
+					lightPosReg = this._pointLightFragmentConstants[fragmentRegIndex++];
+
 				diffuseColorReg = this._pointLightFragmentConstants[fragmentRegIndex++];
 				specularColorReg = this._pointLightFragmentConstants[fragmentRegIndex++];
-				lightDirReg = this._pRegisterCache.getFreeFragmentVectorTemp();
 
+				lightDirReg = this._pRegisterCache.getFreeFragmentVectorTemp();
 				this._pRegisterCache.addFragmentTempUsages(lightDirReg, 1);
 
-				var lightVarying:ShaderRegisterElement = this._pRegisterCache.getFreeVarying();
+				var lightVarying:ShaderRegisterElement;
 
 				if (this._shaderLightingObject.usesTangentSpace) {
+					lightVarying = this._pRegisterCache.getFreeVarying();
 					var temp:ShaderRegisterElement = this._pRegisterCache.getFreeVertexVectorTemp();
 					this._pVertexCode += "sub " + temp + ", " + lightPosReg + ", " + this._pSharedRegisters.localPosition + "\n" +
 						"m33 " + lightVarying + ".xyz, " + temp + ", " + this._pSharedRegisters.animatedTangent + "\n" +
 						"mov " + lightVarying + ".w, " + this._pSharedRegisters.localPosition + ".w\n";
-				} else {
+				} else if (!this._shaderLightingObject.usesGlobalPosFragment) {
+					lightVarying = this._pRegisterCache.getFreeVarying();
 					this._pVertexCode += "sub " + lightVarying + ", " + lightPosReg + ", " + this._pSharedRegisters.globalPositionVertex + "\n";
+				} else {
+					lightVarying = lightDirReg;
+					this._pFragmentCode += "sub " + lightDirReg + ", " + lightPosReg + ", " + this._pSharedRegisters.globalPositionVarying + "\n";
 				}
 
 				if (this._shaderLightingObject.usesLightFallOff) {
@@ -272,8 +281,12 @@ module away.materials
 			this._pNumProbeRegisters = Math.ceil(this._materialLightingPass.iNumLightProbes/4);
 
 			//init light data
-			this._pointLightVertexConstants = new Array<ShaderRegisterElement>(this._materialLightingPass.iNumPointLights);
-			this._pointLightFragmentConstants = new Array<ShaderRegisterElement>(this._materialLightingPass.iNumPointLights*2);
+			if (this._shaderLightingObject.usesTangentSpace || !this._shaderLightingObject.usesGlobalPosFragment) {
+				this._pointLightVertexConstants = new Array<ShaderRegisterElement>(this._materialLightingPass.iNumPointLights);
+				this._pointLightFragmentConstants = new Array<ShaderRegisterElement>(this._materialLightingPass.iNumPointLights*2);
+			} else {
+				this._pointLightFragmentConstants = new Array<ShaderRegisterElement>(this._materialLightingPass.iNumPointLights*3);
+			}
 
 			if (this._shaderLightingObject.usesTangentSpace) {
 				this._dirLightVertexConstants = new Array<ShaderRegisterElement>(this._materialLightingPass.iNumDirectionalLights);
@@ -306,7 +319,6 @@ module away.materials
 			this._shaderLightingObject.lightPicker = this._materialLightingPass.lightPicker;
 			this._shaderLightingObject.usesLights = numAllLights > 0 && (combinedLightSources & LightSources.LIGHTS) != 0;
 			this._shaderLightingObject.usesProbes = numLightProbes > 0 && (combinedLightSources & LightSources.PROBES) != 0;
-			this._shaderLightingObject.usesSpecular = (numAllLights + numLightProbes) > 0 && (specularLightSources & LightSources.LIGHTS) != 0;
 			this._shaderLightingObject.usesLightsForSpecular = numAllLights > 0 && (specularLightSources & LightSources.LIGHTS) != 0;
 			this._shaderLightingObject.usesProbesForSpecular = numLightProbes > 0 && (specularLightSources & LightSources.PROBES) != 0;
 			this._shaderLightingObject.usesLightsForDiffuse = numAllLights > 0 && (diffuseLightSources & LightSources.LIGHTS) != 0;
@@ -318,30 +330,6 @@ module away.materials
 			this._shaderLightingObject.usesShadows = this._materialLightingPass._iUsesShadows();
 
 			super.pCalculateDependencies();
-		}
-
-		/**
-		 * The code containing the lighting calculations.
-		 */
-		public get fragmentLightCode():string
-		{
-			return this._fragmentLightCode;
-		}
-
-		/**
-		 * The code containing the post-lighting calculations.
-		 */
-		public get fragmentPostLightCode():string
-		{
-			return this._fragmentPostLightCode;
-		}
-
-		/**
-		 * The register name containing the final shaded colour.
-		 */
-		public get shadedTarget():string
-		{
-			return this._pSharedRegisters.shadedTarget.toString();
 		}
 	}
 }

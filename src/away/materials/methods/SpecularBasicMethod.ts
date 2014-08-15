@@ -41,7 +41,7 @@ module away.materials
 
 		public iIsUsed(shaderObject:ShaderLightingObject):boolean
 		{
-			if (!shaderObject.usesSpecular)
+			if (!shaderObject.numLights)
 				return false;
 
 			return true;
@@ -226,7 +226,7 @@ module away.materials
 				code += "mul " + t + ".w, " + t + ".w, " + lightDirReg + ".w\n";
 
 			if (this._iModulateMethod != null)
-				code += this._iModulateMethod(shaderObject, methodVO, t);
+				code += this._iModulateMethod(shaderObject, methodVO, t, registerCache, sharedRegisters);
 
 			code += "mul " + t + ".xyz, " + lightColReg + ", " + t + ".w\n";
 
@@ -267,7 +267,7 @@ module away.materials
 					"mul " + t + ".xyz, " + t + ", " + weightRegister + "\n";
 
 			if (this._iModulateMethod != null)
-				code += this._iModulateMethod(shaderObject, methodVO, t);
+				code += this._iModulateMethod(shaderObject, methodVO, t, registerCache, sharedRegisters);
 
 			if (!this._pIsFirstLight) {
 				code += "add " + this._pTotalLightColorReg + ".xyz, " + this._pTotalLightColorReg + ", " + t + "\n";
@@ -296,7 +296,8 @@ module away.materials
 			}
 
 			// apply material's specular reflection
-			code += "mul " + this._pTotalLightColorReg + ".xyz, " + this._pTotalLightColorReg + ", " + this._pSpecularDataRegister + "\n" + "add " + targetReg + ".xyz, " + targetReg + ", " + this._pTotalLightColorReg + "\n";
+			code += "mul " + this._pTotalLightColorReg + ".xyz, " + this._pTotalLightColorReg + ", " + this._pSpecularDataRegister + "\n" +
+				"add " + targetReg + ".xyz, " + targetReg + ", " + this._pTotalLightColorReg + "\n";
 			registerCache.removeFragmentTempUsage(this._pTotalLightColorReg);
 
 			return code;

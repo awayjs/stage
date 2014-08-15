@@ -8830,6 +8830,52 @@ declare module away.pool {
 */
 declare module away.pool {
     /**
+    * IRenderOrderData is an interface for classes that are used in the rendering pipeline to render the
+    * contents of a texture
+    *
+    * @class away.pool.IRenderOrderData
+    */
+    interface IRenderOrderData {
+        /**
+        *
+        */
+        dispose(): any;
+        /**
+        *
+        */
+        reset(): any;
+        /**
+        *
+        */
+        invalidate(): any;
+    }
+}
+/**
+* @module away.pool
+*/
+declare module away.pool {
+    /**
+    * ITextureData is an interface for classes that are used in the rendering pipeline to render the
+    * contents of a texture
+    *
+    * @class away.pool.ITextureData
+    */
+    interface ITextureData {
+        /**
+        *
+        */
+        dispose(): any;
+        /**
+        *
+        */
+        invalidate(): any;
+    }
+}
+/**
+* @module away.pool
+*/
+declare module away.pool {
+    /**
     * @class away.pool.RenderablePool
     */
     class RenderablePool {
@@ -8868,27 +8914,6 @@ declare module away.pool {
         * @param renderableClass
         */
         static disposePool(renderableClass: any): void;
-    }
-}
-/**
-* @module away.pool
-*/
-declare module away.pool {
-    /**
-    * ITextureData is an interface for classes that are used in the rendering pipeline to render the
-    * contents of a texture
-    *
-    * @class away.pool.ITextureData
-    */
-    interface ITextureData {
-        /**
-        *
-        */
-        dispose(): any;
-        /**
-        *
-        */
-        invalidate(): any;
     }
 }
 /**
@@ -14738,7 +14763,7 @@ declare module away.materials {
     * shaders, or entire new material frameworks.
     */
     class MaterialBase extends library.NamedAssetBase implements library.IAsset {
-        public _iRenderOrderDirty: boolean;
+        private _renderOrderData;
         public _pAlphaThreshold: number;
         public _pAnimateUVs: boolean;
         private _enableLightFallOff;
@@ -14961,6 +14986,12 @@ declare module away.materials {
         */
         public iOwners : base.IMaterialOwner[];
         /**
+        * A list of the passes used in this material
+        *
+        * @private
+        */
+        public iPasses : IMaterialPass[];
+        /**
         * Performs any processing that needs to occur before any of its passes are used.
         *
         * @private
@@ -14980,6 +15011,7 @@ declare module away.materials {
         * @private
         */
         public iInvalidatePasses(triggerPass: IMaterialPass): void;
+        public iInvalidateAnimation(): void;
         /**
         * Removes a pass from the material.
         * @param pass The pass to be removed.
@@ -15011,6 +15043,8 @@ declare module away.materials {
         * Called when the light picker's configuration changed.
         */
         private onLightsChange(event);
+        public _iAddRenderOrderData(renderOrderData: pool.IRenderOrderData): pool.IRenderOrderData;
+        public _iRemoveRenderOrderData(renderOrderData: pool.IRenderOrderData): pool.IRenderOrderData;
     }
 }
 declare module away.materials {
@@ -15612,11 +15646,6 @@ declare module away.animators {
         * @param sourceSubGeometry
         */
         getRenderableSubGeometry(renderable: pool.IRenderable, sourceSubGeometry: base.SubGeometryBase): base.SubGeometryBase;
-        /**
-        *
-        * @param pass
-        */
-        testGPUCompatibility(pass: materials.IMaterialPass): any;
     }
 }
 declare module away {

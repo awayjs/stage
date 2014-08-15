@@ -20,19 +20,17 @@ module away.materials
 
 		public _pVertexCode:string = ''; // Changed to emtpy string- AwayTS
 		public _pFragmentCode:string = '';// Changed to emtpy string - AwayTS
+		public _pPostAnimationFragmentCode:string = '';// Changed to emtpy string - AwayTS
 
 		//The attributes that need to be animated by animators.
 		public _pAnimatableAttributes:Array<string>;
-		
+
 		//The target registers for animated properties, written to by the animators.
 		public _pAnimationTargetRegisters:Array<string>;
 
-		//Indicates whether the compiled code needs UV animation.
-		private _needUVAnimation:boolean;
-		
 		//The target register to place the animated UV coordinate.
 		private _uvTarget:string;
-		
+
 		//The souce register providing the UV coordinate to animate.
 		private _uvSource:string;
 
@@ -68,53 +66,18 @@ module away.materials
 
 			this.pInitRegisterIndices();
 
-			//reserving vertex constants for projection matrix
-			for (var i:number = 0; i < 4; ++i)
-				this._pRegisterCache.getFreeVertexConstant();
-
-			//compile the world-space position if required
-			if (this._pShaderObject.globalPosDependencies > 0 || this._pMaterialPass.forceSeparateMVP) {
-				this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.globalPositionVertex = this._pRegisterCache.getFreeVertexVectorTemp(), this._pShaderObject.globalPosDependencies);
-				var positionMatrixReg:ShaderRegisterElement = this._pRegisterCache.getFreeVertexConstant();
-				this._pRegisterCache.getFreeVertexConstant();
-				this._pRegisterCache.getFreeVertexConstant();
-				this._pRegisterCache.getFreeVertexConstant();
-				this._pShaderObject.sceneMatrixIndex = positionMatrixReg.index*4;
-
-				this._pVertexCode += "m44 " + this._pSharedRegisters.globalPositionVertex + ", " + this._pSharedRegisters.localPosition + ", " + positionMatrixReg + "\n";
-
-				if (this._pShaderObject.usesGlobalPosFragment) {
-					this._pSharedRegisters.globalPositionVarying = this._pRegisterCache.getFreeVarying();
-					this._pVertexCode += "mov " + this._pSharedRegisters.globalPositionVarying + ", " + this._pSharedRegisters.globalPositionVertex + "\n";
-				}
-			}
-
-			//get the projection coordinates
-			var pos:string = (this._pShaderObject.globalPosDependencies > 0 || this._pMaterialPass.forceSeparateMVP)? this._pSharedRegisters.globalPositionVertex.toString() : this._pAnimationTargetRegisters[0];
-
-			if (this._pShaderObject.projectionDependencies > 0) {
-				this._pSharedRegisters.projectionFragment = this._pRegisterCache.getFreeVarying();
-				this._pVertexCode += "m44 vt5, " + pos + ", vc0		\n" +
-									"mov " + this._pSharedRegisters.projectionFragment + ", vt5\n" +
-									"mov op, vt5\n";
-			} else {
-				this._pVertexCode += "m44 op, " + pos + ", vc0		\n";
-			}
-
 			this.pCompileDependencies();
 
-			this.pCompileAnimation();
-			
 			//compile custom vertex & fragment codes
 			this._pVertexCode += this._pMaterialPass._iGetVertexCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
-			this._pFragmentCode += this._pMaterialPass._iGetFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
-
+			this._pPostAnimationFragmentCode += this._pMaterialPass._iGetFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
 
 			//assign the final output color to the output register
-			this._pFragmentCode += "mov " + this._pRegisterCache.fragmentOutputRegister + ", " + this._pSharedRegisters.shadedTarget + "\n";
+			this._pPostAnimationFragmentCode += "mov " + this._pRegisterCache.fragmentOutputRegister + ", " + this._pSharedRegisters.shadedTarget + "\n";
 			this._pRegisterCache.removeFragmentTempUsage(this._pSharedRegisters.shadedTarget);
 
-			this._pShaderObject.initConstantData(this._pRegisterCache);
+			//initialise the required shader constants
+			this._pShaderObject.initConstantData(this._pRegisterCache, this._pAnimatableAttributes, this._pAnimationTargetRegisters, this._uvSource, this._uvTarget);
 			this._pMaterialPass._iInitConstantData(this._pShaderObject);
 		}
 
@@ -125,6 +88,10 @@ module away.materials
 		{
 			this._pSharedRegisters.shadedTarget = this._pRegisterCache.getFreeFragmentVectorTemp();
 			this._pRegisterCache.addFragmentTempUsages(this._pSharedRegisters.shadedTarget, 1);
+
+			//compile the world-space position if required
+			if (this._pShaderObject.globalPosDependencies > 0 || this._pMaterialPass.forceSeparateMVP)
+				this.compileGlobalPositionCode();
 
 			//Calculate the (possibly animated) UV coordinates.
 			if (this._pShaderObject.uvDependencies > 0)
@@ -138,6 +105,29 @@ module away.materials
 
 			if (this._pShaderObject.viewDirDependencies > 0)
 				this.compileViewDirCode();
+
+			this._pVertexCode += this._pMaterialPass._iGetPreVertexCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+			this._pFragmentCode += this._pMaterialPass._iGetPreFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+
+		}
+
+		private compileGlobalPositionCode()
+		{
+			this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.globalPositionVertex = this._pRegisterCache.getFreeVertexVectorTemp(), this._pShaderObject.globalPosDependencies);
+
+			var sceneMatrixReg:ShaderRegisterElement = this._pRegisterCache.getFreeVertexConstant();
+			this._pRegisterCache.getFreeVertexConstant();
+			this._pRegisterCache.getFreeVertexConstant();
+			this._pRegisterCache.getFreeVertexConstant();
+
+			this._pShaderObject.sceneMatrixIndex = sceneMatrixReg.index*4;
+
+			this._pVertexCode += "m44 " + this._pSharedRegisters.globalPositionVertex + ", " + this._pSharedRegisters.localPosition + ", " + sceneMatrixReg + "\n";
+
+			if (this._pShaderObject.usesGlobalPosFragment) {
+				this._pSharedRegisters.globalPositionVarying = this._pRegisterCache.getFreeVarying();
+				this._pVertexCode += "mov " + this._pSharedRegisters.globalPositionVarying + ", " + this._pSharedRegisters.globalPositionVertex + "\n";
+			}
 		}
 
 		/**
@@ -152,7 +142,7 @@ module away.materials
 
 			this._pSharedRegisters.uvVarying = varying;
 
-			if (this._pShaderObject.usesAnimatedUVs) {
+			if (this._pShaderObject.usesUVTransform) {
 				// a, b, 0, tx
 				// c, d, 0, ty
 				var uvTransform1:ShaderRegisterElement = this._pRegisterCache.getFreeVertexConstant();
@@ -164,7 +154,6 @@ module away.materials
 									 "mov " + varying + ".zw, " + uvAttributeReg + ".zw \n";
 			} else {
 				this._pShaderObject.uvTransformIndex = -1;
-				this._needUVAnimation = true;
 				this._uvTarget = varying.toString();
 				this._uvSource = uvAttributeReg.toString();
 			}
@@ -218,7 +207,7 @@ module away.materials
 
 			//simple normal aquisition if no tangent space is being used
 			if (this._pShaderObject.outputsNormals && !this._pShaderObject.outputsTangentNormals) {
-				this._pVertexCode += this._pMaterialPass._iGetNormalFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+				this._pVertexCode += this._pMaterialPass._iGetNormalVertexCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
 				this._pFragmentCode += this._pMaterialPass._iGetNormalFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
 
 				return;
@@ -241,7 +230,7 @@ module away.materials
 
 			if (this._pShaderObject.outputsNormals) {
 				if (this._pShaderObject.usesTangentSpace) {
-					// normalize normal + tangent vector and generate (approximated) bitangent
+					// normalize normal + tangent vector and generate (approximated) bitangent used in m33 operation for view
 					this._pVertexCode += "nrm " + this._pSharedRegisters.animatedNormal + ".xyz, " + this._pSharedRegisters.animatedNormal + "\n" +
 						"nrm " + this._pSharedRegisters.animatedTangent + ".xyz, " + this._pSharedRegisters.animatedTangent + "\n" +
 						"crs " + this._pSharedRegisters.bitangent + ".xyz, " + this._pSharedRegisters.animatedNormal + ", " + this._pSharedRegisters.animatedTangent + "\n";
@@ -306,54 +295,19 @@ module away.materials
 
 				this._pFragmentCode += "nrm " + this._pSharedRegisters.normalFragment + ".xyz, " + this._pSharedRegisters.normalVarying + "\n" +
 					"mov " + this._pSharedRegisters.normalFragment + ".w, " + this._pSharedRegisters.normalVarying + ".w\n";
+
+				if (this._pShaderObject.tangentDependencies > 0) {
+					this._pSharedRegisters.tangentVarying = this._pRegisterCache.getFreeVarying();
+
+					this._pVertexCode += "m33 " + this._pSharedRegisters.tangentVarying + ".xyz, " + this._pSharedRegisters.animatedTangent + ", " + normalMatrix[0] + "\n" +
+						"mov " + this._pSharedRegisters.tangentVarying + ".w, " + this._pSharedRegisters.animatedTangent + ".w\n";
+				}
 			}
 
-			if (this._pShaderObject.tangentDependencies > 0 && (!this._pShaderObject.outputsNormals || this._pShaderObject.usesTangentSpace)) {
-				this._pSharedRegisters.tangentInput = this._pRegisterCache.getFreeVertexAttribute();
-				this._pShaderObject.tangentBufferIndex = this._pSharedRegisters.tangentInput.index;
-				this._pSharedRegisters.tangentVarying = this._pRegisterCache.getFreeVarying();
-
-				this._pVertexCode += "mov " + this._pSharedRegisters.tangentVarying + ", " + this._pSharedRegisters.tangentInput + "\n";
-			}
-
-			this._pRegisterCache.removeVertexTempUsage(this._pSharedRegisters.animatedNormal);
+			if (!this._pShaderObject.usesTangentSpace)
+				this._pRegisterCache.removeVertexTempUsage(this._pSharedRegisters.animatedNormal);
 		}
-		
-		public pCompileAnimation()
-		{
-			//add animation code
-			var animatorCode:string = "";
-			var UVAnimatorCode:string = "";
 
-			if (this._pShaderObject.usesAnimation) {
-
-				var animationset:AnimationSetBase = <AnimationSetBase> this._pMaterial.animationSet;
-				animatorCode = animationset.getAGALVertexCode(this._pShaderObject, this._pAnimatableAttributes, this._pAnimationTargetRegisters, this._pProfile);
-
-				if (this._pShaderObject.usesFragmentAnimation)
-					this._pFragmentCode += animationset.getAGALFragmentCode(this._pShaderObject, this._pSharedRegisters.shadedTarget, this._pProfile);
-
-				if (this._needUVAnimation)
-					UVAnimatorCode = animationset.getAGALUVCode(this._pShaderObject, this._uvSource, this._uvTarget);
-
-				animationset.doneAGALCode(this._pShaderObject);
-
-			} else {
-				var len:number = this._pAnimatableAttributes.length;
-
-				// simply write attributes to targets, do not animate them
-				// projection will pick up on targets[0] to do the projection
-				for (var i:number = 0; i < len; ++i)
-					animatorCode += "mov " + this._pAnimationTargetRegisters[i] + ", " + this._pAnimatableAttributes[i] + "\n";
-
-				if (this._needUVAnimation)
-					UVAnimatorCode = "mov " + this._uvTarget + "," + this._uvSource + "\n";
-			}
-
-			this._pVertexCode = animatorCode + UVAnimatorCode + this._pVertexCode;
-
-		}
-		
 		/**
 		 * Reset all the indices to "unused".
 		 */
@@ -365,6 +319,7 @@ module away.materials
 			this._pAnimationTargetRegisters = new Array<string>("vt0");
 			this._pVertexCode = "";
 			this._pFragmentCode = "";
+			this._pPostAnimationFragmentCode = "";
 
 			this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.localPosition = this._pRegisterCache.getFreeVertexVectorTemp(), 1);
 
@@ -372,15 +327,19 @@ module away.materials
 			this._pSharedRegisters.commons = this._pRegisterCache.getFreeFragmentConstant();
 			this._pShaderObject.commonsDataIndex = this._pSharedRegisters.commons.index*4;
 
-			//Creates the registers to contain the normal data.
-			if (this._pShaderObject.usesTangentSpace) {
-				this._pSharedRegisters.animatedTangent = this._pRegisterCache.getFreeVertexVectorTemp();
-				this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.animatedTangent, 1);
-				this._pSharedRegisters.bitangent = this._pRegisterCache.getFreeVertexVectorTemp();
-				this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.bitangent, 1);
-
+			//Creates the registers to contain the tangent data.
+			// need to be created FIRST and in this order (for when using tangent space)
+			if (this._pShaderObject.tangentDependencies > 0 || this._pShaderObject.outputsNormals) {
 				this._pSharedRegisters.tangentInput = this._pRegisterCache.getFreeVertexAttribute();
 				this._pShaderObject.tangentBufferIndex = this._pSharedRegisters.tangentInput.index;
+
+				this._pSharedRegisters.animatedTangent = this._pRegisterCache.getFreeVertexVectorTemp();
+				this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.animatedTangent, 1);
+
+				if (this._pShaderObject.usesTangentSpace) {
+					this._pSharedRegisters.bitangent = this._pRegisterCache.getFreeVertexVectorTemp();
+					this._pRegisterCache.addVertexTempUsages(this._pSharedRegisters.bitangent, 1);
+				}
 
 				this._pAnimatableAttributes.push(this._pSharedRegisters.tangentInput.toString());
 				this._pAnimationTargetRegisters.push(this._pSharedRegisters.animatedTangent.toString());
@@ -409,7 +368,7 @@ module away.materials
 			this._pShaderObject.useSmoothTextures = this._pMaterial.smooth;
 			this._pShaderObject.repeatTextures = this._pMaterial.repeat;
 			this._pShaderObject.usesAnimation = this._pMaterial.animationSet && !this._pMaterial.animationSet.usesCPU;
-			this._pShaderObject.usesAnimatedUVs = this._pMaterial.animateUVs;
+			this._pShaderObject.usesUVTransform = this._pMaterial.animateUVs;
 			this._pShaderObject.alphaThreshold = this._pMaterial.alphaThreshold;
 
 			this._pMaterialPass._iIncludeDependencies(this._pShaderObject);
@@ -439,6 +398,22 @@ module away.materials
 		public get fragmentCode():string
 		{
 			return this._pFragmentCode;
+		}
+
+		/**
+		 * The generated fragment code.
+		 */
+		public get postAnimationFragmentCode():string
+		{
+			return this._pPostAnimationFragmentCode;
+		}
+
+		/**
+		 * The register name containing the final shaded colour.
+		 */
+		public get shadedTarget():string
+		{
+			return this._pSharedRegisters.shadedTarget.toString();
 		}
 	}
 }

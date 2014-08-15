@@ -25,9 +25,17 @@ module away.pool
 
 		public programData:ProgramData;
 
+		public shadedTarget:string;
+
 		public vertexCode:string;
 
+		public postAnimationFragmentCode:string;
+
 		public fragmentCode:string;
+
+		public animationVertexCode:string = "";
+
+		public animationFragmentCode:string = "";
 
 		public key:string;
 

@@ -46,6 +46,8 @@
 ///<reference path="core/pool/ProgramData.ts"/>
 ///<reference path="core/pool/ProgramDataPool.ts"/>
 ///<reference path="core/pool/SkyBoxRenderable.ts" />
+///<reference path="core/pool/RenderOrderData.ts"/>
+///<reference path="core/pool/RenderOrderDataPool.ts"/>
 ///<reference path="core/pool/ShaderObjectData.ts"/>
 ///<reference path="core/pool/ShaderObjectDataPool.ts"/>
 ///<reference path="core/pool/TextureData.ts"/>
@@ -120,12 +122,12 @@
 ///<reference path="materials/passes/IMaterialPassStageGL.ts"/>
 ///<reference path="materials/passes/ILightingPassStageGL.ts"/>
 ///<reference path="materials/passes/MaterialPassVO.ts"/>
-///<reference path="materials/passes/DepthMapPass.ts"/>
-///<reference path="materials/passes/DistanceMapPass.ts"/>
 ///<reference path="materials/passes/LineBasicPass.ts"/>
 ///<reference path="materials/passes/SkyBoxPass.ts"/>
 ///<reference path="materials/passes/TrianglePassBase.ts"/>
 ///<reference path="materials/passes/TriangleBasicPass.ts"/>
+///<reference path="materials/passes/DepthMapPass.ts"/>
+///<reference path="materials/passes/DistanceMapPass.ts"/>
 ///<reference path="materials/passes/MaterialPassMode.ts"/>
 ///<reference path="materials/passes/TriangleMethodPass.ts"/>
 ///<reference path="materials/DepthMaterialBase.ts"/>

@@ -19992,6 +19992,8 @@ var away;
 ///<reference path="../../_definitions.ts"/>
 ///<reference path="../../_definitions.ts"/>
 ///<reference path="../../_definitions.ts"/>
+///<reference path="../../_definitions.ts"/>
+///<reference path="../../_definitions.ts"/>
 var away;
 (function (away) {
     /**
@@ -20063,7 +20065,6 @@ var away;
     })(away.pool || (away.pool = {}));
     var pool = away.pool;
 })(away || (away = {}));
-///<reference path="../../_definitions.ts"/>
 ///<reference path="../../_definitions.ts"/>
 var away;
 (function (away) {
@@ -22329,14 +22330,16 @@ var away;
                                 cmp = 1;
                             else
                                 cmp = -1;
-                        } else if (ma > mb)
+                        } else if (ma > mb) {
                             cmp = 1;
-                        else
+                        } else {
                             cmp = -1;
-                    } else if (aid > bid)
+                        }
+                    } else if (aid > bid) {
                         cmp = 1;
-                    else
+                    } else {
                         cmp = -1;
+                    }
 
                     if (cmp < 0) {
                         l = head;
@@ -30840,6 +30843,7 @@ var away;
             function MaterialBase() {
                 var _this = this;
                 _super.call(this);
+                this._renderOrderData = new Array();
                 this._pAlphaThreshold = 0;
                 this._pAnimateUVs = false;
                 this._enableLightFallOff = true;
@@ -31102,6 +31106,14 @@ var away;
 
                 for (i = 0; i < this._numPasses; ++i)
                     this._passes[i].dispose();
+
+                this._passes = null;
+
+                var len = this._renderOrderData.length;
+                for (i = 0; i < len; i++)
+                    this._renderOrderData[i].dispose();
+
+                this._renderOrderData = null;
             };
 
             Object.defineProperty(MaterialBase.prototype, "bothSides", {
@@ -31320,7 +31332,7 @@ var away;
                         if (this._animationSet != animationSet) {
                             this._animationSet = animationSet;
 
-                            this.iInvalidatePasses(null);
+                            this.iInvalidateAnimation();
                         }
                     }
                 }
@@ -31338,7 +31350,7 @@ var away;
                 if (this._owners.length == 0) {
                     this._animationSet = null;
 
-                    this.iInvalidatePasses(null);
+                    this.iInvalidateAnimation();
                 }
             };
 
@@ -31350,6 +31362,19 @@ var away;
                 */
                 get: function () {
                     return this._owners;
+                },
+                enumerable: true,
+                configurable: true
+            });
+
+            Object.defineProperty(MaterialBase.prototype, "iPasses", {
+                /**
+                * A list of the passes used in this material
+                *
+                * @private
+                */
+                get: function () {
+                    return this._passes;
                 },
                 enumerable: true,
                 configurable: true
@@ -31379,36 +31404,17 @@ var away;
             * @private
             */
             MaterialBase.prototype.iInvalidatePasses = function (triggerPass) {
-                var owner;
-                var animator;
-
-                var l;
-                var c;
-
-                if (this._animationSet)
-                    this._animationSet.resetGPUCompatibility();
-
                 for (var i = 0; i < this._numPasses; ++i) {
                     // only invalidate the pass if it wasn't the triggering pass
                     if (this._passes[i] != triggerPass)
                         this._passes[i].iInvalidateShaderProgram(false);
-
-                    // test if animation will be able to run on gpu BEFORE compiling materials
-                    // test if the pass supports animating the animation set in the vertex shader
-                    // if any object using this material fails to support accelerated animations for any of the passes,
-                    // we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
-                    if (this._animationSet) {
-                        l = this._owners.length;
-
-                        for (c = 0; c < l; c++) {
-                            owner = this._owners[c];
-                            animator = owner.animator;
-
-                            if (animator)
-                                animator.testGPUCompatibility(this._passes[i]);
-                        }
-                    }
                 }
+            };
+
+            MaterialBase.prototype.iInvalidateAnimation = function () {
+                var len = this._renderOrderData.length;
+                for (var i = 0; i < len; i++)
+                    this._renderOrderData[i].invalidate();
             };
 
             /**
@@ -31470,7 +31476,9 @@ var away;
             * Listener for when a pass's shader code changes. It recalculates the render order id.
             */
             MaterialBase.prototype.onPassChange = function (event) {
-                this._iRenderOrderDirty = true;
+                var len = this._renderOrderData.length;
+                for (var i = 0; i < len; i++)
+                    this._renderOrderData[i].reset();
             };
 
             /**
@@ -31485,6 +31493,18 @@ var away;
             */
             MaterialBase.prototype.onLightsChange = function (event) {
                 this.pInvalidateScreenPasses();
+            };
+
+            MaterialBase.prototype._iAddRenderOrderData = function (renderOrderData) {
+                this._renderOrderData.push(renderOrderData);
+
+                return renderOrderData;
+            };
+
+            MaterialBase.prototype._iRemoveRenderOrderData = function (renderOrderData) {
+                this._renderOrderData.splice(this._renderOrderData.indexOf(renderOrderData), 1);
+
+                return renderOrderData;
             };
             return MaterialBase;
         })(away.library.NamedAssetBase);
@@ -34795,8 +34815,9 @@ var away;
 ///<reference path="core/pool/EntityListItemPool.ts"/>
 ///<reference path="core/pool/IRenderable.ts"/>
 ///<reference path="core/pool/IRenderableClass.ts"/>
-///<reference path="core/pool/RenderablePool.ts"/>
+///<reference path="core/pool/IRenderOrderData.ts"/>
 ///<reference path="core/pool/ITextureData.ts"/>
+///<reference path="core/pool/RenderablePool.ts"/>
 ///<reference path="core/pool/CSSRenderableBase.ts"/>
 ///<reference path="core/pool/CSSBillboardRenderable.ts"/>
 ///<reference path="core/pool/CSSLineSegmentRenderable.ts"/>

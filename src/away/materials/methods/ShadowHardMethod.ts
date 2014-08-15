@@ -35,7 +35,9 @@ module away.materials
 			methodVO.fragmentConstantsIndex = decReg.index*4;
 			methodVO.texturesIndex = depthMapRegister.index;
 
-			code += "tex " + depthCol + ", " + this._pDepthMapCoordReg + ", " + depthMapRegister + " <2d, nearest, clamp>\n" + "dp4 " + depthCol + ".z, " + depthCol + ", " + decReg + "\n" + "slt " + targetReg + ".w, " + this._pDepthMapCoordReg + ".z, " + depthCol + ".z\n"; // 0 if in shadow
+			code += "tex " + depthCol + ", " + this._pDepthMapCoordReg + ", " + depthMapRegister + " <2d, nearest, clamp>\n" +
+				"dp4 " + depthCol + ".z, " + depthCol + ", " + decReg + "\n" +
+				"slt " + targetReg + ".w, " + this._pDepthMapCoordReg + ".z, " + depthCol + ".z\n"; // 0 if in shadow
 
 			return code;
 		}
