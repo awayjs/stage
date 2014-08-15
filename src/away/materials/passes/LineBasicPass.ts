@@ -117,7 +117,9 @@ module away.materials
 		 */
 		public _iGetFragmentCode(shaderObject:ShaderObjectBase, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData):string
 		{
-			return "mov oc, v0\n";
+			var targetReg:ShaderRegisterElement = sharedReg.shadedTarget;
+
+			return "mov " + targetReg + ", v0\n";
 		}
 
 		/**
