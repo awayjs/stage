@@ -9272,7 +9272,9 @@ var away;
             * @inheritDoc
             */
             LineBasicPass.prototype._iGetFragmentCode = function (shaderObject, regCache, sharedReg) {
-                return "mov oc, v0\n";
+                var targetReg = sharedReg.shadedTarget;
+
+                return "mov " + targetReg + ", v0\n";
             };
 
             /**
@@ -12526,7 +12528,7 @@ var away;
                 if (typeof scissorRect === "undefined") { scissorRect = null; }
                 if (typeof surfaceSelector === "undefined") { surfaceSelector = 0; }
                 //TODO refactor setTarget so that rendertextures are created before this check
-                if (!this._pStage || !this._pContext || (!entityCollector.entityHead && !target))
+                if (!this._pStage || !this._pContext)
                     return;
 
                 this._pRttViewProjectionMatrix.copyFrom(entityCollector.camera.viewProjection);
