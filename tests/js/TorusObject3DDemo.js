@@ -1,6 +1,6 @@
 ///<reference path="../../build/stagegl-context.next.d.ts" />
-var demos;
-(function (demos) {
+var tests;
+(function (tests) {
     (function (object3d) {
         var View = away.containers.View;
 
@@ -142,7 +142,7 @@ var demos;
             return TorusObject3DDemo;
         })();
         object3d.TorusObject3DDemo = TorusObject3DDemo;
-    })(demos.object3d || (demos.object3d = {}));
-    var object3d = demos.object3d;
-})(demos || (demos = {}));
+    })(tests.object3d || (tests.object3d = {}));
+    var object3d = tests.object3d;
+})(tests || (tests = {}));
 //# sourceMappingURL=TorusObject3DDemo.js.map

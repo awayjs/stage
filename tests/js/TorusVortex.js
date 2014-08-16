@@ -1,6 +1,6 @@
 ///<reference path="../../build/stagegl-context.next.d.ts" />
-var demos;
-(function (demos) {
+var tests;
+(function (tests) {
     (function (object3d) {
         var BlendMode = away.base.BlendMode;
 
@@ -108,7 +108,7 @@ var demos;
             return TorusVortex;
         })();
         object3d.TorusVortex = TorusVortex;
-    })(demos.object3d || (demos.object3d = {}));
-    var object3d = demos.object3d;
-})(demos || (demos = {}));
+    })(tests.object3d || (tests.object3d = {}));
+    var object3d = tests.object3d;
+})(tests || (tests = {}));
 //# sourceMappingURL=TorusVortex.js.map

@@ -1,7 +1,7 @@
 ///<reference path="../../build/stagegl-context.next.d.ts" />
 //<reference path="../../../src/Away3D.ts" />
-var demos;
-(function (demos) {
+var tests;
+(function (tests) {
     (function (lights) {
         var View = away.containers.View;
         var DirectionalLight = away.entities.DirectionalLight;
@@ -27,9 +27,8 @@ var demos;
                 away.Debug.LOG_PI_ERRORS = false;
 
                 this._view = new View(new DefaultRenderer());
-                this._view.backgroundColor = 0x014C73;
                 this._view.camera.projection = new PerspectiveProjection(60);
-                this._torus = new PrimitiveTorusPrefab(120, 80, 32, 16, false);
+                this._torus = new PrimitiveTorusPrefab(220, 80, 32, 16, false);
 
                 this.loadResources();
             }
@@ -57,14 +56,11 @@ var demos;
 
             TorusLight.prototype.onLoadComplete = function (event) {
                 var _this = this;
-                this._view.camera.z = -500;
                 var ts = new ImageTexture(this._image, false);
 
                 var light = new DirectionalLight();
-                light.color = 0x00ff88;
                 light.direction = new Vector3D(0, 0, 1);
-                light.ambient = 0.5;
-                light.diffuse = .5;
+                light.diffuse = .7;
                 light.specular = 1;
 
                 this._view.scene.addChild(light);
@@ -107,7 +103,7 @@ var demos;
             return TorusLight;
         })();
         lights.TorusLight = TorusLight;
-    })(demos.lights || (demos.lights = {}));
-    var lights = demos.lights;
-})(demos || (demos = {}));
+    })(tests.lights || (tests.lights = {}));
+    var lights = tests.lights;
+})(tests || (tests = {}));
 //# sourceMappingURL=TorusLight.js.map

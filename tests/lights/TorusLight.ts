@@ -1,7 +1,7 @@
 ///<reference path="../../build/stagegl-context.next.d.ts" />
 //<reference path="../../../src/Away3D.ts" />
 
-module demos.lights
+module tests.lights
 {
 	import View							= away.containers.View;
 	import DirectionalLight				= away.entities.DirectionalLight;
@@ -13,7 +13,7 @@ module demos.lights
 	import AssetType					= away.library.AssetType;
 	import IAsset						= away.library.IAsset;
 	import StaticLightPicker			= away.materials.StaticLightPicker;
-	import TriangleMethodMaterial				= away.materials.TriangleMethodMaterial;
+	import TriangleMethodMaterial		= away.materials.TriangleMethodMaterial;
 	import URLLoader					= away.net.URLLoader;
 	import URLLoaderDataFormat			= away.net.URLLoaderDataFormat;
 	import URLRequest					= away.net.URLRequest;
@@ -39,10 +39,9 @@ module demos.lights
             away.Debug.LOG_PI_ERRORS = false;
 
 			this._view = new View(new DefaultRenderer());
-			this._view.backgroundColor = 0x014C73;
 			this._view.camera.projection = new PerspectiveProjection(60);
-			this._torus = new PrimitiveTorusPrefab(120, 80, 32, 16, false);
-			
+			this._torus = new PrimitiveTorusPrefab(220, 80, 32, 16, false);
+
 			this.loadResources();
 		}
 		
@@ -66,14 +65,11 @@ module demos.lights
 
 		private onLoadComplete(event:Event)
 		{
-            this._view.camera.z = -500;
 			var ts:ImageTexture = new ImageTexture(this._image, false);
 			
 			var light:DirectionalLight = new DirectionalLight();
-			light.color = 0x00ff88;
 			light.direction = new Vector3D(0, 0, 1);
-			light.ambient = 0.5;
-			light.diffuse = .5;
+			light.diffuse = .7;
 			light.specular = 1;
 
 			this._view.scene.addChild(light);
