@@ -5,7 +5,7 @@ away.Debug.LOG_PI_ERRORS = false;
 
 module away
 {
-	export class StageGLContext extends away.events.EventDispatcher
+	export class StageGLCore extends away.events.EventDispatcher
 	{
 		constructor()
 		{

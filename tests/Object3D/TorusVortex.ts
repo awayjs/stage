@@ -1,6 +1,6 @@
-///<reference path="../../build/stagegl-context.next.d.ts" />
+///<reference path="../../build/stagegl-core.next.d.ts" />
 
-module demos.object3d
+module tests.object3d
 {
 	import BlendMode					= away.base.BlendMode;
 	import Scene						= away.containers.Scene;

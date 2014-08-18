@@ -252,7 +252,7 @@ var away;
             html += '               padding: 0px;';
             html += '          }';
             html += '       </style>';
-            html += '   <script src="http://gist-it.appspot.com/github/awayjs/stagegl-context-ts/tree/master/tests/' + url + '?footer=no"></script>';
+            html += '   <script src="http://gist-it.appspot.com/github/awayjs/stagegl-core-ts/tree/master/tests/' + url + '?footer=no"></script>';
             html += '</head>';
             html += '<body>';
             html += '</body>';

@@ -1,4 +1,4 @@
-///<reference path="../../build/stagegl-context.next.d.ts" />
+///<reference path="../../build/stagegl-core.next.d.ts" />
 
 module tests.materials
 {

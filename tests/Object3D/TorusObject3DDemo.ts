@@ -1,10 +1,9 @@
-///<reference path="../../build/stagegl-context.next.d.ts" />
+///<reference path="../../build/stagegl-core.next.d.ts" />
 
-module demos.object3d
+module tests.object3d
 {
 	import PerspectiveProjection		= away.projections.PerspectiveProjection;
 	import View							= away.containers.View;
-	import ContextMode					= away.display.ContextMode;
 	import Mesh							= away.entities.Mesh;
 	import PointLight					= away.entities.PointLight;
 	import URLLoader					= away.net.URLLoader;
