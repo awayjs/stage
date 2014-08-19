@@ -370,6 +370,8 @@ module away.materials
 			this._pShaderObject.usesAnimation = this._pMaterial.animationSet && !this._pMaterial.animationSet.usesCPU;
 			this._pShaderObject.usesUVTransform = this._pMaterial.animateUVs;
 			this._pShaderObject.alphaThreshold = this._pMaterial.alphaThreshold;
+			//TODO: fragment animtion should be compatible with lighting pass
+			this._pShaderObject.usesFragmentAnimation = Boolean(this._pMaterialPass.passMode == MaterialPassMode.SUPER_SHADER);
 
 			this._pMaterialPass._iIncludeDependencies(this._pShaderObject);
 		}

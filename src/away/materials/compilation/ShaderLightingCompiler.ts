@@ -323,10 +323,6 @@ module away.materials
 			this._shaderLightingObject.usesProbesForSpecular = numLightProbes > 0 && (specularLightSources & LightSources.PROBES) != 0;
 			this._shaderLightingObject.usesLightsForDiffuse = numAllLights > 0 && (diffuseLightSources & LightSources.LIGHTS) != 0;
 			this._shaderLightingObject.usesProbesForDiffuse = numLightProbes > 0 && (diffuseLightSources & LightSources.PROBES) != 0;
-
-			// todo: add spotlights to count check
-			this._shaderLightingObject.usesFragmentAnimation = Boolean(this._pMaterialPass.passMode == MaterialPassMode.SUPER_SHADER);
-
 			this._shaderLightingObject.usesShadows = this._materialLightingPass._iUsesShadows();
 
 			super.pCalculateDependencies();
