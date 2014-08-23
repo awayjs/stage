@@ -25,7 +25,7 @@ module away.materials
 
 			this.pAddDepthPasses();
 
-			this.pAddPass(this._screenPass = new LineBasicPass());
+			this._pAddScreenPass(this._screenPass = new LineBasicPass());
 			this._screenPass.thickness = thickness;
 		}
 	}

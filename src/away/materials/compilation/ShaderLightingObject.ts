@@ -104,9 +104,9 @@ module away.materials
 		 * @param materialPassVO
 		 * @returns {away.materials.ShaderLightingCompiler}
 		 */
-		public createCompiler(materialPassVO:MaterialPassVO):ShaderCompilerBase
+		public createCompiler(material:MaterialBase, materialPass:ILightingPassStageGL):ShaderCompilerBase
 		{
-			return new ShaderLightingCompiler(materialPassVO, this);
+			return new ShaderLightingCompiler(material, materialPass, this);
 		}
 
 		/**

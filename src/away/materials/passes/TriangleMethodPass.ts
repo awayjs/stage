@@ -21,8 +21,6 @@ module away.materials
 	 */
 	export class TriangleMethodPass extends TrianglePassBase implements ILightingPassStageGL
 	{
-		public _iPassesDirty:boolean;
-
 		public _iColorTransformMethodVO:MethodVO;
 		public _iNormalMethodVO:MethodVO;
 		public _iAmbientMethodVO:MethodVO;
@@ -129,7 +127,7 @@ module away.materials
 			methodVO.method.removeEventListener(ShadingMethodEvent.SHADER_INVALIDATED, this._onShaderInvalidatedDelegate);
 			this._iMethodVOs.splice(index, 1);
 
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 
 		private _addDependency(methodVO:MethodVO, effectsDependency:boolean = false, index:number = -1)
@@ -146,7 +144,7 @@ module away.materials
 				this._iMethodVOs.splice(this._iMethodVOs.length - this._numEffectDependencies, 0, methodVO);
 			}
 
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 		
 		/**
@@ -358,56 +356,11 @@ module away.materials
 		}
 
 		/**
-		 * @inheritDoc
-		 */
-		public iInvalidateShaderProgram(updateMaterial:boolean = true)
-		{
-			super.iInvalidateShaderProgram(updateMaterial);
-
-			var oldPasses:Array<IMaterialPass> = this._iPasses;
-			this._iPasses = new Array<MaterialPassBase>();
-
-			for (var i:number = 0; i < this._iMethodVOs.length; ++i)
-				this.pAddPasses(this._iMethodVOs[i]);
-
-			if (!oldPasses || this._iPasses.length != oldPasses.length) {
-				this._iPassesDirty = true;
-				return;
-			}
-
-			for (var i:number = 0; i < this._iPasses.length; ++i) {
-				if (this._iPasses[i] != oldPasses[i]) {
-					this._iPassesDirty = true;
-					return;
-				}
-			}
-		}
-
-		/**
-		 * Adds internal passes to the material.
-		 *
-		 * @param passes The passes to add.
-		 */
-		public pAddPasses(methodVO:MethodVO)
-		{
-			var passes:Array<MaterialPassBase> = methodVO.method.passes;
-
-			if (!methodVO.useMethod || !passes)
-				return;
-
-			var len:number = passes.length;
-			for (var i:number = 0; i < len; ++i) {
-				passes[i].lightPicker = this._pLightPicker;
-				this._iPasses.push(passes[i]);
-			}
-		}
-
-		/**
 		 * Called when any method's shader code is invalidated.
 		 */
 		private onShaderInvalidated(event:ShadingMethodEvent)
 		{
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 
 		// RENDER LOOP
@@ -424,7 +377,7 @@ module away.materials
 			for (var i:number = 0; i < len; ++i) {
 				methodVO = this._iMethodVOs[i];
 				if (methodVO.useMethod)
-					methodVO.method.iActivate(this._pActiveShaderObject.shaderObject, methodVO, stage);
+					methodVO.method.iActivate(this._pActiveMaterialPass.shaderObject, methodVO, stage);
 			}
 		}
 
@@ -444,7 +397,7 @@ module away.materials
 			for (var i:number = 0; i < len; ++i) {
 				methodVO = this._iMethodVOs[i];
 				if (methodVO.useMethod)
-					methodVO.method.iSetRenderState(this._pActiveShaderObject.shaderObject, methodVO, renderable, stage, camera);
+					methodVO.method.iSetRenderState(this._pActiveMaterialPass.shaderObject, methodVO, renderable, stage, camera);
 			}
 		}
 
@@ -460,7 +413,7 @@ module away.materials
 			for (var i:number = 0; i < len; ++i) {
 				methodVO = this._iMethodVOs[i];
 				if (methodVO.useMethod)
-					methodVO.method.iDeactivate(this._pActiveShaderObject.shaderObject, methodVO, stage);
+					methodVO.method.iDeactivate(this._pActiveMaterialPass.shaderObject, methodVO, stage);
 			}
 		}
 

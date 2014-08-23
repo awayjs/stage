@@ -5,23 +5,23 @@
  */
 module away.pool
 {
-	import MaterialPassVO				= away.materials.MaterialPassVO;
+	import MaterialBase					= away.materials.MaterialBase;
+	import MaterialPassBase				= away.materials.MaterialPassBase;
 	import ShaderObjectBase				= away.materials.ShaderObjectBase;
-	import ContextGLBase				= away.stagegl.ContextGLBase;
 
 	/**
 	 *
-	 * @class away.pool.ShaderObjectData
+	 * @class away.pool.MaterialPassData
 	 */
-	export class ShaderObjectData
+	export class MaterialPassData
 	{
-		private _pool:ShaderObjectDataPool;
+		private _pool:MaterialPassDataPool;
 
-		public context:ContextGLBase;
+		public material:MaterialBase;
 
 		public shaderObject:ShaderObjectBase;
 
-		public materialPassVO:MaterialPassVO;
+		public materialPass:MaterialPassBase;
 
 		public programData:ProgramData;
 
@@ -41,11 +41,13 @@ module away.pool
 
 		public invalid:boolean;
 
-		constructor(pool:ShaderObjectDataPool, context:ContextGLBase, materialPassVO:MaterialPassVO)
+		public usesAnimation:boolean;
+
+		constructor(pool:MaterialPassDataPool, material:MaterialBase, materialPass:MaterialPassBase)
 		{
 			this._pool = pool;
-			this.context = context;
-			this.materialPassVO = materialPassVO;
+			this.material = material;
+			this.materialPass = materialPass;
 		}
 
 		/**
@@ -53,7 +55,7 @@ module away.pool
 		 */
 		public dispose()
 		{
-			this._pool.disposeItem(this.materialPassVO);
+			this._pool.disposeItem(this.materialPass);
 
 			this.shaderObject.dispose();
 			this.shaderObject = null;

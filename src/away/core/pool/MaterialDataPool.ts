@@ -9,9 +9,9 @@ module away.pool
 	import MaterialBase					= away.materials.MaterialBase;
 
 	/**
-	 * @class away.pool.RenderOrderDataPool
+	 * @class away.pool.MaterialDataPool
 	 */
-	export class RenderOrderDataPool
+	export class MaterialDataPool
 	{
 		private _pool:Object = new Object();
 		private _context:ContextGLBase;
@@ -32,9 +32,9 @@ module away.pool
 		 * @param materialOwner
 		 * @returns ITexture
 		 */
-		public getItem(material:MaterialBase):RenderOrderData
+		public getItem(material:MaterialBase):MaterialData
 		{
-			return (this._pool[material.id] || (this._pool[material.id] = material._iAddRenderOrderData(new RenderOrderData(this, this._context, material))))
+			return (this._pool[material.id] || (this._pool[material.id] = material._iAddMaterialData(new MaterialData(this, this._context, material))))
 		}
 
 		/**
@@ -44,7 +44,7 @@ module away.pool
 		 */
 		public disposeItem(material:MaterialBase)
 		{
-			material._iRemoveRenderOrderData(this._pool[material.id]);
+			material._iRemoveMaterialData(this._pool[material.id]);
 
 			this._pool[material.id] = null;
 		}

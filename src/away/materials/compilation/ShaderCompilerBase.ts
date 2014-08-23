@@ -40,10 +40,10 @@ module away.materials
 		 * Creates a new ShaderCompilerBase object.
 		 * @param profile The compatibility profile of the renderer.
 		 */
-		constructor(materialPassVO:MaterialPassVO, shaderObject:ShaderObjectBase)
+		constructor(material:MaterialBase, materialPass:IMaterialPassStageGL, shaderObject:ShaderObjectBase)
 		{
-			this._pMaterialPass = materialPassVO.materialPass;
-			this._pMaterial = materialPassVO.material;
+			this._pMaterial = material;
+			this._pMaterialPass = materialPass;
 
 			this._pShaderObject = shaderObject;
 			this._pProfile = shaderObject.profile;
@@ -367,7 +367,6 @@ module away.materials
 			this._pShaderObject.useMipmapping = this._pMaterial.mipmap;
 			this._pShaderObject.useSmoothTextures = this._pMaterial.smooth;
 			this._pShaderObject.repeatTextures = this._pMaterial.repeat;
-			this._pShaderObject.usesAnimation = this._pMaterial.animationSet && !this._pMaterial.animationSet.usesCPU;
 			this._pShaderObject.usesUVTransform = this._pMaterial.animateUVs;
 			this._pShaderObject.alphaThreshold = this._pMaterial.alphaThreshold;
 			//TODO: fragment animtion should be compatible with lighting pass

@@ -1972,39 +1972,97 @@ var away;
     (function (_pool) {
         /**
         *
-        * @class away.pool.RenderOrderData
+        * @class away.pool.MaterialData
         */
-        var RenderOrderData = (function () {
-            function RenderOrderData(pool, context, material) {
+        var MaterialData = (function () {
+            function MaterialData(pool, context, material) {
+                this.invalidAnimation = true;
                 this._pool = pool;
                 this.context = context;
                 this.material = material;
+
+                this._materialPassDataPool = new _pool.MaterialPassDataPool(material);
             }
+            MaterialData.prototype.getMaterialPass = function (materialPass, profile) {
+                var materialPassData = this._materialPassDataPool.getItem(materialPass);
+
+                if (!materialPassData.shaderObject) {
+                    materialPassData.shaderObject = materialPass.createShaderObject(profile);
+                    materialPassData.invalid = true;
+                }
+
+                if (materialPassData.invalid) {
+                    materialPassData.invalid = false;
+                    var compiler = materialPassData.shaderObject.createCompiler(this.material, materialPass);
+                    compiler.compile();
+
+                    materialPassData.shadedTarget = compiler.shadedTarget;
+                    materialPassData.vertexCode = compiler.vertexCode;
+                    materialPassData.fragmentCode = compiler.fragmentCode;
+                    materialPassData.postAnimationFragmentCode = compiler.postAnimationFragmentCode;
+                    materialPassData.key = "";
+                }
+
+                return materialPassData;
+            };
+
+            MaterialData.prototype.getMaterialPasses = function (profile) {
+                if (this._passes == null) {
+                    var passes = this.material.iPasses;
+                    var numPasses = passes.length;
+
+                    //reset the material passes in MaterialData
+                    this._passes = new Array(numPasses);
+
+                    for (var i = 0; i < numPasses; i++)
+                        this._passes[i] = this.getMaterialPass(passes[i], profile);
+                }
+
+                return this._passes;
+            };
+
             /**
             *
             */
-            RenderOrderData.prototype.dispose = function () {
+            MaterialData.prototype.dispose = function () {
+                this._materialPassDataPool.disposePool();
+
+                this._materialPassDataPool = null;
+
                 this._pool.disposeItem(this.material);
 
-                this.shaderObjects = null;
+                this._passes = null;
             };
 
             /**
             *
             */
-            RenderOrderData.prototype.reset = function () {
-                this.shaderObjects = null;
+            MaterialData.prototype.invalidateMaterial = function () {
+                this._passes = null;
+
+                this.invalidateAnimation();
             };
 
             /**
             *
             */
-            RenderOrderData.prototype.invalidate = function () {
-                this.invalid = true;
+            MaterialData.prototype.invalidatePasses = function () {
+                if (this._passes != null) {
+                    var len = this._passes.length;
+                    for (var i = 0; i < len; i++)
+                        this._passes[i].invalidate();
+                }
             };
-            return RenderOrderData;
+
+            /**
+            *
+            */
+            MaterialData.prototype.invalidateAnimation = function () {
+                this.invalidAnimation = true;
+            };
+            return MaterialData;
         })();
-        _pool.RenderOrderData = RenderOrderData;
+        _pool.MaterialData = MaterialData;
     })(away.pool || (away.pool = {}));
     var pool = away.pool;
 })(away || (away = {}));
@@ -2016,15 +2074,15 @@ var away;
     */
     (function (pool) {
         /**
-        * @class away.pool.RenderOrderDataPool
+        * @class away.pool.MaterialDataPool
         */
-        var RenderOrderDataPool = (function () {
+        var MaterialDataPool = (function () {
             /**
             * //TODO
             *
             * @param textureDataClass
             */
-            function RenderOrderDataPool(context) {
+            function MaterialDataPool(context) {
                 this._pool = new Object();
                 this._context = context;
             }
@@ -2034,8 +2092,8 @@ var away;
             * @param materialOwner
             * @returns ITexture
             */
-            RenderOrderDataPool.prototype.getItem = function (material) {
-                return (this._pool[material.id] || (this._pool[material.id] = material._iAddRenderOrderData(new pool.RenderOrderData(this, this._context, material))));
+            MaterialDataPool.prototype.getItem = function (material) {
+                return (this._pool[material.id] || (this._pool[material.id] = material._iAddMaterialData(new pool.MaterialData(this, this._context, material))));
             };
 
             /**
@@ -2043,14 +2101,14 @@ var away;
             *
             * @param materialOwner
             */
-            RenderOrderDataPool.prototype.disposeItem = function (material) {
-                material._iRemoveRenderOrderData(this._pool[material.id]);
+            MaterialDataPool.prototype.disposeItem = function (material) {
+                material._iRemoveMaterialData(this._pool[material.id]);
 
                 this._pool[material.id] = null;
             };
-            return RenderOrderDataPool;
+            return MaterialDataPool;
         })();
-        pool.RenderOrderDataPool = RenderOrderDataPool;
+        pool.MaterialDataPool = MaterialDataPool;
     })(away.pool || (away.pool = {}));
     var pool = away.pool;
 })(away || (away = {}));
@@ -2063,21 +2121,21 @@ var away;
     (function (_pool) {
         /**
         *
-        * @class away.pool.ShaderObjectData
+        * @class away.pool.MaterialPassData
         */
-        var ShaderObjectData = (function () {
-            function ShaderObjectData(pool, context, materialPassVO) {
+        var MaterialPassData = (function () {
+            function MaterialPassData(pool, material, materialPass) {
                 this.animationVertexCode = "";
                 this.animationFragmentCode = "";
                 this._pool = pool;
-                this.context = context;
-                this.materialPassVO = materialPassVO;
+                this.material = material;
+                this.materialPass = materialPass;
             }
             /**
             *
             */
-            ShaderObjectData.prototype.dispose = function () {
-                this._pool.disposeItem(this.materialPassVO);
+            MaterialPassData.prototype.dispose = function () {
+                this._pool.disposeItem(this.materialPass);
 
                 this.shaderObject.dispose();
                 this.shaderObject = null;
@@ -2089,12 +2147,12 @@ var away;
             /**
             *
             */
-            ShaderObjectData.prototype.invalidate = function () {
+            MaterialPassData.prototype.invalidate = function () {
                 this.invalid = true;
             };
-            return ShaderObjectData;
+            return MaterialPassData;
         })();
-        _pool.ShaderObjectData = ShaderObjectData;
+        _pool.MaterialPassData = MaterialPassData;
     })(away.pool || (away.pool = {}));
     var pool = away.pool;
 })(away || (away = {}));
@@ -2106,17 +2164,17 @@ var away;
     */
     (function (pool) {
         /**
-        * @class away.pool.ShaderObjectDataPool
+        * @class away.pool.MaterialPassDataPool
         */
-        var ShaderObjectDataPool = (function () {
+        var MaterialPassDataPool = (function () {
             /**
             * //TODO
             *
             * @param textureDataClass
             */
-            function ShaderObjectDataPool(context) {
+            function MaterialPassDataPool(material) {
                 this._pool = new Object();
-                this._context = context;
+                this._material = material;
             }
             /**
             * //TODO
@@ -2124,8 +2182,8 @@ var away;
             * @param materialOwner
             * @returns ITexture
             */
-            ShaderObjectDataPool.prototype.getItem = function (materialPass) {
-                return (this._pool[materialPass._iUniqueId] || (this._pool[materialPass._iUniqueId] = materialPass._iAddShaderObjectData(new pool.ShaderObjectData(this, this._context, materialPass))));
+            MaterialPassDataPool.prototype.getItem = function (materialPass) {
+                return (this._pool[materialPass.id] || (this._pool[materialPass.id] = materialPass._iAddMaterialPassData(new pool.MaterialPassData(this, this._material, materialPass))));
             };
 
             /**
@@ -2133,14 +2191,21 @@ var away;
             *
             * @param materialOwner
             */
-            ShaderObjectDataPool.prototype.disposeItem = function (materialPass) {
-                materialPass._iRemoveShaderObjectData(this._pool[materialPass._iUniqueId]);
+            MaterialPassDataPool.prototype.disposeItem = function (materialPass) {
+                materialPass._iRemoveMaterialPassData(this._pool[materialPass.id]);
 
-                this._pool[materialPass._iUniqueId] = null;
+                delete this._pool[materialPass.id];
             };
-            return ShaderObjectDataPool;
+
+            MaterialPassDataPool.prototype.disposePool = function () {
+                for (var id in this._pool)
+                    this._pool[id].materialPass._iRemoveMaterialPassData(this._pool[id]);
+
+                delete this._pool;
+            };
+            return MaterialPassDataPool;
         })();
-        pool.ShaderObjectDataPool = ShaderObjectDataPool;
+        pool.MaterialPassDataPool = MaterialPassDataPool;
     })(away.pool || (away.pool = {}));
     var pool = away.pool;
 })(away || (away = {}));
@@ -2519,13 +2584,11 @@ var away;
     (function (stagegl) {
         var AbstractMethodError = away.errors.AbstractMethodError;
 
-        var ShaderObjectDataPool = away.pool.ShaderObjectDataPool;
-
         var TextureDataPool = away.pool.TextureDataPool;
 
         var ProgramDataPool = away.pool.ProgramDataPool;
 
-        var RenderOrderDataPool = away.pool.RenderOrderDataPool;
+        var MaterialDataPool = away.pool.MaterialDataPool;
 
         var RenderTexture = away.textures.RenderTexture;
 
@@ -2549,8 +2612,7 @@ var away;
                 this._renderSurfaceSelector = 0;
                 this._stageIndex = stageIndex;
                 this._texturePool = new TextureDataPool(this);
-                this._renderOrderPool = new RenderOrderDataPool(this);
-                this._shaderObjectDataPool = new ShaderObjectDataPool(this);
+                this._materialDataPool = new MaterialDataPool(this);
                 this._programDataPool = new ProgramDataPool(this);
             }
             Object.defineProperty(ContextGLBase.prototype, "container", {
@@ -2587,45 +2649,22 @@ var away;
                 return textureData.texture;
             };
 
-            ContextGLBase.prototype.getShaderObject = function (materialPassVO, profile) {
-                var shaderObjectData = this._shaderObjectDataPool.getItem(materialPassVO);
-
-                if (!shaderObjectData.shaderObject) {
-                    shaderObjectData.shaderObject = materialPassVO.materialPass.createShaderObject(profile);
-                    shaderObjectData.invalid = true;
-                }
-
-                if (shaderObjectData.invalid) {
-                    shaderObjectData.invalid = false;
-                    var compiler = shaderObjectData.shaderObject.createCompiler(materialPassVO);
-                    compiler.compile();
-
-                    shaderObjectData.shadedTarget = compiler.shadedTarget;
-                    shaderObjectData.vertexCode = compiler.vertexCode;
-                    shaderObjectData.fragmentCode = compiler.fragmentCode;
-                    shaderObjectData.postAnimationFragmentCode = compiler.postAnimationFragmentCode;
-                    shaderObjectData.key = "";
-                }
-
-                return shaderObjectData;
-            };
-
-            ContextGLBase.prototype.getProgram = function (shaderObjectData) {
+            ContextGLBase.prototype.getProgram = function (materialPassData) {
                 //check key doesn't need re-concatenating
-                if (!shaderObjectData.key.length) {
-                    shaderObjectData.key = shaderObjectData.animationVertexCode + shaderObjectData.vertexCode + "---" + shaderObjectData.fragmentCode + shaderObjectData.animationFragmentCode + shaderObjectData.postAnimationFragmentCode;
+                if (!materialPassData.key.length) {
+                    materialPassData.key = materialPassData.animationVertexCode + materialPassData.vertexCode + "---" + materialPassData.fragmentCode + materialPassData.animationFragmentCode + materialPassData.postAnimationFragmentCode;
                 } else {
-                    return shaderObjectData.programData;
+                    return materialPassData.programData;
                 }
 
-                var programData = this._programDataPool.getItem(shaderObjectData.key);
+                var programData = this._programDataPool.getItem(materialPassData.key);
 
                 //check program data hasn't changed, keep count of program usages
-                if (shaderObjectData.programData != programData) {
-                    if (shaderObjectData.programData)
-                        shaderObjectData.programData.dispose();
+                if (materialPassData.programData != programData) {
+                    if (materialPassData.programData)
+                        materialPassData.programData.dispose();
 
-                    shaderObjectData.programData = programData;
+                    materialPassData.programData = programData;
 
                     programData.usages++;
                 }
@@ -2637,44 +2676,39 @@ var away;
             *
             * @param material
             */
-            ContextGLBase.prototype.getRenderOrderId = function (material, profile) {
-                var renderOrderData = this._renderOrderPool.getItem(material);
-                var shaderObjects = renderOrderData.shaderObjects;
+            ContextGLBase.prototype.getMaterial = function (material, profile) {
+                var materialData = this._materialDataPool.getItem(material);
 
-                if (!shaderObjects) {
-                    //reset the shader objects in RenderOrderData
-                    shaderObjects = renderOrderData.shaderObjects = new Array(numPasses);
+                if (materialData.invalidAnimation) {
+                    materialData.invalidAnimation = false;
 
-                    var passes = material.iPasses;
-                    var numPasses = passes.length;
+                    var materialDataPasses = materialData.getMaterialPasses(profile);
 
-                    for (var i = 0; i < numPasses; i++)
-                        shaderObjects[i] = this.getShaderObject(passes[i].getMaterialPassVO(material.id), profile);
-
-                    renderOrderData.invalid = true;
-                }
-
-                if (renderOrderData.invalid) {
-                    renderOrderData.invalid = false;
-
-                    var enabledGPUAnimation = this.getEnabledGPUAnimation(material, shaderObjects);
+                    var enabledGPUAnimation = this.getEnabledGPUAnimation(material, materialDataPasses);
 
                     var renderOrderId = 0;
                     var mult = 1;
-                    var shaderObject;
-                    var len = shaderObjects.length;
+                    var materialPassData;
+                    var len = materialDataPasses.length;
                     for (var i = 0; i < len; i++) {
-                        shaderObject = shaderObjects[i];
-                        shaderObject.shaderObject.usesAnimation = enabledGPUAnimation;
-                        this.calcAnimationCode(material, shaderObject);
-                        renderOrderId += this.getProgram(shaderObject).id * mult;
+                        materialPassData = materialDataPasses[i];
+
+                        if (materialPassData.usesAnimation != enabledGPUAnimation) {
+                            materialPassData.usesAnimation = enabledGPUAnimation;
+                            materialPassData.key == "";
+                        }
+
+                        if (materialPassData.key == "")
+                            this.calcAnimationCode(material, materialPassData);
+
+                        renderOrderId += this.getProgram(materialPassData).id * mult;
                         mult *= 1000;
                     }
 
-                    return (renderOrderData.id = renderOrderId);
+                    materialData.renderOrderId = renderOrderId;
                 }
 
-                return renderOrderData.id;
+                return materialData;
             };
 
             /**
@@ -2712,22 +2746,28 @@ var away;
                 this.setTextureAt(index, this.getRenderTexture(textureProxy));
             };
 
-            ContextGLBase.prototype.activateShaderObject = function (shaderObjectData, stage, camera) {
-                for (var i = shaderObjectData.shaderObject.numUsedStreams; i < this._numUsedStreams; i++)
+            ContextGLBase.prototype.activateMaterialPass = function (materialPassData, stage, camera) {
+                var shaderObject = materialPassData.shaderObject;
+
+                for (var i = shaderObject.numUsedStreams; i < this._numUsedStreams; i++)
                     this.setVertexBufferAt(i, null);
 
-                for (var i = shaderObjectData.shaderObject.numUsedTextures; i < this._numUsedTextures; i++)
+                for (var i = shaderObject.numUsedTextures; i < this._numUsedTextures; i++)
                     this.setTextureAt(i, null);
 
+                if (materialPassData.usesAnimation)
+                    materialPassData.material.animationSet.activate(shaderObject, stage);
+
                 //activate shader object
-                shaderObjectData.shaderObject.iActivate(stage, camera);
+                shaderObject.iActivate(stage, camera);
 
                 //check program data is uploaded
-                var programData = this.getProgram(shaderObjectData);
+                var programData = this.getProgram(materialPassData);
+
                 if (!programData.program) {
                     programData.program = this.createProgram();
-                    var vertexByteCode = (new aglsl.assembler.AGALMiniAssembler().assemble("part vertex 1\n" + shaderObjectData.animationVertexCode + shaderObjectData.vertexCode + "endpart"))['vertex'].data;
-                    var fragmentByteCode = (new aglsl.assembler.AGALMiniAssembler().assemble("part fragment 1\n" + shaderObjectData.fragmentCode + shaderObjectData.animationFragmentCode + shaderObjectData.postAnimationFragmentCode + "endpart"))['fragment'].data;
+                    var vertexByteCode = (new aglsl.assembler.AGALMiniAssembler().assemble("part vertex 1\n" + materialPassData.animationVertexCode + materialPassData.vertexCode + "endpart"))['vertex'].data;
+                    var fragmentByteCode = (new aglsl.assembler.AGALMiniAssembler().assemble("part fragment 1\n" + materialPassData.fragmentCode + materialPassData.animationFragmentCode + materialPassData.postAnimationFragmentCode + "endpart"))['fragment'].data;
                     programData.program.upload(vertexByteCode, fragmentByteCode);
                 }
 
@@ -2735,11 +2775,16 @@ var away;
                 this.setProgram(programData.program);
             };
 
-            ContextGLBase.prototype.deactivateShaderObject = function (shaderObjectData, stage) {
-                shaderObjectData.shaderObject.iDeactivate(stage);
+            ContextGLBase.prototype.deactivateMaterialPass = function (materialPassData, stage) {
+                var shaderObject = materialPassData.shaderObject;
 
-                this._numUsedStreams = shaderObjectData.shaderObject.numUsedStreams;
-                this._numUsedTextures = shaderObjectData.shaderObject.numUsedTextures;
+                if (materialPassData.usesAnimation)
+                    materialPassData.material.animationSet.deactivate(shaderObject, stage);
+
+                materialPassData.shaderObject.iDeactivate(stage);
+
+                this._numUsedStreams = shaderObject.numUsedStreams;
+                this._numUsedTextures = shaderObject.numUsedTextures;
             };
 
             ContextGLBase.prototype.activateTexture = function (index, textureProxy) {
@@ -2904,18 +2949,18 @@ var away;
             * if any object using this material fails to support accelerated animations for any of the shader objects,
             * we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
             */
-            ContextGLBase.prototype.getEnabledGPUAnimation = function (material, shaderObjects) {
+            ContextGLBase.prototype.getEnabledGPUAnimation = function (material, materialDataPasses) {
                 if (material.animationSet) {
                     material.animationSet.resetGPUCompatibility();
 
                     var owners = material.iOwners;
                     var numOwners = owners.length;
 
-                    var len = shaderObjects.length;
+                    var len = materialDataPasses.length;
                     for (var i = 0; i < len; i++)
                         for (var j = 0; j < numOwners; j++)
                             if (owners[j].animator)
-                                owners[j].animator.testGPUCompatibility(shaderObjects[i].shaderObject);
+                                owners[j].animator.testGPUCompatibility(materialDataPasses[i].shaderObject);
 
                     return !material.animationSet.usesCPU;
                 }
@@ -2923,25 +2968,25 @@ var away;
                 return false;
             };
 
-            ContextGLBase.prototype.calcAnimationCode = function (material, shaderObjectData) {
+            ContextGLBase.prototype.calcAnimationCode = function (material, materialPassData) {
                 //reset key so that the program is re-calculated
-                shaderObjectData.key = "";
-                shaderObjectData.animationVertexCode = "";
-                shaderObjectData.animationFragmentCode = "";
+                materialPassData.key = "";
+                materialPassData.animationVertexCode = "";
+                materialPassData.animationFragmentCode = "";
 
-                var shaderObject = shaderObjectData.shaderObject;
+                var shaderObject = materialPassData.shaderObject;
 
                 //check to see if GPU animation is used
-                if (shaderObject.usesAnimation) {
+                if (materialPassData.usesAnimation) {
                     var animationSet = material.animationSet;
 
-                    shaderObjectData.animationVertexCode += animationSet.getAGALVertexCode(shaderObject);
+                    materialPassData.animationVertexCode += animationSet.getAGALVertexCode(shaderObject);
 
                     if (shaderObject.uvDependencies > 0 && !shaderObject.usesUVTransform)
-                        shaderObjectData.animationVertexCode += animationSet.getAGALUVCode(shaderObject);
+                        materialPassData.animationVertexCode += animationSet.getAGALUVCode(shaderObject);
 
                     if (shaderObject.usesFragmentAnimation)
-                        shaderObjectData.animationFragmentCode += animationSet.getAGALFragmentCode(shaderObject, shaderObjectData.shadedTarget);
+                        materialPassData.animationFragmentCode += animationSet.getAGALFragmentCode(shaderObject, materialPassData.shadedTarget);
 
                     animationSet.doneAGALCode(shaderObject);
                 } else {
@@ -2949,10 +2994,10 @@ var away;
                     // projection will pick up on targets[0] to do the projection
                     var len = shaderObject.animatableAttributes.length;
                     for (var i = 0; i < len; ++i)
-                        shaderObjectData.animationVertexCode += "mov " + shaderObject.animationTargetRegisters[i] + ", " + shaderObject.animatableAttributes[i] + "\n";
+                        materialPassData.animationVertexCode += "mov " + shaderObject.animationTargetRegisters[i] + ", " + shaderObject.animatableAttributes[i] + "\n";
 
                     if (shaderObject.uvDependencies > 0 && !shaderObject.usesUVTransform)
-                        shaderObjectData.animationVertexCode += "mov " + shaderObject.uvTarget + "," + shaderObject.uvSource + "\n";
+                        materialPassData.animationVertexCode += "mov " + shaderObject.uvTarget + "," + shaderObject.uvSource + "\n";
                 }
             };
             return ContextGLBase;
@@ -5122,6 +5167,8 @@ var away;
     (function (materials) {
         var TriangleSubGeometry = away.base.TriangleSubGeometry;
 
+        var ContextGLTriangleFace = away.stagegl.ContextGLTriangleFace;
+
         /**
         * ShaderObjectBase keeps track of the number of dependencies for "named registers" used across a pass.
         * Named registers are that are not necessarily limited to a single method. They are created by the compiler and
@@ -5135,6 +5182,7 @@ var away;
             * Creates a new MethodCompilerVO object.
             */
             function ShaderObjectBase(profile) {
+                this._defaultCulling = ContextGLTriangleFace.BACK;
                 this._pInverseSceneMatrix = new Array();
                 //set ambient values to default
                 this.ambientR = 0xFF;
@@ -5154,8 +5202,8 @@ var away;
             * @param materialPassVO
             * @returns {away.materials.ShaderCompilerBase}
             */
-            ShaderObjectBase.prototype.createCompiler = function (materialPassVO) {
-                return new materials.ShaderCompilerBase(materialPassVO, this);
+            ShaderObjectBase.prototype.createCompiler = function (material, materialPass) {
+                return new materials.ShaderCompilerBase(material, materialPass, this);
             };
 
             /**
@@ -5242,6 +5290,8 @@ var away;
             * @inheritDoc
             */
             ShaderObjectBase.prototype.iActivate = function (stage, camera) {
+                stage.context.setCulling(this.useBothSides ? ContextGLTriangleFace.NONE : this._defaultCulling, camera.projection.coordinateSystem);
+
                 if (!this.usesTangentSpace && this.cameraPositionIndex >= 0) {
                     var pos = camera.scenePosition;
 
@@ -5353,8 +5403,8 @@ var away;
             * @param materialPassVO
             * @returns {away.materials.ShaderLightingCompiler}
             */
-            ShaderLightingObject.prototype.createCompiler = function (materialPassVO) {
-                return new materials.ShaderLightingCompiler(materialPassVO, this);
+            ShaderLightingObject.prototype.createCompiler = function (material, materialPass) {
+                return new materials.ShaderLightingCompiler(material, materialPass, this);
             };
 
             /**
@@ -6216,12 +6266,12 @@ var away;
             * Creates a new ShaderCompilerBase object.
             * @param profile The compatibility profile of the renderer.
             */
-            function ShaderCompilerBase(materialPassVO, shaderObject) {
+            function ShaderCompilerBase(material, materialPass, shaderObject) {
                 this._pVertexCode = '';
                 this._pFragmentCode = '';
                 this._pPostAnimationFragmentCode = '';
-                this._pMaterialPass = materialPassVO.materialPass;
-                this._pMaterial = materialPassVO.material;
+                this._pMaterial = material;
+                this._pMaterialPass = materialPass;
 
                 this._pShaderObject = shaderObject;
                 this._pProfile = shaderObject.profile;
@@ -6503,7 +6553,6 @@ var away;
                 this._pShaderObject.useMipmapping = this._pMaterial.mipmap;
                 this._pShaderObject.useSmoothTextures = this._pMaterial.smooth;
                 this._pShaderObject.repeatTextures = this._pMaterial.repeat;
-                this._pShaderObject.usesAnimation = this._pMaterial.animationSet && !this._pMaterial.animationSet.usesCPU;
                 this._pShaderObject.usesUVTransform = this._pMaterial.animateUVs;
                 this._pShaderObject.alphaThreshold = this._pMaterial.alphaThreshold;
 
@@ -6589,10 +6638,10 @@ var away;
             * Creates a new ShaderCompilerBase object.
             * @param profile The compatibility profile of the renderer.
             */
-            function ShaderLightingCompiler(materialPassVO, shaderObject) {
-                _super.call(this, materialPassVO, shaderObject);
+            function ShaderLightingCompiler(material, materialPass, shaderObject) {
+                _super.call(this, material, materialPass, shaderObject);
 
-                this._materialLightingPass = materialPassVO.materialPass;
+                this._materialLightingPass = materialPass;
                 this._shaderLightingObject = shaderObject;
             }
             /**
@@ -8577,7 +8626,6 @@ var away;
 
         var ContextGLBlendFactor = away.stagegl.ContextGLBlendFactor;
         var ContextGLCompareMode = away.stagegl.ContextGLCompareMode;
-        var ContextGLTriangleFace = away.stagegl.ContextGLTriangleFace;
 
         /**
         * MaterialPassBase provides an abstract base class for material shader passes. A material pass constitutes at least
@@ -8592,6 +8640,7 @@ var away;
                 if (typeof passMode === "undefined") { passMode = 0x03; }
                 var _this = this;
                 _super.call(this);
+                this._materialPassData = new Array();
                 this._maxLights = 3;
                 this._includeCasters = true;
                 this._forceSeparateMVP = false;
@@ -8602,15 +8651,10 @@ var away;
                 this._pNumDirectionalLights = 0;
                 this._pNumLightProbes = 0;
                 this._pNumLights = 0;
-                /**
-                * A list of material pass vos.
-                */
-                this._materialPassVOs = new Object();
                 this._depthCompareMode = ContextGLCompareMode.LESS_EQUAL;
                 this._blendFactorSource = ContextGLBlendFactor.ONE;
                 this._blendFactorDest = ContextGLBlendFactor.ZERO;
                 this._pEnableBlending = false;
-                this._defaultCulling = ContextGLTriangleFace.BACK;
                 this._writeDepth = true;
 
                 this._passMode = passMode;
@@ -8632,7 +8676,7 @@ var away;
 
                     this._includeCasters = value;
 
-                    this.iInvalidateShaderProgram();
+                    this._pInvalidatePass();
                 },
                 enumerable: true,
                 configurable: true
@@ -8654,7 +8698,7 @@ var away;
 
                     this._forceSeparateMVP = value;
 
-                    this.iInvalidateShaderProgram();
+                    this._pInvalidatePass();
                 },
                 enumerable: true,
                 configurable: true
@@ -8719,7 +8763,7 @@ var away;
                 set: function (value) {
                     this._passMode = value;
 
-                    this.iInvalidateShaderProgram();
+                    this._pInvalidatePass();
                 },
                 enumerable: true,
                 configurable: true
@@ -8767,17 +8811,6 @@ var away;
             });
 
 
-            Object.defineProperty(MaterialPassBase.prototype, "renderToTexture", {
-                /**
-                * Specifies whether this pass renders to texture
-                */
-                get: function () {
-                    return this._renderToTexture;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
             /**
             * Cleans up any resources used by the current object.
             * @param deep Indicates whether other resources should be cleaned up, that could potentially be shared across different instances.
@@ -8786,14 +8819,10 @@ var away;
                 if (this._pLightPicker)
                     this._pLightPicker.removeEventListener(Event.CHANGE, this._onLightsChangeDelegate);
 
-                for (var key in this._materialPassVOs)
-                    this._materialPassVOs[key].dispose();
+                while (this._materialPassData.length)
+                    this._materialPassData[0].dispose();
 
-                this._materialPassVOs = null;
-            };
-
-            MaterialPassBase.prototype.getMaterialPassVO = function (materialId) {
-                return this._materialPassVOs[materialId];
+                this._materialPassData = null;
             };
 
             /**
@@ -8813,7 +8842,7 @@ var away;
             * @param camera
             */
             MaterialPassBase.prototype.setRenderState = function (renderable, stage, camera, viewProjection) {
-                this._pActiveShaderObject.shaderObject.setRenderState(renderable, stage, camera, viewProjection);
+                this._pActiveMaterialPass.shaderObject.setRenderState(renderable, stage, camera, viewProjection);
             };
 
             /**
@@ -8883,21 +8912,9 @@ var away;
                 if (this._pEnableBlending)
                     context.setBlendFactors(this._blendFactorSource, this._blendFactorDest);
 
-                this._pActiveShaderObject = context.getShaderObject(this._materialPassVOs[material.id], stage.profile);
+                this._pActiveMaterialPass = context.getMaterial(material, stage.profile).getMaterialPass(this, stage.profile);
 
-                context.activateShaderObject(this._pActiveShaderObject, stage, camera);
-
-                if (this._pActiveShaderObject.shaderObject.usesAnimation)
-                    material.animationSet.activate(this._pActiveShaderObject.shaderObject, stage);
-
-                context.setCulling(this._pActiveShaderObject.shaderObject.useBothSides ? ContextGLTriangleFace.NONE : this._defaultCulling, camera.projection.coordinateSystem);
-
-                if (this._renderToTexture) {
-                    this._oldTarget = stage.renderTarget;
-                    this._oldSurface = stage.renderSurfaceSelector;
-                    this._oldDepthStencil = stage.enableDepthAndStencil;
-                    this._oldRect = stage.scissorRect;
-                }
+                context.activateMaterialPass(this._pActiveMaterialPass, stage, camera);
             };
 
             /**
@@ -8907,16 +8924,7 @@ var away;
             * @private
             */
             MaterialPassBase.prototype.iDeactivate = function (material, stage) {
-                if (this._pActiveShaderObject.shaderObject.usesAnimation)
-                    material.animationSet.deactivate(this._pActiveShaderObject.shaderObject, stage);
-
-                stage.context.deactivateShaderObject(this._pActiveShaderObject, stage);
-
-                if (this._renderToTexture) {
-                    // kindly restore state
-                    stage.context.setRenderTarget(this._oldTarget, this._oldDepthStencil, this._oldSurface);
-                    stage.scissorRect = this._oldRect;
-                }
+                stage.context.deactivateMaterialPass(this._pActiveMaterialPass, stage);
 
                 stage.context.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL); // TODO : imeplement
             };
@@ -8926,12 +8934,12 @@ var away;
             *
             * @param updateMaterial Indicates whether the invalidation should be performed on the entire material. Should always pass "true" unless it's called from the material itself.
             */
-            MaterialPassBase.prototype.iInvalidateShaderProgram = function (updateMaterial) {
-                if (typeof updateMaterial === "undefined") { updateMaterial = true; }
-                for (var key in this._materialPassVOs)
-                    this._materialPassVOs[key].invalidate();
-                if (updateMaterial)
-                    this.dispatchEvent(new Event(Event.CHANGE));
+            MaterialPassBase.prototype._pInvalidatePass = function () {
+                var len = this._materialPassData.length;
+                for (var i = 0; i < len; i++)
+                    this._materialPassData[i].invalidate();
+
+                this.dispatchEvent(new Event(Event.CHANGE));
             };
 
             Object.defineProperty(MaterialPassBase.prototype, "lightPicker", {
@@ -8993,7 +9001,7 @@ var away;
                 this._pNumLights = this._pNumDirectionalLights + this._pNumPointLights;
 
                 if (numDirectionalLightsOld != this._pNumDirectionalLights || numPointLightsOld != this._pNumPointLights || numLightProbesOld != this._pNumLightProbes)
-                    this.iInvalidateShaderProgram();
+                    this._pInvalidatePass();
             };
 
             MaterialPassBase.prototype._iIncludeDependencies = function (shaderObject) {
@@ -9006,31 +9014,6 @@ var away;
             };
 
             MaterialPassBase.prototype._iInitConstantData = function (shaderObject) {
-            };
-
-            /**
-            * Mark an material as owner of this material pass.
-            *
-            * @param owner The MaterialBase that had this material pass assigned
-            *
-            * @internal
-            */
-            MaterialPassBase.prototype._iAddOwner = function (owner) {
-                if (!this._materialPassVOs[owner.id])
-                    this._materialPassVOs[owner.id] = new materials.MaterialPassVO(owner, this);
-            };
-
-            /**
-            * Removes a MaterialBase as owner.
-            * @param owner
-            *
-            * @internal
-            */
-            MaterialPassBase.prototype._iRemoveOwner = function (owner) {
-                if (this._materialPassVOs[owner.id]) {
-                    this._materialPassVOs[owner.id].dispose();
-                    delete this._materialPassVOs[owner.id];
-                }
             };
 
             MaterialPassBase.prototype._iGetPreVertexCode = function (shaderObject, registerCache, sharedRegisters) {
@@ -9147,79 +9130,26 @@ var away;
                 // 4 channels available
                 return Math.min(numLightProbes - this._lightProbesOffset, (4 / numChannels) | 0);
             };
+
+            MaterialPassBase.prototype._iAddMaterialPassData = function (materialPassData) {
+                this._materialPassData.push(materialPassData);
+
+                return materialPassData;
+            };
+
+            MaterialPassBase.prototype._iRemoveMaterialPassData = function (materialPassData) {
+                this._materialPassData.splice(this._materialPassData.indexOf(materialPassData), 1);
+
+                return materialPassData;
+            };
             return MaterialPassBase;
-        })(away.events.EventDispatcher);
+        })(away.library.NamedAssetBase);
         materials.MaterialPassBase = MaterialPassBase;
     })(away.materials || (away.materials = {}));
     var materials = away.materials;
 })(away || (away = {}));
 ///<reference path="../../_definitions.ts"/>
 ///<reference path="../../_definitions.ts"/>
-///<reference path="../../_definitions.ts"/>
-var away;
-(function (away) {
-    /**
-    * @module away.pool
-    */
-    (function (materials) {
-        /**
-        *
-        * @class away.pool.MaterialPassDataBase
-        */
-        var MaterialPassVO = (function () {
-            function MaterialPassVO(material, materialPass) {
-                this._shaderObjectData = new Array();
-                this.material = material;
-
-                this.materialPass = materialPass;
-
-                this._iUniqueId = MaterialPassVO.MATERIALPASS_ID_COUNT++;
-            }
-            /**
-            *
-            */
-            MaterialPassVO.prototype.invalidate = function () {
-                var len = this._shaderObjectData.length;
-                for (var i = 0; i < len; i++)
-                    this._shaderObjectData[i].invalidate();
-            };
-
-            /**
-            *
-            */
-            MaterialPassVO.prototype.dispose = function () {
-                while (this._shaderObjectData.length)
-                    this._shaderObjectData[0].dispose();
-
-                this.material = null;
-                this.materialPass = null;
-            };
-
-            MaterialPassVO.prototype._iAddShaderObjectData = function (shaderObjectData) {
-                this._shaderObjectData.push(shaderObjectData);
-
-                return shaderObjectData;
-            };
-
-            MaterialPassVO.prototype._iRemoveShaderObjectData = function (shaderObjectData) {
-                this._shaderObjectData.splice(this._shaderObjectData.indexOf(shaderObjectData), 1);
-
-                return shaderObjectData;
-            };
-
-            MaterialPassVO.prototype.calculateID = function () {
-                this._iRenderOrderId = 0;
-                var len = this._shaderObjectData.length;
-                for (var i = 0; i < len; i++)
-                    this._iRenderOrderId += this._shaderObjectData[i].programData.id;
-            };
-            MaterialPassVO.MATERIALPASS_ID_COUNT = 0;
-            return MaterialPassVO;
-        })();
-        materials.MaterialPassVO = MaterialPassVO;
-    })(away.materials || (away.materials = {}));
-    var materials = away.materials;
-})(away || (away = {}));
 ///<reference path="../../_definitions.ts"/>
 var away;
 (function (away) {
@@ -9473,7 +9403,7 @@ var away;
 
                     this._preserveAlpha = value;
 
-                    this.iInvalidateShaderProgram();
+                    this._pInvalidatePass();
                 },
                 enumerable: true,
                 configurable: true
@@ -9510,7 +9440,7 @@ var away;
             TrianglePassBase.prototype.iRender = function (renderable, stage, camera, viewProjection) {
                 _super.prototype.iRender.call(this, renderable, stage, camera, viewProjection);
 
-                var shaderObject = this._pActiveShaderObject.shaderObject;
+                var shaderObject = this._pActiveMaterialPass.shaderObject;
 
                 if (shaderObject.sceneMatrixIndex >= 0) {
                     renderable.sourceEntity.getRenderSceneTransform(camera).copyRawDataTo(shaderObject.vertexConstantData, shaderObject.sceneMatrixIndex, true);
@@ -9610,7 +9540,7 @@ var away;
                     var b = (value != null);
 
                     if (b != this._pUseTexture || (value && this._pTexture && (value.hasMipmaps != this._pTexture.hasMipmaps || value.format != this._pTexture.format)))
-                        this.iInvalidateShaderProgram();
+                        this._pInvalidatePass();
 
                     this._pUseTexture = b;
                     this._pTexture = value;
@@ -9663,13 +9593,13 @@ var away;
             TriangleBasicPass.prototype.iActivate = function (material, stage, camera) {
                 _super.prototype.iActivate.call(this, material, stage, camera);
 
-                var shaderObject = this._pActiveShaderObject.shaderObject;
+                var shaderObject = this._pActiveMaterialPass.shaderObject;
                 if (this._pUseTexture) {
                     stage.context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
                     stage.context.activateTexture(this._texturesIndex, this._pTexture);
 
-                    if (this._pActiveShaderObject.shaderObject.alphaThreshold > 0)
-                        shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = this._pActiveShaderObject.shaderObject.alphaThreshold;
+                    if (this._pActiveMaterialPass.shaderObject.alphaThreshold > 0)
+                        shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
                 } else {
                     var index = this._fragmentConstantsIndex;
                     var data = shaderObject.fragmentConstantData;
@@ -9797,13 +9727,13 @@ var away;
                 _super.prototype.iActivate.call(this, material, stage, camera);
 
                 var context = stage.context;
-                var shaderObject = this._pActiveShaderObject.shaderObject;
+                var shaderObject = this._pActiveMaterialPass.shaderObject;
 
                 if (shaderObject.alphaThreshold > 0) {
                     context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
                     context.activateTexture(this._texturesIndex, this._alphaMask);
 
-                    shaderObject.fragmentConstantData[this._fragmentConstantsIndex + 8] = this._pActiveShaderObject.shaderObject.alphaThreshold;
+                    shaderObject.fragmentConstantData[this._fragmentConstantsIndex + 8] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
                 }
             };
             return DepthMapPass;
@@ -9919,7 +9849,7 @@ var away;
                 _super.prototype.iActivate.call(this, material, stage, camera);
 
                 var context = stage.context;
-                var shaderObject = this._pActiveShaderObject.shaderObject;
+                var shaderObject = this._pActiveMaterialPass.shaderObject;
 
                 var f = camera.projection.far;
 
@@ -9937,7 +9867,7 @@ var away;
                     context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
                     context.activateTexture(this._texturesIndex, this._alphaMask);
 
-                    data[index + 8] = this._pActiveShaderObject.shaderObject.alphaThreshold;
+                    data[index + 8] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
                 }
             };
             return DistanceMapPass;
@@ -10078,7 +10008,7 @@ var away;
                 methodVO.method.removeEventListener(ShadingMethodEvent.SHADER_INVALIDATED, this._onShaderInvalidatedDelegate);
                 this._iMethodVOs.splice(index, 1);
 
-                this.iInvalidateShaderProgram();
+                this._pInvalidatePass();
             };
 
             TriangleMethodPass.prototype._addDependency = function (methodVO, effectsDependency, index) {
@@ -10096,7 +10026,7 @@ var away;
                     this._iMethodVOs.splice(this._iMethodVOs.length - this._numEffectDependencies, 0, methodVO);
                 }
 
-                this.iInvalidateShaderProgram();
+                this._pInvalidatePass();
             };
 
             /**
@@ -10313,54 +10243,10 @@ var away;
             };
 
             /**
-            * @inheritDoc
-            */
-            TriangleMethodPass.prototype.iInvalidateShaderProgram = function (updateMaterial) {
-                if (typeof updateMaterial === "undefined") { updateMaterial = true; }
-                _super.prototype.iInvalidateShaderProgram.call(this, updateMaterial);
-
-                var oldPasses = this._iPasses;
-                this._iPasses = new Array();
-
-                for (var i = 0; i < this._iMethodVOs.length; ++i)
-                    this.pAddPasses(this._iMethodVOs[i]);
-
-                if (!oldPasses || this._iPasses.length != oldPasses.length) {
-                    this._iPassesDirty = true;
-                    return;
-                }
-
-                for (var i = 0; i < this._iPasses.length; ++i) {
-                    if (this._iPasses[i] != oldPasses[i]) {
-                        this._iPassesDirty = true;
-                        return;
-                    }
-                }
-            };
-
-            /**
-            * Adds internal passes to the material.
-            *
-            * @param passes The passes to add.
-            */
-            TriangleMethodPass.prototype.pAddPasses = function (methodVO) {
-                var passes = methodVO.method.passes;
-
-                if (!methodVO.useMethod || !passes)
-                    return;
-
-                var len = passes.length;
-                for (var i = 0; i < len; ++i) {
-                    passes[i].lightPicker = this._pLightPicker;
-                    this._iPasses.push(passes[i]);
-                }
-            };
-
-            /**
             * Called when any method's shader code is invalidated.
             */
             TriangleMethodPass.prototype.onShaderInvalidated = function (event) {
-                this.iInvalidateShaderProgram();
+                this._pInvalidatePass();
             };
 
             // RENDER LOOP
@@ -10375,7 +10261,7 @@ var away;
                 for (var i = 0; i < len; ++i) {
                     methodVO = this._iMethodVOs[i];
                     if (methodVO.useMethod)
-                        methodVO.method.iActivate(this._pActiveShaderObject.shaderObject, methodVO, stage);
+                        methodVO.method.iActivate(this._pActiveMaterialPass.shaderObject, methodVO, stage);
                 }
             };
 
@@ -10394,7 +10280,7 @@ var away;
                 for (var i = 0; i < len; ++i) {
                     methodVO = this._iMethodVOs[i];
                     if (methodVO.useMethod)
-                        methodVO.method.iSetRenderState(this._pActiveShaderObject.shaderObject, methodVO, renderable, stage, camera);
+                        methodVO.method.iSetRenderState(this._pActiveMaterialPass.shaderObject, methodVO, renderable, stage, camera);
                 }
             };
 
@@ -10409,7 +10295,7 @@ var away;
                 for (var i = 0; i < len; ++i) {
                     methodVO = this._iMethodVOs[i];
                     if (methodVO.useMethod)
-                        methodVO.method.iDeactivate(this._pActiveShaderObject.shaderObject, methodVO, stage);
+                        methodVO.method.iDeactivate(this._pActiveMaterialPass.shaderObject, methodVO, stage);
                 }
             };
 
@@ -10733,8 +10619,8 @@ var away;
                 this._pDistancePass = new DistanceMapPass();
             }
             DepthMaterialBase.prototype.pAddDepthPasses = function () {
-                this.pAddPass(this._pDepthPass);
-                this.pAddPass(this._pDistancePass);
+                this._pAddScreenPass(this._pDepthPass);
+                this._pAddScreenPass(this._pDistancePass);
             };
 
             /**
@@ -10820,7 +10706,7 @@ var away;
 
                 this.pAddDepthPasses();
 
-                this.pAddPass(this._screenPass = new materials.LineBasicPass());
+                this._pAddScreenPass(this._screenPass = new materials.LineBasicPass());
                 this._screenPass.thickness = thickness;
             }
             return LineBasicMaterial;
@@ -10851,7 +10737,7 @@ var away;
                 _super.call(this);
 
                 this._cubeMap = cubeMap;
-                this.pAddPass(this._skyboxPass = new materials.SkyboxPass());
+                this._pAddScreenPass(this._skyboxPass = new materials.SkyboxPass());
                 this._skyboxPass.cubeTexture = this._cubeMap;
             }
             Object.defineProperty(SkyboxMaterial.prototype, "cubeMap", {
@@ -10863,7 +10749,7 @@ var away;
                 },
                 set: function (value) {
                     if (value && this._cubeMap && (value.hasMipmaps != this._cubeMap.hasMipmaps || value.format != this._cubeMap.format))
-                        this.iInvalidatePasses(null);
+                        this._pInvalidatePasses();
 
                     this._cubeMap = value;
                     this._skyboxPass.cubeTexture = this._cubeMap;
@@ -10932,7 +10818,7 @@ var away;
 
                     this._depthCompareMode = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidatePasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -10957,7 +10843,7 @@ var away;
 
                     this._alpha = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidatePasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11023,7 +10909,7 @@ var away;
 
                     this._alphaBlending = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidatePasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11062,37 +10948,13 @@ var away;
                     passesInvalid = true;
                 }
 
-                if (passesInvalid || this.isAnyScreenPassInvalid()) {
-                    this.pClearPasses();
+                if (passesInvalid) {
+                    this._pClearScreenPasses();
 
                     this.pAddDepthPasses();
 
-                    this.pAddChildPassesFor(this._screenPass);
-
-                    this.addScreenPass(this._screenPass);
+                    this._pAddScreenPass(this._screenPass);
                 }
-            };
-
-            /**
-            * Adds a compiled pass that renders to the screen.
-            * @param pass The pass to be added.
-            */
-            TriangleBasicMaterial.prototype.addScreenPass = function (pass) {
-                if (pass) {
-                    this.pAddPass(pass);
-                    pass._iPassesDirty = false;
-                }
-            };
-
-            /**
-            * Tests if any pass that renders to the screen is invalid. This would trigger a new setup of the multiple passes.
-            * @return
-            */
-            TriangleBasicMaterial.prototype.isAnyScreenPassInvalid = function () {
-                if (this._screenPass._iPassesDirty)
-                    return true;
-
-                return false;
             };
 
             /**
@@ -11181,6 +11043,8 @@ var away;
 var away;
 (function (away) {
     (function (materials) {
+        var BlendMode = away.base.BlendMode;
+
         var ColorTransform = away.geom.ColorTransform;
         var ContextGLBlendFactor = away.stagegl.ContextGLBlendFactor;
         var ContextGLCompareMode = away.stagegl.ContextGLCompareMode;
@@ -11230,7 +11094,7 @@ var away;
 
                     this._materialMode = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11252,7 +11116,7 @@ var away;
 
                     this._depthCompareMode = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11282,7 +11146,7 @@ var away;
 
                     this._colorTransform.alphaMultiplier = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidatePasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11372,7 +11236,7 @@ var away;
 
                     this._ambientMethod = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11395,7 +11259,7 @@ var away;
 
                     this._shadowMethod = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11418,7 +11282,7 @@ var away;
 
                     this._diffuseMethod = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11441,7 +11305,7 @@ var away;
 
                     this._specularMethod = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11464,7 +11328,7 @@ var away;
 
                     this._normalMethod = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidateScreenPasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11482,7 +11346,7 @@ var away;
 
                 this._screenPass.addEffectMethod(method);
 
-                this.pInvalidateScreenPasses();
+                this._pInvalidateScreenPasses();
             };
 
             Object.defineProperty(TriangleMethodMaterial.prototype, "numEffectMethods", {
@@ -11529,7 +11393,7 @@ var away;
 
                 this._screenPass.addEffectMethodAt(method, index);
 
-                this.pInvalidateScreenPasses();
+                this._pInvalidatePasses();
             };
 
             /**
@@ -11544,7 +11408,7 @@ var away;
 
                 // reconsider
                 if (this._screenPass.numEffectMethods == 0)
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidatePasses();
             };
 
             Object.defineProperty(TriangleMethodMaterial.prototype, "normalMap", {
@@ -11684,7 +11548,7 @@ var away;
 
                     this._alphaBlending = value;
 
-                    this.pInvalidateScreenPasses();
+                    this._pInvalidatePasses();
                 },
                 enumerable: true,
                 configurable: true
@@ -11695,65 +11559,30 @@ var away;
             * @inheritDoc
             */
             TriangleMethodMaterial.prototype.iUpdateMaterial = function () {
-                var passesInvalid;
-
                 if (this._pScreenPassesInvalid) {
-                    this.pUpdateScreenPasses();
-                    passesInvalid = true;
-                }
+                    //Updates screen passes when they were found to be invalid.
+                    this._pScreenPassesInvalid = false;
 
-                if (passesInvalid || this.isAnyScreenPassInvalid()) {
-                    this.pClearPasses();
+                    this.initPasses();
+
+                    this.setBlendAndCompareModes();
+
+                    this._pClearScreenPasses();
 
                     this.pAddDepthPasses();
 
                     if (this._materialMode == materials.TriangleMaterialMode.MULTI_PASS) {
-                        this.pAddChildPassesFor(this._casterLightPass);
+                        if (this._casterLightPass)
+                            this._pAddScreenPass(this._casterLightPass);
 
                         if (this._nonCasterLightPasses)
                             for (var i = 0; i < this._nonCasterLightPasses.length; ++i)
-                                this.pAddChildPassesFor(this._nonCasterLightPasses[i]);
+                                this._pAddScreenPass(this._nonCasterLightPasses[i]);
                     }
 
-                    this.pAddChildPassesFor(this._screenPass);
-
-                    if (this._materialMode == materials.TriangleMaterialMode.MULTI_PASS) {
-                        this.addScreenPass(this._casterLightPass);
-
-                        if (this._nonCasterLightPasses)
-                            for (i = 0; i < this._nonCasterLightPasses.length; ++i)
-                                this.addScreenPass(this._nonCasterLightPasses[i]);
-                    }
-
-                    this.addScreenPass(this._screenPass);
+                    if (this._screenPass)
+                        this._pAddScreenPass(this._screenPass);
                 }
-            };
-
-            /**
-            * Adds a compiled pass that renders to the screen.
-            * @param pass The pass to be added.
-            */
-            TriangleMethodMaterial.prototype.addScreenPass = function (pass) {
-                if (pass) {
-                    this.pAddPass(pass);
-                    pass._iPassesDirty = false;
-                }
-            };
-
-            /**
-            * Tests if any pass that renders to the screen is invalid. This would trigger a new setup of the multiple passes.
-            * @return
-            */
-            TriangleMethodMaterial.prototype.isAnyScreenPassInvalid = function () {
-                if ((this._casterLightPass && this._casterLightPass._iPassesDirty) || (this._screenPass && this._screenPass._iPassesDirty))
-                    return true;
-
-                if (this._nonCasterLightPasses)
-                    for (var i = 0; i < this._nonCasterLightPasses.length; ++i)
-                        if (this._nonCasterLightPasses[i]._iPassesDirty)
-                            return true;
-
-                return false;
             };
 
             /**
@@ -11774,17 +11603,6 @@ var away;
 
                 if (this._materialMode == materials.TriangleMaterialMode.MULTI_PASS)
                     stage.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
-            };
-
-            /**
-            * Updates screen passes when they were found to be invalid.
-            */
-            TriangleMethodMaterial.prototype.pUpdateScreenPasses = function () {
-                this.initPasses();
-
-                this.setBlendAndCompareModes();
-
-                this._pScreenPassesInvalid = false;
             };
 
             /**
@@ -11820,7 +11638,7 @@ var away;
                 // caster light pass is always first if it exists, hence it uses normal blending
                 if (this._casterLightPass) {
                     this._casterLightPass.forceSeparateMVP = forceSeparateMVP;
-                    this._casterLightPass.setBlendMode(away.base.BlendMode.NORMAL);
+                    this._casterLightPass.setBlendMode(BlendMode.NORMAL);
                     this._casterLightPass.depthCompareMode = this._depthCompareMode;
                 }
 
@@ -11831,14 +11649,14 @@ var away;
                     // and should use normal blending
                     if (!this._casterLightPass) {
                         this._nonCasterLightPasses[0].forceSeparateMVP = forceSeparateMVP;
-                        this._nonCasterLightPasses[0].setBlendMode(away.base.BlendMode.NORMAL);
+                        this._nonCasterLightPasses[0].setBlendMode(BlendMode.NORMAL);
                         this._nonCasterLightPasses[0].depthCompareMode = this._depthCompareMode;
                         firstAdditiveIndex = 1;
                     }
 
                     for (var i = firstAdditiveIndex; i < this._nonCasterLightPasses.length; ++i) {
                         this._nonCasterLightPasses[i].forceSeparateMVP = forceSeparateMVP;
-                        this._nonCasterLightPasses[i].setBlendMode(away.base.BlendMode.ADD);
+                        this._nonCasterLightPasses[i].setBlendMode(BlendMode.ADD);
                         this._nonCasterLightPasses[i].depthCompareMode = ContextGLCompareMode.LESS_EQUAL;
                     }
                 }
@@ -11851,18 +11669,18 @@ var away;
                     if (this._screenPass) {
                         this._screenPass.passMode = materials.MaterialPassMode.EFFECTS;
                         this._screenPass.depthCompareMode = ContextGLCompareMode.LESS_EQUAL;
-                        this._screenPass.setBlendMode(away.base.BlendMode.LAYER);
+                        this._screenPass.setBlendMode(BlendMode.LAYER);
                         this._screenPass.forceSeparateMVP = forceSeparateMVP;
                     }
                 } else if (this._screenPass) {
-                    this._pRequiresBlending = (this._pBlendMode != away.base.BlendMode.NORMAL || this._alphaBlending || (this._colorTransform && this._colorTransform.alphaMultiplier < 1));
+                    this._pRequiresBlending = (this._pBlendMode != BlendMode.NORMAL || this._alphaBlending || (this._colorTransform && this._colorTransform.alphaMultiplier < 1));
 
                     // effects pass is the only pass, so it should just blend normally
                     this._screenPass.passMode = materials.MaterialPassMode.SUPER_SHADER;
                     this._screenPass.depthCompareMode = this._depthCompareMode;
                     this._screenPass.preserveAlpha = this._pRequiresBlending;
                     this._screenPass.colorTransform = this._colorTransform;
-                    this._screenPass.setBlendMode((this._pBlendMode == away.base.BlendMode.NORMAL && this._pRequiresBlending) ? away.base.BlendMode.LAYER : this._pBlendMode);
+                    this._screenPass.setBlendMode((this._pBlendMode == BlendMode.NORMAL && this._pRequiresBlending) ? BlendMode.LAYER : this._pBlendMode);
                     this._screenPass.forceSeparateMVP = false;
                 }
             };
@@ -11881,7 +11699,7 @@ var away;
 
             TriangleMethodMaterial.prototype.removeCasterLightPass = function () {
                 this._casterLightPass.dispose();
-                this.pRemovePass(this._casterLightPass);
+                this.pRemoveScreenPass(this._casterLightPass);
                 this._casterLightPass = null;
             };
 
@@ -11926,7 +11744,7 @@ var away;
                     return;
 
                 for (var i = 0; i < this._nonCasterLightPasses.length; ++i)
-                    this.pRemovePass(this._nonCasterLightPasses[i]);
+                    this.pRemoveScreenPass(this._nonCasterLightPasses[i]);
 
                 this._nonCasterLightPasses = null;
             };
@@ -11944,7 +11762,7 @@ var away;
                 if (this._screenPass.normalMethod != this._normalMethod)
                     this._screenPass.normalMethod.dispose();
 
-                this.pRemovePass(this._screenPass);
+                this.pRemoveScreenPass(this._screenPass);
                 this._screenPass = null;
             };
 
@@ -12788,7 +12606,7 @@ var away;
                 //set ids for faster referencing
                 renderable.material = material;
                 renderable.materialId = material._iMaterialId;
-                renderable.renderOrderId = this._pContext.getRenderOrderId(material, this._pStage.profile);
+                renderable.renderOrderId = this._pContext.getMaterial(material, this._pStage.profile).renderOrderId;
                 renderable.cascaded = false;
 
                 // project onto camera's z-axis
@@ -13005,8 +12823,8 @@ var away;
                 if (target) {
                     this.pCollectRenderables(entityCollector);
 
-                    this.drawRenderables(this._pOpaqueRenderableHead, entityCollector, DefaultRenderer.RTT_PASSES);
-                    this.drawRenderables(this._pBlendedRenderableHead, entityCollector, DefaultRenderer.RTT_PASSES);
+                    this.drawRenderables(this._pOpaqueRenderableHead, entityCollector);
+                    this.drawRenderables(this._pBlendedRenderableHead, entityCollector);
                 }
 
                 _super.prototype.pExecuteRender.call(this, entityCollector, target, scissorRect, surfaceSelector);
@@ -13062,10 +12880,8 @@ var away;
 
                 this._pContext.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL);
 
-                var which = target ? DefaultRenderer.SCREEN_PASSES : DefaultRenderer.ALL_PASSES;
-
-                this.drawRenderables(this._pOpaqueRenderableHead, entityCollector, which);
-                this.drawRenderables(this._pBlendedRenderableHead, entityCollector, which);
+                this.drawRenderables(this._pOpaqueRenderableHead, entityCollector);
+                this.drawRenderables(this._pBlendedRenderableHead, entityCollector);
 
                 this._pContext.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
@@ -13130,7 +12946,7 @@ var away;
             * @param renderables The renderables to draw.
             * @param entityCollector The EntityCollector containing all potentially visible information.
             */
-            DefaultRenderer.prototype.drawRenderables = function (renderable, entityCollector, which) {
+            DefaultRenderer.prototype.drawRenderables = function (renderable, entityCollector) {
                 var numPasses;
                 var j;
                 var camera = entityCollector.camera;
@@ -13146,23 +12962,15 @@ var away;
                     do {
                         renderable2 = renderable;
 
-                        var rttMask = this._activeMaterial.iPassRendersToTexture(j) ? 1 : 2;
+                        this._activeMaterial.iActivatePass(j, this._pStage, camera);
 
-                        if ((rttMask & which) != 0) {
-                            this._activeMaterial.iActivatePass(j, this._pStage, camera);
+                        do {
+                            this._activeMaterial.iRenderPass(j, renderable2, this._pStage, entityCollector, this._pRttViewProjectionMatrix);
 
-                            do {
-                                this._activeMaterial.iRenderPass(j, renderable2, this._pStage, entityCollector, this._pRttViewProjectionMatrix);
+                            renderable2 = renderable2.next;
+                        } while(renderable2 && renderable2.material == this._activeMaterial);
 
-                                renderable2 = renderable2.next;
-                            } while(renderable2 && renderable2.material == this._activeMaterial);
-
-                            this._activeMaterial.iDeactivatePass(j, this._pStage);
-                        } else {
-                            do {
-                                renderable2 = renderable2.next;
-                            } while(renderable2 && renderable2.material == this._activeMaterial);
-                        }
+                        this._activeMaterial.iDeactivatePass(j, this._pStage);
                     } while(++j < numPasses);
 
                     renderable = renderable2;
@@ -13247,9 +13055,6 @@ var away;
 
                 this._pDepthRender = new RenderTexture(this._pRttBufferManager.textureWidth, this._pRttBufferManager.textureHeight);
             };
-            DefaultRenderer.RTT_PASSES = 1;
-            DefaultRenderer.SCREEN_PASSES = 2;
-            DefaultRenderer.ALL_PASSES = 3;
             return DefaultRenderer;
         })(render.RendererBase);
         render.DefaultRenderer = DefaultRenderer;
@@ -14708,10 +14513,10 @@ var away;
 ///<reference path="core/pool/ProgramData.ts"/>
 ///<reference path="core/pool/ProgramDataPool.ts"/>
 ///<reference path="core/pool/SkyBoxRenderable.ts" />
-///<reference path="core/pool/RenderOrderData.ts"/>
-///<reference path="core/pool/RenderOrderDataPool.ts"/>
-///<reference path="core/pool/ShaderObjectData.ts"/>
-///<reference path="core/pool/ShaderObjectDataPool.ts"/>
+///<reference path="core/pool/MaterialData.ts"/>
+///<reference path="core/pool/MaterialDataPool.ts"/>
+///<reference path="core/pool/MaterialPassData.ts"/>
+///<reference path="core/pool/MaterialPassDataPool.ts"/>
 ///<reference path="core/pool/TextureData.ts"/>
 ///<reference path="core/pool/TextureDataPool.ts"/>
 ///<reference path="core/pool/TriangleSubMeshRenderable.ts" />
@@ -14780,7 +14585,6 @@ var away;
 ///<reference path="materials/passes/MaterialPassBase.ts"/>
 ///<reference path="materials/passes/IMaterialPassStageGL.ts"/>
 ///<reference path="materials/passes/ILightingPassStageGL.ts"/>
-///<reference path="materials/passes/MaterialPassVO.ts"/>
 ///<reference path="materials/passes/LineBasicPass.ts"/>
 ///<reference path="materials/passes/SkyBoxPass.ts"/>
 ///<reference path="materials/passes/TrianglePassBase.ts"/>

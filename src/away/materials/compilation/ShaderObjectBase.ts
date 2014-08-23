@@ -2,6 +2,7 @@
 
 module away.materials
 {
+	import AnimationSetBase							= away.animators.AnimationSetBase;
 	import AnimatorBase								= away.animators.AnimatorBase;
 	import AnimationRegisterCache					= away.animators.AnimationRegisterCache;
 	import Stage									= away.base.Stage;
@@ -14,6 +15,7 @@ module away.materials
 	import Vector3D									= away.geom.Vector3D;
 	import RenderableBase							= away.pool.RenderableBase;
 	import IContextStageGL							= away.stagegl.IContextStageGL;
+	import ContextGLTriangleFace					= away.stagegl.ContextGLTriangleFace;
 	import TextureProxyBase							= away.textures.TextureProxyBase;
 	
 	/**
@@ -26,6 +28,9 @@ module away.materials
 	 */
 	export class ShaderObjectBase
 	{
+
+		private _defaultCulling:string = ContextGLTriangleFace.BACK;
+
 		public _pInverseSceneMatrix:Array<number> = new Array<number>();
 
 		public animationRegisterCache:AnimationRegisterCache;
@@ -67,7 +72,6 @@ module away.materials
 		public useMipmapping:boolean;
 		public useSmoothTextures:boolean;
 		public repeatTextures:boolean;
-		public usesAnimation:boolean;
 		public usesUVTransform:boolean;
 		public alphaThreshold:number;
 
@@ -212,9 +216,9 @@ module away.materials
 		 * @param materialPassVO
 		 * @returns {away.materials.ShaderCompilerBase}
 		 */
-		public createCompiler(materialPassVO:MaterialPassVO):ShaderCompilerBase
+		public createCompiler(material:MaterialBase, materialPass:IMaterialPassStageGL):ShaderCompilerBase
 		{
-			return new ShaderCompilerBase(materialPassVO, this);
+			return new ShaderCompilerBase(material, materialPass, this);
 		}
 
 		/**
@@ -307,6 +311,8 @@ module away.materials
 		 */
 		public iActivate(stage:Stage, camera:Camera)
 		{
+			(<IContextStageGL> stage.context).setCulling(this.useBothSides? ContextGLTriangleFace.NONE : this._defaultCulling, camera.projection.coordinateSystem);
+
 			if (!this.usesTangentSpace && this.cameraPositionIndex >= 0) {
 				var pos:Vector3D = camera.scenePosition;
 
@@ -321,6 +327,7 @@ module away.materials
 		 */
 		public iDeactivate(stage:Stage)
 		{
+
 		}
 
 

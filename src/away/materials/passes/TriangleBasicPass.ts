@@ -78,7 +78,7 @@ module away.materials
 			var b:boolean = (value != null);
 
 			if (b != this._pUseTexture || (value && this._pTexture && (value.hasMipmaps != this._pTexture.hasMipmaps || value.format != this._pTexture.format)))
-				this.iInvalidateShaderProgram();
+				this._pInvalidatePass();
 
 			this._pUseTexture = b;
 			this._pTexture = value;
@@ -143,13 +143,13 @@ module away.materials
 		{
 			super.iActivate(material, stage, camera);
 
-			var shaderObject:ShaderObjectBase = this._pActiveShaderObject.shaderObject;
+			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
 			if (this._pUseTexture) {
 				(<IContextStageGL> stage.context).setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
 				(<IContextStageGL> stage.context).activateTexture(this._texturesIndex, this._pTexture);
 
-				if (this._pActiveShaderObject.shaderObject.alphaThreshold > 0)
-					shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = this._pActiveShaderObject.shaderObject.alphaThreshold;
+				if (this._pActiveMaterialPass.shaderObject.alphaThreshold > 0)
+					shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
 			} else {
 				var index:number = this._fragmentConstantsIndex;
 				var data:Array<number> = shaderObject.fragmentConstantData;

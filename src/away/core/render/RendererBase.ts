@@ -686,7 +686,7 @@ module away.render
 			//set ids for faster referencing
 			renderable.material = material;
 			renderable.materialId = material._iMaterialId;
-			renderable.renderOrderId = this._pContext.getRenderOrderId(material, this._pStage.profile);
+			renderable.renderOrderId = this._pContext.getMaterial(material, this._pStage.profile).renderOrderId;
 			renderable.cascaded = false;
 
 			// project onto camera's z-axis

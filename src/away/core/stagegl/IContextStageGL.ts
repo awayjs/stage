@@ -8,10 +8,10 @@ module away.stagegl
 	import Rectangle						= away.geom.Rectangle;
 	import IndexData						= away.pool.IndexData;
 	import RenderableBase					= away.pool.RenderableBase;
-	import ShaderObjectData					= away.pool.ShaderObjectData;
+	import MaterialData						= away.pool.MaterialData;
+	import MaterialPassData					= away.pool.MaterialPassData;
 	import VertexData						= away.pool.VertexData;
 	import MaterialBase						= away.materials.MaterialBase;
-	import MaterialPassVO					= away.materials.MaterialPassVO;
 	import CubeTextureBase					= away.textures.CubeTextureBase;
 	import RenderTexture					= away.textures.RenderTexture;
 	import Texture2DBase					= away.textures.Texture2DBase;
@@ -28,7 +28,7 @@ module away.stagegl
 
 		disposeVertexData(buffer:VertexData);
 
-		activateShaderObject(shaderObject:ShaderObjectData, stage:Stage, camera:Camera);
+		activateMaterialPass(materialPassData:MaterialPassData, stage:Stage, camera:Camera);
 
 		activateRenderTexture(index:number, textureProxy:RenderTexture);
 
@@ -38,9 +38,7 @@ module away.stagegl
 
 		getIndexBuffer(buffer:IndexData):IIndexBuffer;
 
-		getShaderObject(materialPassVO:MaterialPassVO, profile:string):ShaderObjectData;
-
-		getRenderOrderId(material:MaterialBase, profile:string):number;
+		getMaterial(material:MaterialBase, profile:string):MaterialData;
 
 		disposeIndexData(buffer:IndexData);
 
@@ -58,7 +56,7 @@ module away.stagegl
 
 		createVertexBuffer(numVertices:number, data32PerVertex:number):IVertexBuffer;
 
-		deactivateShaderObject(shaderObject:ShaderObjectData, stage:Stage);
+		deactivateMaterialPass(materialPassData:MaterialPassData, stage:Stage);
 
 		dispose();
 

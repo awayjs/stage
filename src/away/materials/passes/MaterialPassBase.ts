@@ -2,33 +2,26 @@
 
 module away.materials
 {
-	import AnimationRegisterCache		= away.animators.AnimationRegisterCache;
-	import AnimationSetBase				= away.animators.AnimationSetBase;
-	import AnimatorBase					= away.animators.AnimatorBase;
 	import Stage						= away.base.Stage;
 	import BlendMode					= away.base.BlendMode;
 	import Camera						= away.entities.Camera;
-	import AbstractMethodError			= away.errors.AbstractMethodError;
 	import ArgumentError				= away.errors.ArgumentError;
 	import Event						= away.events.Event;
 	import Rectangle					= away.geom.Rectangle;
 	import Matrix3D						= away.geom.Matrix3D;
-	import AGALProgramCache				= away.managers.AGALProgramCache;
 	import RenderableBase				= away.pool.RenderableBase;
-	import ShaderObjectData				= away.pool.ShaderObjectData;
+	import MaterialPassData				= away.pool.MaterialPassData;
 	import IContextStageGL				= away.stagegl.IContextStageGL;
 	import ContextGLBlendFactor			= away.stagegl.ContextGLBlendFactor;
 	import ContextGLCompareMode			= away.stagegl.ContextGLCompareMode;
-	import ContextGLTriangleFace		= away.stagegl.ContextGLTriangleFace;
-	import IProgram						= away.stagegl.IProgram;
-	import TextureProxyBase				= away.textures.TextureProxyBase;
 
 	/**
 	 * MaterialPassBase provides an abstract base class for material shader passes. A material pass constitutes at least
 	 * a render call per required renderable.
 	 */
-	export class MaterialPassBase extends away.events.EventDispatcher implements IMaterialPass, IMaterialPassStageGL
+	export class MaterialPassBase extends away.library.NamedAssetBase implements IMaterialPass, IMaterialPassStageGL
 	{
+		private _materialPassData:Array<MaterialPassData> = new Array<MaterialPassData>();
 		private _maxLights:number = 3;
 		private _includeCasters:boolean = true;
 		private _forceSeparateMVP:boolean = false;
@@ -44,16 +37,7 @@ module away.materials
 
 		private _passMode:number;
 
-		public _iPasses:Array<IMaterialPass>;
-
-		public _iPassesDirty:boolean;
-
-		public _pActiveShaderObject:ShaderObjectData;
-
-		/**
-		 * A list of material pass vos.
-		 */
-		private _materialPassVOs:Object = new Object();
+		public _pActiveMaterialPass:MaterialPassData;
 
 		private _depthCompareMode:string = ContextGLCompareMode.LESS_EQUAL;
 
@@ -63,17 +47,6 @@ module away.materials
 		public _pEnableBlending:boolean = false;
 
 		public  _pLightPicker:LightPickerBase;
-
-		private _defaultCulling:string = ContextGLTriangleFace.BACK;
-
-		//TODO re-implement rendertotexture for SingleObjectDepthPass?
-		private _renderToTexture:boolean;
-
-		// render state mementos for render-to-texture passes
-		private _oldTarget:TextureProxyBase;
-		private _oldSurface:number;
-		private _oldDepthStencil:boolean;
-		private _oldRect:Rectangle;
 
 		private _writeDepth:boolean = true;
 		private _onLightsChangeDelegate:(event:Event) => void;
@@ -94,7 +67,7 @@ module away.materials
 
 			this._includeCasters = value;
 
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 
 		/**
@@ -114,7 +87,7 @@ module away.materials
 
 			this._forceSeparateMVP = value;
 
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 		/**
 		 * Indicates the offset in the light picker's directional light vector for which to start including lights.
@@ -170,7 +143,7 @@ module away.materials
 		{
 			this._passMode = value;
 
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 
 		/**
@@ -224,14 +197,6 @@ module away.materials
 		}
 
 		/**
-		 * Specifies whether this pass renders to texture
-		 */
-		public get renderToTexture():boolean
-		{
-			return this._renderToTexture;
-		}
-
-		/**
 		 * Cleans up any resources used by the current object.
 		 * @param deep Indicates whether other resources should be cleaned up, that could potentially be shared across different instances.
 		 */
@@ -240,15 +205,10 @@ module away.materials
 			if (this._pLightPicker)
 				this._pLightPicker.removeEventListener(Event.CHANGE, this._onLightsChangeDelegate);
 
-			for (var key in this._materialPassVOs)
-				(<MaterialPassVO> this._materialPassVOs[key]).dispose();
+			while (this._materialPassData.length)
+				this._materialPassData[0].dispose();
 
-			this._materialPassVOs = null;
-		}
-
-		public getMaterialPassVO(materialId:number):MaterialPassVO
-		{
-			return <MaterialPassVO> this._materialPassVOs[materialId];
+			this._materialPassData = null;
 		}
 
 		/**
@@ -270,7 +230,7 @@ module away.materials
 		 */
 		public setRenderState(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
 		{
-			this._pActiveShaderObject.shaderObject.setRenderState(renderable, stage, camera, viewProjection);
+			this._pActiveMaterialPass.shaderObject.setRenderState(renderable, stage, camera, viewProjection);
 		}
 
 		/**
@@ -350,21 +310,9 @@ module away.materials
 			if (this._pEnableBlending)
 				context.setBlendFactors(this._blendFactorSource, this._blendFactorDest);
 
-			this._pActiveShaderObject = context.getShaderObject(this._materialPassVOs[material.id], stage.profile);
+			this._pActiveMaterialPass = context.getMaterial(material, stage.profile).getMaterialPass(this, stage.profile);
 
-			context.activateShaderObject(this._pActiveShaderObject, stage, camera);
-
-			if (this._pActiveShaderObject.shaderObject.usesAnimation)
-				(<AnimationSetBase> material.animationSet).activate(this._pActiveShaderObject.shaderObject, stage);
-
-			context.setCulling(this._pActiveShaderObject.shaderObject.useBothSides? ContextGLTriangleFace.NONE : this._defaultCulling, camera.projection.coordinateSystem);
-
-			if (this._renderToTexture) {
-				this._oldTarget = stage.renderTarget;
-				this._oldSurface = stage.renderSurfaceSelector;
-				this._oldDepthStencil = stage.enableDepthAndStencil;
-				this._oldRect = stage.scissorRect;
-			}
+			context.activateMaterialPass(this._pActiveMaterialPass, stage, camera);
 		}
 
 		/**
@@ -375,16 +323,7 @@ module away.materials
 		 */
 		public iDeactivate(material:MaterialBase, stage:Stage)
 		{
-			if (this._pActiveShaderObject.shaderObject.usesAnimation)
-				(<AnimationSetBase> material.animationSet).deactivate(this._pActiveShaderObject.shaderObject, stage);
-
-			(<IContextStageGL> stage.context).deactivateShaderObject(this._pActiveShaderObject, stage);
-
-			if (this._renderToTexture) {
-				// kindly restore state
-				(<IContextStageGL> stage.context).setRenderTarget(this._oldTarget, this._oldDepthStencil, this._oldSurface);
-				stage.scissorRect = this._oldRect;
-			}
+			(<IContextStageGL> stage.context).deactivateMaterialPass(this._pActiveMaterialPass, stage);
 
 			(<IContextStageGL> stage.context).setDepthTest(true, ContextGLCompareMode.LESS_EQUAL); // TODO : imeplement
 		}
@@ -394,12 +333,13 @@ module away.materials
 		 *
 		 * @param updateMaterial Indicates whether the invalidation should be performed on the entire material. Should always pass "true" unless it's called from the material itself.
 		 */
-		public iInvalidateShaderProgram(updateMaterial:boolean = true)
+		public _pInvalidatePass()
 		{
-			for (var key in this._materialPassVOs)
-				(<MaterialPassVO> this._materialPassVOs[key]).invalidate();
-			if (updateMaterial)
-				this.dispatchEvent(new Event(Event.CHANGE));
+			var len:number = this._materialPassData.length;
+			for (var i:number = 0; i < len; i++)
+				this._materialPassData[i].invalidate();
+
+			this.dispatchEvent(new Event(Event.CHANGE));
 		}
 
 		/**
@@ -462,7 +402,7 @@ module away.materials
 			this._pNumLights = this._pNumDirectionalLights + this._pNumPointLights;
 
 			if (numDirectionalLightsOld != this._pNumDirectionalLights || numPointLightsOld != this._pNumPointLights || numLightProbesOld != this._pNumLightProbes)
-				this.iInvalidateShaderProgram();
+				this._pInvalidatePass();
 		}
 
 		public _iIncludeDependencies(shaderObject:ShaderObjectBase)
@@ -479,33 +419,6 @@ module away.materials
 		public _iInitConstantData(shaderObject:ShaderObjectBase)
 		{
 
-		}
-
-		/**
-		 * Mark an material as owner of this material pass.
-		 *
-		 * @param owner The MaterialBase that had this material pass assigned
-		 *
-		 * @internal
-		 */
-		public _iAddOwner(owner:MaterialBase)
-		{
-			if (!this._materialPassVOs[owner.id])
-				this._materialPassVOs[owner.id] = new MaterialPassVO(owner, this);
-		}
-
-		/**
-		 * Removes a MaterialBase as owner.
-		 * @param owner
-		 *
-		 * @internal
-		 */
-		public _iRemoveOwner(owner:MaterialBase)
-		{
-			if (this._materialPassVOs[owner.id]) {
-				this._materialPassVOs[owner.id].dispose();
-				delete this._materialPassVOs[owner.id];
-			}
 		}
 
 		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
@@ -624,6 +537,20 @@ module away.materials
 
 			// 4 channels available
 			return Math.min(numLightProbes - this._lightProbesOffset, (4/numChannels) | 0);
+		}
+
+		public _iAddMaterialPassData(materialPassData:MaterialPassData):MaterialPassData
+		{
+			this._materialPassData.push(materialPassData);
+
+			return materialPassData;
+		}
+
+		public _iRemoveMaterialPassData(materialPassData:MaterialPassData):MaterialPassData
+		{
+			this._materialPassData.splice(this._materialPassData.indexOf(materialPassData), 1);
+
+			return materialPassData;
 		}
 	}
 }

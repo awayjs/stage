@@ -52,8 +52,8 @@ module away.materials
 
 		public pAddDepthPasses()
 		{
-			this.pAddPass(this._pDepthPass);
-			this.pAddPass(this._pDistancePass);
+			this._pAddScreenPass(this._pDepthPass);
+			this._pAddScreenPass(this._pDistancePass);
 		}
 
 		/**

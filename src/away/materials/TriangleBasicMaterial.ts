@@ -73,7 +73,7 @@ module away.materials
 
 			this._depthCompareMode = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidatePasses();
 		}
 
 		/**
@@ -96,7 +96,7 @@ module away.materials
 
 			this._alpha = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidatePasses();
 		}
 
 		/**
@@ -156,7 +156,7 @@ module away.materials
 
 			this._alphaBlending = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidatePasses();
 		}
 
 
@@ -193,39 +193,13 @@ module away.materials
 				passesInvalid = true;
 			}
 
-			if (passesInvalid || this.isAnyScreenPassInvalid()) {
-				this.pClearPasses();
+			if (passesInvalid) {
+				this._pClearScreenPasses();
 
 				this.pAddDepthPasses();
 
-				this.pAddChildPassesFor(this._screenPass);
-
-				this.addScreenPass(this._screenPass);
+				this._pAddScreenPass(this._screenPass);
 			}
-		}
-
-		/**
-		 * Adds a compiled pass that renders to the screen.
-		 * @param pass The pass to be added.
-		 */
-		private addScreenPass(pass:TriangleBasicPass)
-		{
-			if (pass) {
-				this.pAddPass(pass);
-				pass._iPassesDirty = false;
-			}
-		}
-
-		/**
-		 * Tests if any pass that renders to the screen is invalid. This would trigger a new setup of the multiple passes.
-		 * @return
-		 */
-		private isAnyScreenPassInvalid():boolean
-		{
-			if (this._screenPass._iPassesDirty)
-				return true;
-
-			return false;
 		}
 
 		/**

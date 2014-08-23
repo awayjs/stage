@@ -2,6 +2,7 @@
 
 module away.materials
 {
+	import BlendMode					= away.base.BlendMode;
 	import Stage						= away.base.Stage;
 	import Camera						= away.entities.Camera;
 	import ColorTransform				= away.geom.ColorTransform;
@@ -74,7 +75,7 @@ module away.materials
 
 			this._materialMode = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -95,7 +96,7 @@ module away.materials
 
 			this._depthCompareMode = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 		
 		/**
@@ -123,7 +124,7 @@ module away.materials
 
 			this._colorTransform.alphaMultiplier = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidatePasses();
 		}
 
 		/**
@@ -203,7 +204,7 @@ module away.materials
 
 			this._ambientMethod = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -224,7 +225,7 @@ module away.materials
 
 			this._shadowMethod = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -245,7 +246,7 @@ module away.materials
 
 			this._diffuseMethod = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -266,7 +267,7 @@ module away.materials
 
 			this._specularMethod = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -287,7 +288,7 @@ module away.materials
 
 			this._normalMethod = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -302,7 +303,7 @@ module away.materials
 
 			this._screenPass.addEffectMethod(method);
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidateScreenPasses();
 		}
 
 		/**
@@ -349,7 +350,7 @@ module away.materials
 
 			this._screenPass.addEffectMethodAt(method, index);
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidatePasses();
 		}
 
 		/**
@@ -365,7 +366,7 @@ module away.materials
 
 			// reconsider
 			if (this._screenPass.numEffectMethods == 0)
-				this.pInvalidateScreenPasses();
+				this._pInvalidatePasses();
 		}
 
 		/**
@@ -492,7 +493,7 @@ module away.materials
 
 			this._alphaBlending = value;
 
-			this.pInvalidateScreenPasses();
+			this._pInvalidatePasses();
 		}
 
 		/**
@@ -500,67 +501,30 @@ module away.materials
 		 */
 		public iUpdateMaterial()
 		{
-			var passesInvalid:boolean;
-
 			if (this._pScreenPassesInvalid) {
-				this.pUpdateScreenPasses();
-				passesInvalid = true;
-			}
+				//Updates screen passes when they were found to be invalid.
+				this._pScreenPassesInvalid = false;
 
-			if (passesInvalid || this.isAnyScreenPassInvalid()) {
-				this.pClearPasses();
+				this.initPasses();
+
+				this.setBlendAndCompareModes();
+
+				this._pClearScreenPasses();
 
 				this.pAddDepthPasses();
 
 				if (this._materialMode == TriangleMaterialMode.MULTI_PASS) {
-					this.pAddChildPassesFor(this._casterLightPass);
+					if (this._casterLightPass)
+						this._pAddScreenPass(this._casterLightPass);
 
 					if (this._nonCasterLightPasses)
 						for (var i:number = 0; i < this._nonCasterLightPasses.length; ++i)
-							this.pAddChildPassesFor(this._nonCasterLightPasses[i]);
+							this._pAddScreenPass(this._nonCasterLightPasses[i]);
 				}
 
-				this.pAddChildPassesFor(this._screenPass);
-
-				if (this._materialMode == TriangleMaterialMode.MULTI_PASS) {
-					this.addScreenPass(this._casterLightPass);
-
-					if (this._nonCasterLightPasses)
-						for (i = 0; i < this._nonCasterLightPasses.length; ++i)
-							this.addScreenPass(this._nonCasterLightPasses[i]);
-				}
-
-				this.addScreenPass(this._screenPass);
+				if (this._screenPass)
+					this._pAddScreenPass(this._screenPass);
 			}
-		}
-
-		/**
-		 * Adds a compiled pass that renders to the screen.
-		 * @param pass The pass to be added.
-		 */
-		private addScreenPass(pass:TriangleMethodPass)
-		{
-			if (pass) {
-				this.pAddPass(pass);
-				pass._iPassesDirty = false;
-			}
-		}
-
-		/**
-		 * Tests if any pass that renders to the screen is invalid. This would trigger a new setup of the multiple passes.
-		 * @return
-		 */
-		private isAnyScreenPassInvalid():boolean
-		{
-			if ((this._casterLightPass && this._casterLightPass._iPassesDirty) || (this._screenPass && this._screenPass._iPassesDirty))
-				return true;
-
-			if (this._nonCasterLightPasses)
-				for (var i:number = 0; i < this._nonCasterLightPasses.length; ++i)
-					if (this._nonCasterLightPasses[i]._iPassesDirty)
-						return true;
-
-			return false;
 		}
 
 		/**
@@ -583,18 +547,6 @@ module away.materials
 
 			if (this._materialMode == TriangleMaterialMode.MULTI_PASS)
 				(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
-		}
-
-		/**
-		 * Updates screen passes when they were found to be invalid.
-		 */
-		public pUpdateScreenPasses()
-		{
-			this.initPasses();
-
-			this.setBlendAndCompareModes();
-
-			this._pScreenPassesInvalid = false;
 		}
 
 		/**
@@ -632,7 +584,7 @@ module away.materials
 			// caster light pass is always first if it exists, hence it uses normal blending
 			if (this._casterLightPass) {
 				this._casterLightPass.forceSeparateMVP = forceSeparateMVP;
-				this._casterLightPass.setBlendMode(away.base.BlendMode.NORMAL);
+				this._casterLightPass.setBlendMode(BlendMode.NORMAL);
 				this._casterLightPass.depthCompareMode = this._depthCompareMode;
 			}
 
@@ -643,7 +595,7 @@ module away.materials
 				// and should use normal blending
 				if (!this._casterLightPass) {
 					this._nonCasterLightPasses[0].forceSeparateMVP = forceSeparateMVP;
-					this._nonCasterLightPasses[0].setBlendMode(away.base.BlendMode.NORMAL);
+					this._nonCasterLightPasses[0].setBlendMode(BlendMode.NORMAL);
 					this._nonCasterLightPasses[0].depthCompareMode = this._depthCompareMode;
 					firstAdditiveIndex = 1;
 				}
@@ -651,7 +603,7 @@ module away.materials
 				// all lighting passes following the first light pass should use additive blending
 				for (var i:number = firstAdditiveIndex; i < this._nonCasterLightPasses.length; ++i) {
 					this._nonCasterLightPasses[i].forceSeparateMVP = forceSeparateMVP;
-					this._nonCasterLightPasses[i].setBlendMode(away.base.BlendMode.ADD);
+					this._nonCasterLightPasses[i].setBlendMode(BlendMode.ADD);
 					this._nonCasterLightPasses[i].depthCompareMode = ContextGLCompareMode.LESS_EQUAL;
 				}
 			}
@@ -664,18 +616,18 @@ module away.materials
 				if (this._screenPass) {
 					this._screenPass.passMode = MaterialPassMode.EFFECTS;
 					this._screenPass.depthCompareMode = ContextGLCompareMode.LESS_EQUAL;
-					this._screenPass.setBlendMode(away.base.BlendMode.LAYER);
+					this._screenPass.setBlendMode(BlendMode.LAYER);
 					this._screenPass.forceSeparateMVP = forceSeparateMVP;
 				}
 
 			} else if (this._screenPass) {
-				this._pRequiresBlending = (this._pBlendMode != away.base.BlendMode.NORMAL || this._alphaBlending || (this._colorTransform && this._colorTransform.alphaMultiplier < 1));
+				this._pRequiresBlending = (this._pBlendMode != BlendMode.NORMAL || this._alphaBlending || (this._colorTransform && this._colorTransform.alphaMultiplier < 1));
 				// effects pass is the only pass, so it should just blend normally
 				this._screenPass.passMode = MaterialPassMode.SUPER_SHADER;
 				this._screenPass.depthCompareMode = this._depthCompareMode;
 				this._screenPass.preserveAlpha = this._pRequiresBlending;
 				this._screenPass.colorTransform = this._colorTransform;
-				this._screenPass.setBlendMode((this._pBlendMode == away.base.BlendMode.NORMAL && this._pRequiresBlending)? away.base.BlendMode.LAYER : this._pBlendMode);
+				this._screenPass.setBlendMode((this._pBlendMode == BlendMode.NORMAL && this._pRequiresBlending)? BlendMode.LAYER : this._pBlendMode);
 				this._screenPass.forceSeparateMVP = false;
 			}
 		}
@@ -697,7 +649,7 @@ module away.materials
 		private removeCasterLightPass()
 		{
 			this._casterLightPass.dispose();
-			this.pRemovePass(this._casterLightPass);
+			this.pRemoveScreenPass(this._casterLightPass);
 			this._casterLightPass = null;
 		}
 
@@ -744,7 +696,7 @@ module away.materials
 				return;
 
 			for (var i:number = 0; i < this._nonCasterLightPasses.length; ++i)
-				this.pRemovePass(this._nonCasterLightPasses[i]);
+				this.pRemoveScreenPass(this._nonCasterLightPasses[i]);
 
 			this._nonCasterLightPasses = null;
 		}
@@ -763,7 +715,7 @@ module away.materials
 			if (this._screenPass.normalMethod != this._normalMethod)
 				this._screenPass.normalMethod.dispose();
 
-			this.pRemovePass(this._screenPass);
+			this.pRemoveScreenPass(this._screenPass);
 			this._screenPass = null;
 		}
 

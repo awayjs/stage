@@ -41,10 +41,6 @@ module away.render
 		public _pRequireDepthRender:boolean;
 		private _skyboxRenderablePool:RenderablePool;
 
-		private static RTT_PASSES:number = 1;
-		private static SCREEN_PASSES:number = 2;
-		private static ALL_PASSES:number = 3;
-
 		private _activeMaterial:MaterialBase;
 		private _pDistanceRenderer:DepthRenderer;
 		private _pDepthRenderer:DepthRenderer;
@@ -206,8 +202,8 @@ module away.render
 			if (target) {
 				this.pCollectRenderables(entityCollector);
 
-				this.drawRenderables(this._pOpaqueRenderableHead, entityCollector, DefaultRenderer.RTT_PASSES);
-				this.drawRenderables(this._pBlendedRenderableHead, entityCollector, DefaultRenderer.RTT_PASSES);
+				this.drawRenderables(this._pOpaqueRenderableHead, entityCollector);
+				this.drawRenderables(this._pBlendedRenderableHead, entityCollector);
 			}
 
 			super.pExecuteRender(entityCollector, target, scissorRect, surfaceSelector);
@@ -265,10 +261,8 @@ module away.render
 
 			this._pContext.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL);
 
-			var which:number = target? DefaultRenderer.SCREEN_PASSES : DefaultRenderer.ALL_PASSES;
-
-			this.drawRenderables(this._pOpaqueRenderableHead, entityCollector, which);
-			this.drawRenderables(this._pBlendedRenderableHead, entityCollector, which);
+			this.drawRenderables(this._pOpaqueRenderableHead, entityCollector);
+			this.drawRenderables(this._pBlendedRenderableHead, entityCollector);
 
 			this._pContext.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
@@ -335,7 +329,7 @@ module away.render
 		 * @param renderables The renderables to draw.
 		 * @param entityCollector The EntityCollector containing all potentially visible information.
 		 */
-		private drawRenderables(renderable:RenderableBase, entityCollector:ICollector, which:number)
+		private drawRenderables(renderable:RenderableBase, entityCollector:ICollector)
 		{
 			var numPasses:number;
 			var j:number;
@@ -352,26 +346,17 @@ module away.render
 				do {
 					renderable2 = renderable;
 
-					var rttMask:number = this._activeMaterial.iPassRendersToTexture(j)? 1 : 2;
+					this._activeMaterial.iActivatePass(j, this._pStage, camera);
 
-					if ((rttMask & which) != 0) {
-						this._activeMaterial.iActivatePass(j, this._pStage, camera);
+					do {
+						this._activeMaterial.iRenderPass(j, renderable2, this._pStage, entityCollector, this._pRttViewProjectionMatrix);
 
-						do {
-							this._activeMaterial.iRenderPass(j, renderable2, this._pStage, entityCollector, this._pRttViewProjectionMatrix);
+						renderable2 = renderable2.next;
 
-							renderable2 = renderable2.next;
+					} while (renderable2 && renderable2.material == this._activeMaterial);
 
-						} while (renderable2 && renderable2.material == this._activeMaterial);
+					this._activeMaterial.iDeactivatePass(j, this._pStage);
 
-						this._activeMaterial.iDeactivatePass(j, this._pStage);
-
-					} else {
-						do {
-							renderable2 = renderable2.next;
-
-						} while (renderable2 && renderable2.material == this._activeMaterial);
-					}
 				} while (++j < numPasses);
 
 				renderable = renderable2;

@@ -24,7 +24,7 @@ module away.materials
 			super();
 
 			this._cubeMap = cubeMap;
-			this.pAddPass(this._skyboxPass = new SkyboxPass());
+			this._pAddScreenPass(this._skyboxPass = new SkyboxPass());
 			this._skyboxPass.cubeTexture = this._cubeMap;
 		}
 
@@ -39,7 +39,7 @@ module away.materials
 		public set cubeMap(value:CubeTextureBase)
 		{
 			if (value && this._cubeMap && (value.hasMipmaps != this._cubeMap.hasMipmaps || value.format != this._cubeMap.format))
-				this.iInvalidatePasses(null);
+				this._pInvalidatePasses();
 
 			this._cubeMap = value;
 			this._skyboxPass.cubeTexture = this._cubeMap;

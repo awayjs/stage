@@ -127,7 +127,7 @@ module away.materials
 			super.iActivate(material, stage, camera);
 
 			var context:IContextStageGL = <IContextStageGL> stage.context;
-			var shaderObject:ShaderObjectBase = this._pActiveShaderObject.shaderObject;
+			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
 
 			var f:number = camera.projection.far;
 
@@ -144,7 +144,7 @@ module away.materials
 				context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
 				context.activateTexture(this._texturesIndex, this._alphaMask);
 
-				data[index + 8] = this._pActiveShaderObject.shaderObject.alphaThreshold;
+				data[index + 8] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
 			}
 		}
 	}

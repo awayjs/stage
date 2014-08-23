@@ -25,11 +25,11 @@ module away.materials
 		 * Creates a new ShaderCompilerBase object.
 		 * @param profile The compatibility profile of the renderer.
 		 */
-		constructor(materialPassVO:MaterialPassVO, shaderObject:ShaderLightingObject)
+		constructor(material:MaterialBase, materialPass:ILightingPassStageGL, shaderObject:ShaderLightingObject)
 		{
-			super(materialPassVO, shaderObject);
+			super(material, materialPass, shaderObject);
 
-			this._materialLightingPass = <ILightingPassStageGL> materialPassVO.materialPass;
+			this._materialLightingPass = materialPass;
 			this._shaderLightingObject = shaderObject;
 		}
 

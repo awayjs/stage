@@ -52,7 +52,7 @@ module away.materials
 
 			this._preserveAlpha = value;
 
-			this.iInvalidateShaderProgram();
+			this._pInvalidatePass();
 		}
 
 		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
@@ -89,7 +89,7 @@ module away.materials
 		{
 			super.iRender(renderable, stage, camera, viewProjection);
 
-			var shaderObject:ShaderObjectBase = this._pActiveShaderObject.shaderObject;
+			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
 
 			if (shaderObject.sceneMatrixIndex >= 0) {
 				renderable.sourceEntity.getRenderSceneTransform(camera).copyRawDataTo(shaderObject.vertexConstantData, shaderObject.sceneMatrixIndex, true);
