@@ -5,7 +5,7 @@
  */
 module away.pool
 {
-	import MaterialBase					= away.materials.MaterialBase;
+	import StageGLMaterialBase			= away.materials.StageGLMaterialBase;
 	import MaterialPassBase				= away.materials.MaterialPassBase;
 	import ShaderObjectBase				= away.materials.ShaderObjectBase;
 
@@ -13,11 +13,11 @@ module away.pool
 	 *
 	 * @class away.pool.MaterialPassData
 	 */
-	export class MaterialPassData
+	export class MaterialPassData implements IMaterialPassData
 	{
 		private _pool:MaterialPassDataPool;
 
-		public material:MaterialBase;
+		public material:StageGLMaterialBase;
 
 		public shaderObject:ShaderObjectBase;
 
@@ -43,7 +43,7 @@ module away.pool
 
 		public usesAnimation:boolean;
 
-		constructor(pool:MaterialPassDataPool, material:MaterialBase, materialPass:MaterialPassBase)
+		constructor(pool:MaterialPassDataPool, material:StageGLMaterialBase, materialPass:MaterialPassBase)
 		{
 			this._pool = pool;
 			this.material = material;

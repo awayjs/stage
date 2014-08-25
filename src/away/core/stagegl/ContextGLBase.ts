@@ -21,7 +21,7 @@ module away.stagegl
 	import MaterialData						= away.pool.MaterialData;
 	import MaterialDataPool					= away.pool.MaterialDataPool;
 	import VertexData						= away.pool.VertexData;
-	import MaterialBase						= away.materials.MaterialBase;
+	import StageGLMaterialBase				= away.materials.StageGLMaterialBase;
 	import ShaderObjectBase					= away.materials.ShaderObjectBase;
 	import CubeTextureBase					= away.textures.CubeTextureBase;
 	import RenderTexture					= away.textures.RenderTexture;
@@ -134,7 +134,7 @@ module away.stagegl
 		 *
 		 * @param material
 		 */
-		public getMaterial(material:MaterialBase, profile:string):MaterialData
+		public getMaterial(material:StageGLMaterialBase, profile:string):MaterialData
 		{
 			var materialData:MaterialData = this._materialDataPool.getItem(material);
 
@@ -431,7 +431,7 @@ module away.stagegl
 		 * if any object using this material fails to support accelerated animations for any of the shader objects,
 		 * we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
 		 */
-		private getEnabledGPUAnimation(material:MaterialBase, materialDataPasses:Array<MaterialPassData>):boolean
+		private getEnabledGPUAnimation(material:StageGLMaterialBase, materialDataPasses:Array<MaterialPassData>):boolean
 		{
 			if (material.animationSet) {
 				material.animationSet.resetGPUCompatibility();
@@ -451,7 +451,7 @@ module away.stagegl
 			return false;
 		}
 
-		private calcAnimationCode(material:MaterialBase, materialPassData:MaterialPassData)
+		public calcAnimationCode(material:StageGLMaterialBase, materialPassData:MaterialPassData)
 		{
 			//reset key so that the program is re-calculated
 			materialPassData.key = "";

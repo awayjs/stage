@@ -91,5 +91,7 @@ module away.stagegl
 		setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number);
 
 		setRenderToBackBuffer();
+
+		calcAnimationCode(material:MaterialBase, materialPassData:MaterialPassData);
 	}
 }

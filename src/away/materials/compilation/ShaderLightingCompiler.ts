@@ -25,7 +25,7 @@ module away.materials
 		 * Creates a new ShaderCompilerBase object.
 		 * @param profile The compatibility profile of the renderer.
 		 */
-		constructor(material:MaterialBase, materialPass:ILightingPassStageGL, shaderObject:ShaderLightingObject)
+		constructor(material:StageGLMaterialBase, materialPass:ILightingPassStageGL, shaderObject:ShaderLightingObject)
 		{
 			super(material, materialPass, shaderObject);
 
@@ -43,9 +43,6 @@ module away.materials
 			//compile the lighting code
 			if (this._shaderLightingObject.usesShadows)
 				this.pCompileShadowCode();
-
-			this._pVertexCode += this._materialLightingPass._iGetPreLightingVertexCode(this._shaderLightingObject, this._pRegisterCache, this._pSharedRegisters);
-			this._pFragmentCode += this._materialLightingPass._iGetPreLightingFragmentCode(this._shaderLightingObject, this._pRegisterCache, this._pSharedRegisters);
 
 			if (this._shaderLightingObject.usesLights) {
 				this.initLightRegisters();

@@ -7,6 +7,7 @@ module away.materials
 	import Camera									= away.entities.Camera;
 	import Matrix3D									= away.geom.Matrix3D;
 	import Matrix3DUtils							= away.geom.Matrix3DUtils;
+	import MaterialPassData							= away.pool.MaterialPassData;
 	import RenderableBase							= away.pool.RenderableBase;
 	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
 	import ContextGLTextureFilter					= away.stagegl.ContextGLTextureFilter;
@@ -20,7 +21,7 @@ module away.materials
 	 * DepthMapPass is a pass that writes depth values to a depth map as a 32-bit value exploded over the 4 texture channels.
 	 * This is used to render shadow maps, depth maps, etc.
 	 */
-	export class DepthMapPass extends TrianglePassBase
+	export class DepthMapPass extends MaterialPassBase
 	{
 		private _fragmentConstantsIndex:number;
 		private _texturesIndex:number;
@@ -125,21 +126,26 @@ module away.materials
 			return code;
 		}
 
+		public _iRender(pass:MaterialPassData, renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
+		{
+			//this.setRenderState(pass, renderable, stage, camera, viewProjection);
+		}
+
 		/**
 		 * @inheritDoc
 		 */
-		public iActivate(material:MaterialBase, stage:Stage, camera:Camera)
+		public _iActivate(pass:MaterialPassData, stage:Stage, camera:Camera)
 		{
-			super.iActivate(material, stage, camera);
+			super._iActivate(pass, stage, camera);
 
 			var context:IContextStageGL = <IContextStageGL> stage.context;
-			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
+			var shaderObject:ShaderObjectBase = pass.shaderObject;
 
 			if (shaderObject.alphaThreshold > 0) {
 				context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
 				context.activateTexture(this._texturesIndex, this._alphaMask);
 
-				shaderObject.fragmentConstantData[this._fragmentConstantsIndex + 8] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
+				shaderObject.fragmentConstantData[this._fragmentConstantsIndex + 8] = pass.shaderObject.alphaThreshold;
 			}
 		}
 	}

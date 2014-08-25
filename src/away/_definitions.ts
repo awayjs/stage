@@ -123,15 +123,15 @@
 ///<reference path="materials/passes/ILightingPassStageGL.ts"/>
 ///<reference path="materials/passes/LineBasicPass.ts"/>
 ///<reference path="materials/passes/SkyBoxPass.ts"/>
-///<reference path="materials/passes/TrianglePassBase.ts"/>
 ///<reference path="materials/passes/TriangleBasicPass.ts"/>
 ///<reference path="materials/passes/DepthMapPass.ts"/>
 ///<reference path="materials/passes/DistanceMapPass.ts"/>
 ///<reference path="materials/passes/MaterialPassMode.ts"/>
 ///<reference path="materials/passes/TriangleMethodPass.ts"/>
-///<reference path="materials/DepthMaterialBase.ts"/>
+///<reference path="materials/StageGLMaterialBase.ts"/>
 ///<reference path="materials/LineBasicMaterial.ts"/>
 ///<reference path="materials/SkyBoxMaterial.ts"/>
+///<reference path="materials/TriangleMaterialBase.ts"/>
 ///<reference path="materials/TriangleBasicMaterial.ts"/>
 ///<reference path="materials/TriangleMaterialMode.ts"/>
 ///<reference path="materials/TriangleMethodMaterial.ts"/>

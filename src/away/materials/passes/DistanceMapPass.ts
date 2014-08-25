@@ -7,6 +7,7 @@ module away.materials
 	import Matrix3D									= away.geom.Matrix3D;
 	import Matrix3DUtils							= away.geom.Matrix3DUtils;
 	import Vector3D									= away.geom.Vector3D;
+	import MaterialPassData							= away.pool.MaterialPassData;
 	import RenderableBase							= away.pool.RenderableBase;
 	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
 	import ContextGLTextureFilter					= away.stagegl.ContextGLTextureFilter;
@@ -20,7 +21,7 @@ module away.materials
 	 * DistanceMapPass is a pass that writes distance values to a depth map as a 32-bit value exploded over the 4 texture channels.
 	 * This is used to render omnidirectional shadow maps.
 	 */
-	export class DistanceMapPass extends TrianglePassBase
+	export class DistanceMapPass extends MaterialPassBase
 	{
 		private _fragmentConstantsIndex:number;
 		private _texturesIndex:number;
@@ -122,12 +123,12 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public iActivate(material:MaterialBase, stage:Stage, camera:Camera)
+		public _iActivate(pass:MaterialPassData, stage:Stage, camera:Camera)
 		{
-			super.iActivate(material, stage, camera);
+			super._iActivate(pass, stage, camera);
 
 			var context:IContextStageGL = <IContextStageGL> stage.context;
-			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
+			var shaderObject:ShaderObjectBase = pass.shaderObject;
 
 			var f:number = camera.projection.far;
 
@@ -144,7 +145,7 @@ module away.materials
 				context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
 				context.activateTexture(this._texturesIndex, this._alphaMask);
 
-				data[index + 8] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
+				data[index + 8] = pass.shaderObject.alphaThreshold;
 			}
 		}
 	}

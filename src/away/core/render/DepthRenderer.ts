@@ -9,10 +9,13 @@ module away.render
 	import Camera						= away.entities.Camera;
 	import Plane3D						= away.geom.Plane3D;
 	import Rectangle					= away.geom.Rectangle;
-	import DepthMaterialBase			= away.materials.DepthMaterialBase;
+	import MaterialPassBase				= away.materials.MaterialPassBase;
+	import MaterialData					= away.pool.MaterialData;
+	import MaterialPassData				= away.pool.MaterialPassData;
 	import RenderableBase				= away.pool.RenderableBase;
 	import ContextGLBlendFactor			= away.stagegl.ContextGLBlendFactor;
 	import ContextGLCompareMode			= away.stagegl.ContextGLCompareMode;
+	import IContextStageGL				= away.stagegl.IContextStageGL;
 	import TextureProxyBase				= away.textures.TextureProxyBase;
 	import EntityCollector				= away.traverse.EntityCollector;
 	import ShadowCasterCollector		= away.traverse.ShadowCasterCollector;
@@ -24,9 +27,8 @@ module away.render
 	 */
 	export class DepthRenderer extends RendererBase
 	{
-		private _activeMaterial:DepthMaterialBase;
+		private _pass:MaterialPassBase;
 		private _renderBlended:boolean;
-		private _distanceBased:boolean;
 		private _disableColor:boolean;
 
 		/**
@@ -34,12 +36,13 @@ module away.render
 		 * @param renderBlended Indicates whether semi-transparent objects should be rendered.
 		 * @param distanceBased Indicates whether the written depth value is distance-based or projected depth-based
 		 */
-		constructor(renderBlended:boolean = false, distanceBased:boolean = false)
+		constructor(pass:MaterialPassBase, renderBlended:boolean = false)
 		{
 			super();
 
+			this._pass = pass;
+
 			this._renderBlended = renderBlended;
-			this._distanceBased = distanceBased;
 			this._iBackgroundR = 1;
 			this._iBackgroundG = 1;
 			this._iBackgroundB = 1;
@@ -76,11 +79,6 @@ module away.render
 				first = false;
 			}
 
-			if (this._activeMaterial)
-				this._activeMaterial.iDeactivateForDepth(this._pStage);
-
-			this._activeMaterial = null;
-
 			//line required for correct rendering when using away3d with starling. DO NOT REMOVE UNLESS STARLING INTEGRATION IS RETESTED!
 			this._pContext.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
@@ -90,39 +88,40 @@ module away.render
 
 		private drawCascadeRenderables(renderable:RenderableBase, camera:Camera, cullPlanes:Array<Plane3D>)
 		{
-			var material:DepthMaterialBase;
+			var activePass:MaterialPassData;
+			var activeMaterial:MaterialData;
+			var context:IContextStageGL = <IContextStageGL> this._pStage.context;
+			var renderable2:RenderableBase;
 
 			while (renderable) {
+				activeMaterial = context.getMaterial(renderable.material, this._pStage.profile);
 
-				if (renderable.cascaded) {
-					renderable = renderable.next;
-					continue;
-				}
+				renderable2 = renderable;
 
-				var entity:IEntity = renderable.sourceEntity;
+				activePass = activeMaterial.getMaterialPass(this._pass, this._pStage.profile);
 
+				//TODO: generalise this test
+				if (activePass.key == "")
+					this._pContext.calcAnimationCode(renderable.material, activePass);
 
-				// if completely in front, it will fall in a different cascade
-				// do not use near and far planes
+				renderable.material._iActivatePass(activePass, this._pStage, camera);
 
-				if (!cullPlanes || entity.worldBounds.isInFrustum(cullPlanes, 4)) {
+				do {
+                    // if completely in front, it will fall in a different cascade
+                    // do not use near and far planes
+                    if (!cullPlanes || renderable2.sourceEntity.worldBounds.isInFrustum(cullPlanes, 4)) {
+						renderable2.material._iRenderPass(activePass, renderable2, this._pStage, camera, this._pRttViewProjectionMatrix);
+                    } else {
+						renderable2.cascaded = true;
+                    }
 
-					material = <DepthMaterialBase> renderable.materialOwner.material;
+					renderable2 = renderable2.next;
 
-					if (this._activeMaterial != material) {
-						if (this._activeMaterial)
-							this._activeMaterial.iDeactivateForDepth(this._pStage);
+				} while (renderable2 && renderable2.material == renderable.material && !renderable2.cascaded);
 
-						this._activeMaterial = material;
-						this._activeMaterial.iActivateForDepth(this._pStage, camera, false);
-					}
+				renderable.material._iDeactivatePass(activePass, this._pStage);
 
-					this._activeMaterial.iRenderDepth(renderable, this._pStage, camera, camera.viewProjection);
-				} else {
-					renderable.cascaded = true;
-				}
-
-				renderable = renderable.next;
+				renderable = renderable2;
 			}
 		}
 
@@ -145,14 +144,8 @@ module away.render
 			if (this._renderBlended)
 				this.drawRenderables(this._pBlendedRenderableHead, entityCollector);
 
-			if (this._activeMaterial)
-				this._activeMaterial.iDeactivateForDepth(this._pStage);
-
 			if (this._disableColor)
 				this._pContext.setColorMask(true, true, true, true);
-
-			this._activeMaterial = null;
-
 		}
 
 		/**
@@ -162,30 +155,42 @@ module away.render
 		 */
 		private drawRenderables(renderable:RenderableBase, entityCollector:EntityCollector)
 		{
+			var activePass:MaterialPassData;
+			var activeMaterial:MaterialData;
+			var context:IContextStageGL = <IContextStageGL> this._pStage.context;
 			var camera:Camera = entityCollector.camera;
 			var renderable2:RenderableBase;
 
 			while (renderable) {
-				this._activeMaterial = <DepthMaterialBase> renderable.materialOwner.material;
+				activeMaterial = context.getMaterial(renderable.material, this._pStage.profile);
 
 				// otherwise this would result in depth rendered anyway because fragment shader kil is ignored
-				if (this._disableColor && this._activeMaterial.alphaThreshold != 0) {
+				if (this._disableColor && renderable.material.alphaThreshold != 0) {
 					renderable2 = renderable;
 					// fast forward
 					do {
 						renderable2 = renderable2.next;
 
-					} while (renderable2 && renderable2.materialOwner.material == this._activeMaterial);
+					} while (renderable2 && renderable2.material == renderable.material);
 				} else {
-					this._activeMaterial.iActivateForDepth(this._pStage, camera, this._distanceBased);
 					renderable2 = renderable;
+
+					activePass = activeMaterial.getMaterialPass(this._pass, this._pStage.profile);
+
+					//TODO: generalise this test
+					if (activePass.key == "")
+						this._pContext.calcAnimationCode(renderable.material, activePass);
+
+					renderable.material._iActivatePass(activePass, this._pStage, camera);
+
 					do {
-						this._activeMaterial.iRenderDepth(renderable2, this._pStage, camera, this._pRttViewProjectionMatrix);
+						renderable2.material._iRenderPass(activePass, renderable2, this._pStage, camera, this._pRttViewProjectionMatrix);
+
 						renderable2 = renderable2.next;
 
-					} while (renderable2 && renderable2.materialOwner.material == this._activeMaterial);
+					} while (renderable2 && renderable2.material == renderable.material);
 
-					this._activeMaterial.iDeactivateForDepth(this._pStage);
+					renderable.material._iDeactivatePass(activePass, this._pStage);
 				}
 
 				renderable = renderable2;

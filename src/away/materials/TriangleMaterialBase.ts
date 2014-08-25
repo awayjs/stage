@@ -1,4 +1,4 @@
-﻿///<reference path="../../_definitions.ts"/>
+﻿///<reference path="../_definitions.ts"/>
 
 module away.materials
 {
@@ -10,6 +10,7 @@ module away.materials
 	import Matrix									= away.geom.Matrix;
 	import Matrix3D									= away.geom.Matrix3D;
 	import Matrix3DUtils							= away.geom.Matrix3DUtils;
+	import MaterialPassData							= away.pool.MaterialPassData;
 	import RenderableBase							= away.pool.RenderableBase;
 	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
 	import ContextGLProgramType						= away.stagegl.ContextGLProgramType;
@@ -22,45 +23,14 @@ module away.materials
 	 * CompiledPass forms an abstract base class for the default compiled pass materials provided by Away3D,
 	 * using material methods to define their appearance.
 	 */
-	export class TrianglePassBase extends MaterialPassBase
+	export class TriangleMaterialBase extends StageGLMaterialBase
 	{
-
-
-		public _preserveAlpha:boolean = true;
-
-		/**
-		 * Creates a new CompiledPass object.
-		 */
-		constructor(passMode:number = 0x03)
-		{
-			super(passMode);
-		}
-
-
-		/**
-		 * Indicates whether the output alpha value should remain unchanged compared to the material's original alpha.
-		 */
-		public get preserveAlpha():boolean
-		{
-			return this._preserveAlpha;
-		}
-
-		public set preserveAlpha(value:boolean)
-		{
-			if (this._preserveAlpha == value)
-				return;
-
-			this._preserveAlpha = value;
-
-			this._pInvalidatePass();
-		}
-
-		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public _iGetVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
 			var code:string = "";
 
 			//get the projection coordinates
-			var position:ShaderRegisterElement = (shaderObject.globalPosDependencies > 0 || this.forceSeparateMVP)? sharedRegisters.globalPositionVertex : sharedRegisters.localPosition;
+			var position:ShaderRegisterElement = (shaderObject.globalPosDependencies > 0 || shaderObject.usesSeparateMVP)? sharedRegisters.globalPositionVertex : sharedRegisters.localPosition;
 
 			//reserving vertex constants for projection matrix
 			var viewMatrixReg:ShaderRegisterElement = registerCache.getFreeVertexConstant();
@@ -85,11 +55,11 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public iRender(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
+		public _iRenderPass(pass:MaterialPassData, renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
 		{
-			super.iRender(renderable, stage, camera, viewProjection);
+			super._iRenderPass(pass, renderable, stage, camera, viewProjection);
 
-			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
+			var shaderObject:ShaderObjectBase = pass.shaderObject;
 
 			if (shaderObject.sceneMatrixIndex >= 0) {
 				renderable.sourceEntity.getRenderSceneTransform(camera).copyRawDataTo(shaderObject.vertexConstantData, shaderObject.sceneMatrixIndex, true);

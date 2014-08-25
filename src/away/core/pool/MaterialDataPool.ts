@@ -6,7 +6,7 @@
 module away.pool
 {
 	import ContextGLBase				= away.stagegl.ContextGLBase;
-	import MaterialBase					= away.materials.MaterialBase;
+	import StageGLMaterialBase			= away.materials.StageGLMaterialBase;
 
 	/**
 	 * @class away.pool.MaterialDataPool
@@ -32,7 +32,7 @@ module away.pool
 		 * @param materialOwner
 		 * @returns ITexture
 		 */
-		public getItem(material:MaterialBase):MaterialData
+		public getItem(material:StageGLMaterialBase):MaterialData
 		{
 			return (this._pool[material.id] || (this._pool[material.id] = material._iAddMaterialData(new MaterialData(this, this._context, material))))
 		}
@@ -42,7 +42,7 @@ module away.pool
 		 *
 		 * @param materialOwner
 		 */
-		public disposeItem(material:MaterialBase)
+		public disposeItem(material:StageGLMaterialBase)
 		{
 			material._iRemoveMaterialData(this._pool[material.id]);
 

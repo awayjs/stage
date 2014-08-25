@@ -23,6 +23,7 @@ module away.materials
 	{
 		private _materialPassData:Array<MaterialPassData> = new Array<MaterialPassData>();
 		private _maxLights:number = 3;
+		private _preserveAlpha:boolean = true;
 		private _includeCasters:boolean = true;
 		private _forceSeparateMVP:boolean = false;
 
@@ -37,8 +38,6 @@ module away.materials
 
 		private _passMode:number;
 
-		public _pActiveMaterialPass:MaterialPassData;
-
 		private _depthCompareMode:string = ContextGLCompareMode.LESS_EQUAL;
 
 		private _blendFactorSource:string = ContextGLBlendFactor.ONE;
@@ -51,6 +50,23 @@ module away.materials
 		private _writeDepth:boolean = true;
 		private _onLightsChangeDelegate:(event:Event) => void;
 
+		/**
+		 * Indicates whether the output alpha value should remain unchanged compared to the material's original alpha.
+		 */
+		public get preserveAlpha():boolean
+		{
+			return this._preserveAlpha;
+		}
+
+		public set preserveAlpha(value:boolean)
+		{
+			if (this._preserveAlpha == value)
+				return;
+
+			this._preserveAlpha = value;
+
+			this._pInvalidatePass();
+		}
 
 		/**
 		 * Indicates whether or not shadow casting lights need to be included.
@@ -216,9 +232,9 @@ module away.materials
 		 *
 		 * @private
 		 */
-		public iRender(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
+		public _iRender(pass:MaterialPassData, renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
 		{
-			this.setRenderState(renderable, stage, camera, viewProjection);
+			this.setRenderState(pass, renderable, stage, camera, viewProjection);
 		}
 
 		/**
@@ -228,9 +244,9 @@ module away.materials
 		 * @param stage
 		 * @param camera
 		 */
-		public setRenderState(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
+		public setRenderState(pass:MaterialPassData, renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
 		{
-			this._pActiveMaterialPass.shaderObject.setRenderState(renderable, stage, camera, viewProjection);
+			pass.shaderObject.setRenderState(renderable, stage, camera, viewProjection);
 		}
 
 		/**
@@ -301,7 +317,7 @@ module away.materials
 		 * @param camera The camera from which the scene is viewed.
 		 * @private
 		 */
-		public iActivate(material:MaterialBase, stage:Stage, camera:Camera)
+		public _iActivate(pass:MaterialPassData, stage:Stage, camera:Camera)
 		{
 			var context:IContextStageGL = <IContextStageGL> stage.context;
 
@@ -310,9 +326,7 @@ module away.materials
 			if (this._pEnableBlending)
 				context.setBlendFactors(this._blendFactorSource, this._blendFactorDest);
 
-			this._pActiveMaterialPass = context.getMaterial(material, stage.profile).getMaterialPass(this, stage.profile);
-
-			context.activateMaterialPass(this._pActiveMaterialPass, stage, camera);
+			context.activateMaterialPass(pass, stage, camera);
 		}
 
 		/**
@@ -321,9 +335,9 @@ module away.materials
 		 *
 		 * @private
 		 */
-		public iDeactivate(material:MaterialBase, stage:Stage)
+		public _iDeactivate(pass:MaterialPassData, stage:Stage)
 		{
-			(<IContextStageGL> stage.context).deactivateMaterialPass(this._pActiveMaterialPass, stage);
+			(<IContextStageGL> stage.context).deactivateMaterialPass(pass, stage);
 
 			(<IContextStageGL> stage.context).setDepthTest(true, ContextGLCompareMode.LESS_EQUAL); // TODO : imeplement
 		}
@@ -407,6 +421,7 @@ module away.materials
 
 		public _iIncludeDependencies(shaderObject:ShaderObjectBase)
 		{
+			shaderObject.usesSeparateMVP = this._forceSeparateMVP;
 			shaderObject.outputsNormals = this._pOutputsNormals(shaderObject);
 			shaderObject.outputsTangentNormals = shaderObject.outputsNormals && this._pOutputsTangentNormals(shaderObject);
 			shaderObject.usesTangentSpace = shaderObject.outputsTangentNormals && this._pUsesTangentSpace(shaderObject);
@@ -421,12 +436,12 @@ module away.materials
 
 		}
 
-		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public _iGetPreLightingVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
 			return "";
 		}
 
-		public _iGetPreFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public _iGetPreLightingFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
 			return "";
 		}

@@ -15,7 +15,7 @@ module away.materials
 	 * TriangleMethodMaterial forms an abstract base class for the default shaded materials provided by Stage,
 	 * using material methods to define their appearance.
 	 */
-	export class TriangleMethodMaterial extends DepthMaterialBase
+	export class TriangleMethodMaterial extends TriangleMaterialBase
 	{
 		private _alphaBlending:boolean = false;
 		private _alpha:number = 1;
@@ -164,8 +164,6 @@ module away.materials
 		public set texture(value:Texture2DBase)
 		{
 			this._ambientMethod.texture = value;
-			this._pDistancePass.alphaMask = value;
-			this._pDepthPass.alphaMask = value;
 
 			if (value) {
 				this._pHeight = value.height;
@@ -499,7 +497,7 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public iUpdateMaterial()
+		public _iUpdateMaterial()
 		{
 			if (this._pScreenPassesInvalid) {
 				//Updates screen passes when they were found to be invalid.
@@ -510,8 +508,6 @@ module away.materials
 				this.setBlendAndCompareModes();
 
 				this._pClearScreenPasses();
-
-				this.pAddDepthPasses();
 
 				if (this._materialMode == TriangleMaterialMode.MULTI_PASS) {
 					if (this._casterLightPass)
@@ -525,28 +521,6 @@ module away.materials
 				if (this._screenPass)
 					this._pAddScreenPass(this._screenPass);
 			}
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public iActivatePass(index:number, stage:Stage, camera:Camera)
-		{
-			if (index == 0 && this._materialMode == TriangleMaterialMode.MULTI_PASS)
-				(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
-
-			super.iActivatePass(index, stage, camera);
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public iDeactivate(stage:Stage)
-		{
-			super.iDeactivate(stage);
-
-			if (this._materialMode == TriangleMaterialMode.MULTI_PASS)
-				(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 		}
 
 		/**
@@ -649,7 +623,7 @@ module away.materials
 		private removeCasterLightPass()
 		{
 			this._casterLightPass.dispose();
-			this.pRemoveScreenPass(this._casterLightPass);
+			this._pRemoveScreenPass(this._casterLightPass);
 			this._casterLightPass = null;
 		}
 
@@ -696,7 +670,7 @@ module away.materials
 				return;
 
 			for (var i:number = 0; i < this._nonCasterLightPasses.length; ++i)
-				this.pRemoveScreenPass(this._nonCasterLightPasses[i]);
+				this._pRemoveScreenPass(this._nonCasterLightPasses[i]);
 
 			this._nonCasterLightPasses = null;
 		}
@@ -715,7 +689,7 @@ module away.materials
 			if (this._screenPass.normalMethod != this._normalMethod)
 				this._screenPass.normalMethod.dispose();
 
-			this.pRemoveScreenPass(this._screenPass);
+			this._pRemoveScreenPass(this._screenPass);
 			this._screenPass = null;
 		}
 

@@ -12,6 +12,7 @@ module away.materials
 	import Matrix3D									= away.geom.Matrix3D;
 	import Matrix3DUtils							= away.geom.Matrix3DUtils;
 	import Vector3D									= away.geom.Vector3D;
+	import MaterialPassData							= away.pool.MaterialPassData;
 	import RenderableBase							= away.pool.RenderableBase;
 	import Texture2DBase							= away.textures.Texture2DBase;
 
@@ -19,7 +20,7 @@ module away.materials
 	 * CompiledPass forms an abstract base class for the default compiled pass materials provided by Away3D,
 	 * using material methods to define their appearance.
 	 */
-	export class TriangleMethodPass extends TrianglePassBase implements ILightingPassStageGL
+	export class TriangleMethodPass extends MaterialPassBase implements ILightingPassStageGL
 	{
 		public _iColorTransformMethodVO:MethodVO;
 		public _iNormalMethodVO:MethodVO;
@@ -368,16 +369,16 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public iActivate(material:MaterialBase, stage:Stage, camera:Camera)
+		public _iActivate(pass:MaterialPassData, stage:Stage, camera:Camera)
 		{
-			super.iActivate(material, stage, camera);
+			super._iActivate(pass, stage, camera);
 
 			var methodVO:MethodVO;
 			var len:number = this._iMethodVOs.length;
 			for (var i:number = 0; i < len; ++i) {
 				methodVO = this._iMethodVOs[i];
 				if (methodVO.useMethod)
-					methodVO.method.iActivate(this._pActiveMaterialPass.shaderObject, methodVO, stage);
+					methodVO.method.iActivate(pass.shaderObject, methodVO, stage);
 			}
 		}
 
@@ -388,32 +389,32 @@ module away.materials
 		 * @param stage
 		 * @param camera
 		 */
-		public setRenderState(renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
+		public setRenderState(pass:MaterialPassData, renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
 		{
-			super.setRenderState(renderable, stage, camera, viewProjection);
+			super.setRenderState(pass, renderable, stage, camera, viewProjection);
 
 			var methodVO:MethodVO;
 			var len:number = this._iMethodVOs.length;
 			for (var i:number = 0; i < len; ++i) {
 				methodVO = this._iMethodVOs[i];
 				if (methodVO.useMethod)
-					methodVO.method.iSetRenderState(this._pActiveMaterialPass.shaderObject, methodVO, renderable, stage, camera);
+					methodVO.method.iSetRenderState(pass.shaderObject, methodVO, renderable, stage, camera);
 			}
 		}
 
 		/**
 		 * @inheritDoc
 		 */
-		public iDeactivate(material:MaterialBase, stage:Stage)
+		public _iDeactivate(pass:MaterialPassData, stage:Stage)
 		{
-			super.iDeactivate(material, stage);
+			super._iDeactivate(pass, stage);
 
 			var methodVO:MethodVO;
 			var len:number = this._iMethodVOs.length;
 			for (var i:number = 0; i < len; ++i) {
 				methodVO = this._iMethodVOs[i];
 				if (methodVO.useMethod)
-					methodVO.method.iDeactivate(this._pActiveMaterialPass.shaderObject, methodVO, stage);
+					methodVO.method.iDeactivate(pass.shaderObject, methodVO, stage);
 			}
 		}
 
@@ -473,31 +474,9 @@ module away.materials
 				shaderObject.secondaryUVDependencies++;
 		}
 
-		public _iGetPreVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public _iGetPreLightingVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
-			var code:string = super._iGetPreVertexCode(shaderObject, registerCache, sharedRegisters);
-
-			code += this._iAmbientMethodVO.method.iGetVertexCode(shaderObject, this._iAmbientMethodVO, registerCache, sharedRegisters);
-
-			return code;
-		}
-
-		public _iGetPreFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-		{
-			var code:string = this._iAmbientMethodVO.method.iGetFragmentCode(shaderObject, this._iAmbientMethodVO, sharedRegisters.shadedTarget, registerCache, sharedRegisters);
-
-			if (this._iAmbientMethodVO.needsNormals)
-				registerCache.removeFragmentTempUsage(sharedRegisters.normalFragment);
-
-			if (this._iAmbientMethodVO.needsView)
-				registerCache.removeFragmentTempUsage(sharedRegisters.viewDirFragment);
-
-			return code;
-		}
-
-		public _iGetPreLightingVertexCode(shaderObject:ShaderLightingObject, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-		{
-			var code:string = "";
+			var code:string = this._iAmbientMethodVO.method.iGetVertexCode(shaderObject, this._iAmbientMethodVO, registerCache, sharedRegisters);
 
 			if (this._iDiffuseMethodVO && this._iDiffuseMethodVO.useMethod)
 				code += this._iDiffuseMethodVO.method.iGetVertexCode(shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);
@@ -508,15 +487,21 @@ module away.materials
 			return code;
 		}
 
-		public _iGetPreLightingFragmentCode(shaderObject:ShaderLightingObject, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		public _iGetPreLightingFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
-			var code:string = "";
+			var code:string = this._iAmbientMethodVO.method.iGetFragmentCode(shaderObject, this._iAmbientMethodVO, sharedRegisters.shadedTarget, registerCache, sharedRegisters);
+
+			if (this._iAmbientMethodVO.needsNormals)
+				registerCache.removeFragmentTempUsage(sharedRegisters.normalFragment);
+
+			if (this._iAmbientMethodVO.needsView)
+				registerCache.removeFragmentTempUsage(sharedRegisters.viewDirFragment);
 
 			if (this._iDiffuseMethodVO && this._iDiffuseMethodVO.useMethod)
-				code += (<LightingMethodBase> this._iDiffuseMethodVO.method).iGetFragmentPreLightingCode(shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);
+				code += (<LightingMethodBase> this._iDiffuseMethodVO.method).iGetFragmentPreLightingCode(<ShaderLightingObject> shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);
 
 			if (this._iSpecularMethodVO && this._iSpecularMethodVO.useMethod)
-				code += (<LightingMethodBase> this._iSpecularMethodVO.method).iGetFragmentPreLightingCode(shaderObject, this._iSpecularMethodVO, registerCache, sharedRegisters);
+				code += (<LightingMethodBase> this._iSpecularMethodVO.method).iGetFragmentPreLightingCode(<ShaderLightingObject> shaderObject, this._iSpecularMethodVO, registerCache, sharedRegisters);
 
 			return code;
 		}
@@ -677,7 +662,7 @@ module away.materials
 			var code:string = "";
 			var alphaReg:ShaderRegisterElement;
 
-			if (this._preserveAlpha && this._numEffectDependencies > 0) {
+			if (this.preserveAlpha && this._numEffectDependencies > 0) {
 				alphaReg = regCache.getFreeFragmentSingleTemp();
 				regCache.addFragmentTempUsages(alphaReg, 1);
 				code += "mov " + alphaReg + ", " + sharedReg.shadedTarget + ".w\n";
@@ -699,7 +684,7 @@ module away.materials
 				}
 			}
 
-			if (this._preserveAlpha && this._numEffectDependencies > 0) {
+			if (this.preserveAlpha && this._numEffectDependencies > 0) {
 				code += "mov " + sharedReg.shadedTarget + ".w, " + alphaReg + "\n";
 				regCache.removeFragmentTempUsage(alphaReg);
 			}

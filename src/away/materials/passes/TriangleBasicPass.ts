@@ -10,6 +10,7 @@ module away.materials
 	import Matrix									= away.geom.Matrix;
 	import Matrix3D									= away.geom.Matrix3D;
 	import Matrix3DUtils							= away.geom.Matrix3DUtils;
+	import MaterialPassData							= away.pool.MaterialPassData;
 	import RenderableBase							= away.pool.RenderableBase;
 	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
 	import ContextGLTextureFilter					= away.stagegl.ContextGLTextureFilter;
@@ -21,7 +22,7 @@ module away.materials
 	 * CompiledPass forms an abstract base class for the default compiled pass materials provided by Away3D,
 	 * using material methods to define their appearance.
 	 */
-	export class TriangleBasicPass extends TrianglePassBase
+	export class TriangleBasicPass extends MaterialPassBase
 	{
 		public _pUseTexture:boolean;
 		public _pTexture:Texture2DBase;
@@ -139,17 +140,18 @@ module away.materials
 		/**
 		 * @inheritDoc
 		 */
-		public iActivate(material:MaterialBase, stage:Stage, camera:Camera)
+		public _iActivate(pass:MaterialPassData, stage:Stage, camera:Camera)
 		{
-			super.iActivate(material, stage, camera);
+			super._iActivate(pass, stage, camera);
 
-			var shaderObject:ShaderObjectBase = this._pActiveMaterialPass.shaderObject;
+			var shaderObject:ShaderObjectBase = pass.shaderObject;
+
 			if (this._pUseTexture) {
 				(<IContextStageGL> stage.context).setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
 				(<IContextStageGL> stage.context).activateTexture(this._texturesIndex, this._pTexture);
 
-				if (this._pActiveMaterialPass.shaderObject.alphaThreshold > 0)
-					shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = this._pActiveMaterialPass.shaderObject.alphaThreshold;
+				if (shaderObject.alphaThreshold > 0)
+					shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = shaderObject.alphaThreshold;
 			} else {
 				var index:number = this._fragmentConstantsIndex;
 				var data:Array<number> = shaderObject.fragmentConstantData;

@@ -16,7 +16,7 @@ module away.materials
 		public _pSharedRegisters:ShaderRegisterData;
 		public _pRegisterCache:ShaderRegisterCache;
 		public _pMaterialPass:IMaterialPassStageGL;
-		public _pMaterial:MaterialBase;
+		public _pMaterial:StageGLMaterialBase;
 
 		public _pVertexCode:string = ''; // Changed to emtpy string- AwayTS
 		public _pFragmentCode:string = '';// Changed to emtpy string - AwayTS
@@ -40,7 +40,7 @@ module away.materials
 		 * Creates a new ShaderCompilerBase object.
 		 * @param profile The compatibility profile of the renderer.
 		 */
-		constructor(material:MaterialBase, materialPass:IMaterialPassStageGL, shaderObject:ShaderObjectBase)
+		constructor(material:StageGLMaterialBase, materialPass:IMaterialPassStageGL, shaderObject:ShaderObjectBase)
 		{
 			this._pMaterial = material;
 			this._pMaterialPass = materialPass;
@@ -106,8 +106,15 @@ module away.materials
 			if (this._pShaderObject.viewDirDependencies > 0)
 				this.compileViewDirCode();
 
-			this._pVertexCode += this._pMaterialPass._iGetPreVertexCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
-			this._pFragmentCode += this._pMaterialPass._iGetPreFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+			//collect code from material
+			this._pVertexCode += this._pMaterial._iGetVertexCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+			this._pFragmentCode += this._pMaterial._iGetFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+
+			//collect code from pass
+			this._pVertexCode += this._pMaterialPass._iGetPreLightingVertexCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+			this._pFragmentCode += this._pMaterialPass._iGetPreLightingFragmentCode(this._pShaderObject, this._pRegisterCache, this._pSharedRegisters);
+
+
 
 		}
 

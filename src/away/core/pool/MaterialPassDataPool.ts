@@ -5,7 +5,7 @@
  */
 module away.pool
 {
-	import MaterialBase					= away.materials.MaterialBase;
+	import StageGLMaterialBase			= away.materials.StageGLMaterialBase;
 	import MaterialPassBase				= away.materials.MaterialPassBase;
 
 	/**
@@ -14,14 +14,14 @@ module away.pool
 	export class MaterialPassDataPool
 	{
 		private _pool:Object = new Object();
-		private _material:MaterialBase;
+		private _material:StageGLMaterialBase;
 
 		/**
 		 * //TODO
 		 *
 		 * @param textureDataClass
 		 */
-		constructor(material:MaterialBase)
+		constructor(material:StageGLMaterialBase)
 		{
 			this._material = material;
 		}
@@ -34,7 +34,7 @@ module away.pool
 		 */
 		public getItem(materialPass:MaterialPassBase):MaterialPassData
 		{
-			return (this._pool[materialPass.id] || (this._pool[materialPass.id] = materialPass._iAddMaterialPassData(new MaterialPassData(this, this._material, materialPass))))
+			return (this._pool[materialPass.id] || (this._pool[materialPass.id] = this._material._iAddMaterialPassData(materialPass._iAddMaterialPassData(new MaterialPassData(this, this._material, materialPass)))));
 		}
 
 		/**

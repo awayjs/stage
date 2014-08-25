@@ -5,7 +5,7 @@
  */
 module away.pool
 {
-	import MaterialBase						= away.materials.MaterialBase;
+	import StageGLMaterialBase				= away.materials.StageGLMaterialBase;
 	import MaterialPassBase					= away.materials.MaterialPassBase;
 	import ShaderCompilerBase				= away.materials.ShaderCompilerBase;
 	import ShaderObjectBase					= away.materials.ShaderObjectBase;
@@ -25,13 +25,13 @@ module away.pool
 
 		public context:ContextGLBase;
 
-		public material:MaterialBase;
+		public material:StageGLMaterialBase;
 
 		public renderOrderId:number;
 
 		public invalidAnimation:boolean = true;
 
-		constructor(pool:MaterialDataPool, context:ContextGLBase, material:MaterialBase)
+		constructor(pool:MaterialDataPool, context:ContextGLBase, material:StageGLMaterialBase)
 		{
 			this._pool = pool;
 			this.context = context;
@@ -67,13 +67,13 @@ module away.pool
 		public getMaterialPasses(profile:string):Array<MaterialPassData>
 		{
 			if (this._passes == null) {
-				var passes:Array<MaterialPassBase> = <Array<MaterialPassBase>> this.material.iPasses;
+				var passes:Array<MaterialPassBase> = <Array<MaterialPassBase>> this.material._iScreenPasses;
 				var numPasses:number = passes.length;
 
 				//reset the material passes in MaterialData
 				this._passes = new Array<MaterialPassData>(numPasses);
 
-				//get the shader object for each pass and store
+				//get the shader object for each screen pass and store
 				for (var i:number = 0; i < numPasses; i++)
 					this._passes[i] = this.getMaterialPass(passes[i], profile);
 			}

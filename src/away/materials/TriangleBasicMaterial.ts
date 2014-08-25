@@ -9,12 +9,13 @@ module away.materials
 	import ContextGLCompareMode			= away.stagegl.ContextGLCompareMode;
 	import IContextStageGL				= away.stagegl.IContextStageGL;
 	import Texture2DBase				= away.textures.Texture2DBase;
+	import ICollector					= away.traverse.ICollector;
 
 	/**
 	 * TriangleMaterial forms an abstract base class for the default shaded materials provided by Stage,
 	 * using material methods to define their appearance.
 	 */
-	export class TriangleBasicMaterial extends DepthMaterialBase
+	export class TriangleBasicMaterial extends TriangleMaterialBase
 	{
 		private _screenPass:TriangleBasicPass;
 
@@ -22,8 +23,6 @@ module away.materials
 		private _texture:Texture2DBase;
 		private _alphaBlending:boolean = false;
 		private _alpha:number = 1;
-
-		private _alphaThreshold:number = 0;
 
 		private _depthCompareMode:string = ContextGLCompareMode.LESS_EQUAL;
 
@@ -159,28 +158,6 @@ module away.materials
 			this._pInvalidatePasses();
 		}
 
-
-		/**
-		 * Sets the render state for the depth pass that is independent of the rendered object. Used when rendering
-		 * depth or distances (fe: shadow maps, depth pre-pass).
-		 *
-		 * @param stage The Stage used for rendering.
-		 * @param camera The camera from which the scene is viewed.
-		 * @param distanceBased Whether or not the depth pass or distance pass should be activated. The distance pass
-		 * is required for shadow cube maps.
-		 *
-		 * @internal
-		 */
-		public iActivateForDepth(stage:Stage, camera:Camera, distanceBased:boolean = false) // ARCANE
-		{
-			if (distanceBased)
-				this._pDistancePass.alphaMask = this._texture;
-			else
-				this._pDepthPass.alphaMask = this._texture;
-
-			super.iActivateForDepth(stage, camera, distanceBased)
-		}
-
 		/**
 		 * @inheritDoc
 		 */
@@ -196,31 +173,8 @@ module away.materials
 			if (passesInvalid) {
 				this._pClearScreenPasses();
 
-				this.pAddDepthPasses();
-
 				this._pAddScreenPass(this._screenPass);
 			}
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public iActivatePass(index:number, stage:Stage, camera:Camera)
-		{
-			if (index == 0)
-				(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
-
-			super.iActivatePass(index, stage, camera);
-		}
-
-		/**
-		 * @inheritDoc
-		 */
-		public iDeactivate(stage:Stage)
-		{
-			super.iDeactivate(stage);
-
-			(<IContextStageGL> stage.context).setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 		}
 
 		/**
@@ -243,8 +197,6 @@ module away.materials
 		public _pUpdateTexture()
 		{
 			this._screenPass.texture = this._texture;
-			this._pDistancePass.alphaMask = this._texture;
-			this._pDepthPass.alphaMask = this._texture;
 		}
 
 		/**

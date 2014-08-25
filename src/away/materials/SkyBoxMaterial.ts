@@ -2,15 +2,30 @@
 
 module away.materials
 {
-	import CubeTextureBase				= away.textures.CubeTextureBase;
+	import TriangleSubGeometry						= away.base.TriangleSubGeometry;
+	import Stage									= away.base.Stage;
+	import Camera									= away.entities.Camera;
+	import Matrix3D									= away.geom.Matrix3D;
+	import Vector3D									= away.geom.Vector3D;
+	import MaterialPassData							= away.pool.MaterialPassData;
+	import RenderableBase							= away.pool.RenderableBase;
+	import IContextStageGL							= away.stagegl.IContextStageGL;
+	import ContextGLCompareMode						= away.stagegl.ContextGLCompareMode;
+	import ContextGLMipFilter						= away.stagegl.ContextGLMipFilter;
+	import ContextGLProgramType						= away.stagegl.ContextGLProgramType;
+	import ContextGLTextureFilter					= away.stagegl.ContextGLTextureFilter;
+	import ContextGLTextureFormat					= away.stagegl.ContextGLTextureFormat;
+	import ContextGLWrapMode						= away.stagegl.ContextGLWrapMode;
+	import CubeTextureBase							= away.textures.CubeTextureBase;
 
 	/**
 	 * SkyboxMaterial is a material exclusively used to render skyboxes
 	 *
 	 * @see away3d.primitives.Skybox
 	 */
-	export class SkyboxMaterial extends MaterialBase
+	export class SkyboxMaterial extends StageGLMaterialBase
 	{
+		private _vertexData:Array<number>;
 		private _cubeMap:CubeTextureBase;
 		private _skyboxPass:SkyboxPass;
 
@@ -25,7 +40,8 @@ module away.materials
 
 			this._cubeMap = cubeMap;
 			this._pAddScreenPass(this._skyboxPass = new SkyboxPass());
-			this._skyboxPass.cubeTexture = this._cubeMap;
+
+			this._vertexData = new Array<number>(0, 0, 0, 0, 1, 1, 1, 1);
 		}
 
 		/**
@@ -42,8 +58,69 @@ module away.materials
 				this._pInvalidatePasses();
 
 			this._cubeMap = value;
-			this._skyboxPass.cubeTexture = this._cubeMap;
+		}
 
+		/**
+		 * @inheritDoc
+		 */
+		public _iGetVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		{
+			return "mul vt0, va0, vc5\n" +
+				"add vt0, vt0, vc4\n" +
+				"m44 op, vt0, vc0\n" +
+				"mov v0, va0\n";
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public _iGetFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+		{
+			//var cubeMapReg:ShaderRegisterElement = registerCache.getFreeTextureReg();
+
+			//this._texturesIndex = cubeMapReg.index;
+
+			//ShaderCompilerHelper.getTexCubeSampleCode(sharedRegisters.shadedTarget, cubeMapReg, this._cubeTexture, shaderObject.useSmoothTextures, shaderObject.useMipmapping);
+
+			var mip:string = ",mipnone";
+
+			if (this._cubeMap.hasMipmaps)
+				mip = ",miplinear";
+
+			return "tex ft0, v0, fs0 <cube," + ShaderCompilerHelper.getFormatStringForTexture(this._cubeMap) + "linear,clamp" + mip + ">\n";
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public _iActivatePass(pass:MaterialPassData, stage:Stage, camera:Camera)
+		{
+			super._iActivatePass(pass, stage, camera);
+
+			var context:IContextStageGL = <IContextStageGL> stage.context;
+			context.setSamplerStateAt(0, ContextGLWrapMode.CLAMP, ContextGLTextureFilter.LINEAR, this._cubeMap.hasMipmaps? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
+			context.setDepthTest(false, ContextGLCompareMode.LESS);
+			context.activateCubeTexture(0, this._cubeMap);
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public _iRenderPass(pass:MaterialPassData, renderable:RenderableBase, stage:Stage, camera:Camera, viewProjection:Matrix3D)
+		{
+			super._iRenderPass(pass, renderable, stage, camera, viewProjection);
+
+			var context:IContextStageGL = <IContextStageGL> stage.context;
+			var pos:Vector3D = camera.scenePosition;
+			this._vertexData[0] = pos.x;
+			this._vertexData[1] = pos.y;
+			this._vertexData[2] = pos.z;
+			this._vertexData[4] = this._vertexData[5] = this._vertexData[6] = camera.projection.far/Math.sqrt(3);
+			context.setProgramConstantsFromMatrix(ContextGLProgramType.VERTEX, 0, viewProjection, true);
+			context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, 4, this._vertexData, 2);
+
+			context.activateBuffer(0, renderable.getVertexData(TriangleSubGeometry.POSITION_DATA), renderable.getVertexOffset(TriangleSubGeometry.POSITION_DATA), TriangleSubGeometry.POSITION_FORMAT);
+			context.drawTriangles(context.getIndexBuffer(renderable.getIndexData()), 0, renderable.numTriangles);
 		}
 	}
 }

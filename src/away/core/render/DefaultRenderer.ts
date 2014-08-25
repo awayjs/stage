@@ -16,8 +16,14 @@ module away.render
 	import Vector3D						= away.geom.Vector3D;
 	import RTTBufferManager				= away.managers.RTTBufferManager;
 	import StageManager					= away.managers.StageManager;
+	import DepthMapPass					= away.materials.DepthMapPass;
+	import DistanceMapPass				= away.materials.DistanceMapPass;
+	import IMaterialPass				= away.materials.IMaterialPass;
 	import MaterialBase					= away.materials.MaterialBase;
+	import MaterialPassBase				= away.materials.MaterialPassBase;
 	import ShadowMapperBase				= away.materials.ShadowMapperBase;
+	import MaterialData					= away.pool.MaterialData;
+	import MaterialPassData				= away.pool.MaterialPassData;
 	import RenderableBase				= away.pool.RenderableBase;
 	import RenderablePool				= away.pool.RenderablePool;
 	import SkyboxRenderable				= away.pool.SkyboxRenderable;
@@ -41,7 +47,7 @@ module away.render
 		public _pRequireDepthRender:boolean;
 		private _skyboxRenderablePool:RenderablePool;
 
-		private _activeMaterial:MaterialBase;
+//		private _activeMaterial:MaterialBase;
 		private _pDistanceRenderer:DepthRenderer;
 		private _pDepthRenderer:DepthRenderer;
 		private _skyboxProjection:Matrix3D = new Matrix3D();
@@ -125,8 +131,8 @@ module away.render
 
 			this._skyboxRenderablePool = RenderablePool.getPool(SkyboxRenderable);
 
-			this._pDepthRenderer = new DepthRenderer();
-			this._pDistanceRenderer = new DepthRenderer(false, true);
+			this._pDepthRenderer = new DepthRenderer(new DepthMapPass());
+			this._pDistanceRenderer = new DepthRenderer(new DistanceMapPass());
 
 			if (this._pStage == null)
 				this.stage = StageManager.getInstance().getFreeStage(forceSoftware, profile, mode);
@@ -249,11 +255,6 @@ module away.render
 			this._pContext.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 
 			if (entityCollector.skyBox) {
-				if (this._activeMaterial)
-					this._activeMaterial.iDeactivate(this._pStage);
-
-				this._activeMaterial = null;
-
 				this._pContext.setDepthTest(false, ContextGLCompareMode.ALWAYS);
 
 				this.drawSkybox(entityCollector);
@@ -263,13 +264,6 @@ module away.render
 
 			this.drawRenderables(this._pOpaqueRenderableHead, entityCollector);
 			this.drawRenderables(this._pBlendedRenderableHead, entityCollector);
-
-			this._pContext.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
-
-			if (this._activeMaterial)
-				this._activeMaterial.iDeactivate(this._pStage);
-
-			this._activeMaterial = null;
 		}
 
 		/**
@@ -287,9 +281,11 @@ module away.render
 
 			this.updateSkyboxProjection(camera);
 
-			material.iActivatePass(0, this._pStage, camera);
-			material.iRenderPass(0, skyBox, this._pStage, entityCollector, this._skyboxProjection);
-			material.iDeactivatePass(0, this._pStage);
+			var activePass:MaterialPassData = (<IContextStageGL> this._pStage.context).getMaterial(material, this._pStage.profile).getMaterialPass(<MaterialPassBase> material._iScreenPasses[0], this._pStage.profile);
+
+			material._iActivatePass(activePass, this._pStage, camera);
+			material._iRenderPass(activePass, skyBox, this._pStage, camera, this._skyboxProjection);
+			material._iDeactivatePass(activePass, this._pStage);
 		}
 
 		private updateSkyboxProjection(camera:Camera)
@@ -331,33 +327,37 @@ module away.render
 		 */
 		private drawRenderables(renderable:RenderableBase, entityCollector:ICollector)
 		{
-			var numPasses:number;
-			var j:number;
+			var i:number;
+			var len:number;
+			var passes:Array<IMaterialPass>;
+			var activePass:MaterialPassData;
+			var activeMaterial:MaterialData;
+			var context:IContextStageGL = <IContextStageGL> this._pStage.context;
 			var camera:Camera = entityCollector.camera;
 			var renderable2:RenderableBase;
 
 			while (renderable) {
-				this._activeMaterial = renderable.material;
+				activeMaterial = context.getMaterial(renderable.material, this._pStage.profile);
 
-				numPasses = this._activeMaterial.getNumPasses();
-
-				j = this._activeMaterial._iBaseScreenPassIndex; //skip any depth passes
-
-				do {
+				//iterate through each screen pass
+				passes = renderable.material._iScreenPasses;
+				len = renderable.material._iNumScreenPasses();
+				for (i = 0; i < len; i++) {
 					renderable2 = renderable;
 
-					this._activeMaterial.iActivatePass(j, this._pStage, camera);
+					activePass = activeMaterial.getMaterialPass(<MaterialPassBase> passes[i], this._pStage.profile);
+
+					renderable.material._iActivatePass(activePass, this._pStage, camera);
 
 					do {
-						this._activeMaterial.iRenderPass(j, renderable2, this._pStage, entityCollector, this._pRttViewProjectionMatrix);
+						renderable.material._iRenderPass(activePass, renderable2, this._pStage, camera, this._pRttViewProjectionMatrix);
 
 						renderable2 = renderable2.next;
 
-					} while (renderable2 && renderable2.material == this._activeMaterial);
+					} while (renderable2 && renderable2.material == renderable.material);
 
-					this._activeMaterial.iDeactivatePass(j, this._pStage);
-
-				} while (++j < numPasses);
+					activeMaterial.material._iDeactivatePass(activePass, this._pStage);
+				}
 
 				renderable = renderable2;
 			}
