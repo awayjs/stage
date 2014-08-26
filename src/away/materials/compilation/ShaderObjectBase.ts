@@ -16,7 +16,7 @@ module away.materials
 	import RenderableBase							= away.pool.RenderableBase;
 	import IContextStageGL							= away.stagegl.IContextStageGL;
 	import ContextGLTriangleFace					= away.stagegl.ContextGLTriangleFace;
-	import TextureProxyBase							= away.textures.TextureProxyBase;
+	import Texture2DBase							= away.textures.Texture2DBase;
 	
 	/**
 	 * ShaderObjectBase keeps track of the number of dependencies for "named registers" used across a pass.
@@ -74,6 +74,8 @@ module away.materials
 		public repeatTextures:boolean;
 		public usesUVTransform:boolean;
 		public alphaThreshold:number;
+		public texture:Texture2DBase;
+		public color:number;
 
 
 		//set ambient values to default

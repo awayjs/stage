@@ -24,9 +24,6 @@ module away.materials
 	 */
 	export class TriangleBasicPass extends MaterialPassBase
 	{
-		public _pUseTexture:boolean;
-		public _pTexture:Texture2DBase;
-
 		private _diffuseColor:number = 0xffffff;
 		private _diffuseR:number = 1;
 		private _diffuseG:number = 1;
@@ -67,25 +64,6 @@ module away.materials
 		}
 
 		/**
-		 * The bitmapData to use to define the diffuse reflection color per texel.
-		 */
-		public get texture():Texture2DBase
-		{
-			return this._pTexture;
-		}
-
-		public set texture(value:Texture2DBase)
-		{
-			var b:boolean = (value != null);
-
-			if (b != this._pUseTexture || (value && this._pTexture && (value.hasMipmaps != this._pTexture.hasMipmaps || value.format != this._pTexture.format)))
-				this._pInvalidatePass();
-
-			this._pUseTexture = b;
-			this._pTexture = value;
-		}
-
-		/**
 		 * Creates a new CompiledPass object.
 		 *
 		 * @param material The material to which this pass belongs.
@@ -104,12 +82,12 @@ module away.materials
 			var targetReg:ShaderRegisterElement = sharedReg.shadedTarget;
 			var diffuseInputReg:ShaderRegisterElement;
 
-			if (this._pUseTexture) {
+			if (shaderObject.texture != null) {
 				diffuseInputReg = regCache.getFreeTextureReg();
 
 				this._texturesIndex = diffuseInputReg.index;
 
-				code += ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedReg, diffuseInputReg, this._pTexture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+				code += ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedReg, diffuseInputReg, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
 				if (shaderObject.alphaThreshold > 0) {
 					var cutOffReg:ShaderRegisterElement = regCache.getFreeFragmentConstant();
@@ -133,7 +111,7 @@ module away.materials
 
 		public _iIncludeDependencies(dependencyCounter:ShaderObjectBase)
 		{
-			if (this._pUseTexture)
+			if (dependencyCounter.texture != null)
 				dependencyCounter.uvDependencies++;
 		}
 
@@ -146,9 +124,9 @@ module away.materials
 
 			var shaderObject:ShaderObjectBase = pass.shaderObject;
 
-			if (this._pUseTexture) {
+			if (shaderObject.texture != null) {
 				(<IContextStageGL> stage.context).setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
-				(<IContextStageGL> stage.context).activateTexture(this._texturesIndex, this._pTexture);
+				(<IContextStageGL> stage.context).activateTexture(this._texturesIndex, shaderObject.texture);
 
 				if (shaderObject.alphaThreshold > 0)
 					shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = shaderObject.alphaThreshold;

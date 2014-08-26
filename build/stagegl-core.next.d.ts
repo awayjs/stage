@@ -1560,6 +1560,8 @@ declare module away.materials {
         public repeatTextures: boolean;
         public usesUVTransform: boolean;
         public alphaThreshold: number;
+        public texture: textures.Texture2DBase;
+        public color: number;
         public ambientR: number;
         public ambientG: number;
         public ambientB: number;
@@ -1830,6 +1832,7 @@ declare module away.materials {
         public needsSecondaryUV: boolean;
         public needsGlobalVertexPos: boolean;
         public needsGlobalFragmentPos: boolean;
+        public usesTexture: boolean;
         /**
         * Creates a new MethodVO object.
         */
@@ -2397,8 +2400,6 @@ declare module away.materials {
     * AmbientBasicMethod provides the default shading method for uniform ambient lighting.
     */
     class AmbientBasicMethod extends ShadingMethodBase {
-        private _useTexture;
-        private _texture;
         private _color;
         private _alpha;
         private _colorR;
@@ -2414,21 +2415,17 @@ declare module away.materials {
         */
         public iInitVO(shaderObject: ShaderObjectBase, methodVO: MethodVO): void;
         /**
+        * @inheritDoc
+        */
+        public iInitConstants(shaderObject: ShaderObjectBase, methodVO: MethodVO): void;
+        /**
         * The strength of the ambient reflection of the surface.
         */
         public ambient : number;
         /**
-        * The colour of the ambient reflection of the surface.
-        */
-        public color : number;
-        /**
         * The alpha component of the surface.
         */
         public alpha : number;
-        /**
-        * The bitmapData to use to define the diffuse reflection color per texel.
-        */
-        public texture : textures.Texture2DBase;
         /**
         * @inheritDoc
         */
@@ -3172,8 +3169,6 @@ declare module away.materials {
     * using material methods to define their appearance.
     */
     class TriangleBasicPass extends MaterialPassBase {
-        public _pUseTexture: boolean;
-        public _pTexture: textures.Texture2DBase;
         private _diffuseColor;
         private _diffuseR;
         private _diffuseG;
@@ -3189,10 +3184,6 @@ declare module away.materials {
         * The color of the diffuse reflection when not using a texture.
         */
         public diffuseColor : number;
-        /**
-        * The bitmapData to use to define the diffuse reflection color per texel.
-        */
-        public texture : textures.Texture2DBase;
         /**
         * Creates a new CompiledPass object.
         *
@@ -3218,7 +3209,6 @@ declare module away.materials {
     class DepthMapPass extends MaterialPassBase {
         private _fragmentConstantsIndex;
         private _texturesIndex;
-        private _alphaMask;
         /**
         * Creates a new DepthMapPass object.
         *
@@ -3229,11 +3219,6 @@ declare module away.materials {
         * Initializes the unchanging constant data for this material.
         */
         public _iInitConstantData(shaderObject: ShaderObjectBase): void;
-        /**
-        * A texture providing alpha data to be able to prevent semi-transparent pixels to write to the alpha mask.
-        * Usually the diffuse texture when alphaThreshold is used.
-        */
-        public alphaMask : textures.Texture2DBase;
         public _iIncludeDependencies(shaderObject: ShaderObjectBase): void;
         /**
         * @inheritDoc
@@ -3254,7 +3239,6 @@ declare module away.materials {
     class DistanceMapPass extends MaterialPassBase {
         private _fragmentConstantsIndex;
         private _texturesIndex;
-        private _alphaMask;
         /**
         * Creates a new DistanceMapPass object.
         *
@@ -3265,11 +3249,6 @@ declare module away.materials {
         * Initializes the unchanging constant data for this material.
         */
         public _iInitConstantData(shaderObject: ShaderObjectBase): void;
-        /**
-        * A texture providing alpha data to be able to prevent semi-transparent pixels to write to the alpha mask.
-        * Usually the diffuse texture when alphaThreshold is used.
-        */
-        public alphaMask : textures.Texture2DBase;
         public _iIncludeDependencies(shaderObject: ShaderObjectBase): void;
         /**
         * @inheritDoc
@@ -3561,8 +3540,6 @@ declare module away.materials {
     */
     class TriangleBasicMaterial extends TriangleMaterialBase {
         private _screenPass;
-        private _color;
-        private _texture;
         private _alphaBlending;
         private _alpha;
         private _depthCompareMode;
@@ -3587,14 +3564,6 @@ declare module away.materials {
         */
         public alpha : number;
         /**
-        * The diffuse reflectivity color of the surface.
-        */
-        public color : number;
-        /**
-        * The texture object to use for the albedo colour.
-        */
-        public texture : textures.Texture2DBase;
-        /**
         * Indicates whether or not the material has transparency. If binary transparency is sufficient, for
         * example when using textures of foliage, consider using alphaThreshold instead.
         */
@@ -3607,8 +3576,6 @@ declare module away.materials {
         * Updates screen passes when they were found to be invalid.
         */
         public pUpdateScreenPasses(): void;
-        public _pUpdateColor(): void;
-        public _pUpdateTexture(): void;
         /**
         * Initializes all the passes and their dependent passes.
         */
@@ -3678,14 +3645,6 @@ declare module away.materials {
         * The ColorTransform object to transform the colour of the material with. Defaults to null.
         */
         public colorTransform : geom.ColorTransform;
-        /**
-        * The diffuse reflectivity color of the surface.
-        */
-        public color : number;
-        /**
-        * The texture object to use for the albedo colour.
-        */
-        public texture : textures.Texture2DBase;
         /**
         * The texture object to use for the ambient colour.
         */

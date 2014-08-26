@@ -30,6 +30,8 @@ module away.materials
 		public needsGlobalVertexPos:boolean;
 		public needsGlobalFragmentPos:boolean;
 
+		public usesTexture:boolean;
+
 		/**
 		 * Creates a new MethodVO object.
 		 */

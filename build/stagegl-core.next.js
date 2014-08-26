@@ -2052,6 +2052,8 @@ var away;
                     for (var i = 0; i < len; i++)
                         this._passes[i].invalidate();
                 }
+
+                this.invalidateMaterial();
             };
 
             /**
@@ -6561,6 +6563,8 @@ var away;
                 this._pShaderObject.repeatTextures = this._pMaterial.repeat;
                 this._pShaderObject.usesUVTransform = this._pMaterial.animateUVs;
                 this._pShaderObject.alphaThreshold = this._pMaterial.alphaThreshold;
+                this._pShaderObject.texture = this._pMaterial.texture;
+                this._pShaderObject.color = this._pMaterial.color;
 
                 //TODO: fragment animtion should be compatible with lighting pass
                 this._pShaderObject.usesFragmentAnimation = Boolean(this._pMaterialPass.passMode == materials.MaterialPassMode.SUPER_SHADER);
@@ -7178,7 +7182,6 @@ var away;
             */
             function AmbientBasicMethod() {
                 _super.call(this);
-                this._useTexture = false;
                 this._color = 0xffffff;
                 this._alpha = 1;
                 this._colorR = 1;
@@ -7190,7 +7193,17 @@ var away;
             * @inheritDoc
             */
             AmbientBasicMethod.prototype.iInitVO = function (shaderObject, methodVO) {
-                methodVO.needsUV = this._useTexture;
+                methodVO.needsUV = Boolean(shaderObject.texture != null);
+            };
+
+            /**
+            * @inheritDoc
+            */
+            AmbientBasicMethod.prototype.iInitConstants = function (shaderObject, methodVO) {
+                if (!methodVO.needsUV) {
+                    this._color = shaderObject.color;
+                    this.updateColor();
+                }
             };
 
             Object.defineProperty(AmbientBasicMethod.prototype, "ambient", {
@@ -7205,26 +7218,6 @@ var away;
                         return;
 
                     this._ambient = value;
-
-                    this.updateColor();
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
-            Object.defineProperty(AmbientBasicMethod.prototype, "color", {
-                /**
-                * The colour of the ambient reflection of the surface.
-                */
-                get: function () {
-                    return this._color;
-                },
-                set: function (value) {
-                    if (this._color == value)
-                        return;
-
-                    this._color = value;
 
                     this.updateColor();
                 },
@@ -7253,44 +7246,12 @@ var away;
             });
 
 
-            Object.defineProperty(AmbientBasicMethod.prototype, "texture", {
-                /**
-                * The bitmapData to use to define the diffuse reflection color per texel.
-                */
-                get: function () {
-                    return this._texture;
-                },
-                set: function (value) {
-                    var b = (value != null);
-
-                    /* // ORIGINAL conditional
-                    if (Boolean(value) != _useTexture ||
-                    (value && _texture && (value.hasMipmaps != _texture.hasMipmaps || value.format != _texture.format))) {
-                    iInvalidateShaderProgram();
-                    }
-                    */
-                    if (b != this._useTexture || (value && this._texture && (value.hasMipmaps != this._texture.hasMipmaps || value.format != this._texture.format))) {
-                        this.iInvalidateShaderProgram();
-                    }
-                    this._useTexture = b; //Boolean(value);
-                    this._texture = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
             /**
             * @inheritDoc
             */
             AmbientBasicMethod.prototype.copyFrom = function (method) {
                 var m = method;
                 var b = m;
-
-                var diff = b;
-
-                this.ambient = diff.ambient;
-                this.color = diff.color;
             };
 
             /**
@@ -7300,12 +7261,12 @@ var away;
                 var code = "";
                 var ambientInputRegister;
 
-                if (this._useTexture) {
+                if (methodVO.needsUV) {
                     ambientInputRegister = registerCache.getFreeTextureReg();
 
                     methodVO.texturesIndex = ambientInputRegister.index;
 
-                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedRegisters, ambientInputRegister, this._texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedRegisters, ambientInputRegister, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
                     if (shaderObject.alphaThreshold > 0) {
                         var cutOffReg = registerCache.getFreeFragmentConstant();
@@ -7327,9 +7288,9 @@ var away;
             * @inheritDoc
             */
             AmbientBasicMethod.prototype.iActivate = function (shaderObject, methodVO, stage) {
-                if (this._useTexture) {
+                if (methodVO.needsUV) {
                     stage.context.setSamplerStateAt(methodVO.texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
-                    stage.context.activateTexture(methodVO.texturesIndex, this._texture);
+                    stage.context.activateTexture(methodVO.texturesIndex, shaderObject.texture);
 
                     if (shaderObject.alphaThreshold > 0)
                         shaderObject.fragmentConstantData[methodVO.fragmentConstantsIndex] = shaderObject.alphaThreshold;
@@ -9291,27 +9252,6 @@ var away;
             });
 
 
-            Object.defineProperty(TriangleBasicPass.prototype, "texture", {
-                /**
-                * The bitmapData to use to define the diffuse reflection color per texel.
-                */
-                get: function () {
-                    return this._pTexture;
-                },
-                set: function (value) {
-                    var b = (value != null);
-
-                    if (b != this._pUseTexture || (value && this._pTexture && (value.hasMipmaps != this._pTexture.hasMipmaps || value.format != this._pTexture.format)))
-                        this._pInvalidatePass();
-
-                    this._pUseTexture = b;
-                    this._pTexture = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
             /**
             * @inheritDoc
             */
@@ -9320,12 +9260,12 @@ var away;
                 var targetReg = sharedReg.shadedTarget;
                 var diffuseInputReg;
 
-                if (this._pUseTexture) {
+                if (shaderObject.texture != null) {
                     diffuseInputReg = regCache.getFreeTextureReg();
 
                     this._texturesIndex = diffuseInputReg.index;
 
-                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedReg, diffuseInputReg, this._pTexture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedReg, diffuseInputReg, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
                     if (shaderObject.alphaThreshold > 0) {
                         var cutOffReg = regCache.getFreeFragmentConstant();
@@ -9345,7 +9285,7 @@ var away;
             };
 
             TriangleBasicPass.prototype._iIncludeDependencies = function (dependencyCounter) {
-                if (this._pUseTexture)
+                if (dependencyCounter.texture != null)
                     dependencyCounter.uvDependencies++;
             };
 
@@ -9357,9 +9297,9 @@ var away;
 
                 var shaderObject = pass.shaderObject;
 
-                if (this._pUseTexture) {
+                if (shaderObject.texture != null) {
                     stage.context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
-                    stage.context.activateTexture(this._texturesIndex, this._pTexture);
+                    stage.context.activateTexture(this._texturesIndex, shaderObject.texture);
 
                     if (shaderObject.alphaThreshold > 0)
                         shaderObject.fragmentConstantData[this._fragmentConstantsIndex] = shaderObject.alphaThreshold;
@@ -9418,22 +9358,6 @@ var away;
                 data[index + 7] = 0.0;
             };
 
-            Object.defineProperty(DepthMapPass.prototype, "alphaMask", {
-                /**
-                * A texture providing alpha data to be able to prevent semi-transparent pixels to write to the alpha mask.
-                * Usually the diffuse texture when alphaThreshold is used.
-                */
-                get: function () {
-                    return this._alphaMask;
-                },
-                set: function (value) {
-                    this._alphaMask = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
             DepthMapPass.prototype._iIncludeDependencies = function (shaderObject) {
                 shaderObject.projectionDependencies++;
 
@@ -9468,7 +9392,7 @@ var away;
                     this._texturesIndex = diffuseInputReg.index;
 
                     var albedo = registerCache.getFreeFragmentVectorTemp();
-                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, diffuseInputReg, this._alphaMask, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, diffuseInputReg, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
                     var cutOffReg = registerCache.getFreeFragmentConstant();
 
@@ -9498,7 +9422,7 @@ var away;
 
                 if (shaderObject.alphaThreshold > 0) {
                     context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
-                    context.activateTexture(this._texturesIndex, this._alphaMask);
+                    context.activateTexture(this._texturesIndex, shaderObject.texture);
 
                     shaderObject.fragmentConstantData[this._fragmentConstantsIndex + 8] = pass.shaderObject.alphaThreshold;
                 }
@@ -9545,22 +9469,6 @@ var away;
                 data[index + 7] = 0.0;
             };
 
-            Object.defineProperty(DistanceMapPass.prototype, "alphaMask", {
-                /**
-                * A texture providing alpha data to be able to prevent semi-transparent pixels to write to the alpha mask.
-                * Usually the diffuse texture when alphaThreshold is used.
-                */
-                get: function () {
-                    return this._alphaMask;
-                },
-                set: function (value) {
-                    this._alphaMask = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
             DistanceMapPass.prototype._iIncludeDependencies = function (shaderObject) {
                 shaderObject.projectionDependencies++;
                 shaderObject.viewDirDependencies++;
@@ -9597,7 +9505,7 @@ var away;
                     this._texturesIndex = diffuseInputReg.index;
 
                     var albedo = registerCache.getFreeFragmentVectorTemp();
-                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, diffuseInputReg, this._alphaMask, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+                    code += materials.ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, diffuseInputReg, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
                     var cutOffReg = registerCache.getFreeFragmentConstant();
 
@@ -9632,7 +9540,7 @@ var away;
 
                 if (shaderObject.alphaThreshold > 0) {
                     context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
-                    context.activateTexture(this._texturesIndex, this._alphaMask);
+                    context.activateTexture(this._texturesIndex, shaderObject.texture);
 
                     data[index + 8] = pass.shaderObject.alphaThreshold;
                 }
@@ -10118,7 +10026,10 @@ var away;
             };
 
             TriangleMethodPass.prototype._iGetPreLightingVertexCode = function (shaderObject, registerCache, sharedRegisters) {
-                var code = this._iAmbientMethodVO.method.iGetVertexCode(shaderObject, this._iAmbientMethodVO, registerCache, sharedRegisters);
+                var code = "";
+
+                if (this._iAmbientMethodVO && this._iAmbientMethodVO.useMethod)
+                    code += this._iAmbientMethodVO.method.iGetVertexCode(shaderObject, this._iAmbientMethodVO, registerCache, sharedRegisters);
 
                 if (this._iDiffuseMethodVO && this._iDiffuseMethodVO.useMethod)
                     code += this._iDiffuseMethodVO.method.iGetVertexCode(shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);
@@ -10130,13 +10041,17 @@ var away;
             };
 
             TriangleMethodPass.prototype._iGetPreLightingFragmentCode = function (shaderObject, registerCache, sharedRegisters) {
-                var code = this._iAmbientMethodVO.method.iGetFragmentCode(shaderObject, this._iAmbientMethodVO, sharedRegisters.shadedTarget, registerCache, sharedRegisters);
+                var code = "";
 
-                if (this._iAmbientMethodVO.needsNormals)
-                    registerCache.removeFragmentTempUsage(sharedRegisters.normalFragment);
+                if (this._iAmbientMethodVO && this._iAmbientMethodVO.useMethod) {
+                    code += this._iAmbientMethodVO.method.iGetFragmentCode(shaderObject, this._iAmbientMethodVO, sharedRegisters.shadedTarget, registerCache, sharedRegisters);
 
-                if (this._iAmbientMethodVO.needsView)
-                    registerCache.removeFragmentTempUsage(sharedRegisters.viewDirFragment);
+                    if (this._iAmbientMethodVO.needsNormals)
+                        registerCache.removeFragmentTempUsage(sharedRegisters.normalFragment);
+
+                    if (this._iAmbientMethodVO.needsView)
+                        registerCache.removeFragmentTempUsage(sharedRegisters.viewDirFragment);
+                }
 
                 if (this._iDiffuseMethodVO && this._iDiffuseMethodVO.useMethod)
                     code += this._iDiffuseMethodVO.method.iGetFragmentPreLightingCode(shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);
@@ -10723,51 +10638,6 @@ var away;
             });
 
 
-            Object.defineProperty(TriangleBasicMaterial.prototype, "color", {
-                /**
-                * The diffuse reflectivity color of the surface.
-                */
-                get: function () {
-                    return this._color;
-                },
-                set: function (value) {
-                    if (this._color == value)
-                        return;
-
-                    this._color = value;
-
-                    this._pUpdateColor();
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
-            Object.defineProperty(TriangleBasicMaterial.prototype, "texture", {
-                /**
-                * The texture object to use for the albedo colour.
-                */
-                get: function () {
-                    return this._texture;
-                },
-                set: function (value) {
-                    if (this._texture == value)
-                        return;
-
-                    this._texture = value;
-
-                    if (value) {
-                        this._pHeight = value.height;
-                        this._pWidth = value.width;
-                    }
-
-                    this._pUpdateTexture();
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
             Object.defineProperty(TriangleBasicMaterial.prototype, "alphaBlending", {
                 /**
                 * Indicates whether or not the material has transparency. If binary transparency is sufficient, for
@@ -10816,14 +10686,6 @@ var away;
                 this.setBlendAndCompareModes();
 
                 this._pScreenPassesInvalid = false;
-            };
-
-            TriangleBasicMaterial.prototype._pUpdateColor = function () {
-                this._screenPass.diffuseColor = this._color;
-            };
-
-            TriangleBasicMaterial.prototype._pUpdateTexture = function () {
-                this._screenPass.texture = this._texture;
             };
 
             /**
@@ -10991,41 +10853,6 @@ var away;
                 },
                 set: function (value) {
                     this._screenPass.colorTransform = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
-            Object.defineProperty(TriangleMethodMaterial.prototype, "color", {
-                /**
-                * The diffuse reflectivity color of the surface.
-                */
-                get: function () {
-                    return this._ambientMethod.color;
-                },
-                set: function (value) {
-                    this._ambientMethod.color = value;
-                },
-                enumerable: true,
-                configurable: true
-            });
-
-
-            Object.defineProperty(TriangleMethodMaterial.prototype, "texture", {
-                /**
-                * The texture object to use for the albedo colour.
-                */
-                get: function () {
-                    return this._ambientMethod.texture;
-                },
-                set: function (value) {
-                    this._ambientMethod.texture = value;
-
-                    if (value) {
-                        this._pHeight = value.height;
-                        this._pWidth = value.width;
-                    }
                 },
                 enumerable: true,
                 configurable: true
@@ -11585,9 +11412,7 @@ var away;
                     if (this.numLights == 0) {
                         this._screenPass.ambientMethod = this._ambientMethod;
                     } else {
-                        this._screenPass.ambientMethod = new materials.AmbientBasicMethod();
-                        this._screenPass.ambientMethod.color = 0x000000;
-                        this._screenPass.ambientMethod.alpha = 0;
+                        this._screenPass.ambientMethod = null;
                     }
 
                     this._screenPass.preserveAlpha = false;

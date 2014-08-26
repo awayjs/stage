@@ -476,7 +476,10 @@ module away.materials
 
 		public _iGetPreLightingVertexCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
-			var code:string = this._iAmbientMethodVO.method.iGetVertexCode(shaderObject, this._iAmbientMethodVO, registerCache, sharedRegisters);
+			var code:string = "";
+
+			if (this._iAmbientMethodVO && this._iAmbientMethodVO.useMethod)
+				code += this._iAmbientMethodVO.method.iGetVertexCode(shaderObject, this._iAmbientMethodVO, registerCache, sharedRegisters);
 
 			if (this._iDiffuseMethodVO && this._iDiffuseMethodVO.useMethod)
 				code += this._iDiffuseMethodVO.method.iGetVertexCode(shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);
@@ -489,13 +492,17 @@ module away.materials
 
 		public _iGetPreLightingFragmentCode(shaderObject:ShaderObjectBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 		{
-			var code:string = this._iAmbientMethodVO.method.iGetFragmentCode(shaderObject, this._iAmbientMethodVO, sharedRegisters.shadedTarget, registerCache, sharedRegisters);
+			var code:string = "";
 
-			if (this._iAmbientMethodVO.needsNormals)
-				registerCache.removeFragmentTempUsage(sharedRegisters.normalFragment);
+			if (this._iAmbientMethodVO && this._iAmbientMethodVO.useMethod) {
+				code += this._iAmbientMethodVO.method.iGetFragmentCode(shaderObject, this._iAmbientMethodVO, sharedRegisters.shadedTarget, registerCache, sharedRegisters);
 
-			if (this._iAmbientMethodVO.needsView)
-				registerCache.removeFragmentTempUsage(sharedRegisters.viewDirFragment);
+				if (this._iAmbientMethodVO.needsNormals)
+					registerCache.removeFragmentTempUsage(sharedRegisters.normalFragment);
+
+				if (this._iAmbientMethodVO.needsView)
+					registerCache.removeFragmentTempUsage(sharedRegisters.viewDirFragment);
+			}
 
 			if (this._iDiffuseMethodVO && this._iDiffuseMethodVO.useMethod)
 				code += (<LightingMethodBase> this._iDiffuseMethodVO.method).iGetFragmentPreLightingCode(<ShaderLightingObject> shaderObject, this._iDiffuseMethodVO, registerCache, sharedRegisters);

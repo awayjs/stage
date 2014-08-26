@@ -14,9 +14,6 @@ module away.materials
 	 */
 	export class AmbientBasicMethod extends ShadingMethodBase
 	{
-		private _useTexture:boolean = false;
-		private _texture:Texture2DBase;
-
 		private _color:number = 0xffffff;
 		private _alpha:number = 1;
 
@@ -39,7 +36,18 @@ module away.materials
 		 */
 		public iInitVO(shaderObject:ShaderObjectBase, methodVO:MethodVO)
 		{
-			methodVO.needsUV = this._useTexture;
+			methodVO.needsUV = Boolean(shaderObject.texture != null);
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public iInitConstants(shaderObject:ShaderObjectBase, methodVO:MethodVO)
+		{
+			if (!methodVO.needsUV) {
+				this._color = shaderObject.color;
+				this.updateColor();
+			}
 		}
 
 		/**
@@ -56,24 +64,6 @@ module away.materials
 				return;
 
 			this._ambient = value;
-
-			this.updateColor();
-		}
-
-		/**
-		 * The colour of the ambient reflection of the surface.
-		 */
-		public get color():number
-		{
-			return this._color;
-		}
-
-		public set color(value:number)
-		{
-			if (this._color == value)
-				return;
-
-			this._color = value;
 
 			this.updateColor();
 		}
@@ -97,43 +87,12 @@ module away.materials
 		}
 
 		/**
-		 * The bitmapData to use to define the diffuse reflection color per texel.
-		 */
-		public get texture():Texture2DBase
-		{
-			return this._texture;
-		}
-
-		public set texture(value:Texture2DBase)
-		{
-
-			var b:boolean = ( value != null );
-
-			/* // ORIGINAL conditional
-			 if (Boolean(value) != _useTexture ||
-			 (value && _texture && (value.hasMipmaps != _texture.hasMipmaps || value.format != _texture.format))) {
-			 iInvalidateShaderProgram();
-			 }
-			 */
-			if (b != this._useTexture || (value && this._texture && (value.hasMipmaps != this._texture.hasMipmaps || value.format != this._texture.format))) {
-				this.iInvalidateShaderProgram();
-			}
-			this._useTexture = b;//Boolean(value);
-			this._texture = value;
-		}
-
-		/**
 		 * @inheritDoc
 		 */
 		public copyFrom(method:ShadingMethodBase)
 		{
 			var m:any = method;
 			var b:AmbientBasicMethod = <AmbientBasicMethod> m;
-
-			var diff:AmbientBasicMethod = b;//AmbientBasicMethod(method);
-
-			this.ambient = diff.ambient;
-			this.color = diff.color;
 		}
 
 		/**
@@ -144,12 +103,12 @@ module away.materials
 			var code:string = "";
 			var ambientInputRegister:ShaderRegisterElement;
 
-			if (this._useTexture) {
+			if (methodVO.needsUV) {
 				ambientInputRegister = registerCache.getFreeTextureReg();
 
 				methodVO.texturesIndex = ambientInputRegister.index;
 
-				code += ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedRegisters, ambientInputRegister, this._texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+				code += ShaderCompilerHelper.getTex2DSampleCode(targetReg, sharedRegisters, ambientInputRegister, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
 				if (shaderObject.alphaThreshold > 0) {
 					var cutOffReg:ShaderRegisterElement = registerCache.getFreeFragmentConstant();
@@ -175,9 +134,9 @@ module away.materials
 		 */
 		public iActivate(shaderObject:ShaderObjectBase, methodVO:MethodVO, stage:Stage)
 		{
-			if (this._useTexture) {
+			if (methodVO.needsUV) {
 				(<IContextStageGL> stage.context).setSamplerStateAt(methodVO.texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR:ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR:ContextGLMipFilter.MIPNONE);
-				(<IContextStageGL> stage.context).activateTexture(methodVO.texturesIndex, this._texture);
+				(<IContextStageGL> stage.context).activateTexture(methodVO.texturesIndex, shaderObject.texture);
 
 				if (shaderObject.alphaThreshold > 0)
 					shaderObject.fragmentConstantData[methodVO.fragmentConstantsIndex] = shaderObject.alphaThreshold;

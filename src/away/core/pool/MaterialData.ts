@@ -115,6 +115,8 @@ module away.pool
 				for (var i:number = 0; i < len; i++)
 					this._passes[i].invalidate();
 			}
+
+			this.invalidateMaterial();
 		}
 
 		/**

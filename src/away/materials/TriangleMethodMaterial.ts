@@ -141,37 +141,6 @@ module away.materials
 		}
 
 		/**
-		 * The diffuse reflectivity color of the surface.
-		 */
-		public get color():number
-		{
-			return this._ambientMethod.color;
-		}
-
-		public set color(value:number)
-		{
-			this._ambientMethod.color = value;
-		}
-
-		/**
-		 * The texture object to use for the albedo colour.
-		 */
-		public get texture():Texture2DBase
-		{
-			return this._ambientMethod.texture;
-		}
-
-		public set texture(value:Texture2DBase)
-		{
-			this._ambientMethod.texture = value;
-
-			if (value) {
-				this._pHeight = value.height;
-				this._pWidth = value.width;
-			}
-		}
-
-		/**
 		 * The texture object to use for the ambient colour.
 		 */
 		public get diffuseTexture():Texture2DBase
@@ -708,9 +677,7 @@ module away.materials
 				if (this.numLights == 0) {
 					this._screenPass.ambientMethod = this._ambientMethod;
 				} else {
-					this._screenPass.ambientMethod = new AmbientBasicMethod();
-					this._screenPass.ambientMethod.color = 0x000000;
-					this._screenPass.ambientMethod.alpha = 0;
+					this._screenPass.ambientMethod = null;
 				}
 
 				this._screenPass.preserveAlpha = false;

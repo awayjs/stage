@@ -376,6 +376,8 @@ module away.materials
 			this._pShaderObject.repeatTextures = this._pMaterial.repeat;
 			this._pShaderObject.usesUVTransform = this._pMaterial.animateUVs;
 			this._pShaderObject.alphaThreshold = this._pMaterial.alphaThreshold;
+			this._pShaderObject.texture = this._pMaterial.texture;
+			this._pShaderObject.color = this._pMaterial.color;
 			//TODO: fragment animtion should be compatible with lighting pass
 			this._pShaderObject.usesFragmentAnimation = Boolean(this._pMaterialPass.passMode == MaterialPassMode.SUPER_SHADER);
 

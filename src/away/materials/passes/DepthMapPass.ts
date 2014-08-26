@@ -25,7 +25,6 @@ module away.materials
 	{
 		private _fragmentConstantsIndex:number;
 		private _texturesIndex:number;
-		private _alphaMask:Texture2DBase;
 
 		/**
 		 * Creates a new DepthMapPass object.
@@ -54,20 +53,6 @@ module away.materials
 			data[index + 5] = 1.0/255.0;
 			data[index + 6] = 1.0/255.0;
 			data[index + 7] = 0.0;
-		}
-
-		/**
-		 * A texture providing alpha data to be able to prevent semi-transparent pixels to write to the alpha mask.
-		 * Usually the diffuse texture when alphaThreshold is used.
-		 */
-		public get alphaMask():Texture2DBase
-		{
-			return this._alphaMask;
-		}
-
-		public set alphaMask(value:Texture2DBase)
-		{
-			this._alphaMask = value;
 		}
 
 		public _iIncludeDependencies(shaderObject:ShaderObjectBase)
@@ -110,7 +95,7 @@ module away.materials
 				this._texturesIndex = diffuseInputReg.index;
 
 				var albedo:ShaderRegisterElement = registerCache.getFreeFragmentVectorTemp();
-				code += ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, diffuseInputReg, this._alphaMask, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
+				code += ShaderCompilerHelper.getTex2DSampleCode(albedo, sharedRegisters, diffuseInputReg, shaderObject.texture, shaderObject.useSmoothTextures, shaderObject.repeatTextures, shaderObject.useMipmapping);
 
 				var cutOffReg:ShaderRegisterElement = registerCache.getFreeFragmentConstant();
 
@@ -143,7 +128,7 @@ module away.materials
 
 			if (shaderObject.alphaThreshold > 0) {
 				context.setSamplerStateAt(this._texturesIndex, shaderObject.repeatTextures? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP, shaderObject.useSmoothTextures? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST, shaderObject.useMipmapping? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE);
-				context.activateTexture(this._texturesIndex, this._alphaMask);
+				context.activateTexture(this._texturesIndex, shaderObject.texture);
 
 				shaderObject.fragmentConstantData[this._fragmentConstantsIndex + 8] = pass.shaderObject.alphaThreshold;
 			}

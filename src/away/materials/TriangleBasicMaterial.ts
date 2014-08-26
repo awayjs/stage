@@ -19,8 +19,6 @@ module away.materials
 	{
 		private _screenPass:TriangleBasicPass;
 
-		private _color:number;
-		private _texture:Texture2DBase;
 		private _alphaBlending:boolean = false;
 		private _alpha:number = 1;
 
@@ -99,47 +97,6 @@ module away.materials
 		}
 
 		/**
-		 * The diffuse reflectivity color of the surface.
-		 */
-		public get color():number
-		{
-			return this._color;
-		}
-
-		public set color(value:number)
-		{
-			if (this._color == value)
-				return;
-
-			this._color = value;
-
-			this._pUpdateColor();
-		}
-
-		/**
-		 * The texture object to use for the albedo colour.
-		 */
-		public get texture():Texture2DBase
-		{
-			return this._texture;
-		}
-
-		public set texture(value:Texture2DBase)
-		{
-			if (this._texture == value)
-				return;
-
-			this._texture = value;
-
-			if (value) {
-				this._pHeight = value.height;
-				this._pWidth = value.width;
-			}
-
-			this._pUpdateTexture();
-		}
-
-		/**
 		 * Indicates whether or not the material has transparency. If binary transparency is sufficient, for
 		 * example when using textures of foliage, consider using alphaThreshold instead.
 		 */
@@ -187,16 +144,6 @@ module away.materials
 			this.setBlendAndCompareModes();
 
 			this._pScreenPassesInvalid = false;
-		}
-
-		public _pUpdateColor()
-		{
-			this._screenPass.diffuseColor = this._color;
-		}
-
-		public _pUpdateTexture()
-		{
-			this._screenPass.texture = this._texture;
 		}
 
 		/**
