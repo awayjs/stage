@@ -90,7 +90,7 @@ module away.materials
 			this._pRegisterCache.addFragmentTempUsages(this._pSharedRegisters.shadedTarget, 1);
 
 			//compile the world-space position if required
-			if (this._pShaderObject.globalPosDependencies > 0 || this._pMaterialPass.forceSeparateMVP)
+			if (this._pShaderObject.globalPosDependencies > 0)
 				this.compileGlobalPositionCode();
 
 			//Calculate the (possibly animated) UV coordinates.

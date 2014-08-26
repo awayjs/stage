@@ -421,7 +421,9 @@ module away.materials
 
 		public _iIncludeDependencies(shaderObject:ShaderObjectBase)
 		{
-			shaderObject.usesSeparateMVP = this._forceSeparateMVP;
+			if (this._forceSeparateMVP)
+				shaderObject.globalPosDependencies++;
+
 			shaderObject.outputsNormals = this._pOutputsNormals(shaderObject);
 			shaderObject.outputsTangentNormals = shaderObject.outputsNormals && this._pOutputsTangentNormals(shaderObject);
 			shaderObject.usesTangentSpace = shaderObject.outputsTangentNormals && this._pUsesTangentSpace(shaderObject);

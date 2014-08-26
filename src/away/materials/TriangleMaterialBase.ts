@@ -30,7 +30,7 @@ module away.materials
 			var code:string = "";
 
 			//get the projection coordinates
-			var position:ShaderRegisterElement = (shaderObject.globalPosDependencies > 0 || shaderObject.usesSeparateMVP)? sharedRegisters.globalPositionVertex : sharedRegisters.localPosition;
+			var position:ShaderRegisterElement = (shaderObject.globalPosDependencies > 0)? sharedRegisters.globalPositionVertex : sharedRegisters.localPosition;
 
 			//reserving vertex constants for projection matrix
 			var viewMatrixReg:ShaderRegisterElement = registerCache.getFreeVertexConstant();

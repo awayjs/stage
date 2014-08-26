@@ -136,11 +136,6 @@ module away.materials
 		public outputsNormals:boolean;
 
 		/**
-		 *
-		 */
-		public usesSeparateMVP:boolean;
-
-		/**
 		 * Indicates whether or not normal calculations are expected in tangent space. This is only the case if no world-space
 		 * dependencies exist.
 		 */
@@ -240,7 +235,6 @@ module away.materials
 			this.secondaryUVDependencies = 0;
 			this.globalPosDependencies = 0;
 			this.tangentDependencies = 0;
-			this.usesSeparateMVP = false;
 			this.usesGlobalPosFragment = false;
 			this.usesFragmentAnimation = false;
 			this.usesTangentSpace = false;

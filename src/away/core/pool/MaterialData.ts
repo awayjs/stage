@@ -108,20 +108,6 @@ module away.pool
 		/**
 		 *
 		 */
-		public invalidatePasses()
-		{
-			if (this._passes != null) {
-				var len:number = this._passes.length;
-				for (var i:number = 0; i < len; i++)
-					this._passes[i].invalidate();
-			}
-
-			this.invalidateMaterial();
-		}
-
-		/**
-		 *
-		 */
 		public invalidateAnimation()
 		{
 			this.invalidAnimation = true;
