@@ -1,116 +1,112 @@
-///<reference path="../../build/stagegl-core.next.d.ts" />
+import View							= require("awayjs-core/lib/containers/View");
+import BitmapData					= require("awayjs-core/lib/core/base/BitmapData");
+import AssetLibrary					= require("awayjs-core/lib/core/library/AssetLibrary");
+import AssetLoader					= require("awayjs-core/lib/core/library/AssetLoader");
+import AssetLoaderToken				= require("awayjs-core/lib/core/library/AssetLoaderToken");
+import AssetType					= require("awayjs-core/lib/core/library/AssetType");
+import IAsset						= require("awayjs-core/lib/core/library/IAsset");
+import URLRequest					= require("awayjs-core/lib/core/net/URLRequest");
+import Mesh							= require("awayjs-core/lib/entities/Mesh");
+import LoaderEvent					= require("awayjs-core/lib/events/LoaderEvent");
+import PrimitivePlanePrefab			= require("awayjs-core/lib/prefabs/PrimitivePlanePrefab");
+import BitmapTexture				= require("awayjs-core/lib/textures/BitmapTexture");
+import ImageTexture					= require("awayjs-core/lib/textures/ImageTexture");
+import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
 
-module tests.display
+import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
+import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
+
+class BitmapDataReflectionTest
 {
-	import BitmapData					= away.base.BitmapData;
-	import View							= away.containers.View;
-	import Mesh							= away.entities.Mesh;
-	import LoaderEvent					= away.events.LoaderEvent;
-	import AssetLibrary					= away.library.AssetLibrary;
-	import AssetLoader					= away.library.AssetLoader;
-	import AssetLoaderToken				= away.library.AssetLoaderToken;
-	import AssetType					= away.library.AssetType;
-	import IAsset						= away.library.IAsset;
-	import TriangleMethodMaterial		= away.materials.TriangleMethodMaterial;
-	import URLRequest					= away.net.URLRequest;
-	import PrimitivePlanePrefab			= away.prefabs.PrimitivePlanePrefab;
-	import DefaultRenderer				= away.render.DefaultRenderer;
-	import BitmapTexture				= away.textures.BitmapTexture;
-	import ImageTexture					= away.textures.ImageTexture;
-	import RequestAnimationFrame		= away.utils.RequestAnimationFrame;
+	private view:View;
+	private raf:RequestAnimationFrame;
+	private reflectionMesh:Mesh;
+	private fullmesh:Mesh;
 
-	export class BitmapDataReflectionTest
+	constructor()
 	{
-		private view:View;
-		private raf:RequestAnimationFrame;
-		private reflectionMesh:Mesh;
-		private fullmesh:Mesh;
+		this.view = new View(new DefaultRenderer());
+		this.raf = new RequestAnimationFrame(this.render, this);
 
-		constructor()
-		{
-			this.view = new View(new DefaultRenderer());
-			this.raf = new RequestAnimationFrame(this.render, this);
+		var token:AssetLoaderToken = AssetLibrary.load( new URLRequest('assets/dots.png'));
+		token.addEventListener(LoaderEvent.RESOURCE_COMPLETE, (event:LoaderEvent) => this.onResourceComplete(event));
 
-			var token:AssetLoaderToken = AssetLibrary.load( new URLRequest('assets/dots.png'));
-			token.addEventListener(LoaderEvent.RESOURCE_COMPLETE, (event:LoaderEvent) => this.onResourceComplete(event));
+		window.onresize = (event:UIEvent) => this.onResize(event);
+	}
 
-			window.onresize = (event:UIEvent) => this.onResize(event);
-		}
+	private onResourceComplete(event:LoaderEvent)
+	{
+		var loader:AssetLoader   = <AssetLoader> event.target;
+		var l:number = loader.baseDependency.assets.length;
 
-		private onResourceComplete(event:LoaderEvent)
-		{
-			var loader:AssetLoader   = <AssetLoader> event.target;
-			var l:number = loader.baseDependency.assets.length;
+		for (var c:number = 0; c < l; c++) {
 
-			for (var c:number = 0; c < l; c++) {
+			var asset:IAsset = loader.baseDependency.assets[c];
 
-				var asset:IAsset = loader.baseDependency.assets[c];
+			switch (asset.assetType) {
+				case AssetType.TEXTURE:
 
-				switch (asset.assetType) {
-					case AssetType.TEXTURE:
+					var prefab:PrimitivePlanePrefab = new PrimitivePlanePrefab(500 , 500, 1, 1, false);
+					var tx:ImageTexture = <ImageTexture> asset;
+					var bitmap:BitmapData = new BitmapData(1024, 1024, true, 0x00000000);
 
-						var prefab:PrimitivePlanePrefab = new PrimitivePlanePrefab(500 , 500, 1, 1, false);
-						var tx:ImageTexture = <ImageTexture> asset;
-						var bitmap:BitmapData = new BitmapData(1024, 1024, true, 0x00000000);
+					bitmap.context.translate(0, 1024);
+					bitmap.context.scale(1, -1);
+					bitmap.context.drawImage(tx.htmlImageElement, 0, 0, 1024, 1024);
 
-						bitmap.context.translate(0, 1024);
-						bitmap.context.scale(1, -1);
-						bitmap.context.drawImage(tx.htmlImageElement, 0, 0, 1024, 1024);
+					var gradient = bitmap.context.createLinearGradient(0, 0, 0, 1024);
+					gradient.addColorStop(0.8, "rgba(255, 255, 255, 1.0)");
+					gradient.addColorStop(1, "rgba(255, 255, 255, 0.5)");
 
-						var gradient = bitmap.context.createLinearGradient(0, 0, 0, 1024);
-						gradient.addColorStop(0.8, "rgba(255, 255, 255, 1.0)");
-						gradient.addColorStop(1, "rgba(255, 255, 255, 0.5)");
+					bitmap.context.fillStyle = gradient;
+					bitmap.context.rect(0, 0, 1024, 1024);
+					bitmap.context.globalCompositeOperation = "destination-out";
+					bitmap.context.fill();
 
-						bitmap.context.fillStyle = gradient;
-						bitmap.context.rect(0, 0, 1024, 1024);
-						bitmap.context.globalCompositeOperation = "destination-out";
-						bitmap.context.fill();
+					var bitmapClone:BitmapData = new BitmapData(1024, 1024, true, 0x00000000);
+					bitmapClone.copyPixels(bitmap, bitmapClone.rect, bitmapClone.rect);
 
-						var bitmapClone:BitmapData = new BitmapData(1024, 1024, true, 0x00000000);
-						bitmapClone.copyPixels(bitmap, bitmapClone.rect, bitmapClone.rect);
+					document.body.appendChild(bitmap.canvas);
 
-						document.body.appendChild(bitmap.canvas);
+					var bmpTX:BitmapTexture = new BitmapTexture(bitmapClone, false);
 
-						var bmpTX:BitmapTexture = new BitmapTexture(bitmapClone, false);
+					var material:TriangleMethodMaterial = new TriangleMethodMaterial(bmpTX);
+					material.bothSides = true;
+					material.alphaBlending = true;
 
-						var material:TriangleMethodMaterial = new TriangleMethodMaterial(bmpTX);
-						material.bothSides = true;
-						material.alphaBlending = true;
+					var material2:TriangleMethodMaterial = new TriangleMethodMaterial(tx);
+					material2.bothSides = true;
+					material2.alphaBlending = true;
 
-						var material2:TriangleMethodMaterial = new TriangleMethodMaterial(tx);
-						material2.bothSides = true;
-						material2.alphaBlending = true;
+					this.reflectionMesh = <Mesh> prefab.getNewObject();
+					this.reflectionMesh.material = material;
+					this.view.scene.addChild(this.reflectionMesh);
 
-						this.reflectionMesh = <Mesh> prefab.getNewObject();
-						this.reflectionMesh.material = material;
-						this.view.scene.addChild(this.reflectionMesh);
+					this.fullmesh = <Mesh> prefab.getNewObject();
+					this.fullmesh.material = material2;
+					this.fullmesh.rotationY = 90;
+					this.view.scene.addChild(this.fullmesh);
 
-						this.fullmesh = <Mesh> prefab.getNewObject();
-						this.fullmesh.material = material2;
-						this.fullmesh.rotationY = 90;
-						this.view.scene.addChild(this.fullmesh);
-
-						break;
-				}
+					break;
 			}
-
-			this.raf.start();
-			this.onResize();
 		}
 
-		private onResize(event:UIEvent = null)
-		{
-			this.view.x = window.innerWidth/2;
-			this.view.width = window.innerWidth/2;
-			this.view.height = window.innerHeight;
-		}
+		this.raf.start();
+		this.onResize();
+	}
 
-		private render()
-		{
-			this.fullmesh.rotationY +=.5;
-			this.reflectionMesh.rotationY +=.5;
+	private onResize(event:UIEvent = null)
+	{
+		this.view.x = window.innerWidth/2;
+		this.view.width = window.innerWidth/2;
+		this.view.height = window.innerHeight;
+	}
 
-			this.view.render();
-		}
+	private render()
+	{
+		this.fullmesh.rotationY +=.5;
+		this.reflectionMesh.rotationY +=.5;
+
+		this.view.render();
 	}
 }
