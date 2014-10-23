@@ -1,6 +1,6 @@
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/core/stagegl/ContextGLTextureFormat");
+import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
 import ShaderRegisterData			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
 import ShaderRegisterElement		= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterElement");
 

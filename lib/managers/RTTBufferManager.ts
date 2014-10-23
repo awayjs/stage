@@ -3,10 +3,10 @@ import Event						= require("awayjs-core/lib/events/Event");
 import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
 import TextureUtils					= require("awayjs-core/lib/utils/TextureUtils");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import ContextGLBase				= require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
-import IIndexBuffer					= require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
-import IVertexBuffer				= require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
+import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
+import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
 class RTTBufferManager extends EventDispatcher
 {

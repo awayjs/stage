@@ -1,6 +1,6 @@
 import ColorTransform				= require("awayjs-core/lib/geom/ColorTransform");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import MethodVO						= require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

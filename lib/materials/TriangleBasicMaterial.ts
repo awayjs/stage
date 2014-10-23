@@ -2,7 +2,7 @@ import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
 import BlendMode					= require("awayjs-display/lib/base/BlendMode");
 
-import ContextGLCompareMode			= require("awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode");
+import ContextGLCompareMode			= require("awayjs-stagegl/lib/base/ContextGLCompareMode");
 import TriangleBasicPass			= require("awayjs-stagegl/lib/materials/passes/TriangleBasicPass");
 import TriangleMaterialBase			= require("awayjs-stagegl/lib/materials/TriangleMaterialBase");
 

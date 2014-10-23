@@ -1,6 +1,6 @@
 import LightSources					= require("awayjs-display/lib/materials/LightSources");
 
-import ContextGLProfile				= require("awayjs-stagegl/lib/core/stagegl/ContextGLProfile");
+import ContextGLProfile				= require("awayjs-stagegl/lib/base/ContextGLProfile");
 import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 import ShaderCompilerBase			= require("awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase");
 import ShaderLightingObject			= require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");

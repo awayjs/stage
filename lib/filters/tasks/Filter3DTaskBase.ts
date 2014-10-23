@@ -3,12 +3,12 @@ import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
 import Camera						= require("awayjs-display/lib/entities/Camera");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import AGALMiniAssembler			= require("awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler");
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/core/stagegl/ContextGLTextureFormat");
-import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
-import IProgram						= require("awayjs-stagegl/lib/core/stagegl/IProgram");
-import ITexture						= require("awayjs-stagegl/lib/core/stagegl/ITexture");
+import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
+import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
+import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 
 class Filter3DTaskBase
 {

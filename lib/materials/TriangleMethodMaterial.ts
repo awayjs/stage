@@ -5,8 +5,8 @@ import BlendMode					= require("awayjs-display/lib/base/BlendMode");
 import Camera						= require("awayjs-display/lib/entities/Camera");
 import StaticLightPicker			= require("awayjs-display/lib/materials/lightpickers/StaticLightPicker");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import ContextGLCompareMode			= require("awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import ContextGLCompareMode			= require("awayjs-stagegl/lib/base/ContextGLCompareMode");
 import AmbientBasicMethod			= require("awayjs-stagegl/lib/materials/methods/AmbientBasicMethod");
 import DiffuseBasicMethod			= require("awayjs-stagegl/lib/materials/methods/DiffuseBasicMethod");
 import EffectMethodBase				= require("awayjs-stagegl/lib/materials/methods/EffectMethodBase");

@@ -8,13 +8,13 @@ import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
 import Camera						= require("awayjs-display/lib/entities/Camera");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import AnimationSetBase				= require("awayjs-stagegl/lib/animators/AnimationSetBase");
 import AnimatorBase					= require("awayjs-stagegl/lib/animators/AnimatorBase");
 import AnimationRegisterCache		= require("awayjs-stagegl/lib/animators/data/AnimationRegisterCache");
-import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
-import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
-import ContextGLTriangleFace		= require("awayjs-stagegl/lib/core/stagegl/ContextGLTriangleFace");
+import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
+import ContextGLTriangleFace		= require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
 import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 import ShaderCompilerBase			= require("awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

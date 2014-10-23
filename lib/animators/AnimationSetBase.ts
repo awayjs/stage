@@ -5,7 +5,7 @@ import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodErr
 
 import AnimationNodeBase			= require("awayjs-display/lib/animators/nodes/AnimationNodeBase");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 import ShaderRegisterElement		= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterElement");
 import AnimationSetError			= require("awayjs-stagegl/lib/errors/AnimationSetError");

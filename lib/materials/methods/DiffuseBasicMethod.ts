@@ -2,12 +2,12 @@ import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
 import Camera						= require("awayjs-display/lib/entities/Camera");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
-import ContextGLMipFilter			= require("awayjs-stagegl/lib/core/stagegl/ContextGLMipFilter");
-import ContextGLTextureFilter		= require("awayjs-stagegl/lib/core/stagegl/ContextGLTextureFilter");
-import ContextGLWrapMode			= require("awayjs-stagegl/lib/core/stagegl/ContextGLWrapMode");
-import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
+import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
 import MethodVO						= require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 import ShaderLightingObject			= require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

@@ -1,6 +1,6 @@
 import Description				= require("awayjs-stagegl/lib/aglsl/Description");
 import Mapping					= require("awayjs-stagegl/lib/aglsl/Mapping");
-import ContextStage3D			= require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
+import ContextStage3D			= require("awayjs-stagegl/lib/base/ContextStage3D");
 
 class AGLSLParser
 {

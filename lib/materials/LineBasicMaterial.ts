@@ -3,11 +3,11 @@ import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import LineSubGeometry				= require("awayjs-display/lib/base/LineSubGeometry");
 import Camera						= require("awayjs-display/lib/entities/Camera");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import MaterialPassData				= require("awayjs-stagegl/lib/core/pool/MaterialPassData");
-import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
-import ContextGLProgramType			= require("awayjs-stagegl/lib/core/stagegl/ContextGLProgramType");
-import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import MaterialPassData				= require("awayjs-stagegl/lib/pool/MaterialPassData");
+import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
+import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
 import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

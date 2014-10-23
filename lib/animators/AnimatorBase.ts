@@ -12,10 +12,10 @@ import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeome
 import Camera						= require("awayjs-display/lib/entities/Camera");
 import Mesh							= require("awayjs-display/lib/entities/Mesh");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import IAnimationState				= require("awayjs-stagegl/lib/animators/states/IAnimationState");
-import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
-import TriangleSubMeshRenderable	= require("awayjs-stagegl/lib/core/pool/TriangleSubMeshRenderable");
+import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
+import TriangleSubMeshRenderable	= require("awayjs-stagegl/lib/pool/TriangleSubMeshRenderable");
 import AnimatorEvent				= require("awayjs-stagegl/lib/events/AnimatorEvent");
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 

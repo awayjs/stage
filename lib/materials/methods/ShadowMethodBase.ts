@@ -9,9 +9,9 @@ import DirectionalLight				= require("awayjs-display/lib/entities/DirectionalLig
 import PointLight					= require("awayjs-display/lib/entities/PointLight");
 import DirectionalShadowMapper		= require("awayjs-display/lib/materials/shadowmappers/DirectionalShadowMapper");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
-import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
 import MethodVO						= require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 import ShaderLightingObject			= require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");

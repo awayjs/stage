@@ -1,7 +1,7 @@
 import Camera						= require("awayjs-display/lib/entities/Camera");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import ITexture						= require("awayjs-stagegl/lib/core/stagegl/ITexture");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import Filter3DTaskBase				= require("awayjs-stagegl/lib/filters/tasks/Filter3DTaskBase");
 
 class Filter3DBase

@@ -7,9 +7,9 @@ import LightProbe					= require("awayjs-display/lib/entities/LightProbe");
 import PointLight					= require("awayjs-display/lib/entities/PointLight");
 import LightPickerBase				= require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
 
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
-import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
+import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
 import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 import ShaderCompilerBase			= require("awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase");
 import ShaderLightingCompiler		= require("awayjs-stagegl/lib/materials/compilation/ShaderLightingCompiler");
