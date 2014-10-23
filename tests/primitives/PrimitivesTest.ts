@@ -17,7 +17,7 @@ import PrimitiveSpherePrefab		= require("awayjs-display/lib/prefabs/PrimitiveSph
 import PrimitiveTorusPrefab			= require("awayjs-display/lib/prefabs/PrimitiveTorusPrefab");
 
 
-import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
+import DefaultRenderer				= require("awayjs-stagegl/lib/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
 import DefaultMaterialManager		= require("awayjs-stagegl/lib/materials/utils/DefaultMaterialManager");
 

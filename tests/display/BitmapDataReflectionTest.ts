@@ -14,7 +14,7 @@ import View							= require("awayjs-display/lib/containers/View");
 import Mesh							= require("awayjs-display/lib/entities/Mesh");
 import PrimitivePlanePrefab			= require("awayjs-display/lib/prefabs/PrimitivePlanePrefab");
 
-import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
+import DefaultRenderer				= require("awayjs-stagegl/lib/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
 
 class BitmapDataReflectionTest

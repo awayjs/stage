@@ -14,8 +14,8 @@ import PointLight					= require("awayjs-display/lib/entities/PointLight");
 import StaticLightPicker			= require("awayjs-display/lib/materials/lightpickers/StaticLightPicker");
 import PrimitiveTorusPrefab			= require("awayjs-display/lib/prefabs/PrimitiveTorusPrefab");
 
-import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
-import ContextGLProfile				= require("awayjs-stagegl/lib/core/stagegl/ContextGLProfile");
+import DefaultRenderer				= require("awayjs-stagegl/lib/render/DefaultRenderer");
+import ContextGLProfile				= require("awayjs-stagegl/lib/base/ContextGLProfile");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
 
 class TorusObject3DDemo

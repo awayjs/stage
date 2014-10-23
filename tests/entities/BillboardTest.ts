@@ -14,7 +14,7 @@ import OrientationMode				= require("awayjs-display/lib/base/OrientationMode");
 import Billboard					= require("awayjs-display/lib/entities/Billboard");
 import Mesh							= require("awayjs-display/lib/entities/Mesh");
 
-import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
+import DefaultRenderer				= require("awayjs-stagegl/lib/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
 
 class BillboardTest

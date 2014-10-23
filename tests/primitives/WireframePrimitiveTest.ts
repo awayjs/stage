@@ -12,9 +12,8 @@ import PrimitiveCylinderPrefab		= require("awayjs-display/lib/prefabs/PrimitiveC
 import PrimitivePlanePrefab			= require("awayjs-display/lib/prefabs/PrimitivePlanePrefab");
 import PrimitiveSpherePrefab		= require("awayjs-display/lib/prefabs/PrimitiveSpherePrefab");
 
-
-import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
-import ContextGLProfile				= require("awayjs-stagegl/lib/core/stagegl/ContextGLProfile");
+import ContextGLProfile				= require("awayjs-stagegl/lib/base/ContextGLProfile");
+import DefaultRenderer				= require("awayjs-stagegl/lib/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
 import DefaultMaterialManager		= require("awayjs-stagegl/lib/materials/utils/DefaultMaterialManager");
 

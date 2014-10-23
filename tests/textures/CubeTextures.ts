@@ -14,7 +14,7 @@ import Mesh							= require("awayjs-display/lib/entities/Mesh");
 import Skybox						= require("awayjs-display/lib/entities/Skybox");
 import PrimitiveTorusPrefab			= require("awayjs-display/lib/prefabs/PrimitiveTorusPrefab");
 
-import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
+import DefaultRenderer				= require("awayjs-stagegl/lib/render/DefaultRenderer");
 import SkyboxMaterial				= require("awayjs-stagegl/lib/materials/SkyboxMaterial");
 
 class CubeTextures
