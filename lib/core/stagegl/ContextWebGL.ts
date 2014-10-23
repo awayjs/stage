@@ -1,6 +1,6 @@
-import BitmapData					= require("awayjs-core/lib/core/base/BitmapData");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Rectangle					= require("awayjs-core/lib/core/geom/Rectangle");
+import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
 import ContextGLBase				= require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");

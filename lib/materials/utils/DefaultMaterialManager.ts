@@ -1,8 +1,9 @@
-import BitmapData					= require("awayjs-core/lib/core/base/BitmapData");
-import IMaterialOwner				= require("awayjs-core/lib/core/base/IMaterialOwner");
-import AssetType					= require("awayjs-core/lib/core/library/AssetType");
-import MaterialBase					= require("awayjs-core/lib/materials/MaterialBase");
+import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import AssetType					= require("awayjs-core/lib/library/AssetType");
 import BitmapTexture				= require("awayjs-core/lib/textures/BitmapTexture");
+
+import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
+import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
 import LineBasicMaterial			= require("awayjs-stagegl/lib/materials/LineBasicMaterial");
 import TriangleBasicMaterial		= require("awayjs-stagegl/lib/materials/TriangleBasicMaterial");

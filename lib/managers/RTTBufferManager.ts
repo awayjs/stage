@@ -1,9 +1,9 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Rectangle					= require("awayjs-core/lib/core/geom/Rectangle");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import Event						= require("awayjs-core/lib/events/Event");
 import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
 import TextureUtils					= require("awayjs-core/lib/utils/TextureUtils");
 
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import ContextGLBase				= require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
 import IIndexBuffer					= require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
 import IVertexBuffer				= require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");

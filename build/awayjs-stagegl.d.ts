@@ -1,6 +1,108 @@
+declare module "awayjs-stagegl/lib/aglsl/Header" {
+	class Header {
+	    progid: number;
+	    version: number;
+	    type: string;
+	    constructor();
+	}
+	export = Header;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/Destination" {
+	class Destination {
+	    mask: number;
+	    regnum: number;
+	    regtype: number;
+	    dim: number;
+	    constructor();
+	}
+	export = Destination;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/Token" {
+	import Destination = require("awayjs-stagegl/lib/aglsl/Destination");
+	class Token {
+	    dest: Destination;
+	    opcode: number;
+	    a: Destination;
+	    b: Destination;
+	    constructor();
+	}
+	export = Token;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/Description" {
+	import Header = require("awayjs-stagegl/lib/aglsl/Header");
+	import Token = require("awayjs-stagegl/lib/aglsl/Token");
+	class Description {
+	    regread: any[];
+	    regwrite: any[];
+	    hasindirect: boolean;
+	    writedepth: boolean;
+	    hasmatrix: boolean;
+	    samplers: any[];
+	    tokens: Token[];
+	    header: Header;
+	    constructor();
+	}
+	export = Description;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/OpLUT" {
+	class OpLUT {
+	    s: string;
+	    flags: number;
+	    dest: boolean;
+	    a: boolean;
+	    b: boolean;
+	    matrixwidth: number;
+	    matrixheight: number;
+	    ndwm: boolean;
+	    scalar: boolean;
+	    dm: boolean;
+	    lod: boolean;
+	    constructor(s: string, flags: number, dest: boolean, a: boolean, b: boolean, matrixwidth: number, matrixheight: number, ndwm: boolean, scaler: boolean, dm: boolean, lod: boolean);
+	}
+	export = OpLUT;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/Mapping" {
+	import OpLUT = require("awayjs-stagegl/lib/aglsl/OpLUT");
+	class Mapping {
+	    static agal2glsllut: OpLUT[];
+	    constructor(include?: OpLUT);
+	}
+	export = Mapping;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/AGALTokenizer" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	import Description = require("awayjs-stagegl/lib/aglsl/Description");
+	class AGALTokenizer {
+	    constructor();
+	    decribeAGALByteArray(bytes: ByteArray): Description;
+	    readReg(s: any, mh: any, desc: any, bytes: any): void;
+	}
+	export = AGALTokenizer;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/Sampler" {
+	class Sampler {
+	    lodbias: number;
+	    dim: number;
+	    readmode: number;
+	    special: number;
+	    wrap: number;
+	    mipmap: number;
+	    filter: number;
+	    constructor();
+	}
+	export = Sampler;
+	
+}
 declare module "awayjs-stagegl/lib/managers/StageManager" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	/**
 	 * The StageManager class provides a multiton object that handles management for Stage objects.
 	 *
@@ -70,139 +172,150 @@ declare module "awayjs-stagegl/lib/managers/StageManager" {
 	export = StageManager;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/Sampler" {
-	class Sampler {
-	    lodbias: number;
-	    dim: number;
-	    readmode: number;
-	    special: number;
-	    wrap: number;
-	    mipmap: number;
-	    filter: number;
-	    constructor();
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLBlendFactor" {
+	class ContextGLBlendFactor {
+	    static DESTINATION_ALPHA: string;
+	    static DESTINATION_COLOR: string;
+	    static ONE: string;
+	    static ONE_MINUS_DESTINATION_ALPHA: string;
+	    static ONE_MINUS_DESTINATION_COLOR: string;
+	    static ONE_MINUS_SOURCE_ALPHA: string;
+	    static ONE_MINUS_SOURCE_COLOR: string;
+	    static SOURCE_ALPHA: string;
+	    static SOURCE_COLOR: string;
+	    static ZERO: string;
 	}
-	export = Sampler;
+	export = ContextGLBlendFactor;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
-	class Sampler {
-	    shift: number;
-	    mask: number;
-	    value: number;
-	    constructor(shift: number, mask: number, value: number);
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLClearMask" {
+	class ContextGLClearMask {
+	    static COLOR: number;
+	    static DEPTH: number;
+	    static STENCIL: number;
+	    static ALL: number;
 	}
-	export = Sampler;
+	export = ContextGLClearMask;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/Flags" {
-	class Flags {
-	    simple: boolean;
-	    horizontal: boolean;
-	    fragonly: boolean;
-	    matrix: boolean;
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode" {
+	class ContextGLCompareMode {
+	    static ALWAYS: string;
+	    static EQUAL: string;
+	    static GREATER: string;
+	    static GREATER_EQUAL: string;
+	    static LESS: string;
+	    static LESS_EQUAL: string;
+	    static NEVER: string;
+	    static NOT_EQUAL: string;
 	}
-	export = Flags;
+	export = ContextGLCompareMode;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/FS" {
-	class FS {
-	    format: string;
-	    size: number;
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLMipFilter" {
+	class ContextGLMipFilter {
+	    static MIPLINEAR: string;
+	    static MIPNEAREST: string;
+	    static MIPNONE: string;
 	}
-	export = FS;
+	export = ContextGLMipFilter;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/Opcode" {
-	import Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
-	import FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
-	/**
-	 *
-	 */
-	class Opcode {
-	    dest: string;
-	    a: FS;
-	    b: FS;
-	    opcode: number;
-	    flags: Flags;
-	    constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean);
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLProgramType" {
+	class ContextGLProgramType {
+	    static FRAGMENT: string;
+	    static VERTEX: string;
 	}
-	export = Opcode;
+	export = ContextGLProgramType;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap" {
-	class OpcodeMap {
-	    private static _map;
-	    static map: Object[];
-	    constructor();
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLTextureFilter" {
+	class ContextGLTextureFilter {
+	    static LINEAR: string;
+	    static NEAREST: string;
 	}
-	export = OpcodeMap;
+	export = ContextGLTextureFilter;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/Part" {
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLTriangleFace" {
+	class ContextGLTriangleFace {
+	    static BACK: string;
+	    static FRONT: string;
+	    static FRONT_AND_BACK: string;
+	    static NONE: string;
+	}
+	export = ContextGLTriangleFace;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLVertexBufferFormat" {
+	class ContextGLVertexBufferFormat {
+	    static BYTES_4: string;
+	    static FLOAT_1: string;
+	    static FLOAT_2: string;
+	    static FLOAT_3: string;
+	    static FLOAT_4: string;
+	}
+	export = ContextGLVertexBufferFormat;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLWrapMode" {
+	class ContextGLWrapMode {
+	    static CLAMP: string;
+	    static REPEAT: string;
+	}
+	export = ContextGLWrapMode;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ITextureBase" {
+	interface ITextureBase {
+	    dispose(): any;
+	}
+	export = ITextureBase;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ICubeTexture" {
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	class Part {
-	    name: string;
-	    version: number;
-	    data: ByteArray;
-	    constructor(name?: string, version?: number);
+	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
+	interface ICubeTexture extends ITextureBase {
+	    size: number;
+	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
+	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
+	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async: boolean): any;
 	}
-	export = Part;
+	export = ICubeTexture;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/RegMap" {
-	class RegMap {
-	    private static _map;
-	    static map: any[];
-	    constructor();
+declare module "awayjs-stagegl/lib/core/stagegl/TextureBaseWebGL" {
+	class TextureBaseWebGL {
+	    textureType: string;
+	    _gl: WebGLRenderingContext;
+	    constructor(gl: WebGLRenderingContext);
+	    dispose(): void;
+	    glTexture: WebGLTexture;
 	}
-	export = RegMap;
+	export = TextureBaseWebGL;
 	
 }
-declare module "awayjs-stagegl/lib/aglsl/assembler/SamplerMap" {
-	class SamplerMap {
-	    private static _map;
-	    static map: Object[];
-	    constructor();
+declare module "awayjs-stagegl/lib/core/stagegl/CubeTextureWebGL" {
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	import ICubeTexture = require("awayjs-stagegl/lib/core/stagegl/ICubeTexture");
+	import TextureBaseWebGL = require("awayjs-stagegl/lib/core/stagegl/TextureBaseWebGL");
+	class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture {
+	    private _textureSelectorDictionary;
+	    textureType: string;
+	    private _texture;
+	    private _size;
+	    constructor(gl: WebGLRenderingContext, size: number);
+	    dispose(): void;
+	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
+	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
+	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
+	    size: number;
+	    glTexture: WebGLTexture;
 	}
-	export = SamplerMap;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler" {
-	import Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
-	class AGALMiniAssembler {
-	    r: Object;
-	    cur: Part;
-	    constructor();
-	    assemble(source: string, ext_part?: any, ext_version?: any): Object;
-	    private processLine(line, linenr);
-	    emitHeader(pr: Part): void;
-	    emitOpcode(pr: Part, opcode: any): void;
-	    emitZeroDword(pr: Part): void;
-	    emitZeroQword(pr: any): void;
-	    emitDest(pr: any, token: any, opdest: any): boolean;
-	    stringToMask(s: string): number;
-	    stringToSwizzle(s: any): number;
-	    emitSampler(pr: Part, token: any, opsrc: any, opts: any): boolean;
-	    emitSource(pr: any, token: any, opsrc: any): boolean;
-	    addHeader(partname: any, version: any): void;
-	}
-	export = AGALMiniAssembler;
-	
-}
-declare module "awayjs-stagegl/lib/animators/states/IAnimationState" {
-	import Vector3D = require("awayjs-core/lib/core/geom/Vector3D");
-	interface IAnimationState {
-	    positionDelta: Vector3D;
-	    offset(startTime: number): any;
-	    update(time: number): any;
-	    /**
-	     * Sets the animation phase of the node.
-	     *
-	     * @param value The phase value to use. 0 represents the beginning of an animation clip, 1 represents the end.
-	     */
-	    phase(value: number): any;
-	}
-	export = IAnimationState;
+	export = CubeTextureWebGL;
 	
 }
 declare module "awayjs-stagegl/lib/core/stagegl/IIndexBuffer" {
@@ -255,7 +368,7 @@ declare module "awayjs-stagegl/lib/core/pool/IndexData" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/IndexDataPool" {
-	import SubGeometryBase = require("awayjs-core/lib/core/base/SubGeometryBase");
+	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
 	import IndexData = require("awayjs-stagegl/lib/core/pool/IndexData");
 	/**
 	 *
@@ -281,7 +394,7 @@ declare module "awayjs-stagegl/lib/core/stagegl/IVertexBuffer" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/VertexData" {
-	import SubGeometryBase = require("awayjs-core/lib/core/base/SubGeometryBase");
+	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
 	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
 	import IVertexBuffer = require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
 	/**
@@ -327,7 +440,7 @@ declare module "awayjs-stagegl/lib/core/pool/VertexData" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/VertexDataPool" {
-	import SubGeometryBase = require("awayjs-core/lib/core/base/SubGeometryBase");
+	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
 	import IndexData = require("awayjs-stagegl/lib/core/pool/IndexData");
 	import VertexData = require("awayjs-stagegl/lib/core/pool/VertexData");
 	/**
@@ -344,13 +457,13 @@ declare module "awayjs-stagegl/lib/core/pool/VertexDataPool" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/RenderableBase" {
-	import IMaterialOwner = require("awayjs-core/lib/core/base/IMaterialOwner");
-	import SubGeometryBase = require("awayjs-core/lib/core/base/SubGeometryBase");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import IRenderable = require("awayjs-core/lib/core/pool/IRenderable");
-	import RenderablePool = require("awayjs-core/lib/core/pool/RenderablePool");
-	import IEntity = require("awayjs-core/lib/entities/IEntity");
-	import MaterialBase = require("awayjs-core/lib/materials/MaterialBase");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import IMaterialOwner = require("awayjs-display/lib/base/IMaterialOwner");
+	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
+	import IRenderable = require("awayjs-display/lib/pool/IRenderable");
+	import RenderablePool = require("awayjs-display/lib/pool/RenderablePool");
+	import IEntity = require("awayjs-display/lib/entities/IEntity");
+	import MaterialBase = require("awayjs-display/lib/materials/MaterialBase");
 	import IndexData = require("awayjs-stagegl/lib/core/pool/IndexData");
 	import VertexData = require("awayjs-stagegl/lib/core/pool/VertexData");
 	/**
@@ -500,22 +613,171 @@ declare module "awayjs-stagegl/lib/core/pool/RenderableBase" {
 	export = RenderableBase;
 	
 }
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLVertexBufferFormat" {
-	class ContextGLVertexBufferFormat {
-	    static BYTES_4: string;
-	    static FLOAT_1: string;
-	    static FLOAT_2: string;
-	    static FLOAT_3: string;
-	    static FLOAT_4: string;
+declare module "awayjs-stagegl/lib/materials/compilation/ShaderRegisterElement" {
+	/**
+	 * A single register element (an entire register or a single register's component) used by the RegisterPool.
+	 */
+	class ShaderRegisterElement {
+	    private _regName;
+	    private _index;
+	    private _toStr;
+	    private static COMPONENTS;
+	    _component: number;
+	    /**
+	     * Creates a new ShaderRegisterElement object.
+	     *
+	     * @param regName The name of the register.
+	     * @param index The index of the register.
+	     * @param component The register's component, if not the entire register is represented.
+	     */
+	    constructor(regName: string, index: number, component?: number);
+	    /**
+	     * Converts the register or the components AGAL string representation.
+	     */
+	    toString(): string;
+	    /**
+	     * The register's name.
+	     */
+	    regName: string;
+	    /**
+	     * The register's index.
+	     */
+	    index: number;
 	}
-	export = ContextGLVertexBufferFormat;
+	export = ShaderRegisterElement;
+	
+}
+declare module "awayjs-stagegl/lib/errors/AnimationSetError" {
+	import Error = require("awayjs-core/lib/errors/Error");
+	class AnimationSetError extends Error {
+	    constructor(message: string);
+	}
+	export = AnimationSetError;
+	
+}
+declare module "awayjs-stagegl/lib/animators/AnimationSetBase" {
+	import IAsset = require("awayjs-core/lib/library/IAsset");
+	import NamedAssetBase = require("awayjs-core/lib/library/NamedAssetBase");
+	import AnimationNodeBase = require("awayjs-display/lib/animators/nodes/AnimationNodeBase");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
+	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
+	/**
+	 * Provides an abstract base class for data set classes that hold animation data for use in animator classes.
+	 *
+	 * @see away.animators.AnimatorBase
+	 */
+	class AnimationSetBase extends NamedAssetBase implements IAsset {
+	    private _usesCPU;
+	    private _animations;
+	    private _animationNames;
+	    private _animationDictionary;
+	    constructor();
+	    /**
+	     * Retrieves a temporary GPU register that's still free.
+	     *
+	     * @param exclude An array of non-free temporary registers.
+	     * @param excludeAnother An additional register that's not free.
+	     * @return A temporary register that can be used.
+	     */
+	    _pFindTempReg(exclude: string[], excludeAnother?: string): string;
+	    /**
+	     * Indicates whether the properties of the animation data contained within the set combined with
+	     * the vertex registers already in use on shading materials allows the animation data to utilise
+	     * GPU calls.
+	     */
+	    usesCPU: boolean;
+	    /**
+	     * Called by the material to reset the GPU indicator before testing whether register space in the shader
+	     * is available for running GPU-based animation code.
+	     *
+	     * @private
+	     */
+	    resetGPUCompatibility(): void;
+	    cancelGPUCompatibility(): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    getAGALVertexCode(shaderObject: ShaderObjectBase): string;
+	    /**
+	     * @inheritDoc
+	     */
+	    activate(shaderObject: ShaderObjectBase, stage: Stage): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    deactivate(shaderObject: ShaderObjectBase, stage: Stage): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    getAGALFragmentCode(shaderObject: ShaderObjectBase, shadedTarget: string): string;
+	    /**
+	     * @inheritDoc
+	     */
+	    getAGALUVCode(shaderObject: ShaderObjectBase): string;
+	    /**
+	     * @inheritDoc
+	     */
+	    doneAGALCode(shaderObject: ShaderObjectBase): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    assetType: string;
+	    /**
+	     * Returns a vector of animation state objects that make up the contents of the animation data set.
+	     */
+	    animations: AnimationNodeBase[];
+	    /**
+	     * Returns a vector of animation state objects that make up the contents of the animation data set.
+	     */
+	    animationNames: string[];
+	    /**
+	     * Check to determine whether a state is registered in the animation set under the given name.
+	     *
+	     * @param stateName The name of the animation state object to be checked.
+	     */
+	    hasAnimation(name: string): boolean;
+	    /**
+	     * Retrieves the animation state object registered in the animation data set under the given name.
+	     *
+	     * @param stateName The name of the animation state object to be retrieved.
+	     */
+	    getAnimation(name: string): AnimationNodeBase;
+	    /**
+	     * Adds an animation state object to the aniamtion data set under the given name.
+	     *
+	     * @param stateName The name under which the animation state object will be stored.
+	     * @param animationState The animation state object to be staored in the set.
+	     */
+	    addAnimation(node: AnimationNodeBase): void;
+	    /**
+	     * Cleans up any resources used by the current object.
+	     */
+	    dispose(): void;
+	}
+	export = AnimationSetBase;
+	
+}
+declare module "awayjs-stagegl/lib/animators/states/IAnimationState" {
+	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
+	interface IAnimationState {
+	    positionDelta: Vector3D;
+	    offset(startTime: number): any;
+	    update(time: number): any;
+	    /**
+	     * Sets the animation phase of the node.
+	     *
+	     * @param value The phase value to use. 0 represents the beginning of an animation clip, 1 represents the end.
+	     */
+	    phase(value: number): any;
+	}
+	export = IAnimationState;
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/TriangleSubMeshRenderable" {
-	import IMaterialOwner = require("awayjs-core/lib/core/base/IMaterialOwner");
-	import TriangleSubMesh = require("awayjs-core/lib/core/base/TriangleSubMesh");
-	import TriangleSubGeometry = require("awayjs-core/lib/core/base/TriangleSubGeometry");
-	import RenderablePool = require("awayjs-core/lib/core/pool/RenderablePool");
+	import IMaterialOwner = require("awayjs-display/lib/base/IMaterialOwner");
+	import TriangleSubMesh = require("awayjs-display/lib/base/TriangleSubMesh");
+	import TriangleSubGeometry = require("awayjs-display/lib/base/TriangleSubGeometry");
+	import RenderablePool = require("awayjs-display/lib/pool/RenderablePool");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	/**
 	 * @class away.pool.TriangleSubMeshRenderable
@@ -597,38 +859,185 @@ declare module "awayjs-stagegl/lib/events/AnimatorEvent" {
 	export = AnimatorEvent;
 	
 }
-declare module "awayjs-stagegl/lib/materials/compilation/ShaderRegisterElement" {
+declare module "awayjs-stagegl/lib/animators/AnimatorBase" {
+	import NamedAssetBase = require("awayjs-core/lib/library/NamedAssetBase");
+	import IAnimationSet = require("awayjs-display/lib/animators/IAnimationSet");
+	import IAnimator = require("awayjs-display/lib/animators/IAnimator");
+	import AnimationNodeBase = require("awayjs-display/lib/animators/nodes/AnimationNodeBase");
+	import TriangleSubGeometry = require("awayjs-display/lib/base/TriangleSubGeometry");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import Mesh = require("awayjs-display/lib/entities/Mesh");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
+	import IAnimationState = require("awayjs-stagegl/lib/animators/states/IAnimationState");
+	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
+	import TriangleSubMeshRenderable = require("awayjs-stagegl/lib/core/pool/TriangleSubMeshRenderable");
+	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	/**
-	 * A single register element (an entire register or a single register's component) used by the RegisterPool.
+	 * Dispatched when playback of an animation inside the animator object starts.
+	 *
+	 * @eventType away3d.events.AnimatorEvent
 	 */
-	class ShaderRegisterElement {
-	    private _regName;
-	    private _index;
-	    private _toStr;
-	    private static COMPONENTS;
-	    _component: number;
+	/**
+	 * Dispatched when playback of an animation inside the animator object stops.
+	 *
+	 * @eventType away3d.events.AnimatorEvent
+	 */
+	/**
+	 * Dispatched when playback of an animation reaches the end of an animation.
+	 *
+	 * @eventType away3d.events.AnimatorEvent
+	 */
+	/**
+	 * Provides an abstract base class for animator classes that control animation output from a data set subtype of <code>AnimationSetBase</code>.
+	 *
+	 * @see away.animators.AnimationSetBase
+	 */
+	class AnimatorBase extends NamedAssetBase implements IAnimator {
+	    private _broadcaster;
+	    private _isPlaying;
+	    private _autoUpdate;
+	    private _startEvent;
+	    private _stopEvent;
+	    private _cycleEvent;
+	    private _time;
+	    private _playbackSpeed;
+	    _pAnimationSet: IAnimationSet;
+	    _pOwners: Mesh[];
+	    _pActiveNode: AnimationNodeBase;
+	    _pActiveState: IAnimationState;
+	    _pActiveAnimationName: string;
+	    _pAbsoluteTime: number;
+	    private _animationStates;
 	    /**
-	     * Creates a new ShaderRegisterElement object.
+	     * Enables translation of the animated mesh from data returned per frame via the positionDelta property of the active animation node. Defaults to true.
 	     *
-	     * @param regName The name of the register.
-	     * @param index The index of the register.
-	     * @param component The register's component, if not the entire register is represented.
+	     * @see away.animators.IAnimationState#positionDelta
 	     */
-	    constructor(regName: string, index: number, component?: number);
+	    updatePosition: boolean;
+	    getAnimationState(node: AnimationNodeBase): IAnimationState;
+	    getAnimationStateByName(name: string): IAnimationState;
 	    /**
-	     * Converts the register or the components AGAL string representation.
+	     * Returns the internal absolute time of the animator, calculated by the current time and the playback speed.
+	     *
+	     * @see #time
+	     * @see #playbackSpeed
 	     */
-	    toString(): string;
+	    absoluteTime: number;
 	    /**
-	     * The register's name.
+	     * Returns the animation data set in use by the animator.
 	     */
-	    regName: string;
+	    animationSet: IAnimationSet;
 	    /**
-	     * The register's index.
+	     * Returns the current active animation state.
 	     */
-	    index: number;
+	    activeState: IAnimationState;
+	    /**
+	     * Returns the current active animation node.
+	     */
+	    activeAnimation: AnimationNodeBase;
+	    /**
+	     * Returns the current active animation node.
+	     */
+	    activeAnimationName: string;
+	    /**
+	     * Determines whether the animators internal update mechanisms are active. Used in cases
+	     * where manual updates are required either via the <code>time</code> property or <code>update()</code> method.
+	     * Defaults to true.
+	     *
+	     * @see #time
+	     * @see #update()
+	     */
+	    autoUpdate: boolean;
+	    /**
+	     * Gets and sets the internal time clock of the animator.
+	     */
+	    time: number;
+	    /**
+	     * Sets the animation phase of the current active state's animation clip(s).
+	     *
+	     * @param value The phase value to use. 0 represents the beginning of an animation clip, 1 represents the end.
+	     */
+	    phase(value: number): void;
+	    /**
+	     * Creates a new <code>AnimatorBase</code> object.
+	     *
+	     * @param animationSet The animation data set to be used by the animator object.
+	     */
+	    constructor(animationSet: IAnimationSet);
+	    /**
+	     * The amount by which passed time should be scaled. Used to slow down or speed up animations. Defaults to 1.
+	     */
+	    playbackSpeed: number;
+	    setRenderState(shaderObject: ShaderObjectBase, renderable: RenderableBase, stage: Stage, camera: Camera, vertexConstantOffset: number, vertexStreamOffset: number): void;
+	    /**
+	     * Resumes the automatic playback clock controling the active state of the animator.
+	     */
+	    start(): void;
+	    /**
+	     * Pauses the automatic playback clock of the animator, in case manual updates are required via the
+	     * <code>time</code> property or <code>update()</code> method.
+	     *
+	     * @see #time
+	     * @see #update()
+	     */
+	    stop(): void;
+	    /**
+	     * Provides a way to manually update the active state of the animator when automatic
+	     * updates are disabled.
+	     *
+	     * @see #stop()
+	     * @see #autoUpdate
+	     */
+	    update(time: number): void;
+	    reset(name: string, offset?: number): void;
+	    /**
+	     * Used by the mesh object to which the animator is applied, registers the owner for internal use.
+	     *
+	     * @private
+	     */
+	    addOwner(mesh: Mesh): void;
+	    /**
+	     * Used by the mesh object from which the animator is removed, unregisters the owner for internal use.
+	     *
+	     * @private
+	     */
+	    removeOwner(mesh: Mesh): void;
+	    /**
+	     * Internal abstract method called when the time delta property of the animator's contents requires updating.
+	     *
+	     * @private
+	     */
+	    _pUpdateDeltaTime(dt: number): void;
+	    /**
+	     * Enter frame event handler for automatically updating the active state of the animator.
+	     */
+	    private onEnterFrame(event?);
+	    private applyPositionDelta();
+	    /**
+	     *  for internal use.
+	     *
+	     * @private
+	     */
+	    dispatchCycleEvent(): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    clone(): AnimatorBase;
+	    /**
+	     * @inheritDoc
+	     */
+	    dispose(): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    testGPUCompatibility(shaderObject: ShaderObjectBase): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    assetType: string;
+	    getRenderableSubGeometry(renderable: TriangleSubMeshRenderable, sourceSubGeometry: TriangleSubGeometry): TriangleSubGeometry;
 	}
-	export = ShaderRegisterElement;
+	export = AnimatorBase;
 	
 }
 declare module "awayjs-stagegl/lib/materials/compilation/RegisterPool" {
@@ -845,8 +1254,8 @@ declare module "awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache" {
 	
 }
 declare module "awayjs-stagegl/lib/animators/data/AnimationRegisterCache" {
-	import AnimationNodeBase = require("awayjs-core/lib/animators/nodes/AnimationNodeBase");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import AnimationNodeBase = require("awayjs-display/lib/animators/nodes/AnimationNodeBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
 	import ShaderRegisterElement = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterElement");
 	/**
@@ -937,8 +1346,339 @@ declare module "awayjs-stagegl/lib/materials/compilation/ShaderRegisterData" {
 	export = ShaderRegisterData;
 	
 }
+declare module "awayjs-stagegl/lib/materials/passes/IMaterialPassStageGL" {
+	import IMaterialPass = require("awayjs-display/lib/materials/passes/IMaterialPass");
+	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
+	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
+	import ShaderRegisterData = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
+	interface IMaterialPassStageGL extends IMaterialPass {
+	    _iGetPreLightingVertexCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
+	    _iGetPreLightingFragmentCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
+	    _iGetVertexCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
+	    _iGetFragmentCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
+	    _iGetNormalVertexCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
+	    _iGetNormalFragmentCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
+	    forceSeparateMVP: boolean;
+	    passMode: number;
+	    _iInitConstantData(shaderObject: ShaderObjectBase): any;
+	    _iIncludeDependencies(shaderObject: ShaderObjectBase): any;
+	    /**
+	     * Factory method to create a concrete shader object for this pass.
+	     *
+	     * @param profile The compatibility profile used by the renderer.
+	     */
+	    createShaderObject(profile: string): ShaderObjectBase;
+	}
+	export = IMaterialPassStageGL;
+	
+}
+declare module "awayjs-stagegl/lib/materials/passes/MaterialPassMode" {
+	class MaterialPassMode {
+	    static EFFECTS: number;
+	    /**
+	     *
+	     */
+	    static LIGHTING: number;
+	    /**
+	     *
+	     */
+	    static SUPER_SHADER: number;
+	}
+	export = MaterialPassMode;
+	
+}
+declare module "awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase" {
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
+	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
+	import ShaderRegisterData = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
+	import IMaterialPassStageGL = require("awayjs-stagegl/lib/materials/passes/IMaterialPassStageGL");
+	/**
+	 * ShaderCompilerBase is an abstract base class for shader compilers that use modular shader methods to assemble a
+	 * material. Concrete subclasses are used by the default materials.
+	 *
+	 * @see away.materials.ShadingMethodBase
+	 */
+	class ShaderCompilerBase {
+	    _pShaderObject: ShaderObjectBase;
+	    _pSharedRegisters: ShaderRegisterData;
+	    _pRegisterCache: ShaderRegisterCache;
+	    _pMaterialPass: IMaterialPassStageGL;
+	    _pMaterial: StageGLMaterialBase;
+	    _pVertexCode: string;
+	    _pFragmentCode: string;
+	    _pPostAnimationFragmentCode: string;
+	    _pAnimatableAttributes: string[];
+	    _pAnimationTargetRegisters: string[];
+	    private _uvTarget;
+	    private _uvSource;
+	    _pProfile: string;
+	    /**
+	     * Creates a new ShaderCompilerBase object.
+	     * @param profile The compatibility profile of the renderer.
+	     */
+	    constructor(material: StageGLMaterialBase, materialPass: IMaterialPassStageGL, shaderObject: ShaderObjectBase);
+	    /**
+	     * Compiles the code after all setup on the compiler has finished.
+	     */
+	    compile(): void;
+	    /**
+	     * Compile the code for the methods.
+	     */
+	    pCompileDependencies(): void;
+	    private compileGlobalPositionCode();
+	    /**
+	     * Calculate the (possibly animated) UV coordinates.
+	     */
+	    private compileUVCode();
+	    /**
+	     * Provide the secondary UV coordinates.
+	     */
+	    private compileSecondaryUVCode();
+	    /**
+	     * Calculate the view direction.
+	     */
+	    compileViewDirCode(): void;
+	    /**
+	     * Calculate the normal.
+	     */
+	    compileNormalCode(): void;
+	    /**
+	     * Reset all the indices to "unused".
+	     */
+	    pInitRegisterIndices(): void;
+	    /**
+	     * Figure out which named registers are required, and how often.
+	     */
+	    pCalculateDependencies(): void;
+	    /**
+	     * Disposes all resources used by the compiler.
+	     */
+	    dispose(): void;
+	    /**
+	     * The generated vertex code.
+	     */
+	    vertexCode: string;
+	    /**
+	     * The generated fragment code.
+	     */
+	    fragmentCode: string;
+	    /**
+	     * The generated fragment code.
+	     */
+	    postAnimationFragmentCode: string;
+	    /**
+	     * The register name containing the final shaded colour.
+	     */
+	    shadedTarget: string;
+	}
+	export = ShaderCompilerBase;
+	
+}
+declare module "awayjs-stagegl/lib/materials/compilation/ShaderObjectBase" {
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
+	import AnimationRegisterCache = require("awayjs-stagegl/lib/animators/data/AnimationRegisterCache");
+	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+	import ShaderCompilerBase = require("awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase");
+	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
+	import IMaterialPassStageGL = require("awayjs-stagegl/lib/materials/passes/IMaterialPassStageGL");
+	/**
+	 * ShaderObjectBase keeps track of the number of dependencies for "named registers" used across a pass.
+	 * Named registers are that are not necessarily limited to a single method. They are created by the compiler and
+	 * passed on to methods. The compiler uses the results to reserve usages through RegisterPool, which can be removed
+	 * each time a method has been compiled into the shader.
+	 *
+	 * @see RegisterPool.addUsage
+	 */
+	class ShaderObjectBase {
+	    private _defaultCulling;
+	    _pInverseSceneMatrix: number[];
+	    animationRegisterCache: AnimationRegisterCache;
+	    profile: string;
+	    /**
+	     * The amount of used vertex constants in the vertex code. Used by the animation code generation to know from which index on registers are available.
+	     */
+	    numUsedVertexConstants: number;
+	    /**
+	     * The amount of used fragment constants in the fragment code. Used by the animation code generation to know from which index on registers are available.
+	     */
+	    numUsedFragmentConstants: number;
+	    /**
+	     * The amount of used vertex streams in the vertex code. Used by the animation code generation to know from which index on streams are available.
+	     */
+	    numUsedStreams: number;
+	    /**
+	     *
+	     */
+	    numUsedTextures: number;
+	    /**
+	     *
+	     */
+	    numUsedVaryings: number;
+	    animatableAttributes: string[];
+	    animationTargetRegisters: string[];
+	    uvSource: string;
+	    uvTarget: string;
+	    useAlphaPremultiplied: boolean;
+	    useBothSides: boolean;
+	    useMipmapping: boolean;
+	    useSmoothTextures: boolean;
+	    repeatTextures: boolean;
+	    usesUVTransform: boolean;
+	    alphaThreshold: number;
+	    texture: Texture2DBase;
+	    color: number;
+	    ambientR: number;
+	    ambientG: number;
+	    ambientB: number;
+	    /**
+	     * Indicates whether the pass requires any fragment animation code.
+	     */
+	    usesFragmentAnimation: boolean;
+	    /**
+	     * The amount of dependencies on the projected position.
+	     */
+	    projectionDependencies: number;
+	    /**
+	     * The amount of dependencies on the normal vector.
+	     */
+	    normalDependencies: number;
+	    /**
+	     * The amount of dependencies on the view direction.
+	     */
+	    viewDirDependencies: number;
+	    /**
+	     * The amount of dependencies on the primary UV coordinates.
+	     */
+	    uvDependencies: number;
+	    /**
+	     * The amount of dependencies on the secondary UV coordinates.
+	     */
+	    secondaryUVDependencies: number;
+	    /**
+	     * The amount of dependencies on the local position. This can be 0 while hasGlobalPosDependencies is true when
+	     * the global position is used as a temporary value (fe to calculate the view direction)
+	     */
+	    localPosDependencies: number;
+	    /**
+	     * The amount of dependencies on the global position. This can be 0 while hasGlobalPosDependencies is true when
+	     * the global position is used as a temporary value (fe to calculate the view direction)
+	     */
+	    globalPosDependencies: number;
+	    /**
+	     * The amount of tangent vector dependencies (fragment shader).
+	     */
+	    tangentDependencies: number;
+	    /**
+	     *
+	     */
+	    outputsNormals: boolean;
+	    /**
+	     * Indicates whether or not normal calculations are expected in tangent space. This is only the case if no world-space
+	     * dependencies exist.
+	     */
+	    usesTangentSpace: boolean;
+	    /**
+	     * Indicates whether or not normal calculations are output in tangent space.
+	     */
+	    outputsTangentNormals: boolean;
+	    /**
+	     * Indicates whether there are any dependencies on the world-space position vector.
+	     */
+	    usesGlobalPosFragment: boolean;
+	    vertexConstantData: number[];
+	    fragmentConstantData: number[];
+	    /**
+	     * The index for the common data register.
+	     */
+	    commonsDataIndex: number;
+	    /**
+	     * The index for the UV vertex attribute stream.
+	     */
+	    uvBufferIndex: number;
+	    /**
+	     * The index for the secondary UV vertex attribute stream.
+	     */
+	    secondaryUVBufferIndex: number;
+	    /**
+	     * The index for the vertex normal attribute stream.
+	     */
+	    normalBufferIndex: number;
+	    /**
+	     * The index for the vertex tangent attribute stream.
+	     */
+	    tangentBufferIndex: number;
+	    /**
+	     * The index of the vertex constant containing the view matrix.
+	     */
+	    viewMatrixIndex: number;
+	    /**
+	     * The index of the vertex constant containing the scene matrix.
+	     */
+	    sceneMatrixIndex: number;
+	    /**
+	     * The index of the vertex constant containing the uniform scene matrix (the inverse transpose).
+	     */
+	    sceneNormalMatrixIndex: number;
+	    /**
+	     * The index of the vertex constant containing the camera position.
+	     */
+	    cameraPositionIndex: number;
+	    /**
+	     * The index for the UV transformation matrix vertex constant.
+	     */
+	    uvTransformIndex: number;
+	    /**
+	     * Creates a new MethodCompilerVO object.
+	     */
+	    constructor(profile: any);
+	    /**
+	     * Factory method to create a concrete compiler object for this object
+	     *
+	     * @param materialPassVO
+	     * @returns {away.materials.ShaderCompilerBase}
+	     */
+	    createCompiler(material: StageGLMaterialBase, materialPass: IMaterialPassStageGL): ShaderCompilerBase;
+	    /**
+	     * Clears dependency counts for all registers. Called when recompiling a pass.
+	     */
+	    reset(): void;
+	    /**
+	     * Adds any external world space dependencies, used to force world space calculations.
+	     */
+	    addWorldSpaceDependencies(fragmentLights: boolean): void;
+	    pInitRegisterIndices(): void;
+	    /**
+	     * Initializes the unchanging constant data for this shader object.
+	     */
+	    initConstantData(registerCache: ShaderRegisterCache, animatableAttributes: string[], animationTargetRegisters: string[], uvSource: string, uvTarget: string): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    iActivate(stage: Stage, camera: Camera): void;
+	    /**
+	     * @inheritDoc
+	     */
+	    iDeactivate(stage: Stage): void;
+	    /**
+	     *
+	     *
+	     * @param renderable
+	     * @param stage
+	     * @param camera
+	     */
+	    setRenderState(renderable: RenderableBase, stage: Stage, camera: Camera, viewProjection: Matrix3D): void;
+	    dispose(): void;
+	}
+	export = ShaderObjectBase;
+	
+}
 declare module "awayjs-stagegl/lib/materials/StageGLMaterialBase" {
-	import MaterialBase = require("awayjs-core/lib/materials/MaterialBase");
+	import MaterialBase = require("awayjs-display/lib/materials/MaterialBase");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
 	import ShaderRegisterData = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
@@ -982,84 +1722,13 @@ declare module "awayjs-stagegl/lib/core/pool/MaterialDataPool" {
 	export = MaterialDataPool;
 	
 }
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLBlendFactor" {
-	class ContextGLBlendFactor {
-	    static DESTINATION_ALPHA: string;
-	    static DESTINATION_COLOR: string;
-	    static ONE: string;
-	    static ONE_MINUS_DESTINATION_ALPHA: string;
-	    static ONE_MINUS_DESTINATION_COLOR: string;
-	    static ONE_MINUS_SOURCE_ALPHA: string;
-	    static ONE_MINUS_SOURCE_COLOR: string;
-	    static SOURCE_ALPHA: string;
-	    static SOURCE_COLOR: string;
-	    static ZERO: string;
-	}
-	export = ContextGLBlendFactor;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode" {
-	class ContextGLCompareMode {
-	    static ALWAYS: string;
-	    static EQUAL: string;
-	    static GREATER: string;
-	    static GREATER_EQUAL: string;
-	    static LESS: string;
-	    static LESS_EQUAL: string;
-	    static NEVER: string;
-	    static NOT_EQUAL: string;
-	}
-	export = ContextGLCompareMode;
-	
-}
-declare module "awayjs-stagegl/lib/materials/passes/IMaterialPassStageGL" {
-	import IMaterialPass = require("awayjs-core/lib/materials/passes/IMaterialPass");
-	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
-	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
-	import ShaderRegisterData = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
-	interface IMaterialPassStageGL extends IMaterialPass {
-	    _iGetPreLightingVertexCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
-	    _iGetPreLightingFragmentCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
-	    _iGetVertexCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
-	    _iGetFragmentCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
-	    _iGetNormalVertexCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
-	    _iGetNormalFragmentCode(shaderObject: ShaderObjectBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string;
-	    forceSeparateMVP: boolean;
-	    passMode: number;
-	    _iInitConstantData(shaderObject: ShaderObjectBase): any;
-	    _iIncludeDependencies(shaderObject: ShaderObjectBase): any;
-	    /**
-	     * Factory method to create a concrete shader object for this pass.
-	     *
-	     * @param profile The compatibility profile used by the renderer.
-	     */
-	    createShaderObject(profile: string): ShaderObjectBase;
-	}
-	export = IMaterialPassStageGL;
-	
-}
-declare module "awayjs-stagegl/lib/materials/passes/MaterialPassMode" {
-	class MaterialPassMode {
-	    static EFFECTS: number;
-	    /**
-	     *
-	     */
-	    static LIGHTING: number;
-	    /**
-	     *
-	     */
-	    static SUPER_SHADER: number;
-	}
-	export = MaterialPassMode;
-	
-}
 declare module "awayjs-stagegl/lib/materials/passes/MaterialPassBase" {
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import NamedAssetBase = require("awayjs-core/lib/library/NamedAssetBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import LightPickerBase = require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
+	import IMaterialPass = require("awayjs-display/lib/materials/passes/IMaterialPass");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import NamedAssetBase = require("awayjs-core/lib/core/library/NamedAssetBase");
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import LightPickerBase = require("awayjs-core/lib/materials/lightpickers/LightPickerBase");
-	import IMaterialPass = require("awayjs-core/lib/materials/passes/IMaterialPass");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
@@ -1368,7 +2037,7 @@ declare module "awayjs-stagegl/lib/core/pool/ProgramData" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/MaterialPassData" {
-	import IMaterialPassData = require("awayjs-core/lib/core/pool/IMaterialPassData");
+	import IMaterialPassData = require("awayjs-display/lib/pool/IMaterialPassData");
 	import MaterialPassDataPool = require("awayjs-stagegl/lib/core/pool/MaterialPassDataPool");
 	import ProgramData = require("awayjs-stagegl/lib/core/pool/ProgramData");
 	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
@@ -1406,96 +2075,8 @@ declare module "awayjs-stagegl/lib/core/pool/MaterialPassData" {
 	export = MaterialPassData;
 	
 }
-declare module "awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase" {
-	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
-	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
-	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
-	import ShaderRegisterData = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
-	import IMaterialPassStageGL = require("awayjs-stagegl/lib/materials/passes/IMaterialPassStageGL");
-	/**
-	 * ShaderCompilerBase is an abstract base class for shader compilers that use modular shader methods to assemble a
-	 * material. Concrete subclasses are used by the default materials.
-	 *
-	 * @see away.materials.ShadingMethodBase
-	 */
-	class ShaderCompilerBase {
-	    _pShaderObject: ShaderObjectBase;
-	    _pSharedRegisters: ShaderRegisterData;
-	    _pRegisterCache: ShaderRegisterCache;
-	    _pMaterialPass: IMaterialPassStageGL;
-	    _pMaterial: StageGLMaterialBase;
-	    _pVertexCode: string;
-	    _pFragmentCode: string;
-	    _pPostAnimationFragmentCode: string;
-	    _pAnimatableAttributes: string[];
-	    _pAnimationTargetRegisters: string[];
-	    private _uvTarget;
-	    private _uvSource;
-	    _pProfile: string;
-	    /**
-	     * Creates a new ShaderCompilerBase object.
-	     * @param profile The compatibility profile of the renderer.
-	     */
-	    constructor(material: StageGLMaterialBase, materialPass: IMaterialPassStageGL, shaderObject: ShaderObjectBase);
-	    /**
-	     * Compiles the code after all setup on the compiler has finished.
-	     */
-	    compile(): void;
-	    /**
-	     * Compile the code for the methods.
-	     */
-	    pCompileDependencies(): void;
-	    private compileGlobalPositionCode();
-	    /**
-	     * Calculate the (possibly animated) UV coordinates.
-	     */
-	    private compileUVCode();
-	    /**
-	     * Provide the secondary UV coordinates.
-	     */
-	    private compileSecondaryUVCode();
-	    /**
-	     * Calculate the view direction.
-	     */
-	    compileViewDirCode(): void;
-	    /**
-	     * Calculate the normal.
-	     */
-	    compileNormalCode(): void;
-	    /**
-	     * Reset all the indices to "unused".
-	     */
-	    pInitRegisterIndices(): void;
-	    /**
-	     * Figure out which named registers are required, and how often.
-	     */
-	    pCalculateDependencies(): void;
-	    /**
-	     * Disposes all resources used by the compiler.
-	     */
-	    dispose(): void;
-	    /**
-	     * The generated vertex code.
-	     */
-	    vertexCode: string;
-	    /**
-	     * The generated fragment code.
-	     */
-	    fragmentCode: string;
-	    /**
-	     * The generated fragment code.
-	     */
-	    postAnimationFragmentCode: string;
-	    /**
-	     * The register name containing the final shaded colour.
-	     */
-	    shadedTarget: string;
-	}
-	export = ShaderCompilerBase;
-	
-}
 declare module "awayjs-stagegl/lib/core/pool/MaterialData" {
-	import IMaterialData = require("awayjs-core/lib/core/pool/IMaterialData");
+	import IMaterialData = require("awayjs-display/lib/pool/IMaterialData");
 	import MaterialDataPool = require("awayjs-stagegl/lib/core/pool/MaterialDataPool");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
@@ -1532,28 +2113,8 @@ declare module "awayjs-stagegl/lib/core/pool/MaterialData" {
 	export = MaterialData;
 	
 }
-declare module "awayjs-stagegl/lib/core/stagegl/ITextureBase" {
-	interface ITextureBase {
-	    dispose(): any;
-	}
-	export = ITextureBase;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ICubeTexture" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
-	interface ICubeTexture extends ITextureBase {
-	    size: number;
-	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
-	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
-	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async: boolean): any;
-	}
-	export = ICubeTexture;
-	
-}
 declare module "awayjs-stagegl/lib/core/stagegl/ITexture" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
 	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
 	interface ITexture extends ITextureBase {
 	    width: number;
@@ -1565,17 +2126,17 @@ declare module "awayjs-stagegl/lib/core/stagegl/ITexture" {
 	
 }
 declare module "awayjs-stagegl/lib/core/stagegl/IContextStageGL" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import IContext = require("awayjs-core/lib/core/display/IContext");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import MaterialBase = require("awayjs-core/lib/materials/MaterialBase");
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import CubeTextureBase = require("awayjs-core/lib/textures/CubeTextureBase");
 	import RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
 	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
 	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import IContext = require("awayjs-display/lib/display/IContext");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import MaterialBase = require("awayjs-display/lib/materials/MaterialBase");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import IndexData = require("awayjs-stagegl/lib/core/pool/IndexData");
 	import MaterialData = require("awayjs-stagegl/lib/core/pool/MaterialData");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
@@ -1628,862 +2189,6 @@ declare module "awayjs-stagegl/lib/core/stagegl/IContextStageGL" {
 	export = IContextStageGL;
 	
 }
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLTriangleFace" {
-	class ContextGLTriangleFace {
-	    static BACK: string;
-	    static FRONT: string;
-	    static FRONT_AND_BACK: string;
-	    static NONE: string;
-	}
-	export = ContextGLTriangleFace;
-	
-}
-declare module "awayjs-stagegl/lib/materials/compilation/ShaderObjectBase" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
-	import AnimationRegisterCache = require("awayjs-stagegl/lib/animators/data/AnimationRegisterCache");
-	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
-	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
-	import ShaderCompilerBase = require("awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase");
-	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
-	import IMaterialPassStageGL = require("awayjs-stagegl/lib/materials/passes/IMaterialPassStageGL");
-	/**
-	 * ShaderObjectBase keeps track of the number of dependencies for "named registers" used across a pass.
-	 * Named registers are that are not necessarily limited to a single method. They are created by the compiler and
-	 * passed on to methods. The compiler uses the results to reserve usages through RegisterPool, which can be removed
-	 * each time a method has been compiled into the shader.
-	 *
-	 * @see RegisterPool.addUsage
-	 */
-	class ShaderObjectBase {
-	    private _defaultCulling;
-	    _pInverseSceneMatrix: number[];
-	    animationRegisterCache: AnimationRegisterCache;
-	    profile: string;
-	    /**
-	     * The amount of used vertex constants in the vertex code. Used by the animation code generation to know from which index on registers are available.
-	     */
-	    numUsedVertexConstants: number;
-	    /**
-	     * The amount of used fragment constants in the fragment code. Used by the animation code generation to know from which index on registers are available.
-	     */
-	    numUsedFragmentConstants: number;
-	    /**
-	     * The amount of used vertex streams in the vertex code. Used by the animation code generation to know from which index on streams are available.
-	     */
-	    numUsedStreams: number;
-	    /**
-	     *
-	     */
-	    numUsedTextures: number;
-	    /**
-	     *
-	     */
-	    numUsedVaryings: number;
-	    animatableAttributes: string[];
-	    animationTargetRegisters: string[];
-	    uvSource: string;
-	    uvTarget: string;
-	    useAlphaPremultiplied: boolean;
-	    useBothSides: boolean;
-	    useMipmapping: boolean;
-	    useSmoothTextures: boolean;
-	    repeatTextures: boolean;
-	    usesUVTransform: boolean;
-	    alphaThreshold: number;
-	    texture: Texture2DBase;
-	    color: number;
-	    ambientR: number;
-	    ambientG: number;
-	    ambientB: number;
-	    /**
-	     * Indicates whether the pass requires any fragment animation code.
-	     */
-	    usesFragmentAnimation: boolean;
-	    /**
-	     * The amount of dependencies on the projected position.
-	     */
-	    projectionDependencies: number;
-	    /**
-	     * The amount of dependencies on the normal vector.
-	     */
-	    normalDependencies: number;
-	    /**
-	     * The amount of dependencies on the view direction.
-	     */
-	    viewDirDependencies: number;
-	    /**
-	     * The amount of dependencies on the primary UV coordinates.
-	     */
-	    uvDependencies: number;
-	    /**
-	     * The amount of dependencies on the secondary UV coordinates.
-	     */
-	    secondaryUVDependencies: number;
-	    /**
-	     * The amount of dependencies on the local position. This can be 0 while hasGlobalPosDependencies is true when
-	     * the global position is used as a temporary value (fe to calculate the view direction)
-	     */
-	    localPosDependencies: number;
-	    /**
-	     * The amount of dependencies on the global position. This can be 0 while hasGlobalPosDependencies is true when
-	     * the global position is used as a temporary value (fe to calculate the view direction)
-	     */
-	    globalPosDependencies: number;
-	    /**
-	     * The amount of tangent vector dependencies (fragment shader).
-	     */
-	    tangentDependencies: number;
-	    /**
-	     *
-	     */
-	    outputsNormals: boolean;
-	    /**
-	     * Indicates whether or not normal calculations are expected in tangent space. This is only the case if no world-space
-	     * dependencies exist.
-	     */
-	    usesTangentSpace: boolean;
-	    /**
-	     * Indicates whether or not normal calculations are output in tangent space.
-	     */
-	    outputsTangentNormals: boolean;
-	    /**
-	     * Indicates whether there are any dependencies on the world-space position vector.
-	     */
-	    usesGlobalPosFragment: boolean;
-	    vertexConstantData: number[];
-	    fragmentConstantData: number[];
-	    /**
-	     * The index for the common data register.
-	     */
-	    commonsDataIndex: number;
-	    /**
-	     * The index for the UV vertex attribute stream.
-	     */
-	    uvBufferIndex: number;
-	    /**
-	     * The index for the secondary UV vertex attribute stream.
-	     */
-	    secondaryUVBufferIndex: number;
-	    /**
-	     * The index for the vertex normal attribute stream.
-	     */
-	    normalBufferIndex: number;
-	    /**
-	     * The index for the vertex tangent attribute stream.
-	     */
-	    tangentBufferIndex: number;
-	    /**
-	     * The index of the vertex constant containing the view matrix.
-	     */
-	    viewMatrixIndex: number;
-	    /**
-	     * The index of the vertex constant containing the scene matrix.
-	     */
-	    sceneMatrixIndex: number;
-	    /**
-	     * The index of the vertex constant containing the uniform scene matrix (the inverse transpose).
-	     */
-	    sceneNormalMatrixIndex: number;
-	    /**
-	     * The index of the vertex constant containing the camera position.
-	     */
-	    cameraPositionIndex: number;
-	    /**
-	     * The index for the UV transformation matrix vertex constant.
-	     */
-	    uvTransformIndex: number;
-	    /**
-	     * Creates a new MethodCompilerVO object.
-	     */
-	    constructor(profile: any);
-	    /**
-	     * Factory method to create a concrete compiler object for this object
-	     *
-	     * @param materialPassVO
-	     * @returns {away.materials.ShaderCompilerBase}
-	     */
-	    createCompiler(material: StageGLMaterialBase, materialPass: IMaterialPassStageGL): ShaderCompilerBase;
-	    /**
-	     * Clears dependency counts for all registers. Called when recompiling a pass.
-	     */
-	    reset(): void;
-	    /**
-	     * Adds any external world space dependencies, used to force world space calculations.
-	     */
-	    addWorldSpaceDependencies(fragmentLights: boolean): void;
-	    pInitRegisterIndices(): void;
-	    /**
-	     * Initializes the unchanging constant data for this shader object.
-	     */
-	    initConstantData(registerCache: ShaderRegisterCache, animatableAttributes: string[], animationTargetRegisters: string[], uvSource: string, uvTarget: string): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    iActivate(stage: Stage, camera: Camera): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    iDeactivate(stage: Stage): void;
-	    /**
-	     *
-	     *
-	     * @param renderable
-	     * @param stage
-	     * @param camera
-	     */
-	    setRenderState(renderable: RenderableBase, stage: Stage, camera: Camera, viewProjection: Matrix3D): void;
-	    dispose(): void;
-	}
-	export = ShaderObjectBase;
-	
-}
-declare module "awayjs-stagegl/lib/animators/AnimatorBase" {
-	import IAnimationSet = require("awayjs-core/lib/animators/IAnimationSet");
-	import IAnimator = require("awayjs-core/lib/animators/IAnimator");
-	import AnimationNodeBase = require("awayjs-core/lib/animators/nodes/AnimationNodeBase");
-	import TriangleSubGeometry = require("awayjs-core/lib/core/base/TriangleSubGeometry");
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import NamedAssetBase = require("awayjs-core/lib/core/library/NamedAssetBase");
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import Mesh = require("awayjs-core/lib/entities/Mesh");
-	import IAnimationState = require("awayjs-stagegl/lib/animators/states/IAnimationState");
-	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
-	import TriangleSubMeshRenderable = require("awayjs-stagegl/lib/core/pool/TriangleSubMeshRenderable");
-	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
-	/**
-	 * Dispatched when playback of an animation inside the animator object starts.
-	 *
-	 * @eventType away3d.events.AnimatorEvent
-	 */
-	/**
-	 * Dispatched when playback of an animation inside the animator object stops.
-	 *
-	 * @eventType away3d.events.AnimatorEvent
-	 */
-	/**
-	 * Dispatched when playback of an animation reaches the end of an animation.
-	 *
-	 * @eventType away3d.events.AnimatorEvent
-	 */
-	/**
-	 * Provides an abstract base class for animator classes that control animation output from a data set subtype of <code>AnimationSetBase</code>.
-	 *
-	 * @see away.animators.AnimationSetBase
-	 */
-	class AnimatorBase extends NamedAssetBase implements IAnimator {
-	    private _broadcaster;
-	    private _isPlaying;
-	    private _autoUpdate;
-	    private _startEvent;
-	    private _stopEvent;
-	    private _cycleEvent;
-	    private _time;
-	    private _playbackSpeed;
-	    _pAnimationSet: IAnimationSet;
-	    _pOwners: Mesh[];
-	    _pActiveNode: AnimationNodeBase;
-	    _pActiveState: IAnimationState;
-	    _pActiveAnimationName: string;
-	    _pAbsoluteTime: number;
-	    private _animationStates;
-	    /**
-	     * Enables translation of the animated mesh from data returned per frame via the positionDelta property of the active animation node. Defaults to true.
-	     *
-	     * @see away.animators.IAnimationState#positionDelta
-	     */
-	    updatePosition: boolean;
-	    getAnimationState(node: AnimationNodeBase): IAnimationState;
-	    getAnimationStateByName(name: string): IAnimationState;
-	    /**
-	     * Returns the internal absolute time of the animator, calculated by the current time and the playback speed.
-	     *
-	     * @see #time
-	     * @see #playbackSpeed
-	     */
-	    absoluteTime: number;
-	    /**
-	     * Returns the animation data set in use by the animator.
-	     */
-	    animationSet: IAnimationSet;
-	    /**
-	     * Returns the current active animation state.
-	     */
-	    activeState: IAnimationState;
-	    /**
-	     * Returns the current active animation node.
-	     */
-	    activeAnimation: AnimationNodeBase;
-	    /**
-	     * Returns the current active animation node.
-	     */
-	    activeAnimationName: string;
-	    /**
-	     * Determines whether the animators internal update mechanisms are active. Used in cases
-	     * where manual updates are required either via the <code>time</code> property or <code>update()</code> method.
-	     * Defaults to true.
-	     *
-	     * @see #time
-	     * @see #update()
-	     */
-	    autoUpdate: boolean;
-	    /**
-	     * Gets and sets the internal time clock of the animator.
-	     */
-	    time: number;
-	    /**
-	     * Sets the animation phase of the current active state's animation clip(s).
-	     *
-	     * @param value The phase value to use. 0 represents the beginning of an animation clip, 1 represents the end.
-	     */
-	    phase(value: number): void;
-	    /**
-	     * Creates a new <code>AnimatorBase</code> object.
-	     *
-	     * @param animationSet The animation data set to be used by the animator object.
-	     */
-	    constructor(animationSet: IAnimationSet);
-	    /**
-	     * The amount by which passed time should be scaled. Used to slow down or speed up animations. Defaults to 1.
-	     */
-	    playbackSpeed: number;
-	    setRenderState(shaderObject: ShaderObjectBase, renderable: RenderableBase, stage: Stage, camera: Camera, vertexConstantOffset: number, vertexStreamOffset: number): void;
-	    /**
-	     * Resumes the automatic playback clock controling the active state of the animator.
-	     */
-	    start(): void;
-	    /**
-	     * Pauses the automatic playback clock of the animator, in case manual updates are required via the
-	     * <code>time</code> property or <code>update()</code> method.
-	     *
-	     * @see #time
-	     * @see #update()
-	     */
-	    stop(): void;
-	    /**
-	     * Provides a way to manually update the active state of the animator when automatic
-	     * updates are disabled.
-	     *
-	     * @see #stop()
-	     * @see #autoUpdate
-	     */
-	    update(time: number): void;
-	    reset(name: string, offset?: number): void;
-	    /**
-	     * Used by the mesh object to which the animator is applied, registers the owner for internal use.
-	     *
-	     * @private
-	     */
-	    addOwner(mesh: Mesh): void;
-	    /**
-	     * Used by the mesh object from which the animator is removed, unregisters the owner for internal use.
-	     *
-	     * @private
-	     */
-	    removeOwner(mesh: Mesh): void;
-	    /**
-	     * Internal abstract method called when the time delta property of the animator's contents requires updating.
-	     *
-	     * @private
-	     */
-	    _pUpdateDeltaTime(dt: number): void;
-	    /**
-	     * Enter frame event handler for automatically updating the active state of the animator.
-	     */
-	    private onEnterFrame(event?);
-	    private applyPositionDelta();
-	    /**
-	     *  for internal use.
-	     *
-	     * @private
-	     */
-	    dispatchCycleEvent(): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    clone(): AnimatorBase;
-	    /**
-	     * @inheritDoc
-	     */
-	    dispose(): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    testGPUCompatibility(shaderObject: ShaderObjectBase): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    assetType: string;
-	    getRenderableSubGeometry(renderable: TriangleSubMeshRenderable, sourceSubGeometry: TriangleSubGeometry): TriangleSubGeometry;
-	}
-	export = AnimatorBase;
-	
-}
-declare module "awayjs-stagegl/lib/core/pool/TextureDataPool" {
-	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
-	import TextureData = require("awayjs-stagegl/lib/core/pool/TextureData");
-	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
-	/**
-	 * @class away.pool.TextureDataPool
-	 */
-	class TextureDataPool {
-	    private _pool;
-	    private _context;
-	    /**
-	     * //TODO
-	     *
-	     * @param textureDataClass
-	     */
-	    constructor(context: ContextGLBase);
-	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     * @returns ITexture
-	     */
-	    getItem(textureProxy: TextureProxyBase): TextureData;
-	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     */
-	    disposeItem(textureProxy: TextureProxyBase): void;
-	}
-	export = TextureDataPool;
-	
-}
-declare module "awayjs-stagegl/lib/core/pool/TextureData" {
-	import ITextureData = require("awayjs-core/lib/core/pool/ITextureData");
-	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
-	import TextureDataPool = require("awayjs-stagegl/lib/core/pool/TextureDataPool");
-	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
-	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
-	/**
-	 *
-	 * @class away.pool.TextureDataBase
-	 */
-	class TextureData implements ITextureData {
-	    private _pool;
-	    context: ContextGLBase;
-	    texture: ITextureBase;
-	    textureProxy: TextureProxyBase;
-	    invalid: boolean;
-	    constructor(pool: TextureDataPool, context: ContextGLBase, textureProxy: TextureProxyBase);
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	    /**
-	     *
-	     */
-	    invalidate(): void;
-	}
-	export = TextureData;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLClearMask" {
-	class ContextGLClearMask {
-	    static COLOR: number;
-	    static DEPTH: number;
-	    static STENCIL: number;
-	    static ALL: number;
-	}
-	export = ContextGLClearMask;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLTextureFormat" {
-	class ContextGLTextureFormat {
-	    static BGRA: string;
-	    static BGRA_PACKED: string;
-	    static BGR_PACKED: string;
-	    static COMPRESSED: string;
-	    static COMPRESSED_ALPHA: string;
-	}
-	export = ContextGLTextureFormat;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLBase" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
-	import IContext = require("awayjs-core/lib/core/display/IContext");
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import CubeTextureBase = require("awayjs-core/lib/textures/CubeTextureBase");
-	import RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
-	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
-	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
-	import IndexData = require("awayjs-stagegl/lib/core/pool/IndexData");
-	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
-	import ProgramData = require("awayjs-stagegl/lib/core/pool/ProgramData");
-	import MaterialData = require("awayjs-stagegl/lib/core/pool/MaterialData");
-	import VertexData = require("awayjs-stagegl/lib/core/pool/VertexData");
-	import ICubeTexture = require("awayjs-stagegl/lib/core/stagegl/ICubeTexture");
-	import IIndexBuffer = require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
-	import IProgram = require("awayjs-stagegl/lib/core/stagegl/IProgram");
-	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
-	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
-	import IVertexBuffer = require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
-	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
-	/**
-	 * Stage provides a proxy class to handle the creation and attachment of the Context
-	 * (and in turn the back buffer) it uses. Stage should never be created directly,
-	 * but requested through StageManager.
-	 *
-	 * @see away.managers.StageManager
-	 *
-	 */
-	class ContextGLBase implements IContext {
-	    private _programData;
-	    private _numUsedStreams;
-	    private _numUsedTextures;
-	    _pContainer: HTMLElement;
-	    private _texturePool;
-	    private _materialDataPool;
-	    private _programDataPool;
-	    private _width;
-	    private _height;
-	    private _stageIndex;
-	    private _antiAlias;
-	    private _enableDepthAndStencil;
-	    private _renderTarget;
-	    private _renderSurfaceSelector;
-	    container: HTMLElement;
-	    constructor(stageIndex: number);
-	    setRenderTarget(target: TextureProxyBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
-	    getRenderTexture(textureProxy: RenderTexture): ITextureBase;
-	    getProgram(materialPassData: MaterialPassData): ProgramData;
-	    /**
-	     *
-	     * @param material
-	     */
-	    getMaterial(material: StageGLMaterialBase, profile: string): MaterialData;
-	    /**
-	     * Assigns an attribute stream
-	     *
-	     * @param index The attribute stream index for the vertex shader
-	     * @param buffer
-	     * @param offset
-	     * @param stride
-	     * @param format
-	     */
-	    activateBuffer(index: number, buffer: VertexData, offset: number, format: string): void;
-	    disposeVertexData(buffer: VertexData): void;
-	    activateRenderTexture(index: number, textureProxy: RenderTexture): void;
-	    activateMaterialPass(materialPassData: MaterialPassData, stage: Stage, camera: Camera): void;
-	    deactivateMaterialPass(materialPassData: MaterialPassData, stage: Stage): void;
-	    activateTexture(index: number, textureProxy: Texture2DBase): void;
-	    activateCubeTexture(index: number, textureProxy: CubeTextureBase): void;
-	    /**
-	     * Retrieves the VertexBuffer object that contains triangle indices.
-	     * @param context The ContextWeb for which we request the buffer
-	     * @return The VertexBuffer object that contains triangle indices.
-	     */
-	    getIndexBuffer(buffer: IndexData): IIndexBuffer;
-	    disposeIndexData(buffer: IndexData): void;
-	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
-	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
-	    createIndexBuffer(numIndices: number): IIndexBuffer;
-	    createVertexBuffer(numVertices: number, data32PerVertex: number): IVertexBuffer;
-	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
-	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
-	    createProgram(): IProgram;
-	    dispose(): void;
-	    present(): void;
-	    setRenderToTexture(target: ITextureBase, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): void;
-	    setRenderToBackBuffer(): void;
-	    setScissorRectangle(rectangle: Rectangle): void;
-	    setTextureAt(sampler: number, texture: ITextureBase): void;
-	    setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: string): void;
-	    setProgram(program: IProgram): void;
-	    registerProgram(programData: ProgramData): void;
-	    unRegisterProgram(programData: ProgramData): void;
-	    /**
-	     * test if animation will be able to run on gpu BEFORE compiling materials
-	     * test if the shader objects supports animating the animation set in the vertex shader
-	     * if any object using this material fails to support accelerated animations for any of the shader objects,
-	     * we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
-	     */
-	    private getEnabledGPUAnimation(material, materialDataPasses);
-	    calcAnimationCode(material: StageGLMaterialBase, materialPassData: MaterialPassData): void;
-	}
-	export = ContextGLBase;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLProgramType" {
-	class ContextGLProgramType {
-	    static FRAGMENT: string;
-	    static VERTEX: string;
-	}
-	export = ContextGLProgramType;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/OpCodes" {
-	class OpCodes {
-	    static trueValue: number;
-	    static falseValue: number;
-	    static intMask: number;
-	    static drawTriangles: number;
-	    static setProgramConstant: number;
-	    static setProgram: number;
-	    static present: number;
-	    static clear: number;
-	    static initProgram: number;
-	    static initVertexBuffer: number;
-	    static initIndexBuffer: number;
-	    static configureBackBuffer: number;
-	    static uploadArrayIndexBuffer: number;
-	    static uploadArrayVertexBuffer: number;
-	    static uploadAGALBytesProgram: number;
-	    static setVertexBufferAt: number;
-	    static uploadBytesIndexBuffer: number;
-	    static uploadBytesVertexBuffer: number;
-	    static setColorMask: number;
-	    static setDepthTest: number;
-	    static disposeProgram: number;
-	    static disposeContext: number;
-	    static disposeVertexBuffer: number;
-	    static disposeIndexBuffer: number;
-	    static initTexture: number;
-	    static setTextureAt: number;
-	    static uploadBytesTexture: number;
-	    static disposeTexture: number;
-	    static setCulling: number;
-	    static setScissorRect: number;
-	    static clearScissorRect: number;
-	    static setBlendFactors: number;
-	    static setRenderToTexture: number;
-	    static clearTextureAt: number;
-	    static clearVertexBufferAt: number;
-	    static setStencilActions: number;
-	    static setStencilReferenceValue: number;
-	    static initCubeTexture: number;
-	    static disposeCubeTexture: number;
-	    static uploadBytesCubeTexture: number;
-	    static clearRenderToTexture: number;
-	    static enableErrorChecking: number;
-	}
-	export = OpCodes;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash" {
-	class ResourceBaseFlash {
-	    _pId: number;
-	    id: number;
-	    dispose(): void;
-	}
-	export = ResourceBaseFlash;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/CubeTextureFlash" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
-	import ICubeTexture = require("awayjs-stagegl/lib/core/stagegl/ICubeTexture");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
-	class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture {
-	    private _context;
-	    private _size;
-	    size: number;
-	    constructor(context: ContextStage3D, size: number, format: string, forRTT: boolean, streaming?: boolean);
-	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
-	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
-	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
-	}
-	export = CubeTextureFlash;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/IndexBufferFlash" {
-	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
-	import IIndexBuffer = require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
-	class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer {
-	    private _context;
-	    private _numIndices;
-	    constructor(context: ContextStage3D, numIndices: number);
-	    uploadFromArray(data: number[], startOffset: number, count: number): void;
-	    dispose(): void;
-	    numIndices: number;
-	}
-	export = IndexBufferFlash;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ProgramFlash" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
-	import IProgram = require("awayjs-stagegl/lib/core/stagegl/IProgram");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
-	class ProgramFlash extends ResourceBaseFlash implements IProgram {
-	    private _context;
-	    constructor(context: ContextStage3D);
-	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
-	    dispose(): void;
-	}
-	export = ProgramFlash;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/TextureFlash" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
-	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
-	class TextureFlash extends ResourceBaseFlash implements ITexture {
-	    private _context;
-	    private _width;
-	    private _height;
-	    width: number;
-	    height: number;
-	    constructor(context: ContextStage3D, width: number, height: number, format: string, forRTT: boolean, streaming?: boolean);
-	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
-	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
-	}
-	export = TextureFlash;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/VertexBufferFlash" {
-	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
-	import IVertexBuffer = require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
-	class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer {
-	    private _context;
-	    private _numVertices;
-	    private _data32PerVertex;
-	    constructor(context: ContextStage3D, numVertices: number, data32PerVertex: number);
-	    uploadFromArray(data: number[], startVertex: number, numVertices: number): void;
-	    numVertices: number;
-	    data32PerVertex: number;
-	    dispose(): void;
-	}
-	export = VertexBufferFlash;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextStage3D" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
-	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
-	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
-	import CubeTextureFlash = require("awayjs-stagegl/lib/core/stagegl/CubeTextureFlash");
-	import IContextStageGL = require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
-	import IndexBufferFlash = require("awayjs-stagegl/lib/core/stagegl/IndexBufferFlash");
-	import ProgramFlash = require("awayjs-stagegl/lib/core/stagegl/ProgramFlash");
-	import TextureFlash = require("awayjs-stagegl/lib/core/stagegl/TextureFlash");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
-	import VertexBufferFlash = require("awayjs-stagegl/lib/core/stagegl/VertexBufferFlash");
-	class ContextStage3D extends ContextGLBase implements IContextStageGL {
-	    static contexts: Object;
-	    static maxvertexconstants: number;
-	    static maxfragconstants: number;
-	    static maxtemp: number;
-	    static maxstreams: number;
-	    static maxtextures: number;
-	    static defaultsampler: Sampler;
-	    _iDriverInfo: any;
-	    private _cmdStream;
-	    private _errorCheckingEnabled;
-	    private _resources;
-	    private _oldCanvas;
-	    private _oldParent;
-	    static debug: boolean;
-	    static logStream: boolean;
-	    _iCallback: (context: IContextStageGL) => void;
-	    container: HTMLElement;
-	    driverInfo: any;
-	    errorCheckingEnabled: boolean;
-	    constructor(container: HTMLCanvasElement, stageIndex: number, callback: (context: IContextStageGL) => void, include?: Sampler);
-	    _iAddResource(resource: ResourceBaseFlash): void;
-	    _iRemoveResource(resource: ResourceBaseFlash): void;
-	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): TextureFlash;
-	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): CubeTextureFlash;
-	    setTextureAt(sampler: number, texture: ResourceBaseFlash): void;
-	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): void;
-	    setStencilActions(triangleFace?: string, compareMode?: string, actionOnBothPass?: string, actionOnDepthFail?: string, actionOnDepthPassStencilFail?: string): void;
-	    setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number): void;
-	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): void;
-	    drawTriangles(indexBuffer: IndexBufferFlash, firstIndex?: number, numTriangles?: number): void;
-	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
-	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): void;
-	    setProgram(program: ProgramFlash): void;
-	    present(): void;
-	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
-	    createProgram(): ProgramFlash;
-	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferFlash;
-	    createIndexBuffer(numIndices: number): IndexBufferFlash;
-	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
-	    drawToBitmapData(destination: BitmapData): void;
-	    setVertexBufferAt(index: number, buffer: VertexBufferFlash, bufferOffset?: number, format?: string): void;
-	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
-	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
-	    setRenderToTexture(target: ResourceBaseFlash, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): void;
-	    setRenderToBackBuffer(): void;
-	    setScissorRectangle(rectangle: Rectangle): void;
-	    setDepthTest(depthMask: boolean, passCompareMode: string): void;
-	    dispose(): void;
-	    addStream(stream: string): void;
-	    execute(): number;
-	}
-	export = ContextStage3D;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLMipFilter" {
-	class ContextGLMipFilter {
-	    static MIPLINEAR: string;
-	    static MIPNEAREST: string;
-	    static MIPNONE: string;
-	}
-	export = ContextGLMipFilter;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLTextureFilter" {
-	class ContextGLTextureFilter {
-	    static LINEAR: string;
-	    static NEAREST: string;
-	}
-	export = ContextGLTextureFilter;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/ContextGLWrapMode" {
-	class ContextGLWrapMode {
-	    static CLAMP: string;
-	    static REPEAT: string;
-	}
-	export = ContextGLWrapMode;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/TextureBaseWebGL" {
-	class TextureBaseWebGL {
-	    textureType: string;
-	    _gl: WebGLRenderingContext;
-	    constructor(gl: WebGLRenderingContext);
-	    dispose(): void;
-	    glTexture: WebGLTexture;
-	}
-	export = TextureBaseWebGL;
-	
-}
-declare module "awayjs-stagegl/lib/core/stagegl/CubeTextureWebGL" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	import ICubeTexture = require("awayjs-stagegl/lib/core/stagegl/ICubeTexture");
-	import TextureBaseWebGL = require("awayjs-stagegl/lib/core/stagegl/TextureBaseWebGL");
-	class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture {
-	    private _textureSelectorDictionary;
-	    textureType: string;
-	    private _texture;
-	    private _size;
-	    constructor(gl: WebGLRenderingContext, size: number);
-	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
-	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
-	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
-	    size: number;
-	    glTexture: WebGLTexture;
-	}
-	export = CubeTextureWebGL;
-	
-}
 declare module "awayjs-stagegl/lib/core/stagegl/IndexBufferWebGL" {
 	import IIndexBuffer = require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
 	class IndexBufferWebGL implements IIndexBuffer {
@@ -2497,104 +2202,6 @@ declare module "awayjs-stagegl/lib/core/stagegl/IndexBufferWebGL" {
 	    glBuffer: WebGLBuffer;
 	}
 	export = IndexBufferWebGL;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/Header" {
-	class Header {
-	    progid: number;
-	    version: number;
-	    type: string;
-	    constructor();
-	}
-	export = Header;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/Destination" {
-	class Destination {
-	    mask: number;
-	    regnum: number;
-	    regtype: number;
-	    dim: number;
-	    constructor();
-	}
-	export = Destination;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/Token" {
-	import Destination = require("awayjs-stagegl/lib/aglsl/Destination");
-	class Token {
-	    dest: Destination;
-	    opcode: number;
-	    a: Destination;
-	    b: Destination;
-	    constructor();
-	}
-	export = Token;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/Description" {
-	import Header = require("awayjs-stagegl/lib/aglsl/Header");
-	import Token = require("awayjs-stagegl/lib/aglsl/Token");
-	class Description {
-	    regread: any[];
-	    regwrite: any[];
-	    hasindirect: boolean;
-	    writedepth: boolean;
-	    hasmatrix: boolean;
-	    samplers: any[];
-	    tokens: Token[];
-	    header: Header;
-	    constructor();
-	}
-	export = Description;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/OpLUT" {
-	class OpLUT {
-	    s: string;
-	    flags: number;
-	    dest: boolean;
-	    a: boolean;
-	    b: boolean;
-	    matrixwidth: number;
-	    matrixheight: number;
-	    ndwm: boolean;
-	    scalar: boolean;
-	    dm: boolean;
-	    lod: boolean;
-	    constructor(s: string, flags: number, dest: boolean, a: boolean, b: boolean, matrixwidth: number, matrixheight: number, ndwm: boolean, scaler: boolean, dm: boolean, lod: boolean);
-	}
-	export = OpLUT;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/Mapping" {
-	import OpLUT = require("awayjs-stagegl/lib/aglsl/OpLUT");
-	class Mapping {
-	    static agal2glsllut: OpLUT[];
-	    constructor(include?: OpLUT);
-	}
-	export = Mapping;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/AGALTokenizer" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	import Description = require("awayjs-stagegl/lib/aglsl/Description");
-	class AGALTokenizer {
-	    constructor();
-	    decribeAGALByteArray(bytes: ByteArray): Description;
-	    readReg(s: any, mh: any, desc: any, bytes: any): void;
-	}
-	export = AGALTokenizer;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
-	import Description = require("awayjs-stagegl/lib/aglsl/Description");
-	class AGLSLParser {
-	    parse(desc: Description): string;
-	    regtostring(regtype: number, regnum: number, desc: Description, tag: any): string;
-	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
-	}
-	export = AGLSLParser;
 	
 }
 declare module "awayjs-stagegl/lib/core/stagegl/ProgramWebGL" {
@@ -2617,7 +2224,7 @@ declare module "awayjs-stagegl/lib/core/stagegl/ProgramWebGL" {
 	
 }
 declare module "awayjs-stagegl/lib/core/stagegl/TextureWebGL" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
 	import TextureBaseWebGL = require("awayjs-stagegl/lib/core/stagegl/TextureBaseWebGL");
@@ -2669,9 +2276,9 @@ declare module "awayjs-stagegl/lib/core/stagegl/VertexBufferWebGL" {
 	
 }
 declare module "awayjs-stagegl/lib/core/stagegl/ContextWebGL" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
 	import CubeTextureWebGL = require("awayjs-stagegl/lib/core/stagegl/CubeTextureWebGL");
 	import IContextStageGL = require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
@@ -2737,10 +2344,10 @@ declare module "awayjs-stagegl/lib/core/stagegl/ContextWebGL" {
 	
 }
 declare module "awayjs-stagegl/lib/core/base/Stage" {
-	import IContext = require("awayjs-core/lib/core/display/IContext");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
 	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import IContext = require("awayjs-display/lib/display/IContext");
 	import StageManager = require("awayjs-stagegl/lib/managers/StageManager");
 	/**
 	 * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -2885,114 +2492,507 @@ declare module "awayjs-stagegl/lib/core/base/Stage" {
 	export = Stage;
 	
 }
-declare module "awayjs-stagegl/lib/errors/AnimationSetError" {
-	import Error = require("awayjs-core/lib/errors/Error");
-	class AnimationSetError extends Error {
-	    constructor(message: string);
+declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
+	class Sampler {
+	    shift: number;
+	    mask: number;
+	    value: number;
+	    constructor(shift: number, mask: number, value: number);
 	}
-	export = AnimationSetError;
+	export = Sampler;
 	
 }
-declare module "awayjs-stagegl/lib/animators/AnimationSetBase" {
-	import AnimationNodeBase = require("awayjs-core/lib/animators/nodes/AnimationNodeBase");
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import IAsset = require("awayjs-core/lib/core/library/IAsset");
-	import NamedAssetBase = require("awayjs-core/lib/core/library/NamedAssetBase");
-	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
+declare module "awayjs-stagegl/lib/aglsl/assembler/Flags" {
+	class Flags {
+	    simple: boolean;
+	    horizontal: boolean;
+	    fragonly: boolean;
+	    matrix: boolean;
+	}
+	export = Flags;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/FS" {
+	class FS {
+	    format: string;
+	    size: number;
+	}
+	export = FS;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/Opcode" {
+	import Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
+	import FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
 	/**
-	 * Provides an abstract base class for data set classes that hold animation data for use in animator classes.
 	 *
-	 * @see away.animators.AnimatorBase
 	 */
-	class AnimationSetBase extends NamedAssetBase implements IAsset {
-	    private _usesCPU;
-	    private _animations;
-	    private _animationNames;
-	    private _animationDictionary;
+	class Opcode {
+	    dest: string;
+	    a: FS;
+	    b: FS;
+	    opcode: number;
+	    flags: Flags;
+	    constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean);
+	}
+	export = Opcode;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap" {
+	class OpcodeMap {
+	    private static _map;
+	    static map: Object[];
 	    constructor();
+	}
+	export = OpcodeMap;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/Part" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	class Part {
+	    name: string;
+	    version: number;
+	    data: ByteArray;
+	    constructor(name?: string, version?: number);
+	}
+	export = Part;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/RegMap" {
+	class RegMap {
+	    private static _map;
+	    static map: any[];
+	    constructor();
+	}
+	export = RegMap;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/SamplerMap" {
+	class SamplerMap {
+	    private static _map;
+	    static map: Object[];
+	    constructor();
+	}
+	export = SamplerMap;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler" {
+	import Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
+	class AGALMiniAssembler {
+	    r: Object;
+	    cur: Part;
+	    constructor();
+	    assemble(source: string, ext_part?: any, ext_version?: any): Object;
+	    private processLine(line, linenr);
+	    emitHeader(pr: Part): void;
+	    emitOpcode(pr: Part, opcode: any): void;
+	    emitZeroDword(pr: Part): void;
+	    emitZeroQword(pr: any): void;
+	    emitDest(pr: any, token: any, opdest: any): boolean;
+	    stringToMask(s: string): number;
+	    stringToSwizzle(s: any): number;
+	    emitSampler(pr: Part, token: any, opsrc: any, opts: any): boolean;
+	    emitSource(pr: any, token: any, opsrc: any): boolean;
+	    addHeader(partname: any, version: any): void;
+	}
+	export = AGALMiniAssembler;
+	
+}
+declare module "awayjs-stagegl/lib/core/pool/TextureDataPool" {
+	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import TextureData = require("awayjs-stagegl/lib/core/pool/TextureData");
+	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
+	/**
+	 * @class away.pool.TextureDataPool
+	 */
+	class TextureDataPool {
+	    private _pool;
+	    private _context;
 	    /**
-	     * Retrieves a temporary GPU register that's still free.
+	     * //TODO
 	     *
-	     * @param exclude An array of non-free temporary registers.
-	     * @param excludeAnother An additional register that's not free.
-	     * @return A temporary register that can be used.
+	     * @param textureDataClass
 	     */
-	    _pFindTempReg(exclude: string[], excludeAnother?: string): string;
+	    constructor(context: ContextGLBase);
 	    /**
-	     * Indicates whether the properties of the animation data contained within the set combined with
-	     * the vertex registers already in use on shading materials allows the animation data to utilise
-	     * GPU calls.
-	     */
-	    usesCPU: boolean;
-	    /**
-	     * Called by the material to reset the GPU indicator before testing whether register space in the shader
-	     * is available for running GPU-based animation code.
+	     * //TODO
 	     *
-	     * @private
+	     * @param materialOwner
+	     * @returns ITexture
 	     */
-	    resetGPUCompatibility(): void;
-	    cancelGPUCompatibility(): void;
+	    getItem(textureProxy: TextureProxyBase): TextureData;
 	    /**
-	     * @inheritDoc
-	     */
-	    getAGALVertexCode(shaderObject: ShaderObjectBase): string;
-	    /**
-	     * @inheritDoc
-	     */
-	    activate(shaderObject: ShaderObjectBase, stage: Stage): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    deactivate(shaderObject: ShaderObjectBase, stage: Stage): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    getAGALFragmentCode(shaderObject: ShaderObjectBase, shadedTarget: string): string;
-	    /**
-	     * @inheritDoc
-	     */
-	    getAGALUVCode(shaderObject: ShaderObjectBase): string;
-	    /**
-	     * @inheritDoc
-	     */
-	    doneAGALCode(shaderObject: ShaderObjectBase): void;
-	    /**
-	     * @inheritDoc
-	     */
-	    assetType: string;
-	    /**
-	     * Returns a vector of animation state objects that make up the contents of the animation data set.
-	     */
-	    animations: AnimationNodeBase[];
-	    /**
-	     * Returns a vector of animation state objects that make up the contents of the animation data set.
-	     */
-	    animationNames: string[];
-	    /**
-	     * Check to determine whether a state is registered in the animation set under the given name.
+	     * //TODO
 	     *
-	     * @param stateName The name of the animation state object to be checked.
+	     * @param materialOwner
 	     */
-	    hasAnimation(name: string): boolean;
+	    disposeItem(textureProxy: TextureProxyBase): void;
+	}
+	export = TextureDataPool;
+	
+}
+declare module "awayjs-stagegl/lib/core/pool/TextureData" {
+	import ITextureData = require("awayjs-core/lib/pool/ITextureData");
+	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import TextureDataPool = require("awayjs-stagegl/lib/core/pool/TextureDataPool");
+	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
+	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.TextureDataBase
+	 */
+	class TextureData implements ITextureData {
+	    private _pool;
+	    context: ContextGLBase;
+	    texture: ITextureBase;
+	    textureProxy: TextureProxyBase;
+	    invalid: boolean;
+	    constructor(pool: TextureDataPool, context: ContextGLBase, textureProxy: TextureProxyBase);
 	    /**
-	     * Retrieves the animation state object registered in the animation data set under the given name.
 	     *
-	     * @param stateName The name of the animation state object to be retrieved.
-	     */
-	    getAnimation(name: string): AnimationNodeBase;
-	    /**
-	     * Adds an animation state object to the aniamtion data set under the given name.
-	     *
-	     * @param stateName The name under which the animation state object will be stored.
-	     * @param animationState The animation state object to be staored in the set.
-	     */
-	    addAnimation(node: AnimationNodeBase): void;
-	    /**
-	     * Cleans up any resources used by the current object.
 	     */
 	    dispose(): void;
+	    /**
+	     *
+	     */
+	    invalidate(): void;
 	}
-	export = AnimationSetBase;
+	export = TextureData;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLTextureFormat" {
+	class ContextGLTextureFormat {
+	    static BGRA: string;
+	    static BGRA_PACKED: string;
+	    static BGR_PACKED: string;
+	    static COMPRESSED: string;
+	    static COMPRESSED_ALPHA: string;
+	}
+	export = ContextGLTextureFormat;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ContextGLBase" {
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import CubeTextureBase = require("awayjs-core/lib/textures/CubeTextureBase");
+	import RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
+	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
+	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import IContext = require("awayjs-display/lib/display/IContext");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
+	import IndexData = require("awayjs-stagegl/lib/core/pool/IndexData");
+	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
+	import ProgramData = require("awayjs-stagegl/lib/core/pool/ProgramData");
+	import MaterialData = require("awayjs-stagegl/lib/core/pool/MaterialData");
+	import VertexData = require("awayjs-stagegl/lib/core/pool/VertexData");
+	import ICubeTexture = require("awayjs-stagegl/lib/core/stagegl/ICubeTexture");
+	import IIndexBuffer = require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
+	import IProgram = require("awayjs-stagegl/lib/core/stagegl/IProgram");
+	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
+	import ITextureBase = require("awayjs-stagegl/lib/core/stagegl/ITextureBase");
+	import IVertexBuffer = require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+	/**
+	 * Stage provides a proxy class to handle the creation and attachment of the Context
+	 * (and in turn the back buffer) it uses. Stage should never be created directly,
+	 * but requested through StageManager.
+	 *
+	 * @see away.managers.StageManager
+	 *
+	 */
+	class ContextGLBase implements IContext {
+	    private _programData;
+	    private _numUsedStreams;
+	    private _numUsedTextures;
+	    _pContainer: HTMLElement;
+	    private _texturePool;
+	    private _materialDataPool;
+	    private _programDataPool;
+	    private _width;
+	    private _height;
+	    private _stageIndex;
+	    private _antiAlias;
+	    private _enableDepthAndStencil;
+	    private _renderTarget;
+	    private _renderSurfaceSelector;
+	    container: HTMLElement;
+	    constructor(stageIndex: number);
+	    setRenderTarget(target: TextureProxyBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
+	    getRenderTexture(textureProxy: RenderTexture): ITextureBase;
+	    getProgram(materialPassData: MaterialPassData): ProgramData;
+	    /**
+	     *
+	     * @param material
+	     */
+	    getMaterial(material: StageGLMaterialBase, profile: string): MaterialData;
+	    /**
+	     * Assigns an attribute stream
+	     *
+	     * @param index The attribute stream index for the vertex shader
+	     * @param buffer
+	     * @param offset
+	     * @param stride
+	     * @param format
+	     */
+	    activateBuffer(index: number, buffer: VertexData, offset: number, format: string): void;
+	    disposeVertexData(buffer: VertexData): void;
+	    activateRenderTexture(index: number, textureProxy: RenderTexture): void;
+	    activateMaterialPass(materialPassData: MaterialPassData, stage: Stage, camera: Camera): void;
+	    deactivateMaterialPass(materialPassData: MaterialPassData, stage: Stage): void;
+	    activateTexture(index: number, textureProxy: Texture2DBase): void;
+	    activateCubeTexture(index: number, textureProxy: CubeTextureBase): void;
+	    /**
+	     * Retrieves the VertexBuffer object that contains triangle indices.
+	     * @param context The ContextWeb for which we request the buffer
+	     * @return The VertexBuffer object that contains triangle indices.
+	     */
+	    getIndexBuffer(buffer: IndexData): IIndexBuffer;
+	    disposeIndexData(buffer: IndexData): void;
+	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
+	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
+	    createIndexBuffer(numIndices: number): IIndexBuffer;
+	    createVertexBuffer(numVertices: number, data32PerVertex: number): IVertexBuffer;
+	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
+	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
+	    createProgram(): IProgram;
+	    dispose(): void;
+	    present(): void;
+	    setRenderToTexture(target: ITextureBase, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): void;
+	    setRenderToBackBuffer(): void;
+	    setScissorRectangle(rectangle: Rectangle): void;
+	    setTextureAt(sampler: number, texture: ITextureBase): void;
+	    setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: string): void;
+	    setProgram(program: IProgram): void;
+	    registerProgram(programData: ProgramData): void;
+	    unRegisterProgram(programData: ProgramData): void;
+	    /**
+	     * test if animation will be able to run on gpu BEFORE compiling materials
+	     * test if the shader objects supports animating the animation set in the vertex shader
+	     * if any object using this material fails to support accelerated animations for any of the shader objects,
+	     * we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
+	     */
+	    private getEnabledGPUAnimation(material, materialDataPasses);
+	    calcAnimationCode(material: StageGLMaterialBase, materialPassData: MaterialPassData): void;
+	}
+	export = ContextGLBase;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/OpCodes" {
+	class OpCodes {
+	    static trueValue: number;
+	    static falseValue: number;
+	    static intMask: number;
+	    static drawTriangles: number;
+	    static setProgramConstant: number;
+	    static setProgram: number;
+	    static present: number;
+	    static clear: number;
+	    static initProgram: number;
+	    static initVertexBuffer: number;
+	    static initIndexBuffer: number;
+	    static configureBackBuffer: number;
+	    static uploadArrayIndexBuffer: number;
+	    static uploadArrayVertexBuffer: number;
+	    static uploadAGALBytesProgram: number;
+	    static setVertexBufferAt: number;
+	    static uploadBytesIndexBuffer: number;
+	    static uploadBytesVertexBuffer: number;
+	    static setColorMask: number;
+	    static setDepthTest: number;
+	    static disposeProgram: number;
+	    static disposeContext: number;
+	    static disposeVertexBuffer: number;
+	    static disposeIndexBuffer: number;
+	    static initTexture: number;
+	    static setTextureAt: number;
+	    static uploadBytesTexture: number;
+	    static disposeTexture: number;
+	    static setCulling: number;
+	    static setScissorRect: number;
+	    static clearScissorRect: number;
+	    static setBlendFactors: number;
+	    static setRenderToTexture: number;
+	    static clearTextureAt: number;
+	    static clearVertexBufferAt: number;
+	    static setStencilActions: number;
+	    static setStencilReferenceValue: number;
+	    static initCubeTexture: number;
+	    static disposeCubeTexture: number;
+	    static uploadBytesCubeTexture: number;
+	    static clearRenderToTexture: number;
+	    static enableErrorChecking: number;
+	}
+	export = OpCodes;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash" {
+	class ResourceBaseFlash {
+	    _pId: number;
+	    id: number;
+	    dispose(): void;
+	}
+	export = ResourceBaseFlash;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/CubeTextureFlash" {
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
+	import ICubeTexture = require("awayjs-stagegl/lib/core/stagegl/ICubeTexture");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
+	class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture {
+	    private _context;
+	    private _size;
+	    size: number;
+	    constructor(context: ContextStage3D, size: number, format: string, forRTT: boolean, streaming?: boolean);
+	    dispose(): void;
+	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
+	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
+	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
+	}
+	export = CubeTextureFlash;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/IndexBufferFlash" {
+	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
+	import IIndexBuffer = require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
+	class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer {
+	    private _context;
+	    private _numIndices;
+	    constructor(context: ContextStage3D, numIndices: number);
+	    uploadFromArray(data: number[], startOffset: number, count: number): void;
+	    dispose(): void;
+	    numIndices: number;
+	}
+	export = IndexBufferFlash;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ProgramFlash" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
+	import IProgram = require("awayjs-stagegl/lib/core/stagegl/IProgram");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
+	class ProgramFlash extends ResourceBaseFlash implements IProgram {
+	    private _context;
+	    constructor(context: ContextStage3D);
+	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
+	    dispose(): void;
+	}
+	export = ProgramFlash;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/TextureFlash" {
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
+	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
+	class TextureFlash extends ResourceBaseFlash implements ITexture {
+	    private _context;
+	    private _width;
+	    private _height;
+	    width: number;
+	    height: number;
+	    constructor(context: ContextStage3D, width: number, height: number, format: string, forRTT: boolean, streaming?: boolean);
+	    dispose(): void;
+	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
+	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	}
+	export = TextureFlash;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/VertexBufferFlash" {
+	import ContextStage3D = require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");
+	import IVertexBuffer = require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
+	class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer {
+	    private _context;
+	    private _numVertices;
+	    private _data32PerVertex;
+	    constructor(context: ContextStage3D, numVertices: number, data32PerVertex: number);
+	    uploadFromArray(data: number[], startVertex: number, numVertices: number): void;
+	    numVertices: number;
+	    data32PerVertex: number;
+	    dispose(): void;
+	}
+	export = VertexBufferFlash;
+	
+}
+declare module "awayjs-stagegl/lib/core/stagegl/ContextStage3D" {
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
+	import ContextGLBase = require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
+	import CubeTextureFlash = require("awayjs-stagegl/lib/core/stagegl/CubeTextureFlash");
+	import IContextStageGL = require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
+	import IndexBufferFlash = require("awayjs-stagegl/lib/core/stagegl/IndexBufferFlash");
+	import ProgramFlash = require("awayjs-stagegl/lib/core/stagegl/ProgramFlash");
+	import TextureFlash = require("awayjs-stagegl/lib/core/stagegl/TextureFlash");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/core/stagegl/ResourceBaseFlash");
+	import VertexBufferFlash = require("awayjs-stagegl/lib/core/stagegl/VertexBufferFlash");
+	class ContextStage3D extends ContextGLBase implements IContextStageGL {
+	    static contexts: Object;
+	    static maxvertexconstants: number;
+	    static maxfragconstants: number;
+	    static maxtemp: number;
+	    static maxstreams: number;
+	    static maxtextures: number;
+	    static defaultsampler: Sampler;
+	    _iDriverInfo: any;
+	    private _cmdStream;
+	    private _errorCheckingEnabled;
+	    private _resources;
+	    private _oldCanvas;
+	    private _oldParent;
+	    static debug: boolean;
+	    static logStream: boolean;
+	    _iCallback: (context: IContextStageGL) => void;
+	    container: HTMLElement;
+	    driverInfo: any;
+	    errorCheckingEnabled: boolean;
+	    constructor(container: HTMLCanvasElement, stageIndex: number, callback: (context: IContextStageGL) => void, include?: Sampler);
+	    _iAddResource(resource: ResourceBaseFlash): void;
+	    _iRemoveResource(resource: ResourceBaseFlash): void;
+	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): TextureFlash;
+	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): CubeTextureFlash;
+	    setTextureAt(sampler: number, texture: ResourceBaseFlash): void;
+	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): void;
+	    setStencilActions(triangleFace?: string, compareMode?: string, actionOnBothPass?: string, actionOnDepthFail?: string, actionOnDepthPassStencilFail?: string): void;
+	    setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number): void;
+	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): void;
+	    drawTriangles(indexBuffer: IndexBufferFlash, firstIndex?: number, numTriangles?: number): void;
+	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
+	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): void;
+	    setProgram(program: ProgramFlash): void;
+	    present(): void;
+	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
+	    createProgram(): ProgramFlash;
+	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferFlash;
+	    createIndexBuffer(numIndices: number): IndexBufferFlash;
+	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
+	    drawToBitmapData(destination: BitmapData): void;
+	    setVertexBufferAt(index: number, buffer: VertexBufferFlash, bufferOffset?: number, format?: string): void;
+	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
+	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
+	    setRenderToTexture(target: ResourceBaseFlash, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): void;
+	    setRenderToBackBuffer(): void;
+	    setScissorRectangle(rectangle: Rectangle): void;
+	    setDepthTest(depthMask: boolean, passCompareMode: string): void;
+	    dispose(): void;
+	    addStream(stream: string): void;
+	    execute(): number;
+	}
+	export = ContextStage3D;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
+	import Description = require("awayjs-stagegl/lib/aglsl/Description");
+	class AGLSLParser {
+	    parse(desc: Description): string;
+	    regtostring(regtype: number, regnum: number, desc: Description, tag: any): string;
+	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
+	}
+	export = AGLSLParser;
 	
 }
 declare module "awayjs-stagegl/lib/events/ShadingMethodEvent" {
@@ -3005,8 +3005,8 @@ declare module "awayjs-stagegl/lib/events/ShadingMethodEvent" {
 	
 }
 declare module "awayjs-stagegl/lib/filters/tasks/Filter3DTaskBase" {
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import IProgram = require("awayjs-stagegl/lib/core/stagegl/IProgram");
 	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
 	class Filter3DTaskBase {
@@ -3045,8 +3045,8 @@ declare module "awayjs-stagegl/lib/filters/tasks/Filter3DTaskBase" {
 	
 }
 declare module "awayjs-stagegl/lib/filters/Filter3DBase" {
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
 	import Filter3DTaskBase = require("awayjs-stagegl/lib/filters/tasks/Filter3DTaskBase");
 	class Filter3DBase {
@@ -3069,9 +3069,9 @@ declare module "awayjs-stagegl/lib/filters/Filter3DBase" {
 	
 }
 declare module "awayjs-stagegl/lib/managers/RTTBufferManager" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import IIndexBuffer = require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");
 	import IVertexBuffer = require("awayjs-stagegl/lib/core/stagegl/IVertexBuffer");
 	class RTTBufferManager extends EventDispatcher {
@@ -3132,9 +3132,9 @@ declare module "awayjs-stagegl/lib/materials/passes/LineBasicPass" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/LineBasicMaterial" {
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
@@ -3185,7 +3185,7 @@ declare module "awayjs-stagegl/lib/core/stagegl/ContextGLProfile" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/passes/ILightingPassStageGL" {
-	import LightPickerBase = require("awayjs-core/lib/materials/lightpickers/LightPickerBase");
+	import LightPickerBase = require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
 	import ShaderLightingObject = require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
 	import ShaderRegisterData = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterData");
@@ -3296,10 +3296,10 @@ declare module "awayjs-stagegl/lib/materials/compilation/ShaderLightingCompiler"
 	
 }
 declare module "awayjs-stagegl/lib/materials/compilation/ShaderLightingObject" {
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import LightPickerBase = require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import LightPickerBase = require("awayjs-core/lib/materials/lightpickers/LightPickerBase");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 	import ShaderCompilerBase = require("awayjs-stagegl/lib/materials/compilation/ShaderCompilerBase");
@@ -3467,10 +3467,10 @@ declare module "awayjs-stagegl/lib/materials/utils/ShaderCompilerHelper" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/SkyboxMaterial" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import CubeTextureBase = require("awayjs-core/lib/textures/CubeTextureBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
@@ -3516,8 +3516,8 @@ declare module "awayjs-stagegl/lib/materials/SkyboxMaterial" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/passes/TriangleBasicPass" {
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
@@ -3563,9 +3563,9 @@ declare module "awayjs-stagegl/lib/materials/passes/TriangleBasicPass" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/TriangleMaterialBase" {
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
@@ -3658,9 +3658,9 @@ declare module "awayjs-stagegl/lib/materials/TriangleMaterialMode" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/ShadingMethodBase" {
+	import NamedAssetBase = require("awayjs-core/lib/library/NamedAssetBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import NamedAssetBase = require("awayjs-core/lib/core/library/NamedAssetBase");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
@@ -3927,9 +3927,9 @@ declare module "awayjs-stagegl/lib/materials/methods/LightingMethodBase" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/DiffuseBasicMethod" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderLightingObject = require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
@@ -4038,7 +4038,7 @@ declare module "awayjs-stagegl/lib/materials/methods/DiffuseBasicMethod" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/EffectMethodBase" {
-	import IAsset = require("awayjs-core/lib/core/library/IAsset");
+	import IAsset = require("awayjs-core/lib/library/IAsset");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
@@ -4068,8 +4068,8 @@ declare module "awayjs-stagegl/lib/materials/methods/EffectMethodBase" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/NormalBasicMethod" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
@@ -4125,9 +4125,9 @@ declare module "awayjs-stagegl/lib/materials/methods/NormalBasicMethod" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/ShadowMapMethodBase" {
-	import LightBase = require("awayjs-core/lib/core/base/LightBase");
-	import IAsset = require("awayjs-core/lib/core/library/IAsset");
-	import ShadowMapperBase = require("awayjs-core/lib/materials/shadowmappers/ShadowMapperBase");
+	import IAsset = require("awayjs-core/lib/library/IAsset");
+	import LightBase = require("awayjs-display/lib/base/LightBase");
+	import ShadowMapperBase = require("awayjs-display/lib/materials/shadowmappers/ShadowMapperBase");
 	import ShadingMethodBase = require("awayjs-stagegl/lib/materials/methods/ShadingMethodBase");
 	/**
 	 * ShadowMapMethodBase provides an abstract base method for shadow map methods.
@@ -4164,8 +4164,8 @@ declare module "awayjs-stagegl/lib/materials/methods/ShadowMapMethodBase" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/SpecularBasicMethod" {
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderLightingObject = require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
@@ -4255,8 +4255,8 @@ declare module "awayjs-stagegl/lib/materials/methods/SpecularBasicMethod" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/EffectColorTransformMethod" {
+	import ColorTransform = require("awayjs-core/lib/geom/ColorTransform");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import ColorTransform = require("awayjs-core/lib/core/geom/ColorTransform");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
@@ -4290,10 +4290,10 @@ declare module "awayjs-stagegl/lib/materials/methods/EffectColorTransformMethod"
 	
 }
 declare module "awayjs-stagegl/lib/materials/passes/TriangleMethodPass" {
+	import ColorTransform = require("awayjs-core/lib/geom/ColorTransform");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import ColorTransform = require("awayjs-core/lib/core/geom/ColorTransform");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
@@ -4481,7 +4481,7 @@ declare module "awayjs-stagegl/lib/materials/passes/TriangleMethodPass" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/TriangleMethodMaterial" {
-	import ColorTransform = require("awayjs-core/lib/core/geom/ColorTransform");
+	import ColorTransform = require("awayjs-core/lib/geom/ColorTransform");
 	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
 	import AmbientBasicMethod = require("awayjs-stagegl/lib/materials/methods/AmbientBasicMethod");
 	import DiffuseBasicMethod = require("awayjs-stagegl/lib/materials/methods/DiffuseBasicMethod");
@@ -4662,9 +4662,9 @@ declare module "awayjs-stagegl/lib/materials/TriangleMethodMaterial" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/BillboardRenderable" {
-	import SubGeometryBase = require("awayjs-core/lib/core/base/SubGeometryBase");
-	import RenderablePool = require("awayjs-core/lib/core/pool/RenderablePool");
-	import Billboard = require("awayjs-core/lib/entities/Billboard");
+	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
+	import RenderablePool = require("awayjs-display/lib/pool/RenderablePool");
+	import Billboard = require("awayjs-display/lib/entities/Billboard");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	/**
 	 * @class away.pool.RenderableListItem
@@ -4697,10 +4697,10 @@ declare module "awayjs-stagegl/lib/core/pool/BillboardRenderable" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/LineSubMeshRenderable" {
-	import IMaterialOwner = require("awayjs-core/lib/core/base/IMaterialOwner");
-	import LineSubMesh = require("awayjs-core/lib/core/base/LineSubMesh");
-	import LineSubGeometry = require("awayjs-core/lib/core/base/LineSubGeometry");
-	import RenderablePool = require("awayjs-core/lib/core/pool/RenderablePool");
+	import IMaterialOwner = require("awayjs-display/lib/base/IMaterialOwner");
+	import LineSubMesh = require("awayjs-display/lib/base/LineSubMesh");
+	import LineSubGeometry = require("awayjs-display/lib/base/LineSubGeometry");
+	import RenderablePool = require("awayjs-display/lib/pool/RenderablePool");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	/**
 	 * @class away.pool.LineSubMeshRenderable
@@ -4746,9 +4746,9 @@ declare module "awayjs-stagegl/lib/core/pool/LineSubMeshRenderable" {
 	
 }
 declare module "awayjs-stagegl/lib/core/pool/SkyboxRenderable" {
-	import TriangleSubGeometry = require("awayjs-core/lib/core/base/TriangleSubGeometry");
-	import RenderablePool = require("awayjs-core/lib/core/pool/RenderablePool");
-	import Skybox = require("awayjs-core/lib/entities/Skybox");
+	import TriangleSubGeometry = require("awayjs-display/lib/base/TriangleSubGeometry");
+	import RenderablePool = require("awayjs-display/lib/pool/RenderablePool");
+	import Skybox = require("awayjs-display/lib/entities/Skybox");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	/**
 	 * @class away.pool.SkyboxRenderable
@@ -4781,10 +4781,10 @@ declare module "awayjs-stagegl/lib/core/pool/SkyboxRenderable" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/utils/DefaultMaterialManager" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import IMaterialOwner = require("awayjs-core/lib/core/base/IMaterialOwner");
-	import MaterialBase = require("awayjs-core/lib/materials/MaterialBase");
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
 	import BitmapTexture = require("awayjs-core/lib/textures/BitmapTexture");
+	import IMaterialOwner = require("awayjs-display/lib/base/IMaterialOwner");
+	import MaterialBase = require("awayjs-display/lib/materials/MaterialBase");
 	class DefaultMaterialManager {
 	    private static _defaultBitmapData;
 	    private static _defaultTriangleMaterial;
@@ -4801,21 +4801,21 @@ declare module "awayjs-stagegl/lib/materials/utils/DefaultMaterialManager" {
 	
 }
 declare module "awayjs-stagegl/lib/core/render/RendererBase" {
-	import BitmapData = require("awayjs-core/lib/core/base/BitmapData");
-	import LineSubMesh = require("awayjs-core/lib/core/base/LineSubMesh");
-	import TriangleSubMesh = require("awayjs-core/lib/core/base/TriangleSubMesh");
-	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
-	import Vector3D = require("awayjs-core/lib/core/geom/Vector3D");
-	import IEntitySorter = require("awayjs-core/lib/core/sort/IEntitySorter");
-	import Billboard = require("awayjs-core/lib/entities/Billboard");
-	import Camera = require("awayjs-core/lib/entities/Camera");
+	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
-	import StageEvent = require("awayjs-core/lib/events/StageEvent");
 	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
-	import ICollector = require("awayjs-core/lib/core/traverse/ICollector");
-	import ShadowCasterCollector = require("awayjs-core/lib/core/traverse/ShadowCasterCollector");
+	import LineSubMesh = require("awayjs-display/lib/base/LineSubMesh");
+	import TriangleSubMesh = require("awayjs-display/lib/base/TriangleSubMesh");
+	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
+	import IEntitySorter = require("awayjs-display/lib/sort/IEntitySorter");
+	import Billboard = require("awayjs-display/lib/entities/Billboard");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import StageEvent = require("awayjs-display/lib/events/StageEvent");
+	import ICollector = require("awayjs-display/lib/traverse/ICollector");
+	import ShadowCasterCollector = require("awayjs-display/lib/traverse/ShadowCasterCollector");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import IContextStageGL = require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
 	import RTTBufferManager = require("awayjs-stagegl/lib/managers/RTTBufferManager");
@@ -5006,11 +5006,11 @@ declare module "awayjs-stagegl/lib/core/render/RendererBase" {
 	
 }
 declare module "awayjs-stagegl/lib/core/render/DepthRenderer" {
-	import Camera = require("awayjs-core/lib/entities/Camera");
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
-	import EntityCollector = require("awayjs-core/lib/core/traverse/EntityCollector");
-	import ShadowCasterCollector = require("awayjs-core/lib/core/traverse/ShadowCasterCollector");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
+	import EntityCollector = require("awayjs-display/lib/traverse/EntityCollector");
+	import ShadowCasterCollector = require("awayjs-display/lib/traverse/ShadowCasterCollector");
 	import RendererBase = require("awayjs-stagegl/lib/core/render/RendererBase");
 	import MaterialPassBase = require("awayjs-stagegl/lib/materials/passes/MaterialPassBase");
 	/**
@@ -5046,8 +5046,8 @@ declare module "awayjs-stagegl/lib/core/render/DepthRenderer" {
 	
 }
 declare module "awayjs-stagegl/lib/core/render/Filter3DRenderer" {
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import ITexture = require("awayjs-stagegl/lib/core/stagegl/ITexture");
 	import Filter3DBase = require("awayjs-stagegl/lib/filters/Filter3DBase");
 	/**
@@ -5077,9 +5077,9 @@ declare module "awayjs-stagegl/lib/core/render/Filter3DRenderer" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/passes/DepthMapPass" {
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Matrix3D = require("awayjs-core/lib/core/geom/Matrix3D");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
@@ -5118,8 +5118,8 @@ declare module "awayjs-stagegl/lib/materials/passes/DepthMapPass" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/passes/DistanceMapPass" {
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import MaterialPassData = require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	import ShaderRegisterCache = require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");
@@ -5156,11 +5156,11 @@ declare module "awayjs-stagegl/lib/materials/passes/DistanceMapPass" {
 	
 }
 declare module "awayjs-stagegl/lib/core/render/DefaultRenderer" {
-	import Rectangle = require("awayjs-core/lib/core/geom/Rectangle");
-	import IRenderer = require("awayjs-core/lib/core/render/IRenderer");
-	import EntityCollector = require("awayjs-core/lib/core/traverse/EntityCollector");
-	import ICollector = require("awayjs-core/lib/core/traverse/ICollector");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import IRenderer = require("awayjs-display/lib/render/IRenderer");
+	import EntityCollector = require("awayjs-display/lib/traverse/EntityCollector");
+	import ICollector = require("awayjs-display/lib/traverse/ICollector");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import Filter3DRenderer = require("awayjs-stagegl/lib/core/render/Filter3DRenderer");
 	import RendererBase = require("awayjs-stagegl/lib/core/render/RendererBase");
@@ -5255,9 +5255,9 @@ declare module "awayjs-stagegl/lib/core/stagegl/ContextGLStencilAction" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/ShadowMethodBase" {
-	import LightBase = require("awayjs-core/lib/core/base/LightBase");
+	import LightBase = require("awayjs-display/lib/base/LightBase");
+	import Camera = require("awayjs-display/lib/entities/Camera");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
-	import Camera = require("awayjs-core/lib/entities/Camera");
 	import RenderableBase = require("awayjs-stagegl/lib/core/pool/RenderableBase");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderLightingObject = require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
@@ -5359,7 +5359,7 @@ declare module "awayjs-stagegl/lib/materials/methods/ShadowMethodBase" {
 	
 }
 declare module "awayjs-stagegl/lib/materials/methods/ShadowHardMethod" {
-	import LightBase = require("awayjs-core/lib/core/base/LightBase");
+	import LightBase = require("awayjs-display/lib/base/LightBase");
 	import Stage = require("awayjs-stagegl/lib/core/base/Stage");
 	import MethodVO = require("awayjs-stagegl/lib/materials/compilation/MethodVO");
 	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");

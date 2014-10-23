@@ -1,14 +1,15 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import BlendMode					= require("awayjs-core/lib/core/base/BlendMode");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Matrix3DUtils				= require("awayjs-core/lib/core/geom/Matrix3DUtils");
-import NamedAssetBase				= require("awayjs-core/lib/core/library/NamedAssetBase");
-import Camera						= require("awayjs-core/lib/entities/Camera");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
+import NamedAssetBase				= require("awayjs-core/lib/library/NamedAssetBase");
 import ArgumentError				= require("awayjs-core/lib/errors/ArgumentError");
 import Event						= require("awayjs-core/lib/events/Event");
-import LightPickerBase				= require("awayjs-core/lib/materials/lightpickers/LightPickerBase");
-import IMaterialPass				= require("awayjs-core/lib/materials/passes/IMaterialPass");
 
+import BlendMode					= require("awayjs-display/lib/base/BlendMode");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+import LightPickerBase				= require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
+import IMaterialPass				= require("awayjs-display/lib/materials/passes/IMaterialPass");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import MaterialPassData				= require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import ContextGLBlendFactor			= require("awayjs-stagegl/lib/core/stagegl/ContextGLBlendFactor");

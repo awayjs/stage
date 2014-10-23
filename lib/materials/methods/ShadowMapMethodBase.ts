@@ -1,7 +1,8 @@
-import LightBase					= require("awayjs-core/lib/core/base/LightBase");
-import AssetType					= require("awayjs-core/lib/core/library/AssetType");
-import IAsset						= require("awayjs-core/lib/core/library/IAsset");
-import ShadowMapperBase				= require("awayjs-core/lib/materials/shadowmappers/ShadowMapperBase");
+import AssetType					= require("awayjs-core/lib/library/AssetType");
+import IAsset						= require("awayjs-core/lib/library/IAsset");
+
+import LightBase					= require("awayjs-display/lib/base/LightBase");
+import ShadowMapperBase				= require("awayjs-display/lib/materials/shadowmappers/ShadowMapperBase");
 
 import ShadingMethodBase			= require("awayjs-stagegl/lib/materials/methods/ShadingMethodBase");
 

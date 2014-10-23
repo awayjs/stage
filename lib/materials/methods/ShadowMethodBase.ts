@@ -1,14 +1,15 @@
-import LightBase					= require("awayjs-core/lib/core/base/LightBase");
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import Camera						= require("awayjs-core/lib/entities/Camera");
-import DirectionalLight				= require("awayjs-core/lib/entities/DirectionalLight");
-import PointLight					= require("awayjs-core/lib/entities/PointLight");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
 import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
-import DirectionalShadowMapper		= require("awayjs-core/lib/materials/shadowmappers/DirectionalShadowMapper");
 import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
+import LightBase					= require("awayjs-display/lib/base/LightBase");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+import DirectionalLight				= require("awayjs-display/lib/entities/DirectionalLight");
+import PointLight					= require("awayjs-display/lib/entities/PointLight");
+import DirectionalShadowMapper		= require("awayjs-display/lib/materials/shadowmappers/DirectionalShadowMapper");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
 import MethodVO						= require("awayjs-stagegl/lib/materials/compilation/MethodVO");

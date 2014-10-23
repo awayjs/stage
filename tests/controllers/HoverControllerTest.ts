@@ -1,9 +1,10 @@
-import View							= require("awayjs-core/lib/containers/View");
-import HoverController				= require("awayjs-core/lib/controllers/HoverController");
-import Mesh							= require("awayjs-core/lib/entities/Mesh");
-import LoaderEvent					= require("awayjs-core/lib/events/LoaderEvent");
-import PrimitiveCubePrefab			= require("awayjs-core/lib/prefabs/PrimitiveCubePrefab");
 import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
+import LoaderEvent					= require("awayjs-core/lib/events/LoaderEvent");
+
+import View							= require("awayjs-display/lib/containers/View");
+import HoverController				= require("awayjs-display/lib/controllers/HoverController");
+import Mesh							= require("awayjs-display/lib/entities/Mesh");
+import PrimitiveCubePrefab			= require("awayjs-display/lib/prefabs/PrimitiveCubePrefab");
 
 import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
 

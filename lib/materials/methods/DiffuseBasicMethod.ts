@@ -1,7 +1,8 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Camera						= require("awayjs-core/lib/entities/Camera");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/core/stagegl/ContextGLMipFilter");
 import ContextGLTextureFilter		= require("awayjs-stagegl/lib/core/stagegl/ContextGLTextureFilter");

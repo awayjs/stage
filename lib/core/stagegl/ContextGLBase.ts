@@ -1,10 +1,6 @@
-import BitmapData					= require("awayjs-core/lib/core/base/BitmapData");
-import IMaterialOwner				= require("awayjs-core/lib/core/base/IMaterialOwner");
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Rectangle					= require("awayjs-core/lib/core/geom/Rectangle");
-import IContext						= require("awayjs-core/lib/core/display/IContext");
-import Camera						= require("awayjs-core/lib/entities/Camera");
+import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
 import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
 import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
@@ -12,6 +8,11 @@ import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
+import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
+import IContext						= require("awayjs-display/lib/display/IContext");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import AGALMiniAssembler			= require("awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler");
 import AnimatorBase					= require("awayjs-stagegl/lib/animators/AnimatorBase");
 import AnimationSetBase				= require("awayjs-stagegl/lib/animators/AnimationSetBase");

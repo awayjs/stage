@@ -1,9 +1,9 @@
-
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Camera						= require("awayjs-core/lib/entities/Camera");
 import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import AGALMiniAssembler			= require("awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler");
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/core/stagegl/ContextGLTextureFormat");
 import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");

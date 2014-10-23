@@ -1,17 +1,18 @@
-import View							= require("awayjs-core/lib/containers/View");
-import URLLoader					= require("awayjs-core/lib/core/net/URLLoader");
-import URLLoaderDataFormat			= require("awayjs-core/lib/core/net/URLLoaderDataFormat");
-import URLRequest					= require("awayjs-core/lib/core/net/URLRequest");
-import Mesh							= require("awayjs-core/lib/entities/Mesh");
-import PointLight					= require("awayjs-core/lib/entities/PointLight");
+import URLLoader					= require("awayjs-core/lib/net/URLLoader");
+import URLLoaderDataFormat			= require("awayjs-core/lib/net/URLLoaderDataFormat");
+import URLRequest					= require("awayjs-core/lib/net/URLRequest");
 import AwayEvent					= require("awayjs-core/lib/events/Event");
-import StaticLightPicker			= require("awayjs-core/lib/materials/lightpickers/StaticLightPicker");
 import ParserUtils					= require("awayjs-core/lib/parsers/ParserUtils");
-import PrimitiveTorusPrefab			= require("awayjs-core/lib/prefabs/PrimitiveTorusPrefab");
 import PerspectiveProjection		= require("awayjs-core/lib/projections/PerspectiveProjection");
 import ImageTexture					= require("awayjs-core/lib/textures/ImageTexture");
 import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
 import Debug						= require("awayjs-core/lib/utils/Debug");
+
+import View							= require("awayjs-display/lib/containers/View");
+import Mesh							= require("awayjs-display/lib/entities/Mesh");
+import PointLight					= require("awayjs-display/lib/entities/PointLight");
+import StaticLightPicker			= require("awayjs-display/lib/materials/lightpickers/StaticLightPicker");
+import PrimitiveTorusPrefab			= require("awayjs-display/lib/prefabs/PrimitiveTorusPrefab");
 
 import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
 import ContextGLProfile				= require("awayjs-stagegl/lib/core/stagegl/ContextGLProfile");

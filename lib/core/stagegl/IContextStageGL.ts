@@ -1,15 +1,16 @@
-import BitmapData					= require("awayjs-core/lib/core/base/BitmapData");
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import IContext						= require("awayjs-core/lib/core/display/IContext");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Rectangle					= require("awayjs-core/lib/core/geom/Rectangle");
-import Camera						= require("awayjs-core/lib/entities/Camera");
-import MaterialBase					= require("awayjs-core/lib/materials/MaterialBase");
+import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
 import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
+import IContext						= require("awayjs-display/lib/display/IContext");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import IndexData					= require("awayjs-stagegl/lib/core/pool/IndexData");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import MaterialData					= require("awayjs-stagegl/lib/core/pool/MaterialData");

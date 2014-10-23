@@ -1,4 +1,4 @@
-import IMaterialPass				= require("awayjs-core/lib/materials/passes/IMaterialPass");
+import IMaterialPass				= require("awayjs-display/lib/materials/passes/IMaterialPass");
 
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

@@ -1,4 +1,4 @@
-import LightPickerBase				= require("awayjs-core/lib/materials/lightpickers/LightPickerBase");
+import LightPickerBase				= require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
 
 import ShaderLightingObject			= require("awayjs-stagegl/lib/materials/compilation/ShaderLightingObject");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

@@ -1,10 +1,11 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import TriangleSubGeometry			= require("awayjs-core/lib/core/base/TriangleSubGeometry");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import Camera						= require("awayjs-core/lib/entities/Camera");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
 import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
 
+import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import MaterialPassData				= require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import ContextGLCompareMode			= require("awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode");

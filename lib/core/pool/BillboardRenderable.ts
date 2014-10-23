@@ -1,8 +1,8 @@
-import SubGeometryBase				= require("awayjs-core/lib/core/base/SubGeometryBase");
-import TriangleSubGeometry			= require("awayjs-core/lib/core/base/TriangleSubGeometry");
-import RenderablePool				= require("awayjs-core/lib/core/pool/RenderablePool");
-import Billboard					= require("awayjs-core/lib/entities/Billboard");
-import MaterialBase					= require("awayjs-core/lib/materials/MaterialBase");
+import SubGeometryBase				= require("awayjs-display/lib/base/SubGeometryBase");
+import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
+import RenderablePool				= require("awayjs-display/lib/pool/RenderablePool");
+import Billboard					= require("awayjs-display/lib/entities/Billboard");
+import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 

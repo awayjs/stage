@@ -1,10 +1,11 @@
-﻿import BlendMode					= require("awayjs-core/lib/core/base/BlendMode");
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import ColorTransform				= require("awayjs-core/lib/core/geom/ColorTransform");
-import Camera						= require("awayjs-core/lib/entities/Camera");
-import StaticLightPicker			= require("awayjs-core/lib/materials/lightpickers/StaticLightPicker");
+﻿import ColorTransform				= require("awayjs-core/lib/geom/ColorTransform");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
+import BlendMode					= require("awayjs-display/lib/base/BlendMode");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+import StaticLightPicker			= require("awayjs-display/lib/materials/lightpickers/StaticLightPicker");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import ContextGLCompareMode			= require("awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode");
 import AmbientBasicMethod			= require("awayjs-stagegl/lib/materials/methods/AmbientBasicMethod");
 import DiffuseBasicMethod			= require("awayjs-stagegl/lib/materials/methods/DiffuseBasicMethod");

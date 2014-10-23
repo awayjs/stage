@@ -1,12 +1,13 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import Camera						= require("awayjs-core/lib/entities/Camera");
-import DirectionalLight				= require("awayjs-core/lib/entities/DirectionalLight");
-import LightProbe					= require("awayjs-core/lib/entities/LightProbe");
-import PointLight					= require("awayjs-core/lib/entities/PointLight");
-import LightPickerBase				= require("awayjs-core/lib/materials/lightpickers/LightPickerBase");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
 
+import Camera						= require("awayjs-display/lib/entities/Camera");
+import DirectionalLight				= require("awayjs-display/lib/entities/DirectionalLight");
+import LightProbe					= require("awayjs-display/lib/entities/LightProbe");
+import PointLight					= require("awayjs-display/lib/entities/PointLight");
+import LightPickerBase				= require("awayjs-display/lib/materials/lightpickers/LightPickerBase");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import IContextStageGL				= require("awayjs-stagegl/lib/core/stagegl/IContextStageGL");
 import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");

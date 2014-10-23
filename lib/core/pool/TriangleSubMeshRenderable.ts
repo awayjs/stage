@@ -1,7 +1,7 @@
-import IMaterialOwner				= require("awayjs-core/lib/core/base/IMaterialOwner");
-import TriangleSubMesh				= require("awayjs-core/lib/core/base/TriangleSubMesh");
-import TriangleSubGeometry			= require("awayjs-core/lib/core/base/TriangleSubGeometry");
-import RenderablePool				= require("awayjs-core/lib/core/pool/RenderablePool");
+import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
+import TriangleSubMesh				= require("awayjs-display/lib/base/TriangleSubMesh");
+import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
+import RenderablePool				= require("awayjs-display/lib/pool/RenderablePool");
 
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/core/stagegl/ContextGLVertexBufferFormat");

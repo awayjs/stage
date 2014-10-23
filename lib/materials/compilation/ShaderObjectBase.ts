@@ -1,13 +1,14 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import TriangleSubGeometry			= require("awayjs-core/lib/core/base/TriangleSubGeometry");
-import Matrix						= require("awayjs-core/lib/core/geom/Matrix");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Matrix3DUtils				= require("awayjs-core/lib/core/geom/Matrix3DUtils");
-import Rectangle					= require("awayjs-core/lib/core/geom/Rectangle");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import Camera						= require("awayjs-core/lib/entities/Camera");
+import Matrix						= require("awayjs-core/lib/geom/Matrix");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
+import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import AnimationSetBase				= require("awayjs-stagegl/lib/animators/AnimationSetBase");
 import AnimatorBase					= require("awayjs-stagegl/lib/animators/AnimatorBase");
 import AnimationRegisterCache		= require("awayjs-stagegl/lib/animators/data/AnimationRegisterCache");

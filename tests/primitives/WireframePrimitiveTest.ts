@@ -1,15 +1,17 @@
-import View							= require("awayjs-core/lib/containers/View");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import Mesh							= require("awayjs-core/lib/entities/Mesh");
-import PrimitivePrefabBase			= require("awayjs-core/lib/prefabs/PrimitivePrefabBase");
-import PrimitivePolygonPrefab		= require("awayjs-core/lib/prefabs/PrimitivePolygonPrefab");
-import PrimitiveConePrefab			= require("awayjs-core/lib/prefabs/PrimitiveConePrefab");
-import PrimitiveCubePrefab			= require("awayjs-core/lib/prefabs/PrimitiveCubePrefab");
-import PrimitiveCylinderPrefab		= require("awayjs-core/lib/prefabs/PrimitiveCylinderPrefab");
-import PrimitivePlanePrefab			= require("awayjs-core/lib/prefabs/PrimitivePlanePrefab");
-import PrimitiveSpherePrefab		= require("awayjs-core/lib/prefabs/PrimitiveSpherePrefab");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
 import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
 import Debug						= require("awayjs-core/lib/utils/Debug");
+
+import View							= require("awayjs-display/lib/containers/View");
+import Mesh							= require("awayjs-display/lib/entities/Mesh");
+import PrimitivePrefabBase			= require("awayjs-display/lib/prefabs/PrimitivePrefabBase");
+import PrimitivePolygonPrefab		= require("awayjs-display/lib/prefabs/PrimitivePolygonPrefab");
+import PrimitiveConePrefab			= require("awayjs-display/lib/prefabs/PrimitiveConePrefab");
+import PrimitiveCubePrefab			= require("awayjs-display/lib/prefabs/PrimitiveCubePrefab");
+import PrimitiveCylinderPrefab		= require("awayjs-display/lib/prefabs/PrimitiveCylinderPrefab");
+import PrimitivePlanePrefab			= require("awayjs-display/lib/prefabs/PrimitivePlanePrefab");
+import PrimitiveSpherePrefab		= require("awayjs-display/lib/prefabs/PrimitiveSpherePrefab");
+
 
 import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
 import ContextGLProfile				= require("awayjs-stagegl/lib/core/stagegl/ContextGLProfile");

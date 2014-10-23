@@ -1,14 +1,15 @@
-import View							= require("awayjs-core/lib/containers/View");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import URLLoader					= require("awayjs-core/lib/core/net/URLLoader");
-import URLRequest					= require("awayjs-core/lib/core/net/URLRequest");
-import Mesh							= require("awayjs-core/lib/entities/Mesh");
-import PointLight					= require("awayjs-core/lib/entities/PointLight");
-import Event						= require("awayjs-core/lib/events/Event");
-import StaticLightPicker			= require("awayjs-core/lib/materials/lightpickers/StaticLightPicker");
-import PrimitiveTorusPrefab			= require("awayjs-core/lib/prefabs/PrimitiveTorusPrefab");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
+import URLLoader					= require("awayjs-core/lib/net/URLLoader");
+import URLRequest					= require("awayjs-core/lib/net/URLRequest");
+import Event						= require("awayjs-core/lib/events/Event")
 import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
 import Debug						= require("awayjs-core/lib/utils/Debug");
+
+import View							= require("awayjs-display/lib/containers/View");
+import Mesh							= require("awayjs-display/lib/entities/Mesh");
+import PointLight					= require("awayjs-display/lib/entities/PointLight");
+import StaticLightPicker			= require("awayjs-display/lib/materials/lightpickers/StaticLightPicker");
+import PrimitiveTorusPrefab			= require("awayjs-display/lib/prefabs/PrimitiveTorusPrefab");
 
 import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");

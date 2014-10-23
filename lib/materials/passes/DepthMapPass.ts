@@ -1,9 +1,10 @@
-﻿import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import Matrix3DUtils				= require("awayjs-core/lib/core/geom/Matrix3DUtils");
-import Camera						= require("awayjs-core/lib/entities/Camera");
+﻿import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import MaterialPassData				= require("awayjs-stagegl/lib/core/pool/MaterialPassData");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/core/stagegl/ContextGLMipFilter");

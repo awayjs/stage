@@ -1,4 +1,4 @@
-import MaterialBase					= require("awayjs-core/lib/materials/MaterialBase");
+import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 import ShaderRegisterCache			= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterCache");

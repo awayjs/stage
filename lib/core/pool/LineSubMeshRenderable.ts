@@ -1,8 +1,8 @@
-import IMaterialOwner				= require("awayjs-core/lib/core/base/IMaterialOwner");
-import LineSubMesh					= require("awayjs-core/lib/core/base/LineSubMesh");
-import LineSubGeometry				= require("awayjs-core/lib/core/base/LineSubGeometry");
-import RenderablePool				= require("awayjs-core/lib/core/pool/RenderablePool");
-import SubGeometryEvent				= require("awayjs-core/lib/events/SubGeometryEvent");
+import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
+import LineSubMesh					= require("awayjs-display/lib/base/LineSubMesh");
+import LineSubGeometry				= require("awayjs-display/lib/base/LineSubGeometry");
+import RenderablePool				= require("awayjs-display/lib/pool/RenderablePool");
+import SubGeometryEvent				= require("awayjs-display/lib/events/SubGeometryEvent");
 
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 

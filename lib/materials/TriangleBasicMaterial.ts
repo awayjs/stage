@@ -1,5 +1,6 @@
-import BlendMode					= require("awayjs-core/lib/core/base/BlendMode");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
+
+import BlendMode					= require("awayjs-display/lib/base/BlendMode");
 
 import ContextGLCompareMode			= require("awayjs-stagegl/lib/core/stagegl/ContextGLCompareMode");
 import TriangleBasicPass			= require("awayjs-stagegl/lib/materials/passes/TriangleBasicPass");

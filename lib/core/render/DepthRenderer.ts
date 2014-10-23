@@ -1,10 +1,11 @@
-import Camera						= require("awayjs-core/lib/entities/Camera");
-import IEntity						= require("awayjs-core/lib/entities/IEntity");
-import Plane3D						= require("awayjs-core/lib/core/geom/Plane3D");
-import Rectangle					= require("awayjs-core/lib/core/geom/Rectangle");
-import EntityCollector				= require("awayjs-core/lib/core/traverse/EntityCollector");
-import ShadowCasterCollector		= require("awayjs-core/lib/core/traverse/ShadowCasterCollector");
+import Plane3D						= require("awayjs-core/lib/geom/Plane3D");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
+
+import Camera						= require("awayjs-display/lib/entities/Camera");
+import IEntity						= require("awayjs-display/lib/entities/IEntity");
+import EntityCollector				= require("awayjs-display/lib/traverse/EntityCollector");
+import ShadowCasterCollector		= require("awayjs-display/lib/traverse/ShadowCasterCollector");
 
 import MaterialData					= require("awayjs-stagegl/lib/core/pool/MaterialData");
 import MaterialPassData				= require("awayjs-stagegl/lib/core/pool/MaterialPassData");

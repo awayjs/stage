@@ -1,4 +1,4 @@
-import ITextureData					= require("awayjs-core/lib/core/pool/ITextureData");
+import ITextureData					= require("awayjs-core/lib/pool/ITextureData");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
 import TextureDataPool				= require("awayjs-stagegl/lib/core/pool/TextureDataPool");

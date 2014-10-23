@@ -1,13 +1,14 @@
-import IMaterialOwner				= require("awayjs-core/lib/core/base/IMaterialOwner");
-import SubGeometryBase				= require("awayjs-core/lib/core/base/SubGeometryBase");
-import TriangleSubGeometry			= require("awayjs-core/lib/core/base/TriangleSubGeometry");
-import Matrix3D						= require("awayjs-core/lib/core/geom/Matrix3D");
-import IRenderable					= require("awayjs-core/lib/core/pool/IRenderable");
-import RenderablePool				= require("awayjs-core/lib/core/pool/RenderablePool");
-import IEntity						= require("awayjs-core/lib/entities/IEntity");
+import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
-import SubGeometryEvent				= require("awayjs-core/lib/events/SubGeometryEvent");
-import MaterialBase					= require("awayjs-core/lib/materials/MaterialBase");
+
+import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
+import SubGeometryBase				= require("awayjs-display/lib/base/SubGeometryBase");
+import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
+import IRenderable					= require("awayjs-display/lib/pool/IRenderable");
+import RenderablePool				= require("awayjs-display/lib/pool/RenderablePool");
+import IEntity						= require("awayjs-display/lib/entities/IEntity");
+import SubGeometryEvent				= require("awayjs-display/lib/events/SubGeometryEvent");
+import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
 import IndexData					= require("awayjs-stagegl/lib/core/pool/IndexData");
 import IndexDataPool				= require("awayjs-stagegl/lib/core/pool/IndexDataPool");

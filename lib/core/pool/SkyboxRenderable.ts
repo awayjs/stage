@@ -1,6 +1,6 @@
-import TriangleSubGeometry			= require("awayjs-core/lib/core/base/TriangleSubGeometry");
-import RenderablePool				= require("awayjs-core/lib/core/pool/RenderablePool");
-import Skybox						= require("awayjs-core/lib/entities/Skybox");
+import TriangleSubGeometry			= require("awayjs-display/lib/base/TriangleSubGeometry");
+import RenderablePool				= require("awayjs-display/lib/pool/RenderablePool");
+import Skybox						= require("awayjs-display/lib/entities/Skybox");
 
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 

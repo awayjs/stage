@@ -1,10 +1,11 @@
-import AnimationNodeBase			= require("awayjs-core/lib/animators/nodes/AnimationNodeBase");
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import AssetType					= require("awayjs-core/lib/core/library/AssetType");
-import IAsset						= require("awayjs-core/lib/core/library/IAsset");
-import NamedAssetBase				= require("awayjs-core/lib/core/library/NamedAssetBase");
+import AssetType					= require("awayjs-core/lib/library/AssetType");
+import IAsset						= require("awayjs-core/lib/library/IAsset");
+import NamedAssetBase				= require("awayjs-core/lib/library/NamedAssetBase");
 import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
 
+import AnimationNodeBase			= require("awayjs-display/lib/animators/nodes/AnimationNodeBase");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 import ShaderRegisterElement		= require("awayjs-stagegl/lib/materials/compilation/ShaderRegisterElement");
 import AnimationSetError			= require("awayjs-stagegl/lib/errors/AnimationSetError");

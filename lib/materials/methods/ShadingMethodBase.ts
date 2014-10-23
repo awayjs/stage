@@ -1,7 +1,8 @@
-import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
-import NamedAssetBase				= require("awayjs-core/lib/core/library/NamedAssetBase");
-import Camera						= require("awayjs-core/lib/entities/Camera");
+import NamedAssetBase				= require("awayjs-core/lib/library/NamedAssetBase");
 
+import Camera						= require("awayjs-display/lib/entities/Camera");
+
+import Stage						= require("awayjs-stagegl/lib/core/base/Stage");
 import RenderableBase				= require("awayjs-stagegl/lib/core/pool/RenderableBase");
 import ShadingMethodEvent			= require("awayjs-stagegl/lib/events/ShadingMethodEvent");
 import MethodVO						= require("awayjs-stagegl/lib/materials/compilation/MethodVO");

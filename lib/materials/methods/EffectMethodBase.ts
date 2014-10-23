@@ -1,5 +1,5 @@
-import AssetType					= require("awayjs-core/lib/core/library/AssetType");
-import IAsset						= require("awayjs-core/lib/core/library/IAsset");
+import AssetType					= require("awayjs-core/lib/library/AssetType");
+import IAsset						= require("awayjs-core/lib/library/IAsset");
 import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
 
 import MethodVO						= require("awayjs-stagegl/lib/materials/compilation/MethodVO");

@@ -1,4 +1,4 @@
-import SubGeometryBase				= require("awayjs-core/lib/core/base/SubGeometryBase");
+import SubGeometryBase				= require("awayjs-display/lib/base/SubGeometryBase");
 
 import ContextGLBase				= require("awayjs-stagegl/lib/core/stagegl/ContextGLBase");
 import IIndexBuffer					= require("awayjs-stagegl/lib/core/stagegl/IIndexBuffer");

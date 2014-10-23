@@ -1,13 +1,14 @@
-import ContextMode				= require("awayjs-core/lib/core/display/ContextMode");
-import IContext					= require("awayjs-core/lib/core/display/IContext");
-import Rectangle				= require("awayjs-core/lib/core/geom/Rectangle");
+import Rectangle				= require("awayjs-core/lib/geom/Rectangle");
 import Event					= require("awayjs-core/lib/events/Event");
 import EventDispatcher			= require("awayjs-core/lib/events/EventDispatcher");
-import StageEvent				= require("awayjs-core/lib/events/StageEvent");
 import CubeTextureBase			= require("awayjs-core/lib/textures/CubeTextureBase");
 import RenderTexture			= require("awayjs-core/lib/textures/RenderTexture");
 import TextureProxyBase			= require("awayjs-core/lib/textures/TextureProxyBase");
 import CSS						= require("awayjs-core/lib/utils/CSS");
+
+import ContextMode				= require("awayjs-display/lib/display/ContextMode");
+import IContext					= require("awayjs-display/lib/display/IContext");
+import StageEvent				= require("awayjs-display/lib/events/StageEvent");
 
 import StageManager				= require("awayjs-stagegl/lib/managers/StageManager");
 import ContextStage3D			= require("awayjs-stagegl/lib/core/stagegl/ContextStage3D");

@@ -1,4 +1,4 @@
-import IMaterialData				= require("awayjs-core/lib/core/pool/IMaterialData");
+import IMaterialData				= require("awayjs-display/lib/pool/IMaterialData");
 
 import MaterialDataPool				= require("awayjs-stagegl/lib/core/pool/MaterialDataPool");
 import MaterialPassData				= require("awayjs-stagegl/lib/core/pool/MaterialPassData");

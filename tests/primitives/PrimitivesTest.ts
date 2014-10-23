@@ -1,19 +1,21 @@
-import View							= require("awayjs-core/lib/containers/View");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import Mesh							= require("awayjs-core/lib/entities/Mesh");
-import DirectionalLight				= require("awayjs-core/lib/entities/DirectionalLight");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
 import Event						= require("awayjs-core/lib/events/Event");
-import StaticLightPicker			= require("awayjs-core/lib/materials/lightpickers/StaticLightPicker");
-import PrimitivePrefabBase			= require("awayjs-core/lib/prefabs/PrimitivePrefabBase");
-import PrimitiveCapsulePrefab		= require("awayjs-core/lib/prefabs/PrimitiveCapsulePrefab");
-import PrimitiveConePrefab			= require("awayjs-core/lib/prefabs/PrimitiveConePrefab");
-import PrimitiveCubePrefab			= require("awayjs-core/lib/prefabs/PrimitiveCubePrefab");
-import PrimitiveCylinderPrefab		= require("awayjs-core/lib/prefabs/PrimitiveCylinderPrefab");
-import PrimitivePlanePrefab			= require("awayjs-core/lib/prefabs/PrimitivePlanePrefab");
-import PrimitiveSpherePrefab		= require("awayjs-core/lib/prefabs/PrimitiveSpherePrefab");
-import PrimitiveTorusPrefab			= require("awayjs-core/lib/prefabs/PrimitiveTorusPrefab");
 import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
 import Debug						= require("awayjs-core/lib/utils/Debug");
+
+import View							= require("awayjs-display/lib/containers/View");
+import Mesh							= require("awayjs-display/lib/entities/Mesh");
+import DirectionalLight				= require("awayjs-display/lib/entities/DirectionalLight");
+import StaticLightPicker			= require("awayjs-display/lib/materials/lightpickers/StaticLightPicker");
+import PrimitivePrefabBase			= require("awayjs-display/lib/prefabs/PrimitivePrefabBase");
+import PrimitiveCapsulePrefab		= require("awayjs-display/lib/prefabs/PrimitiveCapsulePrefab");
+import PrimitiveConePrefab			= require("awayjs-display/lib/prefabs/PrimitiveConePrefab");
+import PrimitiveCubePrefab			= require("awayjs-display/lib/prefabs/PrimitiveCubePrefab");
+import PrimitiveCylinderPrefab		= require("awayjs-display/lib/prefabs/PrimitiveCylinderPrefab");
+import PrimitivePlanePrefab			= require("awayjs-display/lib/prefabs/PrimitivePlanePrefab");
+import PrimitiveSpherePrefab		= require("awayjs-display/lib/prefabs/PrimitiveSpherePrefab");
+import PrimitiveTorusPrefab			= require("awayjs-display/lib/prefabs/PrimitiveTorusPrefab");
+
 
 import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");

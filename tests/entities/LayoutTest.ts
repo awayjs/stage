@@ -1,17 +1,18 @@
-import View							= require("awayjs-core/lib/containers/View");
-import HoverController				= require("awayjs-core/lib/controllers/HoverController");
-import Vector3D						= require("awayjs-core/lib/core/geom/Vector3D");
-import AssetLibrary					= require("awayjs-core/lib/core/library/AssetLibrary");
-import URLLoader					= require("awayjs-core/lib/core/net/URLLoader");
-import URLRequest					= require("awayjs-core/lib/core/net/URLRequest");
-import Billboard					= require("awayjs-core/lib/entities/Billboard");
-import Mesh							= require("awayjs-core/lib/entities/Mesh");
+import Vector3D						= require("awayjs-core/lib/geom/Vector3D");
+import AssetLibrary					= require("awayjs-core/lib/library/AssetLibrary");
+import URLLoader					= require("awayjs-core/lib/net/URLLoader");
+import URLRequest					= require("awayjs-core/lib/net/URLRequest");
 import LoaderEvent					= require("awayjs-core/lib/events/LoaderEvent");
-import AwayMouseEvent				= require("awayjs-core/lib/events/MouseEvent");
 import CoordinateSystem				= require("awayjs-core/lib/projections/CoordinateSystem");
 import PerspectiveProjection		= require("awayjs-core/lib/projections/PerspectiveProjection");
 import ImageTexture					= require("awayjs-core/lib/textures/ImageTexture");
 import RequestAnimationFrame		= require("awayjs-core/lib/utils/RequestAnimationFrame");
+
+import View							= require("awayjs-display/lib/containers/View");
+import HoverController				= require("awayjs-display/lib/controllers/HoverController");
+import Billboard					= require("awayjs-display/lib/entities/Billboard");
+import Mesh							= require("awayjs-display/lib/entities/Mesh");
+import AwayMouseEvent				= require("awayjs-display/lib/events/MouseEvent");
 
 import DefaultRenderer				= require("awayjs-stagegl/lib/core/render/DefaultRenderer");
 import TriangleMethodMaterial		= require("awayjs-stagegl/lib/materials/TriangleMethodMaterial");
