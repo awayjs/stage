@@ -10,9 +10,9 @@ import ContextMode				= require("awayjs-display/lib/display/ContextMode");
 import IContext					= require("awayjs-display/lib/display/IContext");
 import StageEvent				= require("awayjs-display/lib/events/StageEvent");
 
-import StageManager				= require("managers/StageManager");
 import ContextStage3D			= require("awayjs-stagegl/lib/base/ContextStage3D");
 import ContextWebGL				= require("awayjs-stagegl/lib/base/ContextWebGL");
+import StageManager				= require("awayjs-stagegl/lib/managers/StageManager");
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context

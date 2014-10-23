@@ -3,9 +3,9 @@ import IMaterialPassData			= require("awayjs-display/lib/pool/IMaterialPassData"
 import MaterialPassDataPool			= require("awayjs-stagegl/lib/pool/MaterialPassDataPool");
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
-import StageGLMaterialBase			= require("materials/StageGLMaterialBase");
-import MaterialPassBase				= require("materials/passes/MaterialPassBase");
-import ShaderObjectBase				= require("materials/compilation/ShaderObjectBase");
+import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+import MaterialPassBase				= require("awayjs-stagegl/lib/materials/passes/MaterialPassBase");
+import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 
 /**
  *

@@ -100,78 +100,6 @@ declare module "awayjs-stagegl/lib/aglsl/Sampler" {
 	export = Sampler;
 	
 }
-declare module "awayjs-stagegl/lib/managers/StageManager" {
-	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	/**
-	 * The StageManager class provides a multiton object that handles management for Stage objects.
-	 *
-	 * @see away.base.Stage
-	 */
-	class StageManager extends EventDispatcher {
-	    private static STAGE_MAX_QUANTITY;
-	    private _stages;
-	    private static _instance;
-	    private static _numStages;
-	    private _onContextCreatedDelegate;
-	    /**
-	     * Creates a new StageManager class.
-	     * @param stage The Stage object that contains the Stage objects to be managed.
-	     * @private
-	     */
-	    constructor();
-	    /**
-	     * Gets a StageManager instance for the given Stage object.
-	     * @param stage The Stage object that contains the Stage objects to be managed.
-	     * @return The StageManager instance for the given Stage object.
-	     */
-	    static getInstance(): StageManager;
-	    /**
-	     * Requests the Stage for the given index.
-	     *
-	     * @param index The index of the requested Stage.
-	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
-	     * @param profile The compatibility profile, an enumeration of ContextProfile
-	     * @return The Stage for the given index.
-	     */
-	    getStageAt(index: number, forceSoftware?: boolean, profile?: string, mode?: string): Stage;
-	    /**
-	     * Removes a Stage from the manager.
-	     * @param stage
-	     * @private
-	     */
-	    iRemoveStage(stage: Stage): void;
-	    /**
-	     * Get the next available stage. An error is thrown if there are no StageProxies available
-	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
-	     * @param profile The compatibility profile, an enumeration of ContextProfile
-	     * @return The allocated stage
-	     */
-	    getFreeStage(forceSoftware?: boolean, profile?: string, mode?: string): Stage;
-	    /**
-	     * Checks if a new stage can be created and managed by the class.
-	     * @return true if there is one slot free for a new stage
-	     */
-	    hasFreeStage: boolean;
-	    /**
-	     * Returns the amount of stage objects that can be created and managed by the class
-	     * @return the amount of free slots
-	     */
-	    numSlotsFree: number;
-	    /**
-	     * Returns the amount of Stage objects currently managed by the class.
-	     * @return the amount of slots used
-	     */
-	    numSlotsUsed: number;
-	    /**
-	     * The maximum amount of Stage objects that can be managed by the class
-	     */
-	    numSlotsTotal: number;
-	    private onContextCreated(event);
-	}
-	export = StageManager;
-	
-}
 declare module "awayjs-stagegl/lib/base/ContextGLBlendFactor" {
 	class ContextGLBlendFactor {
 	    static DESTINATION_ALPHA: string;
@@ -1692,7 +1620,7 @@ declare module "awayjs-stagegl/lib/materials/StageGLMaterialBase" {
 declare module "awayjs-stagegl/lib/pool/MaterialDataPool" {
 	import MaterialData = require("awayjs-stagegl/lib/pool/MaterialData");
 	import ContextGLBase = require("awayjs-stagegl/lib/base/ContextGLBase");
-	import StageGLMaterialBase = require("materials/StageGLMaterialBase");
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 	/**
 	 * @class away.pool.MaterialDataPool
 	 */
@@ -1938,8 +1866,8 @@ declare module "awayjs-stagegl/lib/materials/passes/MaterialPassBase" {
 }
 declare module "awayjs-stagegl/lib/pool/MaterialPassDataPool" {
 	import MaterialPassData = require("awayjs-stagegl/lib/pool/MaterialPassData");
-	import StageGLMaterialBase = require("materials/StageGLMaterialBase");
-	import MaterialPassBase = require("materials/passes/MaterialPassBase");
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+	import MaterialPassBase = require("awayjs-stagegl/lib/materials/passes/MaterialPassBase");
 	/**
 	 * @class away.pool.MaterialPassDataPool
 	 */
@@ -2040,9 +1968,9 @@ declare module "awayjs-stagegl/lib/pool/MaterialPassData" {
 	import IMaterialPassData = require("awayjs-display/lib/pool/IMaterialPassData");
 	import MaterialPassDataPool = require("awayjs-stagegl/lib/pool/MaterialPassDataPool");
 	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
-	import StageGLMaterialBase = require("materials/StageGLMaterialBase");
-	import MaterialPassBase = require("materials/passes/MaterialPassBase");
-	import ShaderObjectBase = require("materials/compilation/ShaderObjectBase");
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+	import MaterialPassBase = require("awayjs-stagegl/lib/materials/passes/MaterialPassBase");
+	import ShaderObjectBase = require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 	/**
 	 *
 	 * @class away.pool.MaterialPassData
@@ -2080,8 +2008,8 @@ declare module "awayjs-stagegl/lib/pool/MaterialData" {
 	import MaterialDataPool = require("awayjs-stagegl/lib/pool/MaterialDataPool");
 	import MaterialPassData = require("awayjs-stagegl/lib/pool/MaterialPassData");
 	import ContextGLBase = require("awayjs-stagegl/lib/base/ContextGLBase");
-	import StageGLMaterialBase = require("materials/StageGLMaterialBase");
-	import MaterialPassBase = require("materials/passes/MaterialPassBase");
+	import StageGLMaterialBase = require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+	import MaterialPassBase = require("awayjs-stagegl/lib/materials/passes/MaterialPassBase");
 	/**
 	 *
 	 * @class away.pool.MaterialData
@@ -2343,12 +2271,84 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	export = ContextWebGL;
 	
 }
+declare module "awayjs-stagegl/lib/managers/StageManager" {
+	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	/**
+	 * The StageManager class provides a multiton object that handles management for Stage objects.
+	 *
+	 * @see away.base.Stage
+	 */
+	class StageManager extends EventDispatcher {
+	    private static STAGE_MAX_QUANTITY;
+	    private _stages;
+	    private static _instance;
+	    private static _numStages;
+	    private _onContextCreatedDelegate;
+	    /**
+	     * Creates a new StageManager class.
+	     * @param stage The Stage object that contains the Stage objects to be managed.
+	     * @private
+	     */
+	    constructor();
+	    /**
+	     * Gets a StageManager instance for the given Stage object.
+	     * @param stage The Stage object that contains the Stage objects to be managed.
+	     * @return The StageManager instance for the given Stage object.
+	     */
+	    static getInstance(): StageManager;
+	    /**
+	     * Requests the Stage for the given index.
+	     *
+	     * @param index The index of the requested Stage.
+	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
+	     * @param profile The compatibility profile, an enumeration of ContextProfile
+	     * @return The Stage for the given index.
+	     */
+	    getStageAt(index: number, forceSoftware?: boolean, profile?: string, mode?: string): Stage;
+	    /**
+	     * Removes a Stage from the manager.
+	     * @param stage
+	     * @private
+	     */
+	    iRemoveStage(stage: Stage): void;
+	    /**
+	     * Get the next available stage. An error is thrown if there are no StageProxies available
+	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
+	     * @param profile The compatibility profile, an enumeration of ContextProfile
+	     * @return The allocated stage
+	     */
+	    getFreeStage(forceSoftware?: boolean, profile?: string, mode?: string): Stage;
+	    /**
+	     * Checks if a new stage can be created and managed by the class.
+	     * @return true if there is one slot free for a new stage
+	     */
+	    hasFreeStage: boolean;
+	    /**
+	     * Returns the amount of stage objects that can be created and managed by the class
+	     * @return the amount of free slots
+	     */
+	    numSlotsFree: number;
+	    /**
+	     * Returns the amount of Stage objects currently managed by the class.
+	     * @return the amount of slots used
+	     */
+	    numSlotsUsed: number;
+	    /**
+	     * The maximum amount of Stage objects that can be managed by the class
+	     */
+	    numSlotsTotal: number;
+	    private onContextCreated(event);
+	}
+	export = StageManager;
+	
+}
 declare module "awayjs-stagegl/lib/base/Stage" {
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
 	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
 	import IContext = require("awayjs-display/lib/display/IContext");
-	import StageManager = require("managers/StageManager");
+	import StageManager = require("awayjs-stagegl/lib/managers/StageManager");
 	/**
 	 * Stage provides a proxy class to handle the creation and attachment of the Context
 	 * (and in turn the back buffer) it uses. Stage should never be created directly,

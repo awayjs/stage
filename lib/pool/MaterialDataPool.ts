@@ -1,6 +1,6 @@
 import MaterialData					= require("awayjs-stagegl/lib/pool/MaterialData");
 import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
-import StageGLMaterialBase			= require("materials/StageGLMaterialBase");
+import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
 
 /**
  * @class away.pool.MaterialDataPool

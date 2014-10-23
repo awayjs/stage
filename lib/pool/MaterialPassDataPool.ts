@@ -1,6 +1,6 @@
 import MaterialPassData				= require("awayjs-stagegl/lib/pool/MaterialPassData");
-import StageGLMaterialBase			= require("materials/StageGLMaterialBase");
-import MaterialPassBase				= require("materials/passes/MaterialPassBase");
+import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
+import MaterialPassBase				= require("awayjs-stagegl/lib/materials/passes/MaterialPassBase");
 
 /**
  * @class away.pool.MaterialPassDataPool
