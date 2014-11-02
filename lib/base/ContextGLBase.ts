@@ -9,7 +9,6 @@ import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase"
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
 import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
-import IContext						= require("awayjs-display/lib/display/IContext");
 import Camera						= require("awayjs-display/lib/entities/Camera");
 import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
@@ -37,7 +36,7 @@ import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
  * @see away.managers.StageManager
  *
  */
-class ContextGLBase implements IContext
+class ContextGLBase
 {
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
 

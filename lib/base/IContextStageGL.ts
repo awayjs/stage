@@ -6,7 +6,6 @@ import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
-import IContext						= require("awayjs-display/lib/display/IContext");
 import Camera						= require("awayjs-display/lib/entities/Camera");
 import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
@@ -21,7 +20,7 @@ import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
 import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
-interface IContextStageGL extends IContext
+interface IContextStageGL
 {
 	getProgramData(key:string):ProgramData;
 
