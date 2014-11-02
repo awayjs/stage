@@ -7,11 +7,11 @@ import TextureProxyBase			= require("awayjs-core/lib/textures/TextureProxyBase")
 import CSS						= require("awayjs-core/lib/utils/CSS");
 
 import ContextMode				= require("awayjs-display/lib/display/ContextMode");
-import IContext					= require("awayjs-display/lib/display/IContext");
 import StageEvent				= require("awayjs-display/lib/events/StageEvent");
 
 import ContextStage3D			= require("awayjs-stagegl/lib/base/ContextStage3D");
 import ContextWebGL				= require("awayjs-stagegl/lib/base/ContextWebGL");
+import IContextStageGL			= require("awayjs-stagegl/lib/base/IContextStageGL");
 import StageManager				= require("awayjs-stagegl/lib/managers/StageManager");
 
 /**
@@ -24,7 +24,7 @@ import StageManager				= require("awayjs-stagegl/lib/managers/StageManager");
  */
 class Stage extends EventDispatcher
 {
-	private _context:IContext;
+	private _context:IContextStageGL;
 	private _container:HTMLElement;
 	private _width:number;
 	private _height:number;
@@ -98,14 +98,14 @@ class Stage extends EventDispatcher
 
 		try {
 			if (mode == ContextMode.FLASH)
-				new ContextStage3D(<HTMLCanvasElement> this._container, this._stageIndex, (context:IContext) => this._callback(context));
+				new ContextStage3D(<HTMLCanvasElement> this._container, this._stageIndex, (context:IContextStageGL) => this._callback(context));
 			else
 				this._context = new ContextWebGL(<HTMLCanvasElement> this._container, this._stageIndex);
 
 		} catch (e) {
 			try {
 				if (mode == ContextMode.AUTO)
-					new ContextStage3D(<HTMLCanvasElement> this._container, this._stageIndex, (context:IContext) => this._callback(context));
+					new ContextStage3D(<HTMLCanvasElement> this._container, this._stageIndex, (context:IContextStageGL) => this._callback(context));
 				else
 					this.dispatchEvent(new Event(Event.ERROR));
 			} catch (e) {
@@ -220,7 +220,7 @@ class Stage extends EventDispatcher
 	/**
 	 * The Context object associated with the given stage object.
 	 */
-	public get context():IContext
+	public get context():IContextStageGL
 	{
 		return this._context;
 	}
@@ -561,7 +561,7 @@ class Stage extends EventDispatcher
 
 	}
 
-	private _callback(context:IContext)
+	private _callback(context:IContextStageGL)
 	{
 		this._context = context;
 

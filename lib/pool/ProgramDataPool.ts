@@ -2,7 +2,6 @@ import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase"
 
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
-import ShaderObjectBase				= require("materials/compilation/ShaderObjectBase");
 
 /**
  * @class away.pool.ProgramDataPool

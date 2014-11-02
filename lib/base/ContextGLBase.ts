@@ -11,21 +11,14 @@ import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 import IMaterialOwner				= require("awayjs-display/lib/base/IMaterialOwner");
 import IContext						= require("awayjs-display/lib/display/IContext");
 import Camera						= require("awayjs-display/lib/entities/Camera");
+import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import AGALMiniAssembler			= require("awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler");
-import AnimatorBase					= require("awayjs-stagegl/lib/animators/AnimatorBase");
-import AnimationSetBase				= require("awayjs-stagegl/lib/animators/AnimationSetBase");
 import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
-import MaterialPassData				= require("awayjs-stagegl/lib/pool/MaterialPassData");
-import MaterialPassDataPool			= require("awayjs-stagegl/lib/pool/MaterialPassDataPool");
 import TextureData					= require("awayjs-stagegl/lib/pool/TextureData");
 import TextureDataPool				= require("awayjs-stagegl/lib/pool/TextureDataPool");
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import ProgramDataPool				= require("awayjs-stagegl/lib/pool/ProgramDataPool");
-import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
-import MaterialData					= require("awayjs-stagegl/lib/pool/MaterialData");
-import MaterialDataPool				= require("awayjs-stagegl/lib/pool/MaterialDataPool");
 import VertexData					= require("awayjs-stagegl/lib/pool/VertexData");
 import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
@@ -35,8 +28,6 @@ import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
 import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
 import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
-import StageGLMaterialBase			= require("awayjs-stagegl/lib/materials/StageGLMaterialBase");
-import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/ShaderObjectBase");
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -49,14 +40,10 @@ import ShaderObjectBase				= require("awayjs-stagegl/lib/materials/compilation/S
 class ContextGLBase implements IContext
 {
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
-	private _numUsedStreams:number = 0;
-	private _numUsedTextures:number = 0;
 
 	public _pContainer:HTMLElement;
 
 	private _texturePool:TextureDataPool;
-
-	private _materialDataPool:MaterialDataPool;
 
 	private _programDataPool:ProgramDataPool;
 
@@ -80,8 +67,12 @@ class ContextGLBase implements IContext
 	{
 		this._stageIndex = stageIndex;
 		this._texturePool = new TextureDataPool(this);
-		this._materialDataPool = new MaterialDataPool(this);
 		this._programDataPool = new ProgramDataPool(this);
+	}
+
+	public getProgramData(key:string):ProgramData
+	{
+		return this._programDataPool.getItem(key);
 	}
 
 	public setRenderTarget(target:TextureProxyBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
@@ -108,75 +99,6 @@ class ContextGLBase implements IContext
 			textureData.texture = this.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
 
 		return textureData.texture;
-	}
-
-	public getProgram(materialPassData:MaterialPassData):ProgramData
-	{
-		//check key doesn't need re-concatenating
-		if (!materialPassData.key.length) {
-			materialPassData.key = materialPassData.animationVertexCode +
-				materialPassData.vertexCode +
-				"---" +
-				materialPassData.fragmentCode +
-				materialPassData.animationFragmentCode +
-				materialPassData.postAnimationFragmentCode;
-		} else {
-			return materialPassData.programData;
-		}
-
-		var programData:ProgramData = this._programDataPool.getItem(materialPassData.key);
-
-		//check program data hasn't changed, keep count of program usages
-		if (materialPassData.programData != programData) {
-			if (materialPassData.programData)
-				materialPassData.programData.dispose();
-
-			materialPassData.programData = programData;
-
-			programData.usages++;
-		}
-
-		return programData;
-	}
-
-	/**
-	 *
-	 * @param material
-	 */
-	public getMaterial(material:StageGLMaterialBase, profile:string):MaterialData
-	{
-		var materialData:MaterialData = this._materialDataPool.getItem(material);
-
-		if (materialData.invalidAnimation) {
-			materialData.invalidAnimation = false;
-
-			var materialDataPasses:Array<MaterialPassData> = materialData.getMaterialPasses(profile);
-
-			var enabledGPUAnimation:boolean = this.getEnabledGPUAnimation(material, materialDataPasses);
-
-			var renderOrderId = 0;
-			var mult:number = 1;
-			var materialPassData:MaterialPassData;
-			var len:number = materialDataPasses.length;
-			for (var i:number = 0; i < len; i++) {
-				materialPassData = materialDataPasses[i];
-
-				if (materialPassData.usesAnimation != enabledGPUAnimation) {
-					materialPassData.usesAnimation = enabledGPUAnimation;
-					materialPassData.key == "";
-				}
-
-				if (materialPassData.key == "")
-					this.calcAnimationCode(material, materialPassData);
-
-				renderOrderId += this.getProgram(materialPassData).id*mult;
-				mult *= 1000;
-			}
-
-			materialData.renderOrderId = renderOrderId;
-		}
-
-		return materialData;
 	}
 
 	/**
@@ -215,51 +137,6 @@ class ContextGLBase implements IContext
 	public activateRenderTexture(index:number, textureProxy:RenderTexture)
 	{
 		this.setTextureAt(index, this.getRenderTexture(textureProxy));
-	}
-
-	public activateMaterialPass(materialPassData:MaterialPassData, stage:Stage, camera:Camera)
-	{
-		var shaderObject:ShaderObjectBase = materialPassData.shaderObject;
-
-		//clear unused vertex streams
-		for (var i = shaderObject.numUsedStreams; i < this._numUsedStreams; i++)
-			this.setVertexBufferAt(i, null);
-
-		//clear unused texture streams
-		for (var i = shaderObject.numUsedTextures; i < this._numUsedTextures; i++)
-			this.setTextureAt(i, null);
-
-		if (materialPassData.usesAnimation)
-			(<AnimationSetBase> materialPassData.material.animationSet).activate(shaderObject, stage);
-
-		//activate shader object
-		shaderObject.iActivate(stage, camera);
-
-		//check program data is uploaded
-		var programData:ProgramData = this.getProgram(materialPassData);
-
-		if (!programData.program) {
-			programData.program = this.createProgram();
-			var vertexByteCode:ByteArray = (new AGALMiniAssembler().assemble("part vertex 1\n" + materialPassData.animationVertexCode + materialPassData.vertexCode + "endpart"))['vertex'].data;
-			var fragmentByteCode:ByteArray = (new AGALMiniAssembler().assemble("part fragment 1\n" + materialPassData.fragmentCode + materialPassData.animationFragmentCode + materialPassData.postAnimationFragmentCode + "endpart"))['fragment'].data;
-			programData.program.upload(vertexByteCode, fragmentByteCode);
-		}
-
-		//set program data
-		this.setProgram(programData.program);
-	}
-
-	public deactivateMaterialPass(materialPassData:MaterialPassData, stage:Stage)
-	{
-		var shaderObject:ShaderObjectBase = materialPassData.shaderObject;
-
-		if (materialPassData.usesAnimation)
-			(<AnimationSetBase> materialPassData.material.animationSet).deactivate(shaderObject, stage);
-
-		materialPassData.shaderObject.iDeactivate(stage);
-
-		this._numUsedStreams = shaderObject.numUsedStreams;
-		this._numUsedTextures = shaderObject.numUsedTextures;
 	}
 
 	public activateTexture(index:number, textureProxy:Texture2DBase)
@@ -431,69 +308,6 @@ class ContextGLBase implements IContext
 	{
 		this._programData[programData.id] = null;
 		programData.id = -1;
-	}
-
-
-	/**
-	 * test if animation will be able to run on gpu BEFORE compiling materials
-	 * test if the shader objects supports animating the animation set in the vertex shader
-	 * if any object using this material fails to support accelerated animations for any of the shader objects,
-	 * we should do everything on cpu (otherwise we have the cost of both gpu + cpu animations)
-	 */
-	private getEnabledGPUAnimation(material:StageGLMaterialBase, materialDataPasses:Array<MaterialPassData>):boolean
-	{
-		if (material.animationSet) {
-			material.animationSet.resetGPUCompatibility();
-
-			var owners:Array<IMaterialOwner> = material.iOwners;
-			var numOwners:number = owners.length;
-
-			var len:number = materialDataPasses.length;
-			for (var i:number = 0; i < len; i++)
-				for (var j:number = 0; j < numOwners; j++)
-					if (owners[j].animator)
-						(<AnimatorBase> owners[j].animator).testGPUCompatibility(materialDataPasses[i].shaderObject);
-
-			return !material.animationSet.usesCPU;
-		}
-
-		return false;
-	}
-
-	public calcAnimationCode(material:StageGLMaterialBase, materialPassData:MaterialPassData)
-	{
-		//reset key so that the program is re-calculated
-		materialPassData.key = "";
-		materialPassData.animationVertexCode = "";
-		materialPassData.animationFragmentCode = "";
-
-		var shaderObject:ShaderObjectBase = materialPassData.shaderObject;
-
-		//check to see if GPU animation is used
-		if (materialPassData.usesAnimation) {
-
-			var animationSet:AnimationSetBase = <AnimationSetBase> material.animationSet;
-
-			materialPassData.animationVertexCode += animationSet.getAGALVertexCode(shaderObject);
-
-			if (shaderObject.uvDependencies > 0 && !shaderObject.usesUVTransform)
-				materialPassData.animationVertexCode += animationSet.getAGALUVCode(shaderObject);
-
-			if (shaderObject.usesFragmentAnimation)
-				materialPassData.animationFragmentCode += animationSet.getAGALFragmentCode(shaderObject, materialPassData.shadedTarget);
-
-			animationSet.doneAGALCode(shaderObject);
-
-		} else {
-			// simply write attributes to targets, do not animate them
-			// projection will pick up on targets[0] to do the projection
-			var len:number = shaderObject.animatableAttributes.length;
-			for (var i:number = 0; i < len; ++i)
-				materialPassData.animationVertexCode += "mov " + shaderObject.animationTargetRegisters[i] + ", " + shaderObject.animatableAttributes[i] + "\n";
-
-			if (shaderObject.uvDependencies > 0 && !shaderObject.usesUVTransform)
-				materialPassData.animationVertexCode += "mov " + shaderObject.uvTarget + "," + shaderObject.uvSource + "\n";
-		}
 	}
 }
 

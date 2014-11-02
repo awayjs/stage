@@ -12,9 +12,7 @@ import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
 
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
-import RenderableBase				= require("awayjs-stagegl/lib/pool/RenderableBase");
-import MaterialData					= require("awayjs-stagegl/lib/pool/MaterialData");
-import MaterialPassData				= require("awayjs-stagegl/lib/pool/MaterialPassData");
+import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import VertexData					= require("awayjs-stagegl/lib/pool/VertexData");
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
@@ -25,6 +23,8 @@ import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
 interface IContextStageGL extends IContext
 {
+	getProgramData(key:string):ProgramData;
+
 	setRenderTarget(target:TextureProxyBase, enableDepthAndStencil?:boolean, surfaceSelector?:number);
 
 	getRenderTexture(textureProxy:RenderTexture):ITextureBase;
@@ -33,8 +33,6 @@ interface IContextStageGL extends IContext
 
 	disposeVertexData(buffer:VertexData);
 
-	activateMaterialPass(materialPassData:MaterialPassData, stage:Stage, camera:Camera);
-
 	activateRenderTexture(index:number, textureProxy:RenderTexture);
 
 	activateTexture(index:number, textureProxy:Texture2DBase);
@@ -42,8 +40,6 @@ interface IContextStageGL extends IContext
 	activateCubeTexture(index:number, textureProxy:CubeTextureBase);
 
 	getIndexBuffer(buffer:IndexData):IIndexBuffer;
-
-	getMaterial(material:MaterialBase, profile:string):MaterialData;
 
 	disposeIndexData(buffer:IndexData);
 
@@ -60,8 +56,6 @@ interface IContextStageGL extends IContext
 	createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels?:number):ITexture;
 
 	createVertexBuffer(numVertices:number, data32PerVertex:number):IVertexBuffer;
-
-	deactivateMaterialPass(materialPassData:MaterialPassData, stage:Stage);
 
 	dispose();
 
@@ -96,8 +90,6 @@ interface IContextStageGL extends IContext
 	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number);
 
 	setRenderToBackBuffer();
-
-	calcAnimationCode(material:MaterialBase, materialPassData:MaterialPassData);
 }
 
 export = IContextStageGL;
