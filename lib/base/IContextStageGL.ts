@@ -22,25 +22,7 @@ import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
 interface IContextStageGL
 {
-	getProgramData(key:string):ProgramData;
-
-	setRenderTarget(target:TextureProxyBase, enableDepthAndStencil?:boolean, surfaceSelector?:number);
-
-	getRenderTexture(textureProxy:RenderTexture):ITextureBase;
-
-	activateBuffer(index:number, buffer:VertexData, offset:number, format:string);
-
-	disposeVertexData(buffer:VertexData);
-
-	activateRenderTexture(index:number, textureProxy:RenderTexture);
-
-	activateTexture(index:number, textureProxy:Texture2DBase);
-
-	activateCubeTexture(index:number, textureProxy:CubeTextureBase);
-
-	getIndexBuffer(buffer:IndexData):IIndexBuffer;
-
-	disposeIndexData(buffer:IndexData);
+	container:HTMLElement;
 
 	clear(red?:number, green?:number, blue?:number, alpha?:number, depth?:number, stencil?:number, mask?:number);
 

@@ -1096,227 +1096,7 @@ var Sampler = (function () {
 module.exports = Sampler;
 
 
-},{}],"awayjs-stagegl/lib/base/ContextGLBase":[function(require,module,exports){
-var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
-var RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
-var TextureDataPool = require("awayjs-stagegl/lib/pool/TextureDataPool");
-var ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
-var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
-var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-/**
- * Stage provides a proxy class to handle the creation and attachment of the Context
- * (and in turn the back buffer) it uses. Stage should never be created directly,
- * but requested through StageManager.
- *
- * @see away.managers.StageManager
- *
- */
-var ContextGLBase = (function () {
-    function ContextGLBase(stageIndex) {
-        this._programData = new Array();
-        //private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver / request animation frame
-        this._stageIndex = -1;
-        this._antiAlias = 0;
-        this._renderTarget = null;
-        this._renderSurfaceSelector = 0;
-        this._stageIndex = stageIndex;
-        this._texturePool = new TextureDataPool(this);
-        this._programDataPool = new ProgramDataPool(this);
-    }
-    Object.defineProperty(ContextGLBase.prototype, "container", {
-        get: function () {
-            return this._pContainer;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    ContextGLBase.prototype.getProgramData = function (key) {
-        return this._programDataPool.getItem(key);
-    };
-    ContextGLBase.prototype.setRenderTarget = function (target, enableDepthAndStencil, surfaceSelector) {
-        if (enableDepthAndStencil === void 0) { enableDepthAndStencil = false; }
-        if (surfaceSelector === void 0) { surfaceSelector = 0; }
-        if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
-            return;
-        this._renderTarget = target;
-        this._renderSurfaceSelector = surfaceSelector;
-        this._enableDepthAndStencil = enableDepthAndStencil;
-        if (target instanceof RenderTexture) {
-            this.setRenderToTexture(this.getRenderTexture(target), enableDepthAndStencil, this._antiAlias, surfaceSelector);
-        }
-        else {
-            this.setRenderToBackBuffer();
-            this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
-        }
-    };
-    ContextGLBase.prototype.getRenderTexture = function (textureProxy) {
-        var textureData = this._texturePool.getItem(textureProxy);
-        if (!textureData.texture)
-            textureData.texture = this.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
-        return textureData.texture;
-    };
-    /**
-     * Assigns an attribute stream
-     *
-     * @param index The attribute stream index for the vertex shader
-     * @param buffer
-     * @param offset
-     * @param stride
-     * @param format
-     */
-    ContextGLBase.prototype.activateBuffer = function (index, buffer, offset, format) {
-        if (!buffer.contexts[this._stageIndex])
-            buffer.contexts[this._stageIndex] = this;
-        if (!buffer.buffers[this._stageIndex]) {
-            buffer.buffers[this._stageIndex] = this.createVertexBuffer(buffer.data.length / buffer.dataPerVertex, buffer.dataPerVertex);
-            buffer.invalid[this._stageIndex] = true;
-        }
-        if (buffer.invalid[this._stageIndex]) {
-            buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length / buffer.dataPerVertex);
-            buffer.invalid[this._stageIndex] = false;
-        }
-        this.setVertexBufferAt(index, buffer.buffers[this._stageIndex], offset, format);
-    };
-    ContextGLBase.prototype.disposeVertexData = function (buffer) {
-        buffer.buffers[this._stageIndex].dispose();
-        buffer.buffers[this._stageIndex] = null;
-    };
-    ContextGLBase.prototype.activateRenderTexture = function (index, textureProxy) {
-        this.setTextureAt(index, this.getRenderTexture(textureProxy));
-    };
-    ContextGLBase.prototype.activateTexture = function (index, textureProxy) {
-        var textureData = this._texturePool.getItem(textureProxy);
-        if (!textureData.texture) {
-            textureData.texture = this.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
-            textureData.invalid = true;
-        }
-        if (textureData.invalid) {
-            textureData.invalid = false;
-            if (textureProxy.generateMipmaps) {
-                var mipmapData = textureProxy._iGetMipmapData();
-                var len = mipmapData.length;
-                for (var i = 0; i < len; i++)
-                    textureData.texture.uploadFromData(mipmapData[i], i);
-            }
-            else {
-                textureData.texture.uploadFromData(textureProxy._iGetTextureData(), 0);
-            }
-        }
-        this.setTextureAt(index, textureData.texture);
-    };
-    ContextGLBase.prototype.activateCubeTexture = function (index, textureProxy) {
-        var textureData = this._texturePool.getItem(textureProxy);
-        if (!textureData.texture) {
-            textureData.texture = this.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);
-            textureData.invalid = true;
-        }
-        if (textureData.invalid) {
-            textureData.invalid = false;
-            for (var i = 0; i < 6; ++i) {
-                if (textureProxy.generateMipmaps) {
-                    var mipmapData = textureProxy._iGetMipmapData(i);
-                    var len = mipmapData.length;
-                    for (var j = 0; j < len; j++)
-                        textureData.texture.uploadFromData(mipmapData[j], i, j);
-                }
-                else {
-                    textureData.texture.uploadFromData(textureProxy._iGetTextureData(i), i, 0);
-                }
-            }
-        }
-        this.setTextureAt(index, textureData.texture);
-    };
-    /**
-     * Retrieves the VertexBuffer object that contains triangle indices.
-     * @param context The ContextWeb for which we request the buffer
-     * @return The VertexBuffer object that contains triangle indices.
-     */
-    ContextGLBase.prototype.getIndexBuffer = function (buffer) {
-        if (!buffer.contexts[this._stageIndex])
-            buffer.contexts[this._stageIndex] = this;
-        if (!buffer.buffers[this._stageIndex]) {
-            buffer.buffers[this._stageIndex] = this.createIndexBuffer(buffer.data.length);
-            buffer.invalid[this._stageIndex] = true;
-        }
-        if (buffer.invalid[this._stageIndex]) {
-            buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
-            buffer.invalid[this._stageIndex] = false;
-        }
-        return buffer.buffers[this._stageIndex];
-    };
-    ContextGLBase.prototype.disposeIndexData = function (buffer) {
-        buffer.buffers[this._stageIndex].dispose();
-        buffer.buffers[this._stageIndex] = null;
-    };
-    ContextGLBase.prototype.clear = function (red, green, blue, alpha, depth, stencil, mask) {
-        if (red === void 0) { red = 0; }
-        if (green === void 0) { green = 0; }
-        if (blue === void 0) { blue = 0; }
-        if (alpha === void 0) { alpha = 1; }
-        if (depth === void 0) { depth = 1; }
-        if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask.ALL; }
-    };
-    ContextGLBase.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
-        if (enableDepthAndStencil === void 0) { enableDepthAndStencil = true; }
-        this._width = width;
-        this._height = height;
-    };
-    ContextGLBase.prototype.createIndexBuffer = function (numIndices) {
-        throw new AbstractMethodError();
-    };
-    ContextGLBase.prototype.createVertexBuffer = function (numVertices, data32PerVertex) {
-        throw new AbstractMethodError();
-    };
-    ContextGLBase.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
-        if (streamingLevels === void 0) { streamingLevels = 0; }
-        throw new AbstractMethodError();
-    };
-    ContextGLBase.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
-        if (streamingLevels === void 0) { streamingLevels = 0; }
-        throw new AbstractMethodError();
-    };
-    ContextGLBase.prototype.createProgram = function () {
-        throw new AbstractMethodError();
-    };
-    ContextGLBase.prototype.dispose = function () {
-    };
-    ContextGLBase.prototype.present = function () {
-    };
-    ContextGLBase.prototype.setRenderToTexture = function (target, enableDepthAndStencil, antiAlias, surfaceSelector) {
-        if (enableDepthAndStencil === void 0) { enableDepthAndStencil = false; }
-        if (antiAlias === void 0) { antiAlias = 0; }
-        if (surfaceSelector === void 0) { surfaceSelector = 0; }
-    };
-    ContextGLBase.prototype.setRenderToBackBuffer = function () {
-    };
-    ContextGLBase.prototype.setScissorRectangle = function (rectangle) {
-    };
-    ContextGLBase.prototype.setTextureAt = function (sampler, texture) {
-    };
-    ContextGLBase.prototype.setVertexBufferAt = function (index, buffer, bufferOffset, format) {
-        if (bufferOffset === void 0) { bufferOffset = 0; }
-        if (format === void 0) { format = null; }
-    };
-    ContextGLBase.prototype.setProgram = function (program) {
-    };
-    ContextGLBase.prototype.registerProgram = function (programData) {
-        var i = 0;
-        while (this._programData[i] != null)
-            i++;
-        this._programData[i] = programData;
-        programData.id = i;
-    };
-    ContextGLBase.prototype.unRegisterProgram = function (programData) {
-        this._programData[programData.id] = null;
-        programData.id = -1;
-    };
-    return ContextGLBase;
-})();
-module.exports = ContextGLBase;
-
-
-},{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/textures/RenderTexture":undefined,"awayjs-stagegl/lib/base/ContextGLClearMask":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFormat":undefined,"awayjs-stagegl/lib/pool/ProgramDataPool":undefined,"awayjs-stagegl/lib/pool/TextureDataPool":undefined}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
+},{}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
 var ContextGLBlendFactor = (function () {
     function ContextGLBlendFactor() {
     }
@@ -1481,15 +1261,8 @@ module.exports = ContextGLWrapMode;
 
 
 },{}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
 var swfobject = require("awayjs-stagegl/lib/swfobject");
 var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
-var ContextGLBase = require("awayjs-stagegl/lib/base/ContextGLBase");
 var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
 var ContextGLProgramType = require("awayjs-stagegl/lib/base/ContextGLProgramType");
 var CubeTextureFlash = require("awayjs-stagegl/lib/base/CubeTextureFlash");
@@ -1498,12 +1271,11 @@ var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
 var ProgramFlash = require("awayjs-stagegl/lib/base/ProgramFlash");
 var TextureFlash = require("awayjs-stagegl/lib/base/TextureFlash");
 var VertexBufferFlash = require("awayjs-stagegl/lib/base/VertexBufferFlash");
-var ContextStage3D = (function (_super) {
-    __extends(ContextStage3D, _super);
+var ContextStage3D = (function () {
     //TODO: get rid of hack that fixes including definition file
     function ContextStage3D(container, stageIndex, callback, include) {
-        _super.call(this, stageIndex);
         this._cmdStream = "";
+        _super.call(this, stageIndex);
         this._resources = new Array();
         var swfVersionStr = "11.0.0";
         // To use express install, set to playerProductInstall.swf, otherwise the empty string.
@@ -1531,14 +1303,14 @@ var ContextStage3D = (function (_super) {
         function callbackSWFObject(callbackInfo) {
             if (!callbackInfo.success)
                 return;
-            context3dObj._pContainer = callbackInfo.ref;
+            context3dObj._container = callbackInfo.ref;
             context3dObj._iCallback = callback;
         }
         swfobject.embedSWF("libs/molehill_js_flashbridge.swf", container.id, String(container.width), String(container.height), swfVersionStr, "", flashvars, params, attributes, callbackSWFObject);
     }
     Object.defineProperty(ContextStage3D.prototype, "container", {
         get: function () {
-            return this._pContainer;
+            return this._container;
         },
         enumerable: true,
         configurable: true
@@ -1688,7 +1460,8 @@ var ContextStage3D = (function (_super) {
     };
     ContextStage3D.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         if (enableDepthAndStencil === void 0) { enableDepthAndStencil = true; }
-        _super.prototype.configureBackBuffer.call(this, width, height, antiAlias, enableDepthAndStencil);
+        this._width = width;
+        this._height = height;
         //TODO: add Anitalias setting
         this.addStream(String.fromCharCode(OpCodes.configureBackBuffer) + width + "," + height + ",");
     };
@@ -1751,12 +1524,12 @@ var ContextStage3D = (function (_super) {
             this.execute();
     };
     ContextStage3D.prototype.dispose = function () {
-        if (this._pContainer == null)
+        if (this._container == null)
             return;
         console.log("Context3D dispose, releasing " + this._resources.length + " resources.");
         while (this._resources.length)
             this._resources[0].dispose();
-        if (this._pContainer) {
+        if (this._container) {
             // encode command
             this.addStream(String.fromCharCode(OpCodes.disposeContext));
             this.execute();
@@ -1765,7 +1538,7 @@ var ContextStage3D = (function (_super) {
                 this._oldParent.appendChild(this._oldCanvas);
                 this._oldParent = null;
             }
-            this._pContainer = null;
+            this._container = null;
         }
         this._oldCanvas = null;
     };
@@ -1775,7 +1548,7 @@ var ContextStage3D = (function (_super) {
     ContextStage3D.prototype.execute = function () {
         if (ContextStage3D.logStream)
             console.log(this._cmdStream);
-        var result = this._pContainer["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
+        var result = this._container["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
         if (Number(result) <= -3)
             throw "Exec stream failed";
         this._cmdStream = "";
@@ -1791,7 +1564,7 @@ var ContextStage3D = (function (_super) {
     ContextStage3D.debug = false;
     ContextStage3D.logStream = false;
     return ContextStage3D;
-})(ContextGLBase);
+})();
 /**
 * global function for flash callback
 */
@@ -1814,16 +1587,9 @@ function mountain_js_context_available(id, driverInfo) {
 module.exports = ContextStage3D;
 
 
-},{"awayjs-stagegl/lib/aglsl/Sampler":undefined,"awayjs-stagegl/lib/base/ContextGLBase":undefined,"awayjs-stagegl/lib/base/ContextGLClearMask":undefined,"awayjs-stagegl/lib/base/ContextGLProgramType":undefined,"awayjs-stagegl/lib/base/CubeTextureFlash":undefined,"awayjs-stagegl/lib/base/IndexBufferFlash":undefined,"awayjs-stagegl/lib/base/OpCodes":undefined,"awayjs-stagegl/lib/base/ProgramFlash":undefined,"awayjs-stagegl/lib/base/TextureFlash":undefined,"awayjs-stagegl/lib/base/VertexBufferFlash":undefined,"awayjs-stagegl/lib/swfobject":undefined}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
+},{"awayjs-stagegl/lib/aglsl/Sampler":undefined,"awayjs-stagegl/lib/base/ContextGLClearMask":undefined,"awayjs-stagegl/lib/base/ContextGLProgramType":undefined,"awayjs-stagegl/lib/base/CubeTextureFlash":undefined,"awayjs-stagegl/lib/base/IndexBufferFlash":undefined,"awayjs-stagegl/lib/base/OpCodes":undefined,"awayjs-stagegl/lib/base/ProgramFlash":undefined,"awayjs-stagegl/lib/base/TextureFlash":undefined,"awayjs-stagegl/lib/base/VertexBufferFlash":undefined,"awayjs-stagegl/lib/swfobject":undefined}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
 var Rectangle = require("awayjs-core/lib/geom/Rectangle");
 var ByteArray = require("awayjs-core/lib/utils/ByteArray");
-var ContextGLBase = require("awayjs-stagegl/lib/base/ContextGLBase");
 var ContextGLBlendFactor = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
 var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
 var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
@@ -1839,10 +1605,8 @@ var ProgramWebGL = require("awayjs-stagegl/lib/base/ProgramWebGL");
 var TextureWebGL = require("awayjs-stagegl/lib/base/TextureWebGL");
 var SamplerState = require("awayjs-stagegl/lib/base/SamplerState");
 var VertexBufferWebGL = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
-var ContextWebGL = (function (_super) {
-    __extends(ContextWebGL, _super);
+var ContextWebGL = (function () {
     function ContextWebGL(canvas, stageIndex) {
-        _super.call(this, stageIndex);
         this._blendFactorDictionary = new Object();
         this._depthTestDictionary = new Object();
         this._textureIndexDictionary = new Array(8);
@@ -1857,7 +1621,8 @@ var ContextWebGL = (function (_super) {
         this._textureList = new Array();
         this._programList = new Array();
         this._samplerStates = new Array(8);
-        this._pContainer = canvas;
+        _super.call(this, stageIndex);
+        this._container = canvas;
         try {
             this._gl = canvas.getContext("experimental-webgl", { premultipliedAlpha: false, alpha: false });
             if (!this._gl)
@@ -1930,7 +1695,7 @@ var ContextWebGL = (function (_super) {
     }
     Object.defineProperty(ContextWebGL.prototype, "container", {
         get: function () {
-            return this._pContainer;
+            return this._container;
         },
         enumerable: true,
         configurable: true
@@ -1964,7 +1729,8 @@ var ContextWebGL = (function (_super) {
     };
     ContextWebGL.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         if (enableDepthAndStencil === void 0) { enableDepthAndStencil = true; }
-        _super.prototype.configureBackBuffer.call(this, width, height, antiAlias, enableDepthAndStencil);
+        this._width = width;
+        this._height = height;
         if (enableDepthAndStencil) {
             this._gl.enable(this._gl.STENCIL_TEST);
             this._gl.enable(this._gl.DEPTH_TEST);
@@ -2186,11 +1952,11 @@ var ContextWebGL = (function (_super) {
     ContextWebGL.MAX_SAMPLERS = 8;
     ContextWebGL.modulo = 0;
     return ContextWebGL;
-})(ContextGLBase);
+})();
 module.exports = ContextWebGL;
 
 
-},{"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBase":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":undefined,"awayjs-stagegl/lib/base/ContextGLClearMask":undefined,"awayjs-stagegl/lib/base/ContextGLCompareMode":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":undefined,"awayjs-stagegl/lib/base/ContextGLProgramType":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFilter":undefined,"awayjs-stagegl/lib/base/ContextGLTriangleFace":undefined,"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":undefined,"awayjs-stagegl/lib/base/ContextGLWrapMode":undefined,"awayjs-stagegl/lib/base/CubeTextureWebGL":undefined,"awayjs-stagegl/lib/base/IndexBufferWebGL":undefined,"awayjs-stagegl/lib/base/ProgramWebGL":undefined,"awayjs-stagegl/lib/base/SamplerState":undefined,"awayjs-stagegl/lib/base/TextureWebGL":undefined,"awayjs-stagegl/lib/base/VertexBufferWebGL":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
+},{"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":undefined,"awayjs-stagegl/lib/base/ContextGLClearMask":undefined,"awayjs-stagegl/lib/base/ContextGLCompareMode":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":undefined,"awayjs-stagegl/lib/base/ContextGLProgramType":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFilter":undefined,"awayjs-stagegl/lib/base/ContextGLTriangleFace":undefined,"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":undefined,"awayjs-stagegl/lib/base/ContextGLWrapMode":undefined,"awayjs-stagegl/lib/base/CubeTextureWebGL":undefined,"awayjs-stagegl/lib/base/IndexBufferWebGL":undefined,"awayjs-stagegl/lib/base/ProgramWebGL":undefined,"awayjs-stagegl/lib/base/SamplerState":undefined,"awayjs-stagegl/lib/base/TextureWebGL":undefined,"awayjs-stagegl/lib/base/VertexBufferWebGL":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -2592,9 +2358,11 @@ var __extends = this.__extends || function (d, b) {
 var Rectangle = require("awayjs-core/lib/geom/Rectangle");
 var Event = require("awayjs-core/lib/events/Event");
 var EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
+var RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
 var CSS = require("awayjs-core/lib/utils/CSS");
 var ContextMode = require("awayjs-display/lib/display/ContextMode");
 var StageEvent = require("awayjs-display/lib/events/StageEvent");
+var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
 var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 var ContextWebGL = require("awayjs-stagegl/lib/base/ContextWebGL");
 /**
@@ -2611,6 +2379,7 @@ var Stage = (function (_super) {
         if (forceSoftware === void 0) { forceSoftware = false; }
         if (profile === void 0) { profile = "baseline"; }
         _super.call(this);
+        this._programData = new Array();
         this._x = 0;
         this._y = 0;
         //private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver / request animation frame
@@ -2632,6 +2401,124 @@ var Stage = (function (_super) {
         CSS.setElementY(this._container, 0);
         this.visible = true;
     }
+    Stage.prototype.getProgramData = function (key) {
+        return this._programDataPool.getItem(key);
+    };
+    Stage.prototype.setRenderTarget = function (target, enableDepthAndStencil, surfaceSelector) {
+        if (enableDepthAndStencil === void 0) { enableDepthAndStencil = false; }
+        if (surfaceSelector === void 0) { surfaceSelector = 0; }
+        if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
+            return;
+        this._renderTarget = target;
+        this._renderSurfaceSelector = surfaceSelector;
+        this._enableDepthAndStencil = enableDepthAndStencil;
+        if (target instanceof RenderTexture) {
+            this._context.setRenderToTexture(this.getRenderTexture(target), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+        }
+        else {
+            this._context.setRenderToBackBuffer();
+            this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+        }
+    };
+    Stage.prototype.getRenderTexture = function (textureProxy) {
+        var textureData = this._texturePool.getItem(textureProxy);
+        if (!textureData.texture)
+            textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
+        return textureData.texture;
+    };
+    /**
+     * Assigns an attribute stream
+     *
+     * @param index The attribute stream index for the vertex shader
+     * @param buffer
+     * @param offset
+     * @param stride
+     * @param format
+     */
+    Stage.prototype.activateBuffer = function (index, buffer, offset, format) {
+        if (!buffer.contexts[this._stageIndex])
+            buffer.contexts[this._stageIndex] = this._context;
+        if (!buffer.buffers[this._stageIndex]) {
+            buffer.buffers[this._stageIndex] = this._context.createVertexBuffer(buffer.data.length / buffer.dataPerVertex, buffer.dataPerVertex);
+            buffer.invalid[this._stageIndex] = true;
+        }
+        if (buffer.invalid[this._stageIndex]) {
+            buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length / buffer.dataPerVertex);
+            buffer.invalid[this._stageIndex] = false;
+        }
+        this._context.setVertexBufferAt(index, buffer.buffers[this._stageIndex], offset, format);
+    };
+    Stage.prototype.disposeVertexData = function (buffer) {
+        buffer.buffers[this._stageIndex].dispose();
+        buffer.buffers[this._stageIndex] = null;
+    };
+    Stage.prototype.activateRenderTexture = function (index, textureProxy) {
+        this._context.setTextureAt(index, this.getRenderTexture(textureProxy));
+    };
+    Stage.prototype.activateTexture = function (index, textureProxy) {
+        var textureData = this._texturePool.getItem(textureProxy);
+        if (!textureData.texture) {
+            textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
+            textureData.invalid = true;
+        }
+        if (textureData.invalid) {
+            textureData.invalid = false;
+            if (textureProxy.generateMipmaps) {
+                var mipmapData = textureProxy._iGetMipmapData();
+                var len = mipmapData.length;
+                for (var i = 0; i < len; i++)
+                    textureData.texture.uploadFromData(mipmapData[i], i);
+            }
+            else {
+                textureData.texture.uploadFromData(textureProxy._iGetTextureData(), 0);
+            }
+        }
+        this._context.setTextureAt(index, textureData.texture);
+    };
+    Stage.prototype.activateCubeTexture = function (index, textureProxy) {
+        var textureData = this._texturePool.getItem(textureProxy);
+        if (!textureData.texture) {
+            textureData.texture = this._context.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);
+            textureData.invalid = true;
+        }
+        if (textureData.invalid) {
+            textureData.invalid = false;
+            for (var i = 0; i < 6; ++i) {
+                if (textureProxy.generateMipmaps) {
+                    var mipmapData = textureProxy._iGetMipmapData(i);
+                    var len = mipmapData.length;
+                    for (var j = 0; j < len; j++)
+                        textureData.texture.uploadFromData(mipmapData[j], i, j);
+                }
+                else {
+                    textureData.texture.uploadFromData(textureProxy._iGetTextureData(i), i, 0);
+                }
+            }
+        }
+        this._context.setTextureAt(index, textureData.texture);
+    };
+    /**
+     * Retrieves the VertexBuffer object that contains triangle indices.
+     * @param context The ContextWeb for which we request the buffer
+     * @return The VertexBuffer object that contains triangle indices.
+     */
+    Stage.prototype.getIndexBuffer = function (buffer) {
+        if (!buffer.contexts[this._stageIndex])
+            buffer.contexts[this._stageIndex] = this._context;
+        if (!buffer.buffers[this._stageIndex]) {
+            buffer.buffers[this._stageIndex] = this._context.createIndexBuffer(buffer.data.length);
+            buffer.invalid[this._stageIndex] = true;
+        }
+        if (buffer.invalid[this._stageIndex]) {
+            buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
+            buffer.invalid[this._stageIndex] = false;
+        }
+        return buffer.buffers[this._stageIndex];
+    };
+    Stage.prototype.disposeIndexData = function (buffer) {
+        buffer.buffers[this._stageIndex].dispose();
+        buffer.buffers[this._stageIndex] = null;
+    };
     /**
      * Requests a Context object to attach to the managed gl canvas.
      */
@@ -2990,6 +2877,17 @@ var Stage = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Stage.prototype.registerProgram = function (programData) {
+        var i = 0;
+        while (this._programData[i] != null)
+            i++;
+        this._programData[i] = programData;
+        programData.id = i;
+    };
+    Stage.prototype.unRegisterProgram = function (programData) {
+        this._programData[programData.id] = null;
+        programData.id = -1;
+    };
     /*
      * Access to fire mouseevents across multiple layered view3D instances
      */
@@ -3074,7 +2972,7 @@ var Stage = (function (_super) {
 module.exports = Stage;
 
 
-},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-display/lib/display/ContextMode":undefined,"awayjs-display/lib/events/StageEvent":undefined,"awayjs-stagegl/lib/base/ContextStage3D":undefined,"awayjs-stagegl/lib/base/ContextWebGL":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
+},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/textures/RenderTexture":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-display/lib/display/ContextMode":undefined,"awayjs-display/lib/events/StageEvent":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFormat":undefined,"awayjs-stagegl/lib/base/ContextStage3D":undefined,"awayjs-stagegl/lib/base/ContextWebGL":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
 var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
 var TextureBaseWebGL = (function () {
     function TextureBaseWebGL(gl) {
@@ -3598,7 +3496,8 @@ var IndexData = (function () {
     IndexData.prototype.dispose = function () {
         for (var i = 0; i < 8; ++i) {
             if (this.contexts[i]) {
-                this.contexts[i].disposeIndexData(this);
+                this.buffers[i].dispose();
+                this.buffers[i] = null;
                 this.contexts[i] = null;
             }
         }
@@ -3868,7 +3767,8 @@ var VertexData = (function () {
     VertexData.prototype.dispose = function () {
         for (var i = 0; i < 8; ++i) {
             if (this.contexts[i]) {
-                this.contexts[i].disposeVertexData(this);
+                this.buffers[i].dispose();
+                this.buffers[i] = null;
                 this.contexts[i] = null;
             }
         }

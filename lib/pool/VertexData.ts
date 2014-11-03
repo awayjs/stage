@@ -1,7 +1,7 @@
 import SubGeometryBase				= require("awayjs-display/lib/base/SubGeometryBase");
 import SubGeometryEvent				= require("awayjs-display/lib/events/SubGeometryEvent");
 
-import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
 import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
 /**
@@ -18,7 +18,7 @@ class VertexData
 
 	public buffers:Array<IVertexBuffer> = new Array<IVertexBuffer>(8);
 
-	public contexts:Array<ContextGLBase> = new Array<ContextGLBase>(8);
+	public contexts:Array<IContextStageGL> = new Array<IContextStageGL>(8);
 
 	public data:Array<number>;
 
@@ -71,7 +71,8 @@ class VertexData
 	{
 		for (var i:number = 0; i < 8; ++i) {
 			if (this.contexts[i]) {
-				this.contexts[i].disposeVertexData(this);
+				this.buffers[i].dispose();
+				this.buffers[i] = null;
 				this.contexts[i] = null;
 			}
 		}

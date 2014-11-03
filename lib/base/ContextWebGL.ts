@@ -22,7 +22,7 @@ import TextureWebGL					= require("awayjs-stagegl/lib/base/TextureWebGL");
 import SamplerState					= require("awayjs-stagegl/lib/base/SamplerState");
 import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 
-class ContextWebGL extends ContextGLBase implements IContextStageGL
+class ContextWebGL implements IContextStageGL
 {
 	private _blendFactorDictionary:Object = new Object();
 	private _depthTestDictionary:Object = new Object();
@@ -34,6 +34,9 @@ class ContextWebGL extends ContextGLBase implements IContextStageGL
 	private _uniformLocationNameDictionary:Object = new Object();
 	private _vertexBufferDimensionDictionary:Object = new Object();
 
+	private _container:HTMLElement;
+	private _width:number;
+	private _height:number;
 	private _drawing:boolean;
 	private _blendEnabled:boolean;
 	private _blendSourceFactor:number;
@@ -58,14 +61,14 @@ class ContextWebGL extends ContextGLBase implements IContextStageGL
 
 	public get container():HTMLElement
 	{
-		return this._pContainer;
+		return this._container;
 	}
 
 	constructor(canvas:HTMLCanvasElement, stageIndex:number)
 	{
 		super(stageIndex);
 
-		this._pContainer = canvas;
+		this._container = canvas;
 
 		try {
 			this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", { premultipliedAlpha:false, alpha:false });
@@ -174,7 +177,8 @@ class ContextWebGL extends ContextGLBase implements IContextStageGL
 
 	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true)
 	{
-		super.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
+		this._width = width;
+		this._height = height;
 
 		if (enableDepthAndStencil) {
 			this._gl.enable(this._gl.STENCIL_TEST);

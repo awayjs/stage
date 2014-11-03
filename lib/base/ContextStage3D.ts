@@ -16,7 +16,7 @@ import TextureFlash					= require("awayjs-stagegl/lib/base/TextureFlash");
 import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 import VertexBufferFlash			= require("awayjs-stagegl/lib/base/VertexBufferFlash");
 
-class ContextStage3D extends ContextGLBase implements IContextStageGL
+class ContextStage3D implements IContextStageGL
 {
 	public static contexts:Object = new Object();
 	public static maxvertexconstants:number = 128;
@@ -28,6 +28,9 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 
 	public _iDriverInfo;
 
+	private _container:HTMLElement;
+	private _width:number;
+	private _height:number;
 	private _cmdStream:string = "";
 	private _errorCheckingEnabled:boolean;
 	private _resources:Array<ResourceBaseFlash>;
@@ -42,7 +45,7 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 
 	public get container():HTMLElement
 	{
-		return this._pContainer;
+		return this._container;
 	}
 
 	public get driverInfo()
@@ -108,7 +111,7 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 			if (!callbackInfo.success)
 				return;
 
-			context3dObj._pContainer = callbackInfo.ref;
+			context3dObj._container = callbackInfo.ref;
 			context3dObj._iCallback = callback;
 		}
 
@@ -263,7 +266,8 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 
 	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true)
 	{
-		super.configureBackBuffer(width, height, antiAlias, enableDepthAndStencil);
+		this._width = width;
+		this._height = height;
 
 		//TODO: add Anitalias setting
 		this.addStream(String.fromCharCode(OpCodes.configureBackBuffer) + width + "," + height + ",");
@@ -345,7 +349,7 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 
 	public dispose()
 	{
-		if (this._pContainer == null)
+		if (this._container == null)
 			return;
 
 		console.log("Context3D dispose, releasing " + this._resources.length + " resources.");
@@ -353,7 +357,7 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 		while (this._resources.length)
 			this._resources[0].dispose();
 
-		if (this._pContainer) {
+		if (this._container) {
 			// encode command
 			this.addStream(String.fromCharCode(OpCodes.disposeContext));
 			this.execute();
@@ -362,7 +366,7 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 				this._oldParent.appendChild(this._oldCanvas);
 				this._oldParent = null;
 			}
-			this._pContainer = null;
+			this._container = null;
 		}
 
 		this._oldCanvas = null;
@@ -378,7 +382,7 @@ class ContextStage3D extends ContextGLBase implements IContextStageGL
 		if (ContextStage3D.logStream)
 			console.log(this._cmdStream);
 
-		var result:number = this._pContainer["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
+		var result:number = this._container["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
 
 		if (Number(result) <= -3)
 			throw "Exec stream failed";

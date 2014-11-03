@@ -1,18 +1,29 @@
-import Rectangle				= require("awayjs-core/lib/geom/Rectangle");
-import Event					= require("awayjs-core/lib/events/Event");
-import EventDispatcher			= require("awayjs-core/lib/events/EventDispatcher");
-import CubeTextureBase			= require("awayjs-core/lib/textures/CubeTextureBase");
-import RenderTexture			= require("awayjs-core/lib/textures/RenderTexture");
-import TextureProxyBase			= require("awayjs-core/lib/textures/TextureProxyBase");
-import CSS						= require("awayjs-core/lib/utils/CSS");
+import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
+import Event						= require("awayjs-core/lib/events/Event");
+import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
+import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
+import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
+import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
+import CSS							= require("awayjs-core/lib/utils/CSS");
 
-import ContextMode				= require("awayjs-display/lib/display/ContextMode");
-import StageEvent				= require("awayjs-display/lib/events/StageEvent");
+import ContextMode					= require("awayjs-display/lib/display/ContextMode");
+import StageEvent					= require("awayjs-display/lib/events/StageEvent");
 
-import ContextStage3D			= require("awayjs-stagegl/lib/base/ContextStage3D");
-import ContextWebGL				= require("awayjs-stagegl/lib/base/ContextWebGL");
-import IContextStageGL			= require("awayjs-stagegl/lib/base/IContextStageGL");
-import StageManager				= require("awayjs-stagegl/lib/managers/StageManager");
+import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
+import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
+import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
+import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
+import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
+import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
+import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
+import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
+import TextureData					= require("awayjs-stagegl/lib/pool/TextureData");
+import TextureDataPool				= require("awayjs-stagegl/lib/pool/TextureDataPool");
+import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
+import ProgramDataPool				= require("awayjs-stagegl/lib/pool/ProgramDataPool");
+import VertexData					= require("awayjs-stagegl/lib/pool/VertexData");
+import StageManager					= require("awayjs-stagegl/lib/managers/StageManager");
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -24,6 +35,9 @@ import StageManager				= require("awayjs-stagegl/lib/managers/StageManager");
  */
 class Stage extends EventDispatcher
 {
+	private _programData:Array<ProgramData> = new Array<ProgramData>();
+	private _texturePool:TextureDataPool;
+	private _programDataPool:ProgramDataPool;
 	private _context:IContextStageGL;
 	private _container:HTMLElement;
 	private _width:number;
@@ -79,6 +93,154 @@ class Stage extends EventDispatcher
 		CSS.setElementY(this._container, 0);
 
 		this.visible = true;
+	}
+
+	public getProgramData(key:string):ProgramData
+	{
+		return this._programDataPool.getItem(key);
+	}
+
+	public setRenderTarget(target:TextureProxyBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
+	{
+		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
+			return;
+
+		this._renderTarget = target;
+		this._renderSurfaceSelector = surfaceSelector;
+		this._enableDepthAndStencil = enableDepthAndStencil;
+		if (target instanceof RenderTexture) {
+			this._context.setRenderToTexture(this.getRenderTexture(<RenderTexture> target), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+		} else {
+			this._context.setRenderToBackBuffer();
+			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+		}
+	}
+
+	public getRenderTexture(textureProxy:RenderTexture):ITextureBase
+	{
+		var textureData:TextureData = this._texturePool.getItem(textureProxy);
+
+		if (!textureData.texture)
+			textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
+
+		return textureData.texture;
+	}
+
+	/**
+	 * Assigns an attribute stream
+	 *
+	 * @param index The attribute stream index for the vertex shader
+	 * @param buffer
+	 * @param offset
+	 * @param stride
+	 * @param format
+	 */
+	public activateBuffer(index:number, buffer:VertexData, offset:number, format:string)
+	{
+		if (!buffer.contexts[this._stageIndex])
+			buffer.contexts[this._stageIndex] = this._context;
+
+		if (!buffer.buffers[this._stageIndex]) {
+			buffer.buffers[this._stageIndex] = this._context.createVertexBuffer(buffer.data.length/buffer.dataPerVertex, buffer.dataPerVertex);
+			buffer.invalid[this._stageIndex] = true;
+		}
+
+		if (buffer.invalid[this._stageIndex]) {
+			buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length/buffer.dataPerVertex);
+			buffer.invalid[this._stageIndex] = false;
+		}
+
+		this._context.setVertexBufferAt(index, buffer.buffers[this._stageIndex], offset, format);
+	}
+
+	public disposeVertexData(buffer:VertexData)
+	{
+		buffer.buffers[this._stageIndex].dispose();
+		buffer.buffers[this._stageIndex] = null;
+	}
+
+	public activateRenderTexture(index:number, textureProxy:RenderTexture)
+	{
+		this._context.setTextureAt(index, this.getRenderTexture(textureProxy));
+	}
+
+	public activateTexture(index:number, textureProxy:Texture2DBase)
+	{
+		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
+
+		if (!textureData.texture) {
+			textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
+			textureData.invalid = true;
+		}
+
+		if (textureData.invalid) {
+			textureData.invalid = false;
+			if (textureProxy.generateMipmaps) {
+				var mipmapData:Array<BitmapData> = textureProxy._iGetMipmapData();
+				var len:number = mipmapData.length;
+				for (var i:number = 0; i < len; i++)
+					(<ITexture> textureData.texture).uploadFromData(mipmapData[i], i);
+			} else {
+				(<ITexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(), 0);
+			}
+		}
+
+		this._context.setTextureAt(index, textureData.texture);
+	}
+
+	public activateCubeTexture(index:number, textureProxy:CubeTextureBase)
+	{
+		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
+
+		if (!textureData.texture) {
+			textureData.texture = this._context.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);
+			textureData.invalid = true;
+		}
+
+		if (textureData.invalid) {
+			textureData.invalid = false;
+			for (var i:number = 0; i < 6; ++i) {
+				if (textureProxy.generateMipmaps) {
+					var mipmapData:Array<BitmapData> = textureProxy._iGetMipmapData(i);
+					var len:number = mipmapData.length;
+					for (var j:number = 0; j < len; j++)
+						(<ICubeTexture> textureData.texture).uploadFromData(mipmapData[j], i, j);
+				} else {
+					(<ICubeTexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(i), i, 0);
+				}
+			}
+		}
+
+		this._context.setTextureAt(index, textureData.texture);
+	}
+
+	/**
+	 * Retrieves the VertexBuffer object that contains triangle indices.
+	 * @param context The ContextWeb for which we request the buffer
+	 * @return The VertexBuffer object that contains triangle indices.
+	 */
+	public getIndexBuffer(buffer:IndexData):IIndexBuffer
+	{
+		if (!buffer.contexts[this._stageIndex])
+			buffer.contexts[this._stageIndex] = this._context;
+
+		if (!buffer.buffers[this._stageIndex]) {
+			buffer.buffers[this._stageIndex] = this._context.createIndexBuffer(buffer.data.length);
+			buffer.invalid[this._stageIndex] = true;
+		}
+
+		if (buffer.invalid[this._stageIndex]) {
+			buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
+			buffer.invalid[this._stageIndex] = false;
+		}
+
+		return buffer.buffers[this._stageIndex];
+	}
+
+	public disposeIndexData(buffer:IndexData)
+	{
+		buffer.buffers[this._stageIndex].dispose();
+		buffer.buffers[this._stageIndex] = null;
 	}
 
 	/**
@@ -478,6 +640,23 @@ class Stage extends EventDispatcher
 	public set bufferClear(newBufferClear:boolean)
 	{
 		this._bufferClear = newBufferClear;
+	}
+
+
+	public registerProgram(programData:ProgramData)
+	{
+		var i:number = 0;
+		while (this._programData[i] != null)
+			i++;
+
+		this._programData[i] = programData;
+		programData.id = i;
+	}
+
+	public unRegisterProgram(programData:ProgramData)
+	{
+		this._programData[programData.id] = null;
+		programData.id = -1;
 	}
 
 	/*
