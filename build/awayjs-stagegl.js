@@ -3539,7 +3539,6 @@ module.exports = IndexData;
 
 },{}],"awayjs-stagegl/lib/pool/ProgramDataPool":[function(require,module,exports){
 var ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
-var Stage = require("awayjs-stagegl/lib/base/Stage");
 /**
  * @class away.pool.ProgramDataPool
  */
@@ -3551,7 +3550,7 @@ var ProgramDataPool = (function () {
      */
     function ProgramDataPool(stage) {
         this._pool = new Object();
-        this._stage = Stage;
+        this._stage = stage;
     }
     /**
      * //TODO
@@ -3575,7 +3574,7 @@ var ProgramDataPool = (function () {
 module.exports = ProgramDataPool;
 
 
-},{"awayjs-stagegl/lib/base/Stage":undefined,"awayjs-stagegl/lib/pool/ProgramData":undefined}],"awayjs-stagegl/lib/pool/ProgramData":[function(require,module,exports){
+},{"awayjs-stagegl/lib/pool/ProgramData":undefined}],"awayjs-stagegl/lib/pool/ProgramData":[function(require,module,exports){
 /**
  *
  * @class away.pool.ProgramDataBase

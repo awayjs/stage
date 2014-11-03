@@ -1,7 +1,7 @@
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
-import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 
 /**
  * @class away.pool.ProgramDataPool
@@ -18,7 +18,7 @@ class ProgramDataPool
 	 */
 	constructor(stage:Stage)
 	{
-		this._stage = Stage;
+		this._stage = stage;
 	}
 
 	/**
