@@ -2363,6 +2363,8 @@ var StageEvent = require("awayjs-display/lib/events/StageEvent");
 var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
 var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 var ContextWebGL = require("awayjs-stagegl/lib/base/ContextWebGL");
+var TextureDataPool = require("awayjs-stagegl/lib/pool/TextureDataPool");
+var ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
  * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -2390,6 +2392,8 @@ var Stage = (function (_super) {
         //private _mouse3DManager:away.managers.Mouse3DManager;
         //private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
         this._initialised = false;
+        this._texturePool = new TextureDataPool();
+        this._programDataPool = new ProgramDataPool(this);
         this._container = container;
         this._stageIndex = stageIndex;
         this._stageManager = stageManager;
@@ -2970,7 +2974,7 @@ var Stage = (function (_super) {
 module.exports = Stage;
 
 
-},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/textures/RenderTexture":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-display/lib/display/ContextMode":undefined,"awayjs-display/lib/events/StageEvent":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFormat":undefined,"awayjs-stagegl/lib/base/ContextStage3D":undefined,"awayjs-stagegl/lib/base/ContextWebGL":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
+},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/textures/RenderTexture":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-display/lib/display/ContextMode":undefined,"awayjs-display/lib/events/StageEvent":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFormat":undefined,"awayjs-stagegl/lib/base/ContextStage3D":undefined,"awayjs-stagegl/lib/base/ContextWebGL":undefined,"awayjs-stagegl/lib/pool/ProgramDataPool":undefined,"awayjs-stagegl/lib/pool/TextureDataPool":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
 var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
 var TextureBaseWebGL = (function () {
     function TextureBaseWebGL(gl) {

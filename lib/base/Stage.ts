@@ -81,6 +81,9 @@ class Stage extends EventDispatcher
 	{
 		super();
 
+		this._texturePool = new TextureDataPool();
+		this._programDataPool = new ProgramDataPool(this);
+
 		this._container = container;
 
 		this._stageIndex = stageIndex;
