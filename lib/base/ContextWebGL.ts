@@ -14,7 +14,7 @@ import ContextGLTriangleFace		= require("awayjs-stagegl/lib/base/ContextGLTriang
 import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 import CubeTextureWebGL				= require("awayjs-stagegl/lib/base/CubeTextureWebGL");
-import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
+import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
 import IndexBufferWebGL				= require("awayjs-stagegl/lib/base/IndexBufferWebGL");
 import ProgramWebGL					= require("awayjs-stagegl/lib/base/ProgramWebGL");
 import TextureBaseWebGL				= require("awayjs-stagegl/lib/base/TextureBaseWebGL");
@@ -22,7 +22,7 @@ import TextureWebGL					= require("awayjs-stagegl/lib/base/TextureWebGL");
 import SamplerState					= require("awayjs-stagegl/lib/base/SamplerState");
 import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 
-class ContextWebGL implements IContextStageGL
+class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
 	private _depthTestDictionary:Object = new Object();

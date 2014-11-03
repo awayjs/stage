@@ -8,7 +8,7 @@ import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
 import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
 import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
 import CubeTextureFlash				= require("awayjs-stagegl/lib/base/CubeTextureFlash");
-import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
+import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
 import IndexBufferFlash				= require("awayjs-stagegl/lib/base/IndexBufferFlash");
 import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
 import ProgramFlash					= require("awayjs-stagegl/lib/base/ProgramFlash");
@@ -16,7 +16,7 @@ import TextureFlash					= require("awayjs-stagegl/lib/base/TextureFlash");
 import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 import VertexBufferFlash			= require("awayjs-stagegl/lib/base/VertexBufferFlash");
 
-class ContextStage3D implements IContextStageGL
+class ContextStage3D implements IContextGL
 {
 	public static contexts:Object = new Object();
 	public static maxvertexconstants:number = 128;
@@ -41,7 +41,7 @@ class ContextStage3D implements IContextStageGL
 	public static debug:boolean = false;
 	public static logStream:boolean = false;
 
-	public _iCallback:(context:IContextStageGL) => void;
+	public _iCallback:(context:IContextGL) => void;
 
 	public get container():HTMLElement
 	{
@@ -70,7 +70,7 @@ class ContextStage3D implements IContextStageGL
 	}
 
 	//TODO: get rid of hack that fixes including definition file
-	constructor(container:HTMLCanvasElement, stageIndex:number, callback:(context:IContextStageGL) => void, include?:Sampler)
+	constructor(container:HTMLCanvasElement, stageIndex:number, callback:(context:IContextGL) => void, include?:Sampler)
 	{
 		super(stageIndex);
 

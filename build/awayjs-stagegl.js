@@ -2078,7 +2078,7 @@ var CubeTextureWebGL = (function (_super) {
 module.exports = CubeTextureWebGL;
 
 
-},{"awayjs-core/lib/base/BitmapData":undefined,"awayjs-stagegl/lib/base/TextureBaseWebGL":undefined}],"awayjs-stagegl/lib/base/IContextStageGL":[function(require,module,exports){
+},{"awayjs-core/lib/base/BitmapData":undefined,"awayjs-stagegl/lib/base/TextureBaseWebGL":undefined}],"awayjs-stagegl/lib/base/IContextGL":[function(require,module,exports){
 
 
 

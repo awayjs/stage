@@ -1,6 +1,6 @@
 import SubGeometryBase				= require("awayjs-display/lib/base/SubGeometryBase");
 
-import IContextStageGL				= require("awayjs-stagegl/lib/base/IContextStageGL");
+import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
 
 /**
@@ -16,7 +16,7 @@ class IndexData
 
 	public invalid:Array<boolean> = new Array(8);
 
-	public contexts:Array<IContextStageGL> = new Array<IContextStageGL>(8);
+	public contexts:Array<IContextGL> = new Array<IContextGL>(8);
 
 	public buffers:Array<IIndexBuffer> = new Array<IIndexBuffer>(8);
 

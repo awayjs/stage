@@ -20,7 +20,7 @@ import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
 import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
-interface IContextStageGL
+interface IContextGL
 {
 	container:HTMLElement;
 
@@ -73,4 +73,4 @@ interface IContextStageGL
 	setRenderToBackBuffer();
 }
 
-export = IContextStageGL;
+export = IContextGL;
