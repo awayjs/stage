@@ -1,7 +1,6 @@
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
 import TextureData					= require("awayjs-stagegl/lib/pool/TextureData");
-import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
 
 /**
  * @class away.pool.TextureDataPool
@@ -9,16 +8,14 @@ import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
 class TextureDataPool
 {
 	private _pool:Object = new Object();
-	private _context:ContextGLBase;
 
 	/**
 	 * //TODO
 	 *
 	 * @param textureDataClass
 	 */
-	constructor(context:ContextGLBase)
+	constructor()
 	{
-		this._context = context;
 	}
 
 	/**
@@ -29,7 +26,7 @@ class TextureDataPool
 	 */
 	public getItem(textureProxy:TextureProxyBase):TextureData
 	{
-		return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, this._context, textureProxy))))
+		return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy))))
 	}
 
 	/**

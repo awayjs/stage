@@ -1,8 +1,10 @@
+import BitmapData					= require("awayjs-core/lib/base/BitmapData");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import Event						= require("awayjs-core/lib/events/Event");
 import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
 import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
 import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
+import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 import CSS							= require("awayjs-core/lib/utils/CSS");
 
@@ -12,7 +14,7 @@ import StageEvent					= require("awayjs-display/lib/events/StageEvent");
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
 import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
 import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
-import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
+import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
 import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
@@ -260,14 +262,14 @@ class Stage extends EventDispatcher
 
 		try {
 			if (mode == ContextMode.FLASH)
-				new ContextStage3D(<HTMLCanvasElement> this._container, this._stageIndex, (context:IContextGL) => this._callback(context));
+				new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
 			else
-				this._context = new ContextWebGL(<HTMLCanvasElement> this._container, this._stageIndex);
+				this._context = new ContextWebGL(<HTMLCanvasElement> this._container);
 
 		} catch (e) {
 			try {
 				if (mode == ContextMode.AUTO)
-					new ContextStage3D(<HTMLCanvasElement> this._container, this._stageIndex, (context:IContextGL) => this._callback(context));
+					new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
 				else
 					this.dispatchEvent(new Event(Event.ERROR));
 			} catch (e) {

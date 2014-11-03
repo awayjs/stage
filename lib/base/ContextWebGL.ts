@@ -3,7 +3,6 @@ import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
-import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
 import ContextGLBlendFactor			= require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
 import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
 import ContextGLCompareMode			= require("awayjs-stagegl/lib/base/ContextGLCompareMode");
@@ -64,10 +63,8 @@ class ContextWebGL implements IContextGL
 		return this._container;
 	}
 
-	constructor(canvas:HTMLCanvasElement, stageIndex:number)
+	constructor(canvas:HTMLCanvasElement)
 	{
-		super(stageIndex);
-
 		this._container = canvas;
 
 		try {

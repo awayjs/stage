@@ -4,7 +4,6 @@ import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 
 import swfobject					= require("awayjs-stagegl/lib/swfobject");
 import Sampler						= require("awayjs-stagegl/lib/aglsl/Sampler");
-import ContextGLBase				= require("awayjs-stagegl/lib/base/ContextGLBase");
 import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
 import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
 import CubeTextureFlash				= require("awayjs-stagegl/lib/base/CubeTextureFlash");
@@ -70,10 +69,8 @@ class ContextStage3D implements IContextGL
 	}
 
 	//TODO: get rid of hack that fixes including definition file
-	constructor(container:HTMLCanvasElement, stageIndex:number, callback:(context:IContextGL) => void, include?:Sampler)
+	constructor(container:HTMLCanvasElement, callback:(context:IContextGL) => void, include?:Sampler)
 	{
-		super(stageIndex);
-
 		this._resources = new Array<ResourceBaseFlash>();
 
 		var swfVersionStr = "11.0.0";

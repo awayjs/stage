@@ -1273,9 +1273,8 @@ var TextureFlash = require("awayjs-stagegl/lib/base/TextureFlash");
 var VertexBufferFlash = require("awayjs-stagegl/lib/base/VertexBufferFlash");
 var ContextStage3D = (function () {
     //TODO: get rid of hack that fixes including definition file
-    function ContextStage3D(container, stageIndex, callback, include) {
+    function ContextStage3D(container, callback, include) {
         this._cmdStream = "";
-        _super.call(this, stageIndex);
         this._resources = new Array();
         var swfVersionStr = "11.0.0";
         // To use express install, set to playerProductInstall.swf, otherwise the empty string.
@@ -1606,7 +1605,7 @@ var TextureWebGL = require("awayjs-stagegl/lib/base/TextureWebGL");
 var SamplerState = require("awayjs-stagegl/lib/base/SamplerState");
 var VertexBufferWebGL = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 var ContextWebGL = (function () {
-    function ContextWebGL(canvas, stageIndex) {
+    function ContextWebGL(canvas) {
         this._blendFactorDictionary = new Object();
         this._depthTestDictionary = new Object();
         this._textureIndexDictionary = new Array(8);
@@ -1621,7 +1620,6 @@ var ContextWebGL = (function () {
         this._textureList = new Array();
         this._programList = new Array();
         this._samplerStates = new Array(8);
-        _super.call(this, stageIndex);
         this._container = canvas;
         try {
             this._gl = canvas.getContext("experimental-webgl", { premultipliedAlpha: false, alpha: false });
@@ -2536,14 +2534,14 @@ var Stage = (function (_super) {
         this._profile = profile;
         try {
             if (mode == ContextMode.FLASH)
-                new ContextStage3D(this._container, this._stageIndex, function (context) { return _this._callback(context); });
+                new ContextStage3D(this._container, function (context) { return _this._callback(context); });
             else
-                this._context = new ContextWebGL(this._container, this._stageIndex);
+                this._context = new ContextWebGL(this._container);
         }
         catch (e) {
             try {
                 if (mode == ContextMode.AUTO)
-                    new ContextStage3D(this._container, this._stageIndex, function (context) { return _this._callback(context); });
+                    new ContextStage3D(this._container, function (context) { return _this._callback(context); });
                 else
                     this.dispatchEvent(new Event(Event.ERROR));
             }
@@ -3541,6 +3539,7 @@ module.exports = IndexData;
 
 },{}],"awayjs-stagegl/lib/pool/ProgramDataPool":[function(require,module,exports){
 var ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
+var Stage = require("awayjs-stagegl/lib/base/Stage");
 /**
  * @class away.pool.ProgramDataPool
  */
@@ -3550,9 +3549,9 @@ var ProgramDataPool = (function () {
      *
      * @param textureDataClass
      */
-    function ProgramDataPool(context) {
+    function ProgramDataPool(stage) {
         this._pool = new Object();
-        this._context = context;
+        this._stage = Stage;
     }
     /**
      * //TODO
@@ -3561,7 +3560,7 @@ var ProgramDataPool = (function () {
      * @returns ITexture
      */
     ProgramDataPool.prototype.getItem = function (key) {
-        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._context, key));
+        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, key));
     };
     /**
      * //TODO
@@ -3576,7 +3575,7 @@ var ProgramDataPool = (function () {
 module.exports = ProgramDataPool;
 
 
-},{"awayjs-stagegl/lib/pool/ProgramData":undefined}],"awayjs-stagegl/lib/pool/ProgramData":[function(require,module,exports){
+},{"awayjs-stagegl/lib/base/Stage":undefined,"awayjs-stagegl/lib/pool/ProgramData":undefined}],"awayjs-stagegl/lib/pool/ProgramData":[function(require,module,exports){
 /**
  *
  * @class away.pool.ProgramDataBase
@@ -3585,9 +3584,9 @@ var ProgramData = (function () {
     function ProgramData(pool, context, key) {
         this.usages = 0;
         this._pool = pool;
-        this.context = context;
+        this.stage = context;
         this._key = key;
-        this.context.registerProgram(this);
+        this.stage.registerProgram(this);
     }
     /**
      *
@@ -3596,7 +3595,7 @@ var ProgramData = (function () {
         this.usages--;
         if (!this.usages) {
             this._pool.disposeItem(this._key);
-            this.context.unRegisterProgram(this);
+            this.stage.unRegisterProgram(this);
             if (this.program)
                 this.program.dispose();
         }
@@ -3619,9 +3618,8 @@ var TextureDataPool = (function () {
      *
      * @param textureDataClass
      */
-    function TextureDataPool(context) {
+    function TextureDataPool() {
         this._pool = new Object();
-        this._context = context;
     }
     /**
      * //TODO
@@ -3630,7 +3628,7 @@ var TextureDataPool = (function () {
      * @returns ITexture
      */
     TextureDataPool.prototype.getItem = function (textureProxy) {
-        return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, this._context, textureProxy))));
+        return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy))));
     };
     /**
      * //TODO
@@ -3652,9 +3650,8 @@ module.exports = TextureDataPool;
  * @class away.pool.TextureDataBase
  */
 var TextureData = (function () {
-    function TextureData(pool, context, textureProxy) {
+    function TextureData(pool, textureProxy) {
         this._pool = pool;
-        this.context = context;
         this.textureProxy = textureProxy;
     }
     /**
