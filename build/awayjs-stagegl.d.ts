@@ -648,7 +648,7 @@ declare module "awayjs-stagegl/lib/pool/ProgramDataPool" {
 	     * @param materialOwner
 	     * @returns ITexture
 	     */
-	    getItem(key: string): ProgramData;
+	    getItem(vertexString: string, fragmentString: string): ProgramData;
 	    /**
 	     * //TODO
 	     *
@@ -670,12 +670,13 @@ declare module "awayjs-stagegl/lib/pool/ProgramData" {
 	class ProgramData {
 	    static PROGRAMDATA_ID_COUNT: number;
 	    private _pool;
-	    private _key;
+	    vertexString: string;
+	    fragmentString: string;
 	    stage: Stage;
 	    usages: number;
 	    program: IProgram;
 	    id: number;
-	    constructor(pool: ProgramDataPool, context: Stage, key: string);
+	    constructor(pool: ProgramDataPool, context: Stage, vertexString: string, fragmentString: string);
 	    /**
 	     *
 	     */
@@ -854,7 +855,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private _bufferClear;
 	    private _initialised;
 	    constructor(container: HTMLCanvasElement, stageIndex: number, stageManager: StageManager, forceSoftware?: boolean, profile?: string);
-	    getProgramData(key: string): ProgramData;
+	    getProgramData(vertexString: string, fragmentString: string): ProgramData;
 	    setRenderTarget(target: TextureProxyBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
 	    getRenderTexture(textureProxy: RenderTexture): ITextureBase;
 	    /**

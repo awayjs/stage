@@ -2403,8 +2403,8 @@ var Stage = (function (_super) {
         CSS.setElementY(this._container, 0);
         this.visible = true;
     }
-    Stage.prototype.getProgramData = function (key) {
-        return this._programDataPool.getItem(key);
+    Stage.prototype.getProgramData = function (vertexString, fragmentString) {
+        return this._programDataPool.getItem(vertexString, fragmentString);
     };
     Stage.prototype.setRenderTarget = function (target, enableDepthAndStencil, surfaceSelector) {
         if (enableDepthAndStencil === void 0) { enableDepthAndStencil = false; }
@@ -3562,8 +3562,9 @@ var ProgramDataPool = (function () {
      * @param materialOwner
      * @returns ITexture
      */
-    ProgramDataPool.prototype.getItem = function (key) {
-        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, key));
+    ProgramDataPool.prototype.getItem = function (vertexString, fragmentString) {
+        var key = vertexString + fragmentString;
+        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
     };
     /**
      * //TODO
@@ -3584,11 +3585,12 @@ module.exports = ProgramDataPool;
  * @class away.pool.ProgramDataBase
  */
 var ProgramData = (function () {
-    function ProgramData(pool, context, key) {
+    function ProgramData(pool, context, vertexString, fragmentString) {
         this.usages = 0;
         this._pool = pool;
         this.stage = context;
-        this._key = key;
+        this.vertexString = vertexString;
+        this.fragmentString = fragmentString;
         this.stage.registerProgram(this);
     }
     /**
@@ -3597,7 +3599,7 @@ var ProgramData = (function () {
     ProgramData.prototype.dispose = function () {
         this.usages--;
         if (!this.usages) {
-            this._pool.disposeItem(this._key);
+            this._pool.disposeItem(this.vertexString + this.fragmentString);
             this.stage.unRegisterProgram(this);
             if (this.program)
                 this.program.dispose();
