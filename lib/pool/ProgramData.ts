@@ -11,7 +11,10 @@ class ProgramData
 	public static PROGRAMDATA_ID_COUNT:number = 0;
 
 	private _pool:ProgramDataPool;
-	private _key:string;
+
+	public vertexString:string;
+
+	public fragmentString:string;
 
 	public stage:Stage;
 
@@ -21,11 +24,12 @@ class ProgramData
 
 	public id:number;
 
-	constructor(pool:ProgramDataPool, context:Stage, key:string)
+	constructor(pool:ProgramDataPool, context:Stage, vertexString:string, fragmentString:string)
 	{
 		this._pool = pool;
 		this.stage = context;
-		this._key = key;
+		this.vertexString = vertexString;
+		this.fragmentString = fragmentString;
 		this.stage.registerProgram(this);
 	}
 
@@ -37,7 +41,7 @@ class ProgramData
 		this.usages--;
 
 		if (!this.usages) {
-			this._pool.disposeItem(this._key);
+			this._pool.disposeItem(this.vertexString + this.fragmentString);
 
 			this.stage.unRegisterProgram(this);
 

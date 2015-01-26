@@ -100,9 +100,9 @@ class Stage extends EventDispatcher
 		this.visible = true;
 	}
 
-	public getProgramData(key:string):ProgramData
+	public getProgramData(vertexString:string, fragmentString:string):ProgramData
 	{
-		return this._programDataPool.getItem(key);
+		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
 	public setRenderTarget(target:TextureProxyBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)

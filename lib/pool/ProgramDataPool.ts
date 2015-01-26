@@ -27,9 +27,10 @@ class ProgramDataPool
 	 * @param materialOwner
 	 * @returns ITexture
 	 */
-	public getItem(key:string):ProgramData
+	public getItem(vertexString:string, fragmentString:string):ProgramData
 	{
-		return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, key));
+		var key:string = vertexString + fragmentString;
+		return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
 	}
 
 	/**
