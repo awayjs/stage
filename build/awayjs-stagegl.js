@@ -2361,6 +2361,9 @@ var CSS = require("awayjs-core/lib/utils/CSS");
 var ContextMode = require("awayjs-display/lib/display/ContextMode");
 var StageEvent = require("awayjs-display/lib/events/StageEvent");
 var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 var ContextWebGL = require("awayjs-stagegl/lib/base/ContextWebGL");
 var TextureDataPool = require("awayjs-stagegl/lib/pool/TextureDataPool");
@@ -2455,9 +2458,11 @@ var Stage = (function (_super) {
         buffer.buffers[this._stageIndex] = null;
     };
     Stage.prototype.activateRenderTexture = function (index, textureProxy) {
+        this._setSamplerState(index, false, false, false);
         this._context.setTextureAt(index, this.getRenderTexture(textureProxy));
     };
-    Stage.prototype.activateTexture = function (index, textureProxy) {
+    Stage.prototype.activateTexture = function (index, textureProxy, repeat, smooth, mipmap) {
+        this._setSamplerState(index, repeat, smooth, mipmap);
         var textureData = this._texturePool.getItem(textureProxy);
         if (!textureData.texture) {
             textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
@@ -2465,7 +2470,7 @@ var Stage = (function (_super) {
         }
         if (textureData.invalid) {
             textureData.invalid = false;
-            if (textureProxy.generateMipmaps) {
+            if (mipmap) {
                 var mipmapData = textureProxy._iGetMipmapData();
                 var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
@@ -2477,7 +2482,8 @@ var Stage = (function (_super) {
         }
         this._context.setTextureAt(index, textureData.texture);
     };
-    Stage.prototype.activateCubeTexture = function (index, textureProxy) {
+    Stage.prototype.activateCubeTexture = function (index, textureProxy, smooth, mipmap) {
+        this._setSamplerState(index, false, smooth, mipmap);
         var textureData = this._texturePool.getItem(textureProxy);
         if (!textureData.texture) {
             textureData.texture = this._context.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);
@@ -2486,7 +2492,7 @@ var Stage = (function (_super) {
         if (textureData.invalid) {
             textureData.invalid = false;
             for (var i = 0; i < 6; ++i) {
-                if (textureProxy.generateMipmaps) {
+                if (mipmap) {
                     var mipmapData = textureProxy._iGetMipmapData(i);
                     var len = mipmapData.length;
                     for (var j = 0; j < len; j++)
@@ -2969,12 +2975,18 @@ var Stage = (function (_super) {
         this.dispatchEvent(new StageEvent(this._initialised ? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED));
         this._initialised = true;
     };
+    Stage.prototype._setSamplerState = function (index, repeat, smooth, mipmap) {
+        var wrap = repeat ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP;
+        var filter = smooth ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
+        var mipfilter = mipmap ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+        this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
+    };
     return Stage;
 })(EventDispatcher);
 module.exports = Stage;
 
 
-},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/textures/RenderTexture":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-display/lib/display/ContextMode":undefined,"awayjs-display/lib/events/StageEvent":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFormat":undefined,"awayjs-stagegl/lib/base/ContextStage3D":undefined,"awayjs-stagegl/lib/base/ContextWebGL":undefined,"awayjs-stagegl/lib/pool/ProgramDataPool":undefined,"awayjs-stagegl/lib/pool/TextureDataPool":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
+},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/textures/RenderTexture":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-display/lib/display/ContextMode":undefined,"awayjs-display/lib/events/StageEvent":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFilter":undefined,"awayjs-stagegl/lib/base/ContextGLTextureFormat":undefined,"awayjs-stagegl/lib/base/ContextGLWrapMode":undefined,"awayjs-stagegl/lib/base/ContextStage3D":undefined,"awayjs-stagegl/lib/base/ContextWebGL":undefined,"awayjs-stagegl/lib/pool/ProgramDataPool":undefined,"awayjs-stagegl/lib/pool/TextureDataPool":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
 var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
 var TextureBaseWebGL = (function () {
     function TextureBaseWebGL(gl) {
