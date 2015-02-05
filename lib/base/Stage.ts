@@ -12,6 +12,9 @@ import ContextMode					= require("awayjs-display/lib/display/ContextMode");
 import StageEvent					= require("awayjs-display/lib/events/StageEvent");
 
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
 import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
 import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
@@ -166,11 +169,15 @@ class Stage extends EventDispatcher
 
 	public activateRenderTexture(index:number, textureProxy:RenderTexture)
 	{
+		this._setSamplerState(index, false, false, false);
+
 		this._context.setTextureAt(index, this.getRenderTexture(textureProxy));
 	}
 
-	public activateTexture(index:number, textureProxy:Texture2DBase)
+	public activateTexture(index:number, textureProxy:Texture2DBase, repeat:boolean, smooth:boolean, mipmap:boolean)
 	{
+		this._setSamplerState(index, repeat, smooth, mipmap);
+
 		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
 
 		if (!textureData.texture) {
@@ -180,7 +187,7 @@ class Stage extends EventDispatcher
 
 		if (textureData.invalid) {
 			textureData.invalid = false;
-			if (textureProxy.generateMipmaps) {
+			if (mipmap) {
 				var mipmapData:Array<BitmapData> = textureProxy._iGetMipmapData();
 				var len:number = mipmapData.length;
 				for (var i:number = 0; i < len; i++)
@@ -193,8 +200,10 @@ class Stage extends EventDispatcher
 		this._context.setTextureAt(index, textureData.texture);
 	}
 
-	public activateCubeTexture(index:number, textureProxy:CubeTextureBase)
+	public activateCubeTexture(index:number, textureProxy:CubeTextureBase, smooth:boolean, mipmap:boolean)
 	{
+		this._setSamplerState(index, false, smooth, mipmap);
+
 		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
 
 		if (!textureData.texture) {
@@ -205,7 +214,7 @@ class Stage extends EventDispatcher
 		if (textureData.invalid) {
 			textureData.invalid = false;
 			for (var i:number = 0; i < 6; ++i) {
-				if (textureProxy.generateMipmaps) {
+				if (mipmap) {
 					var mipmapData:Array<BitmapData> = textureProxy._iGetMipmapData(i);
 					var len:number = mipmapData.length;
 					for (var j:number = 0; j < len; j++)
@@ -762,6 +771,15 @@ class Stage extends EventDispatcher
 		this.dispatchEvent(new StageEvent(this._initialised? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED));
 
 		this._initialised = true;
+	}
+
+	private _setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	{
+		var wrap:string = repeat? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP;
+		var filter:string = smooth? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
+		var mipfilter:string = mipmap? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+
+		this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
 	}
 }
 
