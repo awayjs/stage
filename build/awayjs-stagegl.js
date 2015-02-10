@@ -2426,7 +2426,7 @@ var Stage = (function (_super) {
         }
     };
     Stage.prototype.getRenderTexture = function (textureProxy) {
-        var textureData = this._texturePool.getItem(textureProxy);
+        var textureData = this._texturePool.getItem(textureProxy, false);
         if (!textureData.texture)
             textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
         return textureData.texture;
@@ -2463,7 +2463,7 @@ var Stage = (function (_super) {
     };
     Stage.prototype.activateTexture = function (index, textureProxy, repeat, smooth, mipmap) {
         this._setSamplerState(index, repeat, smooth, mipmap);
-        var textureData = this._texturePool.getItem(textureProxy);
+        var textureData = this._texturePool.getItem(textureProxy, mipmap);
         if (!textureData.texture) {
             textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
             textureData.invalid = true;
@@ -2484,7 +2484,7 @@ var Stage = (function (_super) {
     };
     Stage.prototype.activateCubeTexture = function (index, textureProxy, smooth, mipmap) {
         this._setSamplerState(index, false, smooth, mipmap);
-        var textureData = this._texturePool.getItem(textureProxy);
+        var textureData = this._texturePool.getItem(textureProxy, mipmap);
         if (!textureData.texture) {
             textureData.texture = this._context.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);
             textureData.invalid = true;
@@ -3644,8 +3644,13 @@ var TextureDataPool = (function () {
      * @param materialOwner
      * @returns ITexture
      */
-    TextureDataPool.prototype.getItem = function (textureProxy) {
-        return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy))));
+    TextureDataPool.prototype.getItem = function (textureProxy, mipmap) {
+        var textureData = (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy, mipmap))));
+        if (!textureData.mipmap && mipmap) {
+            textureData.mipmap = true;
+            textureData.invalidate();
+        }
+        return textureData;
     };
     /**
      * //TODO
@@ -3667,9 +3672,10 @@ module.exports = TextureDataPool;
  * @class away.pool.TextureDataBase
  */
 var TextureData = (function () {
-    function TextureData(pool, textureProxy) {
+    function TextureData(pool, textureProxy, mipmap) {
         this._pool = pool;
         this.textureProxy = textureProxy;
+        this.mipmap = mipmap;
     }
     /**
      *
