@@ -6,9 +6,6 @@ import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
-import Camera						= require("awayjs-display/lib/entities/Camera");
-import MaterialBase					= require("awayjs-display/lib/materials/MaterialBase");
-
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");

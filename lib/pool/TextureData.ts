@@ -16,12 +16,15 @@ class TextureData implements ITextureData
 
 	public textureProxy:TextureProxyBase;
 
+	public mipmap:boolean;
+
 	public invalid:boolean;
 
-	constructor(pool:TextureDataPool, textureProxy:TextureProxyBase)
+	constructor(pool:TextureDataPool, textureProxy:TextureProxyBase, mipmap:boolean)
 	{
 		this._pool = pool;
 		this.textureProxy = textureProxy;
+		this.mipmap = mipmap;
 	}
 
 	/**

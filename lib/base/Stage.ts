@@ -126,7 +126,7 @@ class Stage extends EventDispatcher
 
 	public getRenderTexture(textureProxy:RenderTexture):ITextureBase
 	{
-		var textureData:TextureData = this._texturePool.getItem(textureProxy);
+		var textureData:TextureData = this._texturePool.getItem(textureProxy, false);
 
 		if (!textureData.texture)
 			textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
@@ -178,7 +178,7 @@ class Stage extends EventDispatcher
 	{
 		this._setSamplerState(index, repeat, smooth, mipmap);
 
-		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
+		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy, mipmap);
 
 		if (!textureData.texture) {
 			textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
@@ -204,7 +204,7 @@ class Stage extends EventDispatcher
 	{
 		this._setSamplerState(index, false, smooth, mipmap);
 
-		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy);
+		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy, mipmap);
 
 		if (!textureData.texture) {
 			textureData.texture = this._context.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);

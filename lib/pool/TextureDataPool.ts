@@ -24,9 +24,16 @@ class TextureDataPool
 	 * @param materialOwner
 	 * @returns ITexture
 	 */
-	public getItem(textureProxy:TextureProxyBase):TextureData
+	public getItem(textureProxy:TextureProxyBase, mipmap:boolean):TextureData
 	{
-		return (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy))))
+		var textureData:TextureData = <TextureData> (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy, mipmap))));
+
+		if (!textureData.mipmap && mipmap) {
+			textureData.mipmap = true;
+			textureData.invalidate();
+		}
+
+		return textureData;
 	}
 
 	/**
