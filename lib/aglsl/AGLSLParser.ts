@@ -169,7 +169,7 @@ class AGLSLParser
 
 		// close main
 		body += "}\n";
-
+        console.log(header + body);
 		return header + body;
 	}
 
