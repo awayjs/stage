@@ -69,7 +69,7 @@ declare module "awayjs-stagegl/lib/aglsl/OpLUT" {
 declare module "awayjs-stagegl/lib/aglsl/Mapping" {
 	import OpLUT = require("awayjs-stagegl/lib/aglsl/OpLUT");
 	class Mapping {
-	    static agal2glsllut: OpLUT[];
+	    static agal2glsllut: Array<OpLUT>;
 	    constructor(include?: OpLUT);
 	}
 	export = Mapping;
@@ -539,16 +539,16 @@ declare module "awayjs-stagegl/lib/pool/IndexData" {
 	    private static LIMIT_VERTS;
 	    private static LIMIT_INDICES;
 	    private _dataDirty;
-	    invalid: boolean[];
-	    contexts: IContextGL[];
-	    buffers: IIndexBuffer[];
-	    data: number[];
-	    indexMappings: number[];
-	    originalIndices: number[];
+	    invalid: Array<boolean>;
+	    contexts: Array<IContextGL>;
+	    buffers: Array<IIndexBuffer>;
+	    data: Array<number>;
+	    indexMappings: Array<number>;
+	    originalIndices: Array<number>;
 	    offset: number;
 	    level: number;
 	    constructor(level: number);
-	    updateData(offset: number, indices: number[], numVertices: number): void;
+	    updateData(offset: number, indices: Array<number>, numVertices: number): void;
 	    invalidateData(): void;
 	    dispose(): void;
 	    /**
@@ -698,13 +698,13 @@ declare module "awayjs-stagegl/lib/pool/VertexData" {
 	    private _subGeometry;
 	    private _dataType;
 	    private _dataDirty;
-	    invalid: boolean[];
-	    buffers: IVertexBuffer[];
-	    contexts: IContextGL[];
-	    data: number[];
+	    invalid: Array<boolean>;
+	    buffers: Array<IVertexBuffer>;
+	    contexts: Array<IContextGL>;
+	    data: Array<number>;
 	    dataPerVertex: number;
 	    constructor(subGeometry: SubGeometryBase, dataType: string);
-	    updateData(originalIndices?: number[], indexMappings?: number[]): void;
+	    updateData(originalIndices?: Array<number>, indexMappings?: Array<number>): void;
 	    dispose(): void;
 	    /**
 	     * @private
