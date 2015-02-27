@@ -487,6 +487,7 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    private _blendEnabled;
 	    private _blendSourceFactor;
 	    private _blendDestinationFactor;
+	    private _standardDerivatives;
 	    private _indexBufferList;
 	    private _vertexBufferList;
 	    private _textureList;
@@ -497,6 +498,7 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    _currentProgram: ProgramWebGL;
 	    private _activeTexture;
 	    container: HTMLElement;
+	    standardDerivatives: boolean;
 	    constructor(canvas: HTMLCanvasElement);
 	    gl(): WebGLRenderingContext;
 	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
@@ -1176,29 +1178,6 @@ declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
 	export = AGLSLParser;
 	
 }
-declare module "awayjs-stagegl/lib/base/ContextGLProfile" {
-	class ContextGLProfile {
-	    static BASELINE: string;
-	    static BASELINE_CONSTRAINED: string;
-	    static BASELINE_EXTENDED: string;
-	}
-	export = ContextGLProfile;
-	
-}
-declare module "awayjs-stagegl/lib/base/ContextGLStencilAction" {
-	class ContextGLStencilAction {
-	    static DECREMENT_SATURATE: string;
-	    static DECREMENT_WRAP: string;
-	    static INCREMENT_SATURATE: string;
-	    static INCREMENT_WRAP: string;
-	    static INVERT: string;
-	    static KEEP: string;
-	    static SET: string;
-	    static ZERO: string;
-	}
-	export = ContextGLStencilAction;
-	
-}
 declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
 	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
 	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
@@ -1230,6 +1209,29 @@ declare module "awayjs-stagegl/lib/pool/VertexDataPool" {
 	    disposeData(subGeometry: SubGeometryBase): void;
 	}
 	export = VertexDataPool;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLProfile" {
+	class ContextGLProfile {
+	    static BASELINE: string;
+	    static BASELINE_CONSTRAINED: string;
+	    static BASELINE_EXTENDED: string;
+	}
+	export = ContextGLProfile;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLStencilAction" {
+	class ContextGLStencilAction {
+	    static DECREMENT_SATURATE: string;
+	    static DECREMENT_WRAP: string;
+	    static INCREMENT_SATURATE: string;
+	    static INCREMENT_WRAP: string;
+	    static INVERT: string;
+	    static KEEP: string;
+	    static SET: string;
+	    static ZERO: string;
+	}
+	export = ContextGLStencilAction;
 	
 }
 declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {

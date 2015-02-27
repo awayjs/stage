@@ -33,8 +33,9 @@ class Mapping
 		new OpLUT("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", null, true, true, true, 3, 3, true, null, null, null), //m33          //23
 		new OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 4, true, null, null, null), //m44          //24
 		new OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 3, true, null, null, null), //m43          //25
+		//s:string, flags:number, dest:boolean, a:boolean, b:boolean, matrixwidth:number, matrixheight:number, ndwm:boolean, scaler:boolean, dm:boolean, lod:boolean
 		new OpLUT("%dest = %cast(dFdx(%a));\n", 0, true, true, false, null, null, null, null, null, null), //dFdx                   //26
-		new OpLUT("%dest = %cast(dFdx(%a));\n", 0, true, true, false, null, null, null, null, null, null), //dFdx                   //27
+		new OpLUT("%dest = %cast(dFdy(%a));\n", 0, true, true, false, null, null, null, null, null, null), //dFdy                   //27
 		new OpLUT("if (float(%a)==float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT("if (float(%a)!=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT("if (float(%a)>=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT("if (float(%a)<float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT("} else {;\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT("};\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
 
 		//         s 															flags  	dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod

@@ -41,6 +41,8 @@ class ContextWebGL implements IContextGL
 	private _blendSourceFactor:number;
 	private _blendDestinationFactor:number;
 
+	private _standardDerivatives:boolean;
+
 	private _indexBufferList:Array<IndexBufferWebGL> = new Array<IndexBufferWebGL>();
 	private _vertexBufferList:Array<VertexBufferWebGL> = new Array<VertexBufferWebGL>();
 	private _textureList:Array<TextureBaseWebGL> = new Array<TextureBaseWebGL>();
@@ -62,7 +64,10 @@ class ContextWebGL implements IContextGL
 	{
 		return this._container;
 	}
-
+	public get standardDerivatives():boolean
+	{
+		return this._standardDerivatives;
+	}
 	constructor(canvas:HTMLCanvasElement)
 	{
 		this._container = canvas;
@@ -78,6 +83,14 @@ class ContextWebGL implements IContextGL
 
 		if (this._gl) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_SUCCESS ) );
+
+			if(this._gl.getExtension("OES_standard_derivatives"))
+			{
+				this._standardDerivatives = true;
+			}else{
+				this._standardDerivatives = false;
+			}
+
 			//setup shortcut dictionaries
 			this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
 			this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = this._gl.DST_ALPHA;

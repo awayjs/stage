@@ -85,8 +85,8 @@ class OpcodeMap
 			OpcodeMap._map['m44'] = new Opcode("vector", "matrix", 4, "vector", 4, 0x18, true, null, null, true);   //24
 			OpcodeMap._map['m43'] = new Opcode("vector", "matrix", 3, "vector", 4, 0x19, true, null, null, true);   //25
 
-            OpcodeMap._map['ddx'] = new Opcode("vector", "vector", 4, "vector", 4, 0x1a, true, null, true, null);   //26
-            OpcodeMap._map['ddy'] = new Opcode("vector", "vector", 4, "vector", 4, 0x1b, true, null, true, null);   //27
+            OpcodeMap._map['ddx'] = new Opcode("vector", "vector", 4, "none", 0, 0x1a, true, null, true, null);   //26
+            OpcodeMap._map['ddy'] = new Opcode("vector", "vector", 4, "none", 0, 0x1b, true, null, true, null);   //27
 
 			OpcodeMap._map['sge'] = new Opcode("vector", "vector", 4, "vector", 4, 0x29, true, null, null, null);   //41
 			OpcodeMap._map['slt'] = new Opcode("vector", "vector", 4, "vector", 4, 0x2a, true, null, null, null);   //42

@@ -66,11 +66,16 @@ class AGLSLParser
 		//if ( desc.hasmatrix ) 
 		//    header += "vec4 tmp_matrix;\n";
 
+		var derivatives:boolean = false;
+
 		// start body of code
 		body += "void main() {\n";
 
 		for (var i:number = 0; i < desc.tokens.length; i++) {
+
 			var lutentry = Mapping.agal2glsllut[desc.tokens[i].opcode];
+
+			if(lutentry.s.indexOf("dFdx") != -1 || lutentry.s.indexOf("dFdy") != -1) derivatives = true;
 			if (!lutentry) {
 				throw "Opcode not valid or not implemented yet: "
 				/*+token.opcode;*/
@@ -160,6 +165,11 @@ class AGLSLParser
 		// adjust z from opengl range of -1..1 to 0..1 as in d3d, this also enforces a left handed coordinate system
 		if (desc.header.type == "vertex") {
 			body += "  gl_Position = vec4(outpos.x, outpos.y, outpos.z*2.0 - outpos.w, outpos.w);\n";
+		}
+
+		//flag based switch
+		if (derivatives && desc.header.type == "fragment") {
+			header = "#extension GL_OES_standard_derivatives : enable\n" + header;
 		}
 
 		// clamp fragment depth
