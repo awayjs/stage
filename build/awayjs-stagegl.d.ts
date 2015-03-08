@@ -126,7 +126,7 @@ declare module "awayjs-stagegl/lib/base/ITextureBase" {
 	
 }
 declare module "awayjs-stagegl/lib/base/ICubeTexture" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	interface ICubeTexture extends ITextureBase {
@@ -196,7 +196,7 @@ declare module "awayjs-stagegl/lib/base/ResourceBaseFlash" {
 	
 }
 declare module "awayjs-stagegl/lib/base/CubeTextureFlash" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
@@ -212,6 +212,16 @@ declare module "awayjs-stagegl/lib/base/CubeTextureFlash" {
 	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
 	}
 	export = CubeTextureFlash;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextMode" {
+	class ContextMode {
+	    static AUTO: string;
+	    static WEBGL: string;
+	    static FLASH: string;
+	    static NATIVE: string;
+	}
+	export = ContextMode;
 	
 }
 declare module "awayjs-stagegl/lib/base/ContextGLTextureFormat" {
@@ -313,7 +323,7 @@ declare module "awayjs-stagegl/lib/base/TextureBaseWebGL" {
 	
 }
 declare module "awayjs-stagegl/lib/base/CubeTextureWebGL" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
 	import TextureBaseWebGL = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
@@ -386,7 +396,7 @@ declare module "awayjs-stagegl/lib/base/ProgramWebGL" {
 	
 }
 declare module "awayjs-stagegl/lib/base/ITexture" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	interface ITexture extends ITextureBase {
 	    width: number;
@@ -398,7 +408,7 @@ declare module "awayjs-stagegl/lib/base/ITexture" {
 	
 }
 declare module "awayjs-stagegl/lib/base/TextureWebGL" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
 	import TextureBaseWebGL = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
@@ -460,7 +470,7 @@ declare module "awayjs-stagegl/lib/base/VertexBufferWebGL" {
 	
 }
 declare module "awayjs-stagegl/lib/base/ContextWebGL" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import CubeTextureWebGL = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
@@ -529,6 +539,18 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    private updateBlendStatus();
 	}
 	export = ContextWebGL;
+	
+}
+declare module "awayjs-stagegl/lib/events/StageEvent" {
+	import Event = require("awayjs-core/lib/events/Event");
+	class StageEvent extends Event {
+	    static CONTEXT_CREATED: string;
+	    static CONTEXT_DISPOSED: string;
+	    static CONTEXT_RECREATED: string;
+	    static VIEWPORT_UPDATED: string;
+	    constructor(type: string);
+	}
+	export = StageEvent;
 	
 }
 declare module "awayjs-stagegl/lib/pool/IndexData" {
@@ -689,7 +711,7 @@ declare module "awayjs-stagegl/lib/pool/ProgramData" {
 	
 }
 declare module "awayjs-stagegl/lib/pool/VertexData" {
-	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
+	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
 	/**
@@ -994,7 +1016,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	
 }
 declare module "awayjs-stagegl/lib/base/IContextGL" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
@@ -1063,7 +1085,7 @@ declare module "awayjs-stagegl/lib/base/ProgramFlash" {
 	
 }
 declare module "awayjs-stagegl/lib/base/TextureFlash" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
 	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
@@ -1099,7 +1121,7 @@ declare module "awayjs-stagegl/lib/base/VertexBufferFlash" {
 	
 }
 declare module "awayjs-stagegl/lib/base/ContextStage3D" {
-	import BitmapData = require("awayjs-core/lib/base/BitmapData");
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -1202,7 +1224,7 @@ declare module "awayjs-stagegl/lib/base/ContextGLStencilAction" {
 	
 }
 declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
-	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
+	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
 	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
 	/**
 	 *
@@ -1218,7 +1240,7 @@ declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
 	
 }
 declare module "awayjs-stagegl/lib/pool/VertexDataPool" {
-	import SubGeometryBase = require("awayjs-display/lib/base/SubGeometryBase");
+	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
 	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
 	import VertexData = require("awayjs-stagegl/lib/pool/VertexData");
 	/**
