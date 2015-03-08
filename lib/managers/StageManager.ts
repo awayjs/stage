@@ -1,9 +1,8 @@
 import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
 import ArgumentError				= require("awayjs-core/lib/errors/ArgumentError");
 
-import StageEvent					= require("awayjs-display/lib/events/StageEvent");
-
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
 
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.

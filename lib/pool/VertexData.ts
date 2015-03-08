@@ -1,7 +1,7 @@
-import SubGeometryBase				= require("awayjs-display/lib/base/SubGeometryBase");
-import SubGeometryEvent				= require("awayjs-display/lib/events/SubGeometryEvent");
+import SubGeometryBase				= require("awayjs-core/lib/data/SubGeometryBase");
+import SubGeometryEvent				= require("awayjs-core/lib/events/SubGeometryEvent");
 
-import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
+import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 
 /**

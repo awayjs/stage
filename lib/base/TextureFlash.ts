@@ -1,4 +1,4 @@
-import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import ByteArrayBase				= require("awayjs-core/lib/utils/ByteArrayBase");
 
 import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");

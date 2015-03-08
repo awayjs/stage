@@ -1,4 +1,4 @@
-import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import Event						= require("awayjs-core/lib/events/Event");
 import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
@@ -8,9 +8,7 @@ import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
 import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 import CSS							= require("awayjs-core/lib/utils/CSS");
 
-import ContextMode					= require("awayjs-display/lib/display/ContextMode");
-import StageEvent					= require("awayjs-display/lib/events/StageEvent");
-
+import ContextMode					= require("awayjs-stagegl/lib/base/ContextMode");
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
 import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
@@ -22,6 +20,7 @@ import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
 import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
+import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
 import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
 import TextureData					= require("awayjs-stagegl/lib/pool/TextureData");
 import TextureDataPool				= require("awayjs-stagegl/lib/pool/TextureDataPool");

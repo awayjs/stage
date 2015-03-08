@@ -1,4 +1,4 @@
-import BitmapData					= require("awayjs-core/lib/base/BitmapData");
+import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
@@ -13,7 +13,7 @@ import ContextGLTriangleFace		= require("awayjs-stagegl/lib/base/ContextGLTriang
 import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 import CubeTextureWebGL				= require("awayjs-stagegl/lib/base/CubeTextureWebGL");
-import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
+import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import IndexBufferWebGL				= require("awayjs-stagegl/lib/base/IndexBufferWebGL");
 import ProgramWebGL					= require("awayjs-stagegl/lib/base/ProgramWebGL");
 import TextureBaseWebGL				= require("awayjs-stagegl/lib/base/TextureBaseWebGL");
