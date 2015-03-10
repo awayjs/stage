@@ -39,6 +39,10 @@ interface IContextGL
 
 	setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean);
 
+    setStencilActions(triangleFace?:string, compareMode?:string, actionOnBothPass?:string, actionOnDepthFail?:string, actionOnDepthPassStencilFail?:string, coordinateSystem?:string);
+
+    setStencilReferenceValue(referenceValue:number, readMask?:number, writeMask?:number);
+
 	setCulling(triangleFaceToCull:string, coordinateSystem?:string);
 
 	setDepthTest(depthMask:boolean, passCompareMode:string);

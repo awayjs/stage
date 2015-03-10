@@ -1387,12 +1387,13 @@ var ContextStage3D = (function () {
     ContextStage3D.prototype.setSamplerStateAt = function (sampler, wrap, filter, mipfilter) {
         //nothing to do here
     };
-    ContextStage3D.prototype.setStencilActions = function (triangleFace, compareMode, actionOnBothPass, actionOnDepthFail, actionOnDepthPassStencilFail) {
+    ContextStage3D.prototype.setStencilActions = function (triangleFace, compareMode, actionOnBothPass, actionOnDepthFail, actionOnDepthPassStencilFail, coordinateSystem) {
         if (triangleFace === void 0) { triangleFace = "frontAndBack"; }
         if (compareMode === void 0) { compareMode = "always"; }
         if (actionOnBothPass === void 0) { actionOnBothPass = "keep"; }
         if (actionOnDepthFail === void 0) { actionOnDepthFail = "keep"; }
         if (actionOnDepthPassStencilFail === void 0) { actionOnDepthPassStencilFail = "keep"; }
+        if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
         this.addStream(String.fromCharCode(OpCodes.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
         if (ContextStage3D.debug)
             this.execute();
@@ -1617,6 +1618,7 @@ var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
 var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
 var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
 var ContextGLProgramType = require("awayjs-stagegl/lib/base/ContextGLProgramType");
+var ContextGLStencilAction = require("awayjs-stagegl/lib/base/ContextGLStencilAction");
 var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
 var ContextGLTriangleFace = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
 var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
@@ -1630,7 +1632,8 @@ var VertexBufferWebGL = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 var ContextWebGL = (function () {
     function ContextWebGL(canvas) {
         this._blendFactorDictionary = new Object();
-        this._depthTestDictionary = new Object();
+        this._compareModeDictionary = new Object();
+        this._stencilActionDictionary = new Object();
         this._textureIndexDictionary = new Array(8);
         this._textureTypeDictionary = new Object();
         this._wrapDictionary = new Object();
@@ -1643,11 +1646,14 @@ var ContextWebGL = (function () {
         this._textureList = new Array();
         this._programList = new Array();
         this._samplerStates = new Array(8);
+        this._stencilReferenceValue = 0;
+        this._stencilReadMask = 0xff;
+        this._separateStencil = false;
         this._container = canvas;
         try {
-            this._gl = canvas.getContext("experimental-webgl", { premultipliedAlpha: false, alpha: false });
+            this._gl = canvas.getContext("experimental-webgl", { premultipliedAlpha: false, alpha: false, stencil: true });
             if (!this._gl)
-                this._gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: false });
+                this._gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: false, stencil: true });
         }
         catch (e) {
         }
@@ -1671,14 +1677,22 @@ var ContextWebGL = (function () {
             this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
             this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
             this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
-            this._depthTestDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
-            this._depthTestDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
-            this._depthTestDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
-            this._depthTestDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
-            this._depthTestDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
-            this._depthTestDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
-            this._depthTestDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
-            this._depthTestDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
+            this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
+            this._compareModeDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
+            this._compareModeDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
+            this._compareModeDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
+            this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+            this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = this._gl.DECR;
+            this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = this._gl.DECR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_SATURATE] = this._gl.INCR;
+            this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_WRAP] = this._gl.INCR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction.INVERT] = this._gl.INVERT;
+            this._stencilActionDictionary[ContextGLStencilAction.KEEP] = this._gl.KEEP;
+            this._stencilActionDictionary[ContextGLStencilAction.SET] = this._gl.REPLACE;
+            this._stencilActionDictionary[ContextGLStencilAction.ZERO] = this._gl.ZERO;
             this._textureIndexDictionary[0] = this._gl.TEXTURE0;
             this._textureIndexDictionary[1] = this._gl.TEXTURE1;
             this._textureIndexDictionary[2] = this._gl.TEXTURE2;
@@ -1708,6 +1722,9 @@ var ContextWebGL = (function () {
             this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_3] = 3;
             this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_4] = 4;
             this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.BYTES_4] = 4;
+            this._stencilCompareMode = this._gl.ALWAYS;
+            this._stencilCompareModeBack = this._gl.ALWAYS;
+            this._stencilCompareModeFront = this._gl.ALWAYS;
         }
         else {
             //this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
@@ -1852,25 +1869,53 @@ var ContextWebGL = (function () {
         }
         else {
             this._gl.enable(this._gl.CULL_FACE);
-            switch (triangleFaceToCull) {
-                case ContextGLTriangleFace.BACK:
-                    this._gl.cullFace((coordinateSystem == "leftHanded") ? this._gl.FRONT : this._gl.BACK);
-                    break;
-                case ContextGLTriangleFace.FRONT:
-                    this._gl.cullFace((coordinateSystem == "leftHanded") ? this._gl.BACK : this._gl.FRONT);
-                    break;
-                case ContextGLTriangleFace.FRONT_AND_BACK:
-                    this._gl.cullFace(this._gl.FRONT_AND_BACK);
-                    break;
-                default:
-                    throw "Unknown ContextGLTriangleFace type.";
-            }
+            this._gl.cullFace(this.translateTriangleFace(triangleFaceToCull, coordinateSystem));
         }
     };
     // TODO ContextGLCompareMode
     ContextWebGL.prototype.setDepthTest = function (depthMask, passCompareMode) {
-        this._gl.depthFunc(this._depthTestDictionary[passCompareMode]);
+        this._gl.depthFunc(this._compareModeDictionary[passCompareMode]);
         this._gl.depthMask(depthMask);
+    };
+    ContextWebGL.prototype.setStencilActions = function (triangleFace, compareMode, actionOnBothPass, actionOnDepthFail, actionOnDepthPassStencilFail, coordinateSystem) {
+        if (triangleFace === void 0) { triangleFace = "frontAndBack"; }
+        if (compareMode === void 0) { compareMode = "always"; }
+        if (actionOnBothPass === void 0) { actionOnBothPass = "keep"; }
+        if (actionOnDepthFail === void 0) { actionOnDepthFail = "keep"; }
+        if (actionOnDepthPassStencilFail === void 0) { actionOnDepthPassStencilFail = "keep"; }
+        if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
+        this._separateStencil = triangleFace != "frontAndBack";
+        var compareModeGL = this._compareModeDictionary[compareMode];
+        var fail = this._stencilActionDictionary[actionOnDepthPassStencilFail];
+        var zFail = this._stencilActionDictionary[actionOnDepthFail];
+        var pass = this._stencilActionDictionary[actionOnBothPass];
+        if (!this._separateStencil) {
+            this._stencilCompareMode = compareModeGL;
+            this._gl.stencilFunc(compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+            this._gl.stencilOp(fail, zFail, pass);
+        }
+        else if (triangleFace == "back") {
+            this._stencilCompareModeBack = compareModeGL;
+            this._gl.stencilFuncSeparate(this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+            this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass);
+        }
+        else if (triangleFace == "front") {
+            this._stencilCompareModeFront = compareModeGL;
+            this._gl.stencilFuncSeparate(this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+            this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass);
+        }
+    };
+    ContextWebGL.prototype.setStencilReferenceValue = function (referenceValue, readMask, writeMask) {
+        this._stencilReferenceValue = referenceValue;
+        this._stencilReadMask = readMask;
+        if (this._separateStencil) {
+            this._gl.stencilFunc(this._stencilCompareMode, referenceValue, readMask);
+        }
+        else {
+            this._gl.stencilFuncSeparate(this._gl.FRONT, this._stencilCompareModeFront, referenceValue, readMask);
+            this._gl.stencilFuncSeparate(this._gl.BACK, this._stencilCompareModeBack, referenceValue, readMask);
+        }
+        this._gl.stencilMask(writeMask);
     };
     ContextWebGL.prototype.setProgram = function (program) {
         //TODO decide on construction/reference resposibilities
@@ -1983,6 +2028,21 @@ var ContextWebGL = (function () {
             this._gl.disable(this._gl.BLEND);
         }
     };
+    ContextWebGL.prototype.translateTriangleFace = function (triangleFace, coordinateSystem) {
+        switch (triangleFace) {
+            case ContextGLTriangleFace.BACK:
+                return (coordinateSystem == "leftHanded") ? this._gl.FRONT : this._gl.BACK;
+                break;
+            case ContextGLTriangleFace.FRONT:
+                return (coordinateSystem == "leftHanded") ? this._gl.BACK : this._gl.FRONT;
+                break;
+            case ContextGLTriangleFace.FRONT_AND_BACK:
+                return this._gl.FRONT_AND_BACK;
+                break;
+            default:
+                throw "Unknown ContextGLTriangleFace type.";
+        }
+    };
     ContextWebGL.MAX_SAMPLERS = 8;
     ContextWebGL.modulo = 0;
     return ContextWebGL;
@@ -1990,7 +2050,7 @@ var ContextWebGL = (function () {
 module.exports = ContextWebGL;
 
 
-},{"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","awayjs-stagegl/lib/base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","awayjs-stagegl/lib/base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","awayjs-stagegl/lib/base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","awayjs-stagegl/lib/base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","awayjs-stagegl/lib/base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
+},{"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","awayjs-stagegl/lib/base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","awayjs-stagegl/lib/base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","awayjs-stagegl/lib/base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","awayjs-stagegl/lib/base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","awayjs-stagegl/lib/base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }

@@ -8,12 +8,13 @@ import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMas
 import ContextGLCompareMode			= require("awayjs-stagegl/lib/base/ContextGLCompareMode");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
 import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
+import ContextGLStencilAction		= require("awayjs-stagegl/lib/base/ContextGLStencilAction");
 import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
 import ContextGLTriangleFace		= require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
 import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 import CubeTextureWebGL				= require("awayjs-stagegl/lib/base/CubeTextureWebGL");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
+import IContextGL				    = require("awayjs-stagegl/lib/base/IContextGL");
 import IndexBufferWebGL				= require("awayjs-stagegl/lib/base/IndexBufferWebGL");
 import ProgramWebGL					= require("awayjs-stagegl/lib/base/ProgramWebGL");
 import TextureBaseWebGL				= require("awayjs-stagegl/lib/base/TextureBaseWebGL");
@@ -24,7 +25,8 @@ import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL"
 class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
-	private _depthTestDictionary:Object = new Object();
+	private _compareModeDictionary:Object = new Object();
+	private _stencilActionDictionary:Object = new Object();
 	private _textureIndexDictionary:Array<number> = new Array<number>(8);
 	private _textureTypeDictionary:Object = new Object();
 	private _wrapDictionary:Object = new Object();
@@ -59,6 +61,13 @@ class ContextWebGL implements IContextGL
 	public _currentProgram:ProgramWebGL;
 	private _activeTexture:number;
 
+    private _stencilCompareMode:number;
+    private _stencilCompareModeBack:number;
+    private _stencilCompareModeFront:number;
+    private _stencilReferenceValue : number = 0;
+    private _stencilReadMask : number = 0xff;
+    private _separateStencil : boolean = false;
+
 
 	public get container():HTMLElement
 	{
@@ -73,10 +82,10 @@ class ContextWebGL implements IContextGL
 		this._container = canvas;
 
 		try {
-			this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", { premultipliedAlpha:false, alpha:false });
+			this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", { premultipliedAlpha:false, alpha:false, stencil:true });
 
 			if (!this._gl)
-				this._gl = <WebGLRenderingContext> canvas.getContext("webgl", { premultipliedAlpha:false, alpha:false });
+				this._gl = <WebGLRenderingContext> canvas.getContext("webgl", { premultipliedAlpha:false, alpha:false, stencil:true });
 		} catch (e) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 		}
@@ -104,14 +113,23 @@ class ContextWebGL implements IContextGL
 			this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
 			this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
 
-			this._depthTestDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
-			this._depthTestDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
-			this._depthTestDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
-			this._depthTestDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
-			this._depthTestDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
-			this._depthTestDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
-			this._depthTestDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
-			this._depthTestDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
+            this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
+            this._compareModeDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
+			this._compareModeDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
+			this._compareModeDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
+			this._compareModeDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
+			this._compareModeDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
+			this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+
+            this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = this._gl.DECR;
+            this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = this._gl.DECR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_SATURATE] = this._gl.INCR;
+            this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_WRAP] = this._gl.INCR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction.INVERT] = this._gl.INVERT;
+            this._stencilActionDictionary[ContextGLStencilAction.KEEP] = this._gl.KEEP;
+            this._stencilActionDictionary[ContextGLStencilAction.SET] = this._gl.REPLACE;
+            this._stencilActionDictionary[ContextGLStencilAction.ZERO] = this._gl.ZERO;
 
 			this._textureIndexDictionary[0] = this._gl.TEXTURE0;
 			this._textureIndexDictionary[1] = this._gl.TEXTURE1;
@@ -148,6 +166,10 @@ class ContextWebGL implements IContextGL
 			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_3] = 3;
 			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_4] = 4;
 			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.BYTES_4] = 4;
+
+            this._stencilCompareMode = this._gl.ALWAYS;
+            this._stencilCompareModeBack = this._gl.ALWAYS;
+            this._stencilCompareModeFront = this._gl.ALWAYS;
 		} else {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 			alert("WebGL is not available.");
@@ -312,29 +334,60 @@ class ContextWebGL implements IContextGL
 			this._gl.disable(this._gl.CULL_FACE);
 		} else {
 			this._gl.enable(this._gl.CULL_FACE);
-			switch (triangleFaceToCull) {
-				case ContextGLTriangleFace.BACK:
-					this._gl.cullFace((coordinateSystem == "leftHanded")? this._gl.FRONT : this._gl.BACK);
-					break
-				case ContextGLTriangleFace.FRONT:
-					this._gl.cullFace((coordinateSystem == "leftHanded")? this._gl.BACK : this._gl.FRONT);
-					break;
-				case ContextGLTriangleFace.FRONT_AND_BACK:
-					this._gl.cullFace(this._gl.FRONT_AND_BACK);
-					break;
-				default:
-					throw "Unknown ContextGLTriangleFace type."; // TODO error
-			}
+            this._gl.cullFace(this.translateTriangleFace(triangleFaceToCull, coordinateSystem));
 		}
 	}
 
 	// TODO ContextGLCompareMode
 	public setDepthTest(depthMask:boolean, passCompareMode:string)
 	{
-		this._gl.depthFunc(this._depthTestDictionary[passCompareMode]);
+		this._gl.depthFunc(this._compareModeDictionary[passCompareMode]);
 
 		this._gl.depthMask(depthMask);
 	}
+
+    public setStencilActions(triangleFace:string = "frontAndBack", compareMode:string = "always", actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
+    {
+        this._separateStencil = triangleFace != "frontAndBack";
+
+        var compareModeGL = this._compareModeDictionary[compareMode];
+
+        var fail = this._stencilActionDictionary[actionOnDepthPassStencilFail];
+        var zFail = this._stencilActionDictionary[actionOnDepthFail];
+        var pass = this._stencilActionDictionary[actionOnBothPass];
+
+        if (!this._separateStencil) {
+            this._stencilCompareMode = compareModeGL;
+            this._gl.stencilFunc(compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+            this._gl.stencilOp(fail, zFail, pass)
+        }
+        else if (triangleFace == "back") {
+            this._stencilCompareModeBack = compareModeGL;
+            this._gl.stencilFuncSeparate(this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+            this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass)
+        }
+        else if (triangleFace == "front") {
+            this._stencilCompareModeFront = compareModeGL;
+            this._gl.stencilFuncSeparate(this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+            this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass)
+        }
+    }
+
+    public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number)
+    {
+        this._stencilReferenceValue = referenceValue;
+        this._stencilReadMask = readMask;
+
+        if (this._separateStencil) {
+            this._gl.stencilFunc(this._stencilCompareMode, referenceValue, readMask);
+        }
+        else {
+            this._gl.stencilFuncSeparate(this._gl.FRONT, this._stencilCompareModeFront, referenceValue, readMask);
+            this._gl.stencilFuncSeparate(this._gl.BACK, this._stencilCompareModeBack, referenceValue, readMask);
+        }
+
+        this._gl.stencilMask(writeMask);
+    }
 
 	public setProgram(program:ProgramWebGL)
 	{
@@ -473,6 +526,23 @@ class ContextWebGL implements IContextGL
 			this._gl.disable(this._gl.BLEND);
 		}
 	}
+
+    private translateTriangleFace(triangleFace:string, coordinateSystem:string)
+    {
+        switch (triangleFace) {
+            case ContextGLTriangleFace.BACK:
+                return (coordinateSystem == "leftHanded")? this._gl.FRONT : this._gl.BACK;
+                break
+            case ContextGLTriangleFace.FRONT:
+                return (coordinateSystem == "leftHanded")? this._gl.BACK : this._gl.FRONT;
+                break;
+            case ContextGLTriangleFace.FRONT_AND_BACK:
+                return this._gl.FRONT_AND_BACK;
+                break;
+            default:
+                throw "Unknown ContextGLTriangleFace type."; // TODO error
+        }
+    }
 }
 
 export = ContextWebGL;
