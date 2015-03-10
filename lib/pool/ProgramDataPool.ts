@@ -1,5 +1,3 @@
-import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
-
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 

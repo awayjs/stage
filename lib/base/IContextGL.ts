@@ -1,15 +1,7 @@
 import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
-import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
-import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
-import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
-import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
 
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
-import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
-import VertexData					= require("awayjs-stagegl/lib/pool/VertexData");
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
 import IProgram						= require("awayjs-stagegl/lib/base/IProgram");

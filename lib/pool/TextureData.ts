@@ -1,5 +1,5 @@
 import ITextureData					= require("awayjs-core/lib/pool/ITextureData");
-import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
+import TextureBase					= require("awayjs-core/lib/textures/TextureBase");
 
 import TextureDataPool				= require("awayjs-stagegl/lib/pool/TextureDataPool");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
@@ -14,13 +14,13 @@ class TextureData implements ITextureData
 
 	public texture:ITextureBase;
 
-	public textureProxy:TextureProxyBase;
+	public textureProxy:TextureBase;
 
 	public mipmap:boolean;
 
 	public invalid:boolean;
 
-	constructor(pool:TextureDataPool, textureProxy:TextureProxyBase, mipmap:boolean)
+	constructor(pool:TextureDataPool, textureProxy:TextureBase, mipmap:boolean)
 	{
 		this._pool = pool;
 		this.textureProxy = textureProxy;

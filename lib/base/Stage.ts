@@ -5,7 +5,7 @@ import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
 import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
 import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
 import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
-import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
+import TextureBase					= require("awayjs-core/lib/textures/TextureBase");
 import CSS							= require("awayjs-core/lib/utils/CSS");
 
 import ContextMode					= require("awayjs-stagegl/lib/base/ContextMode");
@@ -62,7 +62,7 @@ class Stage extends EventDispatcher
 
 	//private var _activeVertexBuffers : Vector.<VertexBuffer> = new Vector.<VertexBuffer>(8, true);
 	//private var _activeTextures : Vector.<TextureBase> = new Vector.<TextureBase>(8, true);
-	private _renderTarget:TextureProxyBase = null;
+	private _renderTarget:TextureBase = null;
 	private _renderSurfaceSelector:number = 0;
 	private _scissorRect:Rectangle;
 	private _color:number;
@@ -107,7 +107,7 @@ class Stage extends EventDispatcher
 		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
-	public setRenderTarget(target:TextureProxyBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
+	public setRenderTarget(target:TextureBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
 	{
 		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
 			return;
@@ -488,7 +488,7 @@ class Stage extends EventDispatcher
 		this._backBufferDirty = true;
 	}
 
-	public get renderTarget():TextureProxyBase
+	public get renderTarget():TextureBase
 	{
 		return this._renderTarget;
 	}

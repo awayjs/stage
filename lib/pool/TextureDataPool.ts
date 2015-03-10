@@ -1,4 +1,4 @@
-import TextureProxyBase				= require("awayjs-core/lib/textures/TextureProxyBase");
+import TextureBase					= require("awayjs-core/lib/textures/TextureBase");
 
 import TextureData					= require("awayjs-stagegl/lib/pool/TextureData");
 
@@ -24,7 +24,7 @@ class TextureDataPool
 	 * @param materialOwner
 	 * @returns ITexture
 	 */
-	public getItem(textureProxy:TextureProxyBase, mipmap:boolean):TextureData
+	public getItem(textureProxy:TextureBase, mipmap:boolean):TextureData
 	{
 		var textureData:TextureData = <TextureData> (this._pool[textureProxy.id] || (this._pool[textureProxy.id] = textureProxy._iAddTextureData(new TextureData(this, textureProxy, mipmap))));
 
@@ -41,7 +41,7 @@ class TextureDataPool
 	 *
 	 * @param materialOwner
 	 */
-	public disposeItem(textureProxy:TextureProxyBase)
+	public disposeItem(textureProxy:TextureBase)
 	{
 		textureProxy._iRemoveTextureData(this._pool[textureProxy.id]);
 
