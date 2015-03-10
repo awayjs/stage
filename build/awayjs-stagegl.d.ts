@@ -214,50 +214,241 @@ declare module "awayjs-stagegl/lib/base/CubeTextureFlash" {
 	export = CubeTextureFlash;
 	
 }
-declare module "awayjs-stagegl/lib/base/ContextMode" {
-	class ContextMode {
-	    static AUTO: string;
-	    static WEBGL: string;
-	    static FLASH: string;
-	    static NATIVE: string;
+declare module "awayjs-stagegl/lib/base/IIndexBuffer" {
+	interface IIndexBuffer {
+	    numIndices: number;
+	    uploadFromArray(data: number[], startOffset: number, count: number): any;
+	    dispose(): any;
 	}
-	export = ContextMode;
+	export = IIndexBuffer;
 	
 }
-declare module "awayjs-stagegl/lib/base/ContextGLTextureFormat" {
-	class ContextGLTextureFormat {
-	    static BGRA: string;
-	    static BGRA_PACKED: string;
-	    static BGR_PACKED: string;
-	    static COMPRESSED: string;
-	    static COMPRESSED_ALPHA: string;
+declare module "awayjs-stagegl/lib/base/IProgram" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	interface IProgram {
+	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): any;
+	    dispose(): any;
 	}
-	export = ContextGLTextureFormat;
+	export = IProgram;
 	
 }
-declare module "awayjs-stagegl/lib/base/ContextGLMipFilter" {
-	class ContextGLMipFilter {
-	    static MIPLINEAR: string;
-	    static MIPNEAREST: string;
-	    static MIPNONE: string;
+declare module "awayjs-stagegl/lib/base/ITexture" {
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	interface ITexture extends ITextureBase {
+	    width: number;
+	    height: number;
+	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
+	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
 	}
-	export = ContextGLMipFilter;
+	export = ITexture;
 	
 }
-declare module "awayjs-stagegl/lib/base/ContextGLTextureFilter" {
-	class ContextGLTextureFilter {
-	    static LINEAR: string;
-	    static NEAREST: string;
+declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
+	interface IVertexBuffer {
+	    numVertices: number;
+	    data32PerVertex: number;
+	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
+	    dispose(): any;
 	}
-	export = ContextGLTextureFilter;
+	export = IVertexBuffer;
 	
 }
-declare module "awayjs-stagegl/lib/base/ContextGLWrapMode" {
-	class ContextGLWrapMode {
-	    static CLAMP: string;
-	    static REPEAT: string;
+declare module "awayjs-stagegl/lib/base/IContextGL" {
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
+	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
+	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
+	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
+	interface IContextGL {
+	    container: HTMLElement;
+	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): any;
+	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): any;
+	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
+	    createIndexBuffer(numIndices: number): IIndexBuffer;
+	    createProgram(): IProgram;
+	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
+	    createVertexBuffer(numVertices: number, data32PerVertex: number): IVertexBuffer;
+	    dispose(): any;
+	    drawToBitmapData(destination: BitmapData): any;
+	    drawTriangles(indexBuffer: IIndexBuffer, firstIndex?: number, numTriangles?: number): any;
+	    present(): any;
+	    setBlendFactors(sourceFactor: string, destinationFactor: string): any;
+	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): any;
+	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): any;
+	    setDepthTest(depthMask: boolean, passCompareMode: string): any;
+	    setProgram(program: IProgram): any;
+	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): any;
+	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): any;
+	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): any;
+	    setScissorRectangle(rectangle: Rectangle): any;
+	    setTextureAt(sampler: number, texture: ITextureBase): any;
+	    setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: string): any;
+	    setRenderToTexture(target: ITextureBase, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): any;
+	    setRenderToBackBuffer(): any;
 	}
-	export = ContextGLWrapMode;
+	export = IContextGL;
+	
+}
+declare module "awayjs-stagegl/lib/base/IndexBufferFlash" {
+	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
+	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+	class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer {
+	    private _context;
+	    private _numIndices;
+	    constructor(context: ContextStage3D, numIndices: number);
+	    uploadFromArray(data: number[], startOffset: number, count: number): void;
+	    dispose(): void;
+	    numIndices: number;
+	}
+	export = IndexBufferFlash;
+	
+}
+declare module "awayjs-stagegl/lib/base/ProgramFlash" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
+	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+	class ProgramFlash extends ResourceBaseFlash implements IProgram {
+	    private _context;
+	    constructor(context: ContextStage3D);
+	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
+	    dispose(): void;
+	}
+	export = ProgramFlash;
+	
+}
+declare module "awayjs-stagegl/lib/base/TextureFlash" {
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
+	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+	class TextureFlash extends ResourceBaseFlash implements ITexture {
+	    private _context;
+	    private _width;
+	    private _height;
+	    width: number;
+	    height: number;
+	    constructor(context: ContextStage3D, width: number, height: number, format: string, forRTT: boolean, streaming?: boolean);
+	    dispose(): void;
+	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
+	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	}
+	export = TextureFlash;
+	
+}
+declare module "awayjs-stagegl/lib/base/VertexBufferFlash" {
+	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
+	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+	class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer {
+	    private _context;
+	    private _numVertices;
+	    private _data32PerVertex;
+	    constructor(context: ContextStage3D, numVertices: number, data32PerVertex: number);
+	    uploadFromArray(data: number[], startVertex: number, numVertices: number): void;
+	    numVertices: number;
+	    data32PerVertex: number;
+	    dispose(): void;
+	}
+	export = VertexBufferFlash;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextStage3D" {
+	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
+	import CubeTextureFlash = require("awayjs-stagegl/lib/base/CubeTextureFlash");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import IndexBufferFlash = require("awayjs-stagegl/lib/base/IndexBufferFlash");
+	import ProgramFlash = require("awayjs-stagegl/lib/base/ProgramFlash");
+	import TextureFlash = require("awayjs-stagegl/lib/base/TextureFlash");
+	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+	import VertexBufferFlash = require("awayjs-stagegl/lib/base/VertexBufferFlash");
+	class ContextStage3D implements IContextGL {
+	    static contexts: Object;
+	    static maxvertexconstants: number;
+	    static maxfragconstants: number;
+	    static maxtemp: number;
+	    static maxstreams: number;
+	    static maxtextures: number;
+	    static defaultsampler: Sampler;
+	    _iDriverInfo: any;
+	    private _container;
+	    private _width;
+	    private _height;
+	    private _cmdStream;
+	    private _errorCheckingEnabled;
+	    private _resources;
+	    private _oldCanvas;
+	    private _oldParent;
+	    static debug: boolean;
+	    static logStream: boolean;
+	    _iCallback: (context: IContextGL) => void;
+	    container: HTMLElement;
+	    driverInfo: any;
+	    errorCheckingEnabled: boolean;
+	    constructor(container: HTMLCanvasElement, callback: (context: IContextGL) => void, include?: Sampler);
+	    _iAddResource(resource: ResourceBaseFlash): void;
+	    _iRemoveResource(resource: ResourceBaseFlash): void;
+	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): TextureFlash;
+	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): CubeTextureFlash;
+	    setTextureAt(sampler: number, texture: ResourceBaseFlash): void;
+	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): void;
+	    setStencilActions(triangleFace?: string, compareMode?: string, actionOnBothPass?: string, actionOnDepthFail?: string, actionOnDepthPassStencilFail?: string): void;
+	    setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number): void;
+	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): void;
+	    drawTriangles(indexBuffer: IndexBufferFlash, firstIndex?: number, numTriangles?: number): void;
+	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
+	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): void;
+	    setProgram(program: ProgramFlash): void;
+	    present(): void;
+	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
+	    createProgram(): ProgramFlash;
+	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferFlash;
+	    createIndexBuffer(numIndices: number): IndexBufferFlash;
+	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
+	    drawToBitmapData(destination: BitmapData): void;
+	    setVertexBufferAt(index: number, buffer: VertexBufferFlash, bufferOffset?: number, format?: string): void;
+	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
+	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
+	    setRenderToTexture(target: ResourceBaseFlash, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): void;
+	    setRenderToBackBuffer(): void;
+	    setScissorRectangle(rectangle: Rectangle): void;
+	    setDepthTest(depthMask: boolean, passCompareMode: string): void;
+	    dispose(): void;
+	    addStream(stream: string): void;
+	    execute(): number;
+	}
+	export = ContextStage3D;
+	
+}
+declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
+	import Description = require("awayjs-stagegl/lib/aglsl/Description");
+	class AGLSLParser {
+	    parse(desc: Description): string;
+	    regtostring(regtype: number, regnum: number, desc: Description, tag: any): string;
+	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
+	}
+	export = AGLSLParser;
+	
+}
+declare module "awayjs-stagegl/lib/events/StageEvent" {
+	import Event = require("awayjs-core/lib/events/Event");
+	class StageEvent extends Event {
+	    static CONTEXT_CREATED: string;
+	    static CONTEXT_DISPOSED: string;
+	    static CONTEXT_RECREATED: string;
+	    static VIEWPORT_UPDATED: string;
+	    constructor(type: string);
+	}
+	export = StageEvent;
 	
 }
 declare module "awayjs-stagegl/lib/base/ContextGLBlendFactor" {
@@ -290,6 +481,57 @@ declare module "awayjs-stagegl/lib/base/ContextGLCompareMode" {
 	export = ContextGLCompareMode;
 	
 }
+declare module "awayjs-stagegl/lib/base/ContextGLMipFilter" {
+	class ContextGLMipFilter {
+	    static MIPLINEAR: string;
+	    static MIPNEAREST: string;
+	    static MIPNONE: string;
+	}
+	export = ContextGLMipFilter;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLProfile" {
+	class ContextGLProfile {
+	    static BASELINE: string;
+	    static BASELINE_CONSTRAINED: string;
+	    static BASELINE_EXTENDED: string;
+	}
+	export = ContextGLProfile;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLStencilAction" {
+	class ContextGLStencilAction {
+	    static DECREMENT_SATURATE: string;
+	    static DECREMENT_WRAP: string;
+	    static INCREMENT_SATURATE: string;
+	    static INCREMENT_WRAP: string;
+	    static INVERT: string;
+	    static KEEP: string;
+	    static SET: string;
+	    static ZERO: string;
+	}
+	export = ContextGLStencilAction;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLTextureFilter" {
+	class ContextGLTextureFilter {
+	    static LINEAR: string;
+	    static NEAREST: string;
+	}
+	export = ContextGLTextureFilter;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLTextureFormat" {
+	class ContextGLTextureFormat {
+	    static BGRA: string;
+	    static BGRA_PACKED: string;
+	    static BGR_PACKED: string;
+	    static COMPRESSED: string;
+	    static COMPRESSED_ALPHA: string;
+	}
+	export = ContextGLTextureFormat;
+	
+}
 declare module "awayjs-stagegl/lib/base/ContextGLTriangleFace" {
 	class ContextGLTriangleFace {
 	    static BACK: string;
@@ -309,6 +551,24 @@ declare module "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat" {
 	    static FLOAT_4: string;
 	}
 	export = ContextGLVertexBufferFormat;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextGLWrapMode" {
+	class ContextGLWrapMode {
+	    static CLAMP: string;
+	    static REPEAT: string;
+	}
+	export = ContextGLWrapMode;
+	
+}
+declare module "awayjs-stagegl/lib/base/ContextMode" {
+	class ContextMode {
+	    static AUTO: string;
+	    static WEBGL: string;
+	    static FLASH: string;
+	    static NATIVE: string;
+	}
+	export = ContextMode;
 	
 }
 declare module "awayjs-stagegl/lib/base/TextureBaseWebGL" {
@@ -343,15 +603,6 @@ declare module "awayjs-stagegl/lib/base/CubeTextureWebGL" {
 	export = CubeTextureWebGL;
 	
 }
-declare module "awayjs-stagegl/lib/base/IIndexBuffer" {
-	interface IIndexBuffer {
-	    numIndices: number;
-	    uploadFromArray(data: number[], startOffset: number, count: number): any;
-	    dispose(): any;
-	}
-	export = IIndexBuffer;
-	
-}
 declare module "awayjs-stagegl/lib/base/IndexBufferWebGL" {
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
 	class IndexBufferWebGL implements IIndexBuffer {
@@ -365,15 +616,6 @@ declare module "awayjs-stagegl/lib/base/IndexBufferWebGL" {
 	    glBuffer: WebGLBuffer;
 	}
 	export = IndexBufferWebGL;
-	
-}
-declare module "awayjs-stagegl/lib/base/IProgram" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	interface IProgram {
-	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): any;
-	    dispose(): any;
-	}
-	export = IProgram;
 	
 }
 declare module "awayjs-stagegl/lib/base/ProgramWebGL" {
@@ -393,18 +635,6 @@ declare module "awayjs-stagegl/lib/base/ProgramWebGL" {
 	    glProgram: WebGLProgram;
 	}
 	export = ProgramWebGL;
-	
-}
-declare module "awayjs-stagegl/lib/base/ITexture" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	interface ITexture extends ITextureBase {
-	    width: number;
-	    height: number;
-	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
-	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
-	}
-	export = ITexture;
 	
 }
 declare module "awayjs-stagegl/lib/base/TextureWebGL" {
@@ -440,16 +670,6 @@ declare module "awayjs-stagegl/lib/base/SamplerState" {
 	    mipfilter: number;
 	}
 	export = SamplerState;
-	
-}
-declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
-	interface IVertexBuffer {
-	    numVertices: number;
-	    data32PerVertex: number;
-	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
-	    dispose(): any;
-	}
-	export = IVertexBuffer;
 	
 }
 declare module "awayjs-stagegl/lib/base/VertexBufferWebGL" {
@@ -541,18 +761,6 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	export = ContextWebGL;
 	
 }
-declare module "awayjs-stagegl/lib/events/StageEvent" {
-	import Event = require("awayjs-core/lib/events/Event");
-	class StageEvent extends Event {
-	    static CONTEXT_CREATED: string;
-	    static CONTEXT_DISPOSED: string;
-	    static CONTEXT_RECREATED: string;
-	    static VIEWPORT_UPDATED: string;
-	    constructor(type: string);
-	}
-	export = StageEvent;
-	
-}
 declare module "awayjs-stagegl/lib/pool/IndexData" {
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
@@ -594,7 +802,7 @@ declare module "awayjs-stagegl/lib/pool/IndexData" {
 	
 }
 declare module "awayjs-stagegl/lib/pool/TextureDataPool" {
-	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
 	import TextureData = require("awayjs-stagegl/lib/pool/TextureData");
 	/**
 	 * @class away.pool.TextureDataPool
@@ -613,20 +821,20 @@ declare module "awayjs-stagegl/lib/pool/TextureDataPool" {
 	     * @param materialOwner
 	     * @returns ITexture
 	     */
-	    getItem(textureProxy: TextureProxyBase, mipmap: boolean): TextureData;
+	    getItem(textureProxy: TextureBase, mipmap: boolean): TextureData;
 	    /**
 	     * //TODO
 	     *
 	     * @param materialOwner
 	     */
-	    disposeItem(textureProxy: TextureProxyBase): void;
+	    disposeItem(textureProxy: TextureBase): void;
 	}
 	export = TextureDataPool;
 	
 }
 declare module "awayjs-stagegl/lib/pool/TextureData" {
 	import ITextureData = require("awayjs-core/lib/pool/ITextureData");
-	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
 	import TextureDataPool = require("awayjs-stagegl/lib/pool/TextureDataPool");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	/**
@@ -636,10 +844,10 @@ declare module "awayjs-stagegl/lib/pool/TextureData" {
 	class TextureData implements ITextureData {
 	    private _pool;
 	    texture: ITextureBase;
-	    textureProxy: TextureProxyBase;
+	    textureProxy: TextureBase;
 	    mipmap: boolean;
 	    invalid: boolean;
-	    constructor(pool: TextureDataPool, textureProxy: TextureProxyBase, mipmap: boolean);
+	    constructor(pool: TextureDataPool, textureProxy: TextureBase, mipmap: boolean);
 	    /**
 	     *
 	     */
@@ -834,7 +1042,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	import CubeTextureBase = require("awayjs-core/lib/textures/CubeTextureBase");
 	import RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
 	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
-	import TextureProxyBase = require("awayjs-core/lib/textures/TextureProxyBase");
+	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
@@ -881,7 +1089,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private _initialised;
 	    constructor(container: HTMLCanvasElement, stageIndex: number, stageManager: StageManager, forceSoftware?: boolean, profile?: string);
 	    getProgramData(vertexString: string, fragmentString: string): ProgramData;
-	    setRenderTarget(target: TextureProxyBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
+	    setRenderTarget(target: TextureBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
 	    getRenderTexture(textureProxy: RenderTexture): ITextureBase;
 	    /**
 	     * Assigns an attribute stream
@@ -947,7 +1155,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	     */
 	    configureBackBuffer(backBufferWidth: number, backBufferHeight: number, antiAlias: number, enableDepthAndStencil: boolean): void;
 	    enableDepthAndStencil: boolean;
-	    renderTarget: TextureProxyBase;
+	    renderTarget: TextureBase;
 	    renderSurfaceSelector: number;
 	    clear(): void;
 	    /**
@@ -1013,214 +1221,6 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private _setSamplerState(index, repeat, smooth, mipmap);
 	}
 	export = Stage;
-	
-}
-declare module "awayjs-stagegl/lib/base/IContextGL" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
-	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
-	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
-	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
-	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
-	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
-	interface IContextGL {
-	    container: HTMLElement;
-	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): any;
-	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): any;
-	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
-	    createIndexBuffer(numIndices: number): IIndexBuffer;
-	    createProgram(): IProgram;
-	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
-	    createVertexBuffer(numVertices: number, data32PerVertex: number): IVertexBuffer;
-	    dispose(): any;
-	    drawToBitmapData(destination: BitmapData): any;
-	    drawTriangles(indexBuffer: IIndexBuffer, firstIndex?: number, numTriangles?: number): any;
-	    present(): any;
-	    setBlendFactors(sourceFactor: string, destinationFactor: string): any;
-	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): any;
-	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): any;
-	    setDepthTest(depthMask: boolean, passCompareMode: string): any;
-	    setProgram(program: IProgram): any;
-	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): any;
-	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): any;
-	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): any;
-	    setScissorRectangle(rectangle: Rectangle): any;
-	    setTextureAt(sampler: number, texture: ITextureBase): any;
-	    setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: string): any;
-	    setRenderToTexture(target: ITextureBase, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): any;
-	    setRenderToBackBuffer(): any;
-	}
-	export = IContextGL;
-	
-}
-declare module "awayjs-stagegl/lib/base/IndexBufferFlash" {
-	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
-	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
-	class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer {
-	    private _context;
-	    private _numIndices;
-	    constructor(context: ContextStage3D, numIndices: number);
-	    uploadFromArray(data: number[], startOffset: number, count: number): void;
-	    dispose(): void;
-	    numIndices: number;
-	}
-	export = IndexBufferFlash;
-	
-}
-declare module "awayjs-stagegl/lib/base/ProgramFlash" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
-	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
-	class ProgramFlash extends ResourceBaseFlash implements IProgram {
-	    private _context;
-	    constructor(context: ContextStage3D);
-	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
-	    dispose(): void;
-	}
-	export = ProgramFlash;
-	
-}
-declare module "awayjs-stagegl/lib/base/TextureFlash" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
-	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
-	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
-	class TextureFlash extends ResourceBaseFlash implements ITexture {
-	    private _context;
-	    private _width;
-	    private _height;
-	    width: number;
-	    height: number;
-	    constructor(context: ContextStage3D, width: number, height: number, format: string, forRTT: boolean, streaming?: boolean);
-	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
-	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
-	}
-	export = TextureFlash;
-	
-}
-declare module "awayjs-stagegl/lib/base/VertexBufferFlash" {
-	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
-	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
-	class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer {
-	    private _context;
-	    private _numVertices;
-	    private _data32PerVertex;
-	    constructor(context: ContextStage3D, numVertices: number, data32PerVertex: number);
-	    uploadFromArray(data: number[], startVertex: number, numVertices: number): void;
-	    numVertices: number;
-	    data32PerVertex: number;
-	    dispose(): void;
-	}
-	export = VertexBufferFlash;
-	
-}
-declare module "awayjs-stagegl/lib/base/ContextStage3D" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
-	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
-	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
-	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
-	import CubeTextureFlash = require("awayjs-stagegl/lib/base/CubeTextureFlash");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import IndexBufferFlash = require("awayjs-stagegl/lib/base/IndexBufferFlash");
-	import ProgramFlash = require("awayjs-stagegl/lib/base/ProgramFlash");
-	import TextureFlash = require("awayjs-stagegl/lib/base/TextureFlash");
-	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
-	import VertexBufferFlash = require("awayjs-stagegl/lib/base/VertexBufferFlash");
-	class ContextStage3D implements IContextGL {
-	    static contexts: Object;
-	    static maxvertexconstants: number;
-	    static maxfragconstants: number;
-	    static maxtemp: number;
-	    static maxstreams: number;
-	    static maxtextures: number;
-	    static defaultsampler: Sampler;
-	    _iDriverInfo: any;
-	    private _container;
-	    private _width;
-	    private _height;
-	    private _cmdStream;
-	    private _errorCheckingEnabled;
-	    private _resources;
-	    private _oldCanvas;
-	    private _oldParent;
-	    static debug: boolean;
-	    static logStream: boolean;
-	    _iCallback: (context: IContextGL) => void;
-	    container: HTMLElement;
-	    driverInfo: any;
-	    errorCheckingEnabled: boolean;
-	    constructor(container: HTMLCanvasElement, callback: (context: IContextGL) => void, include?: Sampler);
-	    _iAddResource(resource: ResourceBaseFlash): void;
-	    _iRemoveResource(resource: ResourceBaseFlash): void;
-	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): TextureFlash;
-	    createCubeTexture(size: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): CubeTextureFlash;
-	    setTextureAt(sampler: number, texture: ResourceBaseFlash): void;
-	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): void;
-	    setStencilActions(triangleFace?: string, compareMode?: string, actionOnBothPass?: string, actionOnDepthFail?: string, actionOnDepthPassStencilFail?: string): void;
-	    setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number): void;
-	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): void;
-	    drawTriangles(indexBuffer: IndexBufferFlash, firstIndex?: number, numTriangles?: number): void;
-	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
-	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): void;
-	    setProgram(program: ProgramFlash): void;
-	    present(): void;
-	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
-	    createProgram(): ProgramFlash;
-	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferFlash;
-	    createIndexBuffer(numIndices: number): IndexBufferFlash;
-	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
-	    drawToBitmapData(destination: BitmapData): void;
-	    setVertexBufferAt(index: number, buffer: VertexBufferFlash, bufferOffset?: number, format?: string): void;
-	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
-	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
-	    setRenderToTexture(target: ResourceBaseFlash, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number): void;
-	    setRenderToBackBuffer(): void;
-	    setScissorRectangle(rectangle: Rectangle): void;
-	    setDepthTest(depthMask: boolean, passCompareMode: string): void;
-	    dispose(): void;
-	    addStream(stream: string): void;
-	    execute(): number;
-	}
-	export = ContextStage3D;
-	
-}
-declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
-	import Description = require("awayjs-stagegl/lib/aglsl/Description");
-	class AGLSLParser {
-	    parse(desc: Description): string;
-	    regtostring(regtype: number, regnum: number, desc: Description, tag: any): string;
-	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
-	}
-	export = AGLSLParser;
-	
-}
-declare module "awayjs-stagegl/lib/base/ContextGLProfile" {
-	class ContextGLProfile {
-	    static BASELINE: string;
-	    static BASELINE_CONSTRAINED: string;
-	    static BASELINE_EXTENDED: string;
-	}
-	export = ContextGLProfile;
-	
-}
-declare module "awayjs-stagegl/lib/base/ContextGLStencilAction" {
-	class ContextGLStencilAction {
-	    static DECREMENT_SATURATE: string;
-	    static DECREMENT_WRAP: string;
-	    static INCREMENT_SATURATE: string;
-	    static INCREMENT_WRAP: string;
-	    static INVERT: string;
-	    static KEEP: string;
-	    static SET: string;
-	    static ZERO: string;
-	}
-	export = ContextGLStencilAction;
 	
 }
 declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
