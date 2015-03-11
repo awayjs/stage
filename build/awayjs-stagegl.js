@@ -1878,43 +1878,43 @@ var ContextWebGL = (function () {
         this._gl.depthMask(depthMask);
     };
     ContextWebGL.prototype.setStencilActions = function (triangleFace, compareMode, actionOnBothPass, actionOnDepthFail, actionOnDepthPassStencilFail, coordinateSystem) {
+        //this._separateStencil = triangleFace != "frontAndBack";
         if (triangleFace === void 0) { triangleFace = "frontAndBack"; }
         if (compareMode === void 0) { compareMode = "always"; }
         if (actionOnBothPass === void 0) { actionOnBothPass = "keep"; }
         if (actionOnDepthFail === void 0) { actionOnDepthFail = "keep"; }
         if (actionOnDepthPassStencilFail === void 0) { actionOnDepthPassStencilFail = "keep"; }
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
-        this._separateStencil = triangleFace != "frontAndBack";
         var compareModeGL = this._compareModeDictionary[compareMode];
         var fail = this._stencilActionDictionary[actionOnDepthPassStencilFail];
         var zFail = this._stencilActionDictionary[actionOnDepthFail];
         var pass = this._stencilActionDictionary[actionOnBothPass];
-        if (!this._separateStencil) {
-            this._stencilCompareMode = compareModeGL;
-            this._gl.stencilFunc(compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
-            this._gl.stencilOp(fail, zFail, pass);
-        }
-        else if (triangleFace == "back") {
-            this._stencilCompareModeBack = compareModeGL;
-            this._gl.stencilFuncSeparate(this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
-            this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass);
-        }
-        else if (triangleFace == "front") {
-            this._stencilCompareModeFront = compareModeGL;
-            this._gl.stencilFuncSeparate(this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
-            this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass);
-        }
+        //if (!this._separateStencil) {
+        this._stencilCompareMode = compareModeGL;
+        this._gl.stencilFunc(compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+        this._gl.stencilOp(fail, zFail, pass);
+        /*        }
+                else if (triangleFace == "back") {
+                    this._stencilCompareModeBack = compareModeGL;
+                    this._gl.stencilFuncSeparate(this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+                    this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass);
+                }
+                else if (triangleFace == "front") {
+                    this._stencilCompareModeFront = compareModeGL;
+                    this._gl.stencilFuncSeparate(this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+                    this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass);
+                }*/
     };
     ContextWebGL.prototype.setStencilReferenceValue = function (referenceValue, readMask, writeMask) {
         this._stencilReferenceValue = referenceValue;
         this._stencilReadMask = readMask;
-        if (this._separateStencil) {
-            this._gl.stencilFunc(this._stencilCompareMode, referenceValue, readMask);
-        }
-        else {
+        /*if (this._separateStencil) {
             this._gl.stencilFuncSeparate(this._gl.FRONT, this._stencilCompareModeFront, referenceValue, readMask);
             this._gl.stencilFuncSeparate(this._gl.BACK, this._stencilCompareModeBack, referenceValue, readMask);
         }
+        else {*/
+        this._gl.stencilFunc(this._stencilCompareMode, referenceValue, readMask);
+        //}
         this._gl.stencilMask(writeMask);
     };
     ContextWebGL.prototype.setProgram = function (program) {

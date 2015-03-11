@@ -359,17 +359,17 @@ class ContextWebGL implements IContextGL
         if (!this._separateStencil) {
             this._stencilCompareMode = compareModeGL;
             this._gl.stencilFunc(compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
-            this._gl.stencilOp(fail, zFail, pass)
+            this._gl.stencilOp(fail, zFail, pass);
         }
         else if (triangleFace == "back") {
             this._stencilCompareModeBack = compareModeGL;
             this._gl.stencilFuncSeparate(this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
-            this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass)
+            this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass);
         }
         else if (triangleFace == "front") {
             this._stencilCompareModeFront = compareModeGL;
             this._gl.stencilFuncSeparate(this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
-            this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass)
+            this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass);
         }
     }
 
@@ -379,11 +379,11 @@ class ContextWebGL implements IContextGL
         this._stencilReadMask = readMask;
 
         if (this._separateStencil) {
-            this._gl.stencilFunc(this._stencilCompareMode, referenceValue, readMask);
-        }
-        else {
             this._gl.stencilFuncSeparate(this._gl.FRONT, this._stencilCompareModeFront, referenceValue, readMask);
             this._gl.stencilFuncSeparate(this._gl.BACK, this._stencilCompareModeBack, referenceValue, readMask);
+        }
+        else {
+            this._gl.stencilFunc(this._stencilCompareMode, referenceValue, readMask);
         }
 
         this._gl.stencilMask(writeMask);
