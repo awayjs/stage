@@ -453,62 +453,6 @@ declare module "awayjs-stagegl/lib/events/StageEvent" {
 	export = StageEvent;
 	
 }
-declare module "awayjs-stagegl/lib/pool/IndexData" {
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	/**
-	 *
-	 */
-	class IndexData {
-	    private static LIMIT_VERTS;
-	    private static LIMIT_INDICES;
-	    private _dataDirty;
-	    invalid: Array<boolean>;
-	    contexts: Array<IContextGL>;
-	    buffers: Array<IIndexBuffer>;
-	    data: Array<number>;
-	    indexMappings: Array<number>;
-	    originalIndices: Array<number>;
-	    offset: number;
-	    level: number;
-	    constructor(level: number);
-	    updateData(offset: number, indices: Array<number>, numVertices: number): void;
-	    invalidateData(): void;
-	    dispose(): void;
-	    /**
-	     * @private
-	     */
-	    private disposeBuffers();
-	    /**
-	     * @private
-	     */
-	    private invalidateBuffers();
-	    /**
-	     *
-	     * @param data
-	     * @private
-	     */
-	    private setData(data);
-	}
-	export = IndexData;
-	
-}
-declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
-	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
-	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
-	/**
-	 *
-	 */
-	class IndexDataPool {
-	    private static _pool;
-	    constructor();
-	    static getItem(subGeometry: SubGeometryBase, level: number, indexOffset: number): IndexData;
-	    static disposeItem(id: number, level: number): void;
-	    disposeData(id: number): void;
-	}
-	export = IndexDataPool;
-	
-}
 declare module "awayjs-stagegl/lib/base/ContextMode" {
 	class ContextMode {
 	    static AUTO: string;
@@ -820,6 +764,46 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	export = ContextWebGL;
 	
 }
+declare module "awayjs-stagegl/lib/pool/IndexData" {
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
+	/**
+	 *
+	 */
+	class IndexData {
+	    private static LIMIT_VERTS;
+	    private static LIMIT_INDICES;
+	    private _dataDirty;
+	    invalid: Array<boolean>;
+	    contexts: Array<IContextGL>;
+	    buffers: Array<IIndexBuffer>;
+	    data: Array<number>;
+	    indexMappings: Array<number>;
+	    originalIndices: Array<number>;
+	    offset: number;
+	    level: number;
+	    constructor(level: number);
+	    updateData(offset: number, indices: Array<number>, numVertices: number): void;
+	    invalidateData(): void;
+	    dispose(): void;
+	    /**
+	     * @private
+	     */
+	    private disposeBuffers();
+	    /**
+	     * @private
+	     */
+	    private invalidateBuffers();
+	    /**
+	     *
+	     * @param data
+	     * @private
+	     */
+	    private setData(data);
+	}
+	export = IndexData;
+	
+}
 declare module "awayjs-stagegl/lib/pool/TextureDataPool" {
 	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
 	import TextureData = require("awayjs-stagegl/lib/pool/TextureData");
@@ -879,6 +863,64 @@ declare module "awayjs-stagegl/lib/pool/TextureData" {
 	export = TextureData;
 	
 }
+declare module "awayjs-stagegl/lib/pool/ProgramDataPool" {
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
+	/**
+	 * @class away.pool.ProgramDataPool
+	 */
+	class ProgramDataPool {
+	    private _pool;
+	    private _stage;
+	    /**
+	     * //TODO
+	     *
+	     * @param textureDataClass
+	     */
+	    constructor(stage: Stage);
+	    /**
+	     * //TODO
+	     *
+	     * @param materialOwner
+	     * @returns ITexture
+	     */
+	    getItem(vertexString: string, fragmentString: string): ProgramData;
+	    /**
+	     * //TODO
+	     *
+	     * @param materialOwner
+	     */
+	    disposeItem(key: string): void;
+	}
+	export = ProgramDataPool;
+	
+}
+declare module "awayjs-stagegl/lib/pool/ProgramData" {
+	import ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
+	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	/**
+	 *
+	 * @class away.pool.ProgramDataBase
+	 */
+	class ProgramData {
+	    static PROGRAMDATA_ID_COUNT: number;
+	    private _pool;
+	    vertexString: string;
+	    fragmentString: string;
+	    stage: Stage;
+	    usages: number;
+	    program: IProgram;
+	    id: number;
+	    constructor(pool: ProgramDataPool, context: Stage, vertexString: string, fragmentString: string);
+	    /**
+	     *
+	     */
+	    dispose(): void;
+	}
+	export = ProgramData;
+	
+}
 declare module "awayjs-stagegl/lib/pool/VertexData" {
 	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
@@ -923,78 +965,6 @@ declare module "awayjs-stagegl/lib/pool/VertexData" {
 	    private _onVerticesUpdated(event);
 	}
 	export = VertexData;
-	
-}
-declare module "awayjs-stagegl/lib/managers/StageManager" {
-	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	/**
-	 * The StageManager class provides a multiton object that handles management for Stage objects.
-	 *
-	 * @see away.base.Stage
-	 */
-	class StageManager extends EventDispatcher {
-	    private static STAGE_MAX_QUANTITY;
-	    private _stages;
-	    private static _instance;
-	    private static _numStages;
-	    private _onContextCreatedDelegate;
-	    /**
-	     * Creates a new StageManager class.
-	     * @param stage The Stage object that contains the Stage objects to be managed.
-	     * @private
-	     */
-	    constructor();
-	    /**
-	     * Gets a StageManager instance for the given Stage object.
-	     * @param stage The Stage object that contains the Stage objects to be managed.
-	     * @return The StageManager instance for the given Stage object.
-	     */
-	    static getInstance(): StageManager;
-	    /**
-	     * Requests the Stage for the given index.
-	     *
-	     * @param index The index of the requested Stage.
-	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
-	     * @param profile The compatibility profile, an enumeration of ContextProfile
-	     * @return The Stage for the given index.
-	     */
-	    getStageAt(index: number, forceSoftware?: boolean, profile?: string, mode?: string): Stage;
-	    /**
-	     * Removes a Stage from the manager.
-	     * @param stage
-	     * @private
-	     */
-	    iRemoveStage(stage: Stage): void;
-	    /**
-	     * Get the next available stage. An error is thrown if there are no StageProxies available
-	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
-	     * @param profile The compatibility profile, an enumeration of ContextProfile
-	     * @return The allocated stage
-	     */
-	    getFreeStage(forceSoftware?: boolean, profile?: string, mode?: string): Stage;
-	    /**
-	     * Checks if a new stage can be created and managed by the class.
-	     * @return true if there is one slot free for a new stage
-	     */
-	    hasFreeStage: boolean;
-	    /**
-	     * Returns the amount of stage objects that can be created and managed by the class
-	     * @return the amount of free slots
-	     */
-	    numSlotsFree: number;
-	    /**
-	     * Returns the amount of Stage objects currently managed by the class.
-	     * @return the amount of slots used
-	     */
-	    numSlotsUsed: number;
-	    /**
-	     * The maximum amount of Stage objects that can be managed by the class
-	     */
-	    numSlotsTotal: number;
-	    private onContextCreated(event);
-	}
-	export = StageManager;
 	
 }
 declare module "awayjs-stagegl/lib/base/Stage" {
@@ -1184,62 +1154,101 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	export = Stage;
 	
 }
-declare module "awayjs-stagegl/lib/pool/ProgramDataPool" {
+declare module "awayjs-stagegl/lib/managers/StageManager" {
+	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
 	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
 	/**
-	 * @class away.pool.ProgramDataPool
+	 * The StageManager class provides a multiton object that handles management for Stage objects.
+	 *
+	 * @see away.base.Stage
 	 */
-	class ProgramDataPool {
-	    private _pool;
-	    private _stage;
+	class StageManager extends EventDispatcher {
+	    private static STAGE_MAX_QUANTITY;
+	    private _stages;
+	    private static _instance;
+	    private static _numStages;
+	    private _onContextCreatedDelegate;
 	    /**
-	     * //TODO
-	     *
-	     * @param textureDataClass
+	     * Creates a new StageManager class.
+	     * @param stage The Stage object that contains the Stage objects to be managed.
+	     * @private
 	     */
-	    constructor(stage: Stage);
+	    constructor();
 	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     * @returns ITexture
+	     * Gets a StageManager instance for the given Stage object.
+	     * @param stage The Stage object that contains the Stage objects to be managed.
+	     * @return The StageManager instance for the given Stage object.
 	     */
-	    getItem(vertexString: string, fragmentString: string): ProgramData;
+	    static getInstance(): StageManager;
 	    /**
-	     * //TODO
+	     * Requests the Stage for the given index.
 	     *
-	     * @param materialOwner
+	     * @param index The index of the requested Stage.
+	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
+	     * @param profile The compatibility profile, an enumeration of ContextProfile
+	     * @return The Stage for the given index.
 	     */
-	    disposeItem(key: string): void;
+	    getStageAt(index: number, forceSoftware?: boolean, profile?: string, mode?: string): Stage;
+	    /**
+	     * Removes a Stage from the manager.
+	     * @param stage
+	     * @private
+	     */
+	    iRemoveStage(stage: Stage): void;
+	    /**
+	     * Get the next available stage. An error is thrown if there are no StageProxies available
+	     * @param forceSoftware Whether to force software mode even if hardware acceleration is available.
+	     * @param profile The compatibility profile, an enumeration of ContextProfile
+	     * @return The allocated stage
+	     */
+	    getFreeStage(forceSoftware?: boolean, profile?: string, mode?: string): Stage;
+	    /**
+	     * Checks if a new stage can be created and managed by the class.
+	     * @return true if there is one slot free for a new stage
+	     */
+	    hasFreeStage: boolean;
+	    /**
+	     * Returns the amount of stage objects that can be created and managed by the class
+	     * @return the amount of free slots
+	     */
+	    numSlotsFree: number;
+	    /**
+	     * Returns the amount of Stage objects currently managed by the class.
+	     * @return the amount of slots used
+	     */
+	    numSlotsUsed: number;
+	    /**
+	     * The maximum amount of Stage objects that can be managed by the class
+	     */
+	    numSlotsTotal: number;
+	    private onContextCreated(event);
 	}
-	export = ProgramDataPool;
+	export = StageManager;
 	
 }
-declare module "awayjs-stagegl/lib/pool/ProgramData" {
-	import ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
-	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
+declare module "awayjs-stagegl/lib/base/ContextGLProfile" {
+	class ContextGLProfile {
+	    static BASELINE: string;
+	    static BASELINE_CONSTRAINED: string;
+	    static BASELINE_EXTENDED: string;
+	}
+	export = ContextGLProfile;
+	
+}
+declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
+	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
+	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
 	/**
 	 *
-	 * @class away.pool.ProgramDataBase
 	 */
-	class ProgramData {
-	    static PROGRAMDATA_ID_COUNT: number;
-	    private _pool;
-	    vertexString: string;
-	    fragmentString: string;
-	    stage: Stage;
-	    usages: number;
-	    program: IProgram;
-	    id: number;
-	    constructor(pool: ProgramDataPool, context: Stage, vertexString: string, fragmentString: string);
-	    /**
-	     *
-	     */
-	    dispose(): void;
+	class IndexDataPool {
+	    private static _pool;
+	    constructor();
+	    static getItem(subGeometry: SubGeometryBase, level: number, indexOffset: number): IndexData;
+	    static disposeItem(id: number, level: number): void;
+	    disposeData(id: number): void;
 	}
-	export = ProgramData;
+	export = IndexDataPool;
 	
 }
 declare module "awayjs-stagegl/lib/pool/VertexDataPool" {
@@ -1257,15 +1266,6 @@ declare module "awayjs-stagegl/lib/pool/VertexDataPool" {
 	    disposeData(subGeometry: SubGeometryBase): void;
 	}
 	export = VertexDataPool;
-	
-}
-declare module "awayjs-stagegl/lib/base/ContextGLProfile" {
-	class ContextGLProfile {
-	    static BASELINE: string;
-	    static BASELINE_CONSTRAINED: string;
-	    static BASELINE_EXTENDED: string;
-	}
-	export = ContextGLProfile;
 	
 }
 declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
