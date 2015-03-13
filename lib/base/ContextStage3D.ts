@@ -2,12 +2,12 @@ import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 
-import swfobject					= require("awayjs-stagegl/lib/swfobject");
+//import swfobject					= require("awayjs-stagegl/lib/swfobject");
 import Sampler						= require("awayjs-stagegl/lib/aglsl/Sampler");
 import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
 import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
 import CubeTextureFlash				= require("awayjs-stagegl/lib/base/CubeTextureFlash");
-import IContextGL				= require("awayjs-stagegl/lib/base/IContextGL");
+import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import IndexBufferFlash				= require("awayjs-stagegl/lib/base/IndexBufferFlash");
 import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
 import ProgramFlash					= require("awayjs-stagegl/lib/base/ProgramFlash");
@@ -112,7 +112,7 @@ class ContextStage3D implements IContextGL
 			context3dObj._iCallback = callback;
 		}
 
-		swfobject.embedSWF("libs/molehill_js_flashbridge.swf", container.id, String(container.width), String(container.height), swfVersionStr, "", flashvars, params, attributes, callbackSWFObject);
+		//swfobject.embedSWF("libs/molehill_js_flashbridge.swf", container.id, String(container.width), String(container.height), swfVersionStr, "", flashvars, params, attributes, callbackSWFObject);
 	}
 
 	public _iAddResource(resource:ResourceBaseFlash)
@@ -358,7 +358,7 @@ class ContextStage3D implements IContextGL
 			// encode command
 			this.addStream(String.fromCharCode(OpCodes.disposeContext));
 			this.execute();
-			swfobject.removeSWF(this._oldCanvas.id);
+			//swfobject.removeSWF(this._oldCanvas.id);
 			if (this._oldCanvas && this._oldParent) {
 				this._oldParent.appendChild(this._oldCanvas);
 				this._oldParent = null;
