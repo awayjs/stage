@@ -41,10 +41,12 @@ class SpecularImage2DObject extends Image2DObject
 		if (this._invalid) {
 			this._invalid = false;
 			if (mipmap) {
-				this._mipmapData = MipmapGenerator._generateMipMaps((<SpecularImage2D> this._image).getCanvas());
-				var len:number = this._mipmapData.length;
+				var mipmapData:Array<BitmapImage2D> = this._mipmapData || (this._mipmapData = new Array<BitmapImage2D>());
+
+				MipmapGenerator._generateMipMaps((<SpecularImage2D> this._image).getCanvas(), mipmapData);
+				var len:number = mipmapData.length;
 				for (var i:number = 0; i < len; i++)
-					(<ITexture> this._texture).uploadFromData(this._mipmapData[i].getImageData(), i);
+					(<ITexture> this._texture).uploadFromData(mipmapData[i].getImageData(), i);
 			} else {
 				(<ITexture> this._texture).uploadFromData((<SpecularImage2D> this._image).getImageData(), 0);
 			}

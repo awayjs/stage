@@ -44,7 +44,9 @@ class BitmapImageCubeObject extends ImageCubeObject
 			this._invalid = false;
 			for (var i:number = 0; i < 6; ++i) {
 				if (mipmap) {
-					var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i] = MipmapGenerator._generateMipMaps((<BitmapImageCube> this._image).getCanvas(i));
+					var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array<BitmapImage2D>());
+
+					MipmapGenerator._generateMipMaps((<BitmapImageCube> this._image).getCanvas(i), mipmapData, true);
 					var len:number = mipmapData.length;
 					for (var j:number = 0; j < len; j++)
 						(<ICubeTexture> this._texture).uploadFromData(mipmapData[j].getImageData(), i, j);
