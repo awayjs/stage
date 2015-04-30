@@ -3419,10 +3419,11 @@ var BitmapImage2DObject = (function (_super) {
         if (this._invalid) {
             this._invalid = false;
             if (mipmap) {
-                this._mipmapData = MipmapGenerator._generateMipMaps(this._image.getCanvas());
-                var len = this._mipmapData.length;
+                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
+                MipmapGenerator._generateMipMaps(this._image.getCanvas(), mipmapData, true);
+                var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
-                    this._texture.uploadFromData(this._mipmapData[i].getImageData(), i);
+                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
             }
             else {
                 this._texture.uploadFromData(this._image.getImageData(), 0);
@@ -3488,7 +3489,8 @@ var BitmapImageCubeObject = (function (_super) {
             this._invalid = false;
             for (var i = 0; i < 6; ++i) {
                 if (mipmap) {
-                    var mipmapData = this._mipmapDataArray[i] = MipmapGenerator._generateMipMaps(this._image.getCanvas(i));
+                    var mipmapData = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array());
+                    MipmapGenerator._generateMipMaps(this._image.getCanvas(i), mipmapData, true);
                     var len = mipmapData.length;
                     for (var j = 0; j < len; j++)
                         this._texture.uploadFromData(mipmapData[j].getImageData(), i, j);
@@ -3995,10 +3997,11 @@ var SpecularImage2DObject = (function (_super) {
         if (this._invalid) {
             this._invalid = false;
             if (mipmap) {
-                this._mipmapData = MipmapGenerator._generateMipMaps(this._image.getCanvas());
-                var len = this._mipmapData.length;
+                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
+                MipmapGenerator._generateMipMaps(this._image.getCanvas(), mipmapData);
+                var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
-                    this._texture.uploadFromData(this._mipmapData[i].getImageData(), i);
+                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
             }
             else {
                 this._texture.uploadFromData(this._image.getImageData(), 0);
