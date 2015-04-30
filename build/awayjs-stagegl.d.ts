@@ -385,7 +385,7 @@ declare module "awayjs-stagegl/lib/base/ContextMode" {
 }
 
 declare module "awayjs-stagegl/lib/base/ContextStage3D" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -439,7 +439,7 @@ declare module "awayjs-stagegl/lib/base/ContextStage3D" {
 	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferFlash;
 	    createIndexBuffer(numIndices: number): IndexBufferFlash;
 	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean): void;
-	    drawToBitmapData(destination: BitmapData): void;
+	    drawToBitmapImage2D(destination: BitmapImage2D): void;
 	    setVertexBufferAt(index: number, buffer: VertexBufferFlash, bufferOffset?: number, format?: string): void;
 	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
 	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
@@ -456,7 +456,7 @@ declare module "awayjs-stagegl/lib/base/ContextStage3D" {
 }
 
 declare module "awayjs-stagegl/lib/base/ContextWebGL" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import CubeTextureWebGL = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
@@ -512,7 +512,7 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): TextureWebGL;
 	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferWebGL;
 	    dispose(): void;
-	    drawToBitmapData(destination: BitmapData): void;
+	    drawToBitmapImage2D(destination: BitmapImage2D): void;
 	    drawTriangles(indexBuffer: IndexBufferWebGL, firstIndex?: number, numTriangles?: number): void;
 	    present(): void;
 	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
@@ -539,7 +539,6 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 }
 
 declare module "awayjs-stagegl/lib/base/CubeTextureFlash" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
@@ -550,8 +549,8 @@ declare module "awayjs-stagegl/lib/base/CubeTextureFlash" {
 	    size: number;
 	    constructor(context: ContextStage3D, size: number, format: string, forRTT: boolean, streaming?: boolean);
 	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
 	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, side: number, miplevel?: number): any;
 	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
 	}
 	export = CubeTextureFlash;
@@ -559,7 +558,6 @@ declare module "awayjs-stagegl/lib/base/CubeTextureFlash" {
 }
 
 declare module "awayjs-stagegl/lib/base/CubeTextureWebGL" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
 	import TextureBaseWebGL = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
@@ -570,8 +568,8 @@ declare module "awayjs-stagegl/lib/base/CubeTextureWebGL" {
 	    private _size;
 	    constructor(gl: WebGLRenderingContext, size: number);
 	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
 	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, side: number, miplevel?: number): any;
 	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
 	    size: number;
 	    glTexture: WebGLTexture;
@@ -581,7 +579,7 @@ declare module "awayjs-stagegl/lib/base/CubeTextureWebGL" {
 }
 
 declare module "awayjs-stagegl/lib/base/IContextGL" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
+	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
@@ -600,7 +598,7 @@ declare module "awayjs-stagegl/lib/base/IContextGL" {
 	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
 	    createVertexBuffer(numVertices: number, data32PerVertex: number): IVertexBuffer;
 	    dispose(): any;
-	    drawToBitmapData(destination: BitmapData): any;
+	    drawToBitmapImage2D(destination: BitmapImage2D): any;
 	    drawTriangles(indexBuffer: IIndexBuffer, firstIndex?: number, numTriangles?: number): any;
 	    present(): any;
 	    setBlendFactors(sourceFactor: string, destinationFactor: string): any;
@@ -624,13 +622,12 @@ declare module "awayjs-stagegl/lib/base/IContextGL" {
 }
 
 declare module "awayjs-stagegl/lib/base/ICubeTexture" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	interface ICubeTexture extends ITextureBase {
 	    size: number;
-	    uploadFromData(bitmapData: BitmapData, side: number, miplevel?: number): any;
 	    uploadFromData(image: HTMLImageElement, side: number, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, side: number, miplevel?: number): any;
 	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async: boolean): any;
 	}
 	export = ICubeTexture;
@@ -658,13 +655,12 @@ declare module "awayjs-stagegl/lib/base/IProgram" {
 }
 
 declare module "awayjs-stagegl/lib/base/ITexture" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	interface ITexture extends ITextureBase {
 	    width: number;
 	    height: number;
-	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
 	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, miplevel?: number): any;
 	}
 	export = ITexture;
 	
@@ -827,16 +823,13 @@ declare module "awayjs-stagegl/lib/base/SamplerState" {
 }
 
 declare module "awayjs-stagegl/lib/base/Stage" {
+	import ImageBase = require("awayjs-core/lib/data/ImageBase");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
-	import CubeTextureBase = require("awayjs-core/lib/textures/CubeTextureBase");
-	import RenderTexture = require("awayjs-core/lib/textures/RenderTexture");
-	import Texture2DBase = require("awayjs-core/lib/textures/Texture2DBase");
-	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
+	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
 	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
 	import VertexData = require("awayjs-stagegl/lib/pool/VertexData");
 	import StageManager = require("awayjs-stagegl/lib/managers/StageManager");
@@ -850,7 +843,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	 */
 	class Stage extends EventDispatcher {
 	    private _programData;
-	    private _texturePool;
+	    private _imageObjectPool;
 	    private _programDataPool;
 	    private _context;
 	    private _container;
@@ -879,8 +872,8 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private _initialised;
 	    constructor(container: HTMLCanvasElement, stageIndex: number, stageManager: StageManager, forceSoftware?: boolean, profile?: string);
 	    getProgramData(vertexString: string, fragmentString: string): ProgramData;
-	    setRenderTarget(target: TextureBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
-	    getRenderTexture(textureProxy: RenderTexture): ITextureBase;
+	    setRenderTarget(target: ImageBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
+	    getImageObject(image: ImageBase): ImageObjectBase;
 	    /**
 	     * Assigns an attribute stream
 	     *
@@ -892,9 +885,6 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	     */
 	    activateBuffer(index: number, buffer: VertexData, offset: number, format: string): void;
 	    disposeVertexData(buffer: VertexData): void;
-	    activateRenderTexture(index: number, textureProxy: RenderTexture): void;
-	    activateTexture(index: number, textureProxy: Texture2DBase, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	    activateCubeTexture(index: number, textureProxy: CubeTextureBase, smooth: boolean, mipmap: boolean): void;
 	    /**
 	     * Retrieves the VertexBuffer object that contains triangle indices.
 	     * @param context The ContextWeb for which we request the buffer
@@ -945,7 +935,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	     */
 	    configureBackBuffer(backBufferWidth: number, backBufferHeight: number, antiAlias: number, enableDepthAndStencil: boolean): void;
 	    enableDepthAndStencil: boolean;
-	    renderTarget: TextureBase;
+	    renderTarget: ImageBase;
 	    renderSurfaceSelector: number;
 	    clear(): void;
 	    /**
@@ -1008,7 +998,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private onEnterFrame(event);
 	    recoverFromDisposal(): boolean;
 	    private _callback(context);
-	    private _setSamplerState(index, repeat, smooth, mipmap);
+	    setSamplerState(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
 	}
 	export = Stage;
 	
@@ -1027,7 +1017,6 @@ declare module "awayjs-stagegl/lib/base/TextureBaseWebGL" {
 }
 
 declare module "awayjs-stagegl/lib/base/TextureFlash" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
 	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
@@ -1039,15 +1028,14 @@ declare module "awayjs-stagegl/lib/base/TextureFlash" {
 	    height: number;
 	    constructor(context: ContextStage3D, width: number, height: number, format: string, forRTT: boolean, streaming?: boolean);
 	    dispose(): void;
-	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
 	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, miplevel?: number): any;
 	}
 	export = TextureFlash;
 	
 }
 
 declare module "awayjs-stagegl/lib/base/TextureWebGL" {
-	import BitmapData = require("awayjs-core/lib/data/BitmapData");
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import ITexture = require("awayjs-stagegl/lib/base/ITexture");
 	import TextureBaseWebGL = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
@@ -1062,8 +1050,8 @@ declare module "awayjs-stagegl/lib/base/TextureWebGL" {
 	    width: number;
 	    height: number;
 	    frameBuffer: WebGLFramebuffer;
-	    uploadFromData(bitmapData: BitmapData, miplevel?: number): any;
 	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, miplevel?: number): any;
 	    uploadCompressedTextureFromByteArray(data: ByteArray, byteArrayOffset: number, async?: boolean): void;
 	    glTexture: WebGLTexture;
 	    generateMipmaps(): void;
@@ -1194,6 +1182,225 @@ declare module "awayjs-stagegl/lib/managers/StageManager" {
 	
 }
 
+declare module "awayjs-stagegl/lib/pool/BitmapImage2DObject" {
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class BitmapImage2DObject extends Image2DObject {
+	    private _mipmapData;
+	    /**
+	     *
+	     */
+	    static assetClass: IAssetClass;
+	    constructor(pool: ImageObjectPool, image: BitmapImage2D, stage: Stage);
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    /**
+	     *
+	     */
+	    dispose(): void;
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    getTexture(context: IContextGL): ITextureBase;
+	}
+	export = BitmapImage2DObject;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/BitmapImageCubeObject" {
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import BitmapImageCube = require("awayjs-core/lib/data/BitmapImageCube");
+	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ImageCubeObject = require("awayjs-stagegl/lib/pool/ImageCubeObject");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class BitmapImageCubeObject extends ImageCubeObject {
+	    _mipmapDataArray: Array<Array<BitmapImage2D>>;
+	    /**
+	     *
+	     */
+	    static assetClass: IAssetClass;
+	    constructor(pool: ImageObjectPool, image: BitmapImageCube, stage: Stage);
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    /**
+	     *
+	     */
+	    dispose(): void;
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    getTexture(context: IContextGL): ITextureBase;
+	}
+	export = BitmapImageCubeObject;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/IImageObjectClass" {
+	import ImageBase = require("awayjs-core/lib/data/ImageBase");
+	import IWrapperClass = require("awayjs-core/lib/library/IWrapperClass");
+	import IImageObject = require("awayjs-core/lib/pool/IImageObject");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	/**
+	 * IImageObjectClass is an interface for the constructable class definition ITextureObject that is used to
+	 * create renderable objects in the rendering pipeline to render the contents of a partition
+	 *
+	 * @class away.render.IImageObjectClass
+	 */
+	interface IImageObjectClass extends IWrapperClass {
+	    /**
+	     *
+	     */
+	    new (pool: ImageObjectPool, image: ImageBase, stage: Stage): IImageObject;
+	}
+	export = IImageObjectClass;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/Image2DObject" {
+	import Image2D = require("awayjs-core/lib/data/Image2D");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class Image2DObject extends ImageObjectBase {
+	    constructor(pool: ImageObjectPool, image: Image2D, stage: Stage);
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    getTexture(context: IContextGL): ITextureBase;
+	}
+	export = Image2DObject;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/ImageCubeObject" {
+	import ImageCube = require("awayjs-core/lib/data/ImageCube");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.ImageCubeObjectBase
+	 */
+	class ImageCubeObject extends ImageObjectBase {
+	    constructor(pool: ImageObjectPool, image: ImageCube, stage: Stage);
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    getTexture(context: IContextGL): ITextureBase;
+	}
+	export = ImageCubeObject;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/ImageObjectBase" {
+	import IImageObject = require("awayjs-core/lib/pool/IImageObject");
+	import ImageBase = require("awayjs-core/lib/data/ImageBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class ImageObjectBase implements IImageObject {
+	    private _pool;
+	    _stage: Stage;
+	    _texture: ITextureBase;
+	    _image: ImageBase;
+	    _mipmap: boolean;
+	    _invalid: boolean;
+	    constructor(pool: ImageObjectPool, image: ImageBase, stage: Stage);
+	    /**
+	     *
+	     */
+	    dispose(): void;
+	    /**
+	     *
+	     */
+	    invalidate(): void;
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    getTexture(context: IContextGL): ITextureBase;
+	}
+	export = ImageObjectBase;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/ImageObjectPool" {
+	import ImageBase = require("awayjs-core/lib/data/ImageBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
+	import IImageObjectClass = require("awayjs-stagegl/lib/pool/IImageObjectClass");
+	/**
+	 * @class away.pool.ImageObjectPool
+	 */
+	class ImageObjectPool {
+	    private static classPool;
+	    private _pool;
+	    _stage: Stage;
+	    /**
+	     *
+	     */
+	    constructor(stage: Stage);
+	    /**
+	     *
+	     * @param image
+	     * @returns {ImageObjectBase}
+	     */
+	    getItem(image: ImageBase): ImageObjectBase;
+	    /**
+	     *
+	     * @param image
+	     */
+	    disposeItem(image: ImageBase): void;
+	    /**
+	     *
+	     * @param imageObjectClass
+	     */
+	    static registerClass(imageObjectClass: IImageObjectClass): void;
+	    /**
+	     *
+	     * @param subGeometry
+	     */
+	    static getClass(texture: ImageBase): IImageObjectClass;
+	    private static main;
+	    private static addDefaults();
+	}
+	export = ImageObjectPool;
+	
+}
+
 declare module "awayjs-stagegl/lib/pool/IndexData" {
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
@@ -1312,64 +1519,82 @@ declare module "awayjs-stagegl/lib/pool/ProgramDataPool" {
 	
 }
 
-declare module "awayjs-stagegl/lib/pool/TextureData" {
-	import ITextureData = require("awayjs-core/lib/pool/ITextureData");
-	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
-	import TextureDataPool = require("awayjs-stagegl/lib/pool/TextureDataPool");
+declare module "awayjs-stagegl/lib/pool/RenderImage2DObject" {
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import Image2D = require("awayjs-core/lib/data/Image2D");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class RenderImage2DObject extends Image2DObject {
+	    /**
+	     *
+	     */
+	    static assetClass: IAssetClass;
+	    constructor(pool: ImageObjectPool, image: Image2D, stage: Stage);
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	}
+	export = RenderImage2DObject;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/RenderImageCubeObject" {
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import ImageCube = require("awayjs-core/lib/data/ImageCube");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ImageCubeObject = require("awayjs-stagegl/lib/pool/ImageCubeObject");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class RenderImageCubeObject extends ImageCubeObject {
+	    /**
+	     *
+	     */
+	    static assetClass: IAssetClass;
+	    constructor(pool: ImageObjectPool, image: ImageCube, stage: Stage);
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	}
+	export = RenderImageCubeObject;
+	
+}
+
+declare module "awayjs-stagegl/lib/pool/SpecularImage2DObject" {
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import SpecularImage2D = require("awayjs-core/lib/data/SpecularImage2D");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
+	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
+	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	/**
 	 *
-	 * @class away.pool.TextureDataBase
+	 * @class away.pool.ImageObjectBase
 	 */
-	class TextureData implements ITextureData {
-	    private _pool;
-	    texture: ITextureBase;
-	    textureProxy: TextureBase;
-	    mipmap: boolean;
-	    invalid: boolean;
-	    constructor(pool: TextureDataPool, textureProxy: TextureBase, mipmap: boolean);
+	class SpecularImage2DObject extends Image2DObject {
+	    private _mipmapData;
+	    /**
+	     *
+	     */
+	    static assetClass: IAssetClass;
+	    constructor(pool: ImageObjectPool, image: SpecularImage2D, stage: Stage);
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
 	    /**
 	     *
 	     */
 	    dispose(): void;
 	    /**
 	     *
+	     * @param context
+	     * @returns {ITexture}
 	     */
-	    invalidate(): void;
+	    getTexture(context: IContextGL): ITextureBase;
 	}
-	export = TextureData;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/TextureDataPool" {
-	import TextureBase = require("awayjs-core/lib/textures/TextureBase");
-	import TextureData = require("awayjs-stagegl/lib/pool/TextureData");
-	/**
-	 * @class away.pool.TextureDataPool
-	 */
-	class TextureDataPool {
-	    private _pool;
-	    /**
-	     * //TODO
-	     *
-	     * @param textureDataClass
-	     */
-	    constructor();
-	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     * @returns ITexture
-	     */
-	    getItem(textureProxy: TextureBase, mipmap: boolean): TextureData;
-	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     */
-	    disposeItem(textureProxy: TextureBase): void;
-	}
-	export = TextureDataPool;
+	export = SpecularImage2DObject;
 	
 }
 
