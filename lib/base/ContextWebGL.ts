@@ -1,4 +1,4 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
+import BitmapImage2D				= require("awayjs-core/lib/data/BitmapImage2D");
 import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
@@ -286,7 +286,7 @@ class ContextWebGL implements IContextGL
 		this._programList = null;
 	}
 
-	public drawToBitmapData(destination:BitmapData)
+	public drawToBitmapImage2D(destination:BitmapImage2D)
 	{
 		var arrayBuffer:ArrayBuffer = new ArrayBuffer(destination.width*destination.height*4);
 

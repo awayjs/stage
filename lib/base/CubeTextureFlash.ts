@@ -1,4 +1,3 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 import ByteArrayBase				= require("awayjs-core/lib/utils/ByteArrayBase");
 
@@ -38,13 +37,11 @@ class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 		this._context = null;
 	}
 
-	public uploadFromData(bitmapData:BitmapData, side:number, miplevel?:number);
 	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
+	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
 	public uploadFromData(data:any, side:number, miplevel:number = 0)
 	{
-		if (data instanceof BitmapData) {
-			data = (<BitmapData> data).imageData.data;
-		} else if (data instanceof HTMLImageElement) {
+		if (data instanceof HTMLImageElement) {
 			var can = document.createElement("canvas");
 			var w = data.width;
 			var h = data.height;

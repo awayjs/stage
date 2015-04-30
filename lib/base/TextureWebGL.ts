@@ -1,4 +1,3 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
 import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
@@ -63,13 +62,10 @@ class TextureWebGL extends TextureBaseWebGL implements ITexture
 		return this._frameBuffer;
 	}
 
-	public uploadFromData(bitmapData:BitmapData, miplevel?:number);
 	public uploadFromData(image:HTMLImageElement, miplevel?:number);
+	public uploadFromData(imageData:ImageData, miplevel?:number);
 	public uploadFromData(data:any, miplevel:number = 0)
 	{
-		if (data instanceof BitmapData)
-			data = (<BitmapData> data).imageData;
-
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);

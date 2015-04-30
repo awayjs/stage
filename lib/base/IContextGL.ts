@@ -1,4 +1,4 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
+import BitmapImage2D					= require("awayjs-core/lib/data/BitmapImage2D");
 import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 
@@ -29,7 +29,7 @@ interface IContextGL
 
 	dispose();
 
-	drawToBitmapData(destination:BitmapData);
+	drawToBitmapImage2D(destination:BitmapImage2D);
 
 	drawTriangles(indexBuffer:IIndexBuffer, firstIndex?:number, numTriangles?:number);
 

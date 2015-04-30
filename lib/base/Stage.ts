@@ -1,15 +1,10 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
+import ImageBase					= require("awayjs-core/lib/data/ImageBase");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import Event						= require("awayjs-core/lib/events/Event");
 import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
-import CubeTextureBase				= require("awayjs-core/lib/textures/CubeTextureBase");
-import RenderTexture				= require("awayjs-core/lib/textures/RenderTexture");
-import Texture2DBase				= require("awayjs-core/lib/textures/Texture2DBase");
-import TextureBase					= require("awayjs-core/lib/textures/TextureBase");
 import CSS							= require("awayjs-core/lib/utils/CSS");
 
 import ContextMode					= require("awayjs-stagegl/lib/base/ContextMode");
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
 import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
 import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
@@ -22,8 +17,10 @@ import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
 import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
 import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
-import TextureData					= require("awayjs-stagegl/lib/pool/TextureData");
-import TextureDataPool				= require("awayjs-stagegl/lib/pool/TextureDataPool");
+import Image2DObject				= require("awayjs-stagegl/lib/pool/Image2DObject");
+import ImageCubeObject				= require("awayjs-stagegl/lib/pool/ImageCubeObject");
+import ImageObjectBase				= require("awayjs-stagegl/lib/pool/ImageObjectBase");
+import ImageObjectPool				= require("awayjs-stagegl/lib/pool/ImageObjectPool");
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import ProgramDataPool				= require("awayjs-stagegl/lib/pool/ProgramDataPool");
 import VertexData					= require("awayjs-stagegl/lib/pool/VertexData");
@@ -40,7 +37,7 @@ import StageManager					= require("awayjs-stagegl/lib/managers/StageManager");
 class Stage extends EventDispatcher
 {
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
-	private _texturePool:TextureDataPool;
+	private _imageObjectPool:ImageObjectPool;
 	private _programDataPool:ProgramDataPool;
 	private _context:IContextGL;
 	private _container:HTMLElement;
@@ -62,7 +59,7 @@ class Stage extends EventDispatcher
 
 	//private var _activeVertexBuffers : Vector.<VertexBuffer> = new Vector.<VertexBuffer>(8, true);
 	//private var _activeTextures : Vector.<TextureBase> = new Vector.<TextureBase>(8, true);
-	private _renderTarget:TextureBase = null;
+	private _renderTarget:ImageBase = null;
 	private _renderSurfaceSelector:number = 0;
 	private _scissorRect:Rectangle;
 	private _color:number;
@@ -83,7 +80,7 @@ class Stage extends EventDispatcher
 	{
 		super();
 
-		this._texturePool = new TextureDataPool();
+		this._imageObjectPool = new ImageObjectPool(this);
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
@@ -107,7 +104,7 @@ class Stage extends EventDispatcher
 		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
-	public setRenderTarget(target:TextureBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
+	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
 	{
 		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
 			return;
@@ -115,22 +112,17 @@ class Stage extends EventDispatcher
 		this._renderTarget = target;
 		this._renderSurfaceSelector = surfaceSelector;
 		this._enableDepthAndStencil = enableDepthAndStencil;
-		if (target instanceof RenderTexture) {
-			this._context.setRenderToTexture(this.getRenderTexture(<RenderTexture> target), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+		if (target) {
+			this._context.setRenderToTexture(this.getImageObject(target).getTexture(this._context), enableDepthAndStencil, this._antiAlias, surfaceSelector);
 		} else {
 			this._context.setRenderToBackBuffer();
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
 		}
 	}
 
-	public getRenderTexture(textureProxy:RenderTexture):ITextureBase
+	public getImageObject(image:ImageBase):ImageObjectBase
 	{
-		var textureData:TextureData = this._texturePool.getItem(textureProxy, false);
-
-		if (!textureData.texture)
-			textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
-
-		return textureData.texture;
+		return this._imageObjectPool.getItem(image);
 	}
 
 	/**
@@ -164,67 +156,6 @@ class Stage extends EventDispatcher
 	{
 		buffer.buffers[this._stageIndex].dispose();
 		buffer.buffers[this._stageIndex] = null;
-	}
-
-	public activateRenderTexture(index:number, textureProxy:RenderTexture)
-	{
-		this._setSamplerState(index, false, false, false);
-
-		this._context.setTextureAt(index, this.getRenderTexture(textureProxy));
-	}
-
-	public activateTexture(index:number, textureProxy:Texture2DBase, repeat:boolean, smooth:boolean, mipmap:boolean)
-	{
-		this._setSamplerState(index, repeat, smooth, mipmap);
-
-		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy, mipmap);
-
-		if (!textureData.texture) {
-			textureData.texture = this._context.createTexture(textureProxy.width, textureProxy.height, ContextGLTextureFormat.BGRA, true);
-			textureData.invalid = true;
-		}
-
-		if (textureData.invalid) {
-			textureData.invalid = false;
-			if (mipmap) {
-				var mipmapData:Array<BitmapData> = textureProxy._iGetMipmapData();
-				var len:number = mipmapData.length;
-				for (var i:number = 0; i < len; i++)
-					(<ITexture> textureData.texture).uploadFromData(mipmapData[i], i);
-			} else {
-				(<ITexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(), 0);
-			}
-		}
-
-		this._context.setTextureAt(index, textureData.texture);
-	}
-
-	public activateCubeTexture(index:number, textureProxy:CubeTextureBase, smooth:boolean, mipmap:boolean)
-	{
-		this._setSamplerState(index, false, smooth, mipmap);
-
-		var textureData:TextureData = <TextureData> this._texturePool.getItem(textureProxy, mipmap);
-
-		if (!textureData.texture) {
-			textureData.texture = this._context.createCubeTexture(textureProxy.size, ContextGLTextureFormat.BGRA, false);
-			textureData.invalid = true;
-		}
-
-		if (textureData.invalid) {
-			textureData.invalid = false;
-			for (var i:number = 0; i < 6; ++i) {
-				if (mipmap) {
-					var mipmapData:Array<BitmapData> = textureProxy._iGetMipmapData(i);
-					var len:number = mipmapData.length;
-					for (var j:number = 0; j < len; j++)
-						(<ICubeTexture> textureData.texture).uploadFromData(mipmapData[j], i, j);
-				} else {
-					(<ICubeTexture> textureData.texture).uploadFromData(textureProxy._iGetTextureData(i), i, 0);
-				}
-			}
-		}
-
-		this._context.setTextureAt(index, textureData.texture);
 	}
 
 	/**
@@ -488,7 +419,7 @@ class Stage extends EventDispatcher
 		this._backBufferDirty = true;
 	}
 
-	public get renderTarget():TextureBase
+	public get renderTarget():ImageBase
 	{
 		return this._renderTarget;
 	}
@@ -772,9 +703,9 @@ class Stage extends EventDispatcher
 		this._initialised = true;
 	}
 
-	private _setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
 	{
-		var wrap:string = repeat? ContextGLWrapMode.REPEAT:ContextGLWrapMode.CLAMP;
+		var wrap:string = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
 		var filter:string = smooth? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
 		var mipfilter:string = mipmap? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
 

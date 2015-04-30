@@ -1,4 +1,3 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import ByteArrayBase				= require("awayjs-core/lib/utils/ByteArrayBase");
 
 import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
@@ -44,13 +43,11 @@ class TextureFlash extends ResourceBaseFlash implements ITexture
 		this._context = null;
 	}
 
-	public uploadFromData(bitmapData:BitmapData, miplevel?:number);
 	public uploadFromData(image:HTMLImageElement, miplevel?:number);
+	public uploadFromData(imageData:ImageData, miplevel?:number);
 	public uploadFromData(data:any, miplevel:number = 0)
 	{
-		if (data instanceof BitmapData) {
-			data = (<BitmapData> data).imageData.data;
-		} else if (data instanceof HTMLImageElement) {
+		if (data instanceof HTMLImageElement) {
 			var can = document.createElement("canvas");
 			var w = data.width;
 			var h = data.height;

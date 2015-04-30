@@ -1,4 +1,3 @@
-import BitmapData					= require("awayjs-core/lib/data/BitmapData");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
@@ -32,13 +31,10 @@ class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 		this._gl.deleteTexture(this._texture);
 	}
 
-	public uploadFromData(bitmapData:BitmapData, side:number, miplevel?:number);
 	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
+	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
 	public uploadFromData(data:any, side:number, miplevel:number = 0)
 	{
-		if (data instanceof BitmapData)
-			data = (<BitmapData> data).imageData;
-
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._texture);
 		this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
