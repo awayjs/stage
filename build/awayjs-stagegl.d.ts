@@ -476,7 +476,7 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    private _filterDictionary;
 	    private _mipmapFilterDictionary;
 	    private _uniformLocationNameDictionary;
-	    private _vertexBufferDimensionDictionary;
+	    private _vertexBufferPropertiesDictionary;
 	    private _container;
 	    private _width;
 	    private _height;
@@ -510,7 +510,7 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    createIndexBuffer(numIndices: number): IndexBufferWebGL;
 	    createProgram(): ProgramWebGL;
 	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): TextureWebGL;
-	    createVertexBuffer(numVertices: number, data32PerVertex: number): VertexBufferWebGL;
+	    createVertexBuffer(numVertices: number, dataPerVertex: number): VertexBufferWebGL;
 	    dispose(): void;
 	    drawToBitmapImage2D(destination: BitmapImage2D): void;
 	    drawTriangles(indexBuffer: IndexBufferWebGL, firstIndex?: number, numTriangles?: number): void;
@@ -596,7 +596,7 @@ declare module "awayjs-stagegl/lib/base/IContextGL" {
 	    createIndexBuffer(numIndices: number): IIndexBuffer;
 	    createProgram(): IProgram;
 	    createTexture(width: number, height: number, format: string, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
-	    createVertexBuffer(numVertices: number, data32PerVertex: number): IVertexBuffer;
+	    createVertexBuffer(numVertices: number, dataPerVertex: number): IVertexBuffer;
 	    dispose(): any;
 	    drawToBitmapImage2D(destination: BitmapImage2D): any;
 	    drawTriangles(indexBuffer: IIndexBuffer, firstIndex?: number, numTriangles?: number): any;
@@ -638,6 +638,7 @@ declare module "awayjs-stagegl/lib/base/IIndexBuffer" {
 	interface IIndexBuffer {
 	    numIndices: number;
 	    uploadFromArray(data: number[], startOffset: number, count: number): any;
+	    uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): any;
 	    dispose(): any;
 	}
 	export = IIndexBuffer;
@@ -677,8 +678,9 @@ declare module "awayjs-stagegl/lib/base/ITextureBase" {
 declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
 	interface IVertexBuffer {
 	    numVertices: number;
-	    data32PerVertex: number;
+	    dataPerVertex: number;
 	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
+	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): any;
 	    dispose(): any;
 	}
 	export = IVertexBuffer;
@@ -694,6 +696,7 @@ declare module "awayjs-stagegl/lib/base/IndexBufferFlash" {
 	    private _numIndices;
 	    constructor(context: ContextStage3D, numIndices: number);
 	    uploadFromArray(data: number[], startOffset: number, count: number): void;
+	    uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): void;
 	    dispose(): void;
 	    numIndices: number;
 	}
@@ -709,6 +712,7 @@ declare module "awayjs-stagegl/lib/base/IndexBufferWebGL" {
 	    private _buffer;
 	    constructor(gl: WebGLRenderingContext, numIndices: number);
 	    uploadFromArray(data: number[], startOffset: number, count: number): void;
+	    uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): void;
 	    dispose(): void;
 	    numIndices: number;
 	    glBuffer: WebGLBuffer;
@@ -823,16 +827,16 @@ declare module "awayjs-stagegl/lib/base/SamplerState" {
 }
 
 declare module "awayjs-stagegl/lib/base/Stage" {
+	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
 	import ImageBase = require("awayjs-core/lib/data/ImageBase");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
+	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
 	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
 	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
-	import VertexData = require("awayjs-stagegl/lib/pool/VertexData");
 	import StageManager = require("awayjs-stagegl/lib/managers/StageManager");
+	import AttributesBufferVO = require("awayjs-stagegl/lib/vos/AttributesBufferVO");
 	/**
 	 * Stage provides a proxy class to handle the creation and attachment of the Context
 	 * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -844,6 +848,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	class Stage extends EventDispatcher {
 	    private _programData;
 	    private _imageObjectPool;
+	    private _attributesBufferVOPool;
 	    private _programDataPool;
 	    private _context;
 	    private _container;
@@ -870,28 +875,12 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private _viewportDirty;
 	    private _bufferClear;
 	    private _initialised;
+	    private _bufferFormatDictionary;
 	    constructor(container: HTMLCanvasElement, stageIndex: number, stageManager: StageManager, forceSoftware?: boolean, profile?: string);
 	    getProgramData(vertexString: string, fragmentString: string): ProgramData;
 	    setRenderTarget(target: ImageBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
 	    getImageObject(image: ImageBase): ImageObjectBase;
-	    /**
-	     * Assigns an attribute stream
-	     *
-	     * @param index The attribute stream index for the vertex shader
-	     * @param buffer
-	     * @param offset
-	     * @param stride
-	     * @param format
-	     */
-	    activateBuffer(index: number, buffer: VertexData, offset: number, format: string): void;
-	    disposeVertexData(buffer: VertexData): void;
-	    /**
-	     * Retrieves the VertexBuffer object that contains triangle indices.
-	     * @param context The ContextWeb for which we request the buffer
-	     * @return The VertexBuffer object that contains triangle indices.
-	     */
-	    getIndexBuffer(buffer: IndexData): IIndexBuffer;
-	    disposeIndexData(buffer: IndexData): void;
+	    getAttributesBufferVO(attributesBuffer: AttributesBuffer): AttributesBufferVO;
 	    /**
 	     * Requests a Context object to attach to the managed gl canvas.
 	     */
@@ -998,6 +987,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private onEnterFrame(event);
 	    recoverFromDisposal(): boolean;
 	    private _callback(context);
+	    setVertexBuffer(index: number, buffer: IVertexBuffer, size: number, dimensions: number, offset: number): void;
 	    setSamplerState(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
 	}
 	export = Stage;
@@ -1067,11 +1057,12 @@ declare module "awayjs-stagegl/lib/base/VertexBufferFlash" {
 	class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer {
 	    private _context;
 	    private _numVertices;
-	    private _data32PerVertex;
-	    constructor(context: ContextStage3D, numVertices: number, data32PerVertex: number);
+	    private _dataPerVertex;
+	    constructor(context: ContextStage3D, numVertices: number, dataPerVertex: number);
 	    uploadFromArray(data: number[], startVertex: number, numVertices: number): void;
+	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): void;
 	    numVertices: number;
-	    data32PerVertex: number;
+	    dataPerVertex: number;
 	    dispose(): void;
 	}
 	export = VertexBufferFlash;
@@ -1083,12 +1074,13 @@ declare module "awayjs-stagegl/lib/base/VertexBufferWebGL" {
 	class VertexBufferWebGL implements IVertexBuffer {
 	    private _gl;
 	    private _numVertices;
-	    private _data32PerVertex;
+	    private _dataPerVertex;
 	    private _buffer;
-	    constructor(gl: WebGLRenderingContext, numVertices: number, data32PerVertex: number);
+	    constructor(gl: WebGLRenderingContext, numVertices: number, dataPerVertex: number);
 	    uploadFromArray(vertices: number[], startVertex: number, numVertices: number): void;
+	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): void;
 	    numVertices: number;
-	    data32PerVertex: number;
+	    dataPerVertex: number;
 	    glBuffer: WebGLBuffer;
 	    dispose(): void;
 	}
@@ -1401,64 +1393,6 @@ declare module "awayjs-stagegl/lib/pool/ImageObjectPool" {
 	
 }
 
-declare module "awayjs-stagegl/lib/pool/IndexData" {
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	/**
-	 *
-	 */
-	class IndexData {
-	    private static LIMIT_VERTS;
-	    private static LIMIT_INDICES;
-	    private _dataDirty;
-	    invalid: Array<boolean>;
-	    contexts: Array<IContextGL>;
-	    buffers: Array<IIndexBuffer>;
-	    data: Array<number>;
-	    indexMappings: Array<number>;
-	    originalIndices: Array<number>;
-	    offset: number;
-	    level: number;
-	    constructor(level: number);
-	    updateData(offset: number, indices: Array<number>, numVertices: number): void;
-	    invalidateData(): void;
-	    dispose(): void;
-	    /**
-	     * @private
-	     */
-	    private disposeBuffers();
-	    /**
-	     * @private
-	     */
-	    private invalidateBuffers();
-	    /**
-	     *
-	     * @param data
-	     * @private
-	     */
-	    private setData(data);
-	}
-	export = IndexData;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/IndexDataPool" {
-	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
-	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
-	/**
-	 *
-	 */
-	class IndexDataPool {
-	    private static _pool;
-	    constructor();
-	    static getItem(subGeometry: SubGeometryBase, level: number, indexOffset: number): IndexData;
-	    static disposeItem(id: number, level: number): void;
-	    disposeData(id: number): void;
-	}
-	export = IndexDataPool;
-	
-}
-
 declare module "awayjs-stagegl/lib/pool/ProgramData" {
 	import ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
 	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
@@ -1598,68 +1532,111 @@ declare module "awayjs-stagegl/lib/pool/SpecularImage2DObject" {
 	
 }
 
-declare module "awayjs-stagegl/lib/pool/VertexData" {
-	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
+declare module "awayjs-stagegl/lib/vos/AttributesBufferVO" {
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import IAttributesBufferVO = require("awayjs-core/lib/vos/IAttributesBufferVO");
+	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
 	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
+	import AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
 	/**
 	 *
+	 * @class away.pool.AttributesBufferVO
 	 */
-	class VertexData {
-	    private _onVerticesUpdatedDelegate;
-	    private _subGeometry;
-	    private _dataType;
-	    private _dataDirty;
-	    invalid: Array<boolean>;
-	    buffers: Array<IVertexBuffer>;
-	    contexts: Array<IContextGL>;
-	    data: Array<number>;
-	    dataPerVertex: number;
-	    constructor(subGeometry: SubGeometryBase, dataType: string);
-	    updateData(originalIndices?: Array<number>, indexMappings?: Array<number>): void;
+	class AttributesBufferVO implements IAttributesBufferVO {
+	    /**
+	     *
+	     */
+	    static assetClass: IAssetClass;
+	    private _pool;
+	    _stage: Stage;
+	    _indexBuffer: IIndexBuffer;
+	    _vertexBuffer: IVertexBuffer;
+	    _attributesBuffer: AttributesBuffer;
+	    _mipmap: boolean;
+	    _invalid: boolean;
+	    constructor(pool: AttributesBufferVOPool, attributesBuffer: AttributesBuffer, stage: Stage);
+	    /**
+	     *
+	     */
 	    dispose(): void;
 	    /**
-	     * @private
-	     */
-	    private disposeBuffers();
-	    /**
-	     * @private
-	     */
-	    private invalidateBuffers();
-	    /**
 	     *
-	     * @param data
-	     * @param dataPerVertex
-	     * @private
 	     */
-	    private setData(data);
-	    /**
-	     * //TODO
-	     *
-	     * @param event
-	     * @private
-	     */
-	    private _onVerticesUpdated(event);
+	    invalidate(): void;
+	    activate(index: number, size: number, dimensions: number, offset: number): void;
+	    draw(firstIndex: number, numTriangles: number): void;
+	    _getIndexBuffer(): IIndexBuffer;
+	    _getVertexBuffer(): IVertexBuffer;
 	}
-	export = VertexData;
+	export = AttributesBufferVO;
 	
 }
 
-declare module "awayjs-stagegl/lib/pool/VertexDataPool" {
-	import SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
-	import IndexData = require("awayjs-stagegl/lib/pool/IndexData");
-	import VertexData = require("awayjs-stagegl/lib/pool/VertexData");
+declare module "awayjs-stagegl/lib/vos/AttributesBufferVOPool" {
+	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import IAttributesBufferVOClass = require("awayjs-stagegl/lib/vos/IAttributesBufferVOClass");
+	import AttributesBufferVO = require("awayjs-stagegl/lib/vos/AttributesBufferVO");
 	/**
-	 *
+	 * @class away.pool.AttributesBufferVOPool
 	 */
-	class VertexDataPool {
-	    private static _pool;
-	    constructor();
-	    static getItem(subGeometry: SubGeometryBase, indexData: IndexData, dataType: string): VertexData;
-	    static disposeItem(subGeometry: SubGeometryBase, level: number, dataType: string): void;
-	    disposeData(subGeometry: SubGeometryBase): void;
+	class AttributesBufferVOPool {
+	    private static classPool;
+	    private _pool;
+	    _stage: Stage;
+	    /**
+	     *
+	     */
+	    constructor(stage: Stage);
+	    /**
+	     *
+	     * @param attributesBuffer
+	     * @returns {AttributesBufferVO}
+	     */
+	    getItem(attributesBuffer: AttributesBuffer): AttributesBufferVO;
+	    /**
+	     *
+	     * @param attributesBuffer
+	     */
+	    disposeItem(attributesBuffer: AttributesBuffer): void;
+	    /**
+	     *
+	     * @param attributesBufferClass
+	     */
+	    static registerClass(attributesBufferClass: IAttributesBufferVOClass): void;
+	    /**
+	     *
+	     * @param subGeometry
+	     */
+	    static getClass(texture: AttributesBuffer): IAttributesBufferVOClass;
+	    private static main;
+	    private static addDefaults();
 	}
-	export = VertexDataPool;
+	export = AttributesBufferVOPool;
+	
+}
+
+declare module "awayjs-stagegl/lib/vos/IAttributesBufferVOClass" {
+	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
+	import IWrapperClass = require("awayjs-core/lib/library/IWrapperClass");
+	import IAttributesBufferVO = require("awayjs-core/lib/vos/IAttributesBufferVO");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
+	/**
+	 * IAttributesBufferVOClass is an interface for the constructable class definition ITextureObject that is used to
+	 * create renderable objects in the rendering pipeline to render the contents of a partition
+	 *
+	 * @class away.render.IAttributesBufferVOClass
+	 */
+	interface IAttributesBufferVOClass extends IWrapperClass {
+	    /**
+	     *
+	     */
+	    new (pool: AttributesBufferVOPool, attributesBuffer: AttributesBuffer, stage: Stage): IAttributesBufferVO;
+	}
+	export = IAttributesBufferVOClass;
 	
 }
 

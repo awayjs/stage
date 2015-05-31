@@ -1608,7 +1608,7 @@ var ContextWebGL = (function () {
         this._filterDictionary = new Object();
         this._mipmapFilterDictionary = new Object();
         this._uniformLocationNameDictionary = new Object();
-        this._vertexBufferDimensionDictionary = new Object();
+        this._vertexBufferPropertiesDictionary = new Object();
         this._indexBufferList = new Array();
         this._vertexBufferList = new Array();
         this._textureList = new Array();
@@ -1685,11 +1685,11 @@ var ContextWebGL = (function () {
             this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNONE] = this._gl.NEAREST;
             this._uniformLocationNameDictionary[ContextGLProgramType.VERTEX] = "vc";
             this._uniformLocationNameDictionary[ContextGLProgramType.FRAGMENT] = "fc";
-            this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_1] = 1;
-            this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_2] = 2;
-            this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_3] = 3;
-            this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_4] = 4;
-            this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.BYTES_4] = 4;
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTES_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
             this._stencilCompareMode = this._gl.ALWAYS;
             this._stencilCompareModeBack = this._gl.ALWAYS;
             this._stencilCompareModeFront = this._gl.ALWAYS;
@@ -1781,8 +1781,8 @@ var ContextWebGL = (function () {
         this._textureList.push(texture);
         return texture;
     };
-    ContextWebGL.prototype.createVertexBuffer = function (numVertices, data32PerVertex) {
-        var vertexBuffer = new VertexBufferWebGL(this._gl, numVertices, data32PerVertex);
+    ContextWebGL.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
+        var vertexBuffer = new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
         this._vertexBufferList.push(vertexBuffer);
         return vertexBuffer;
     };
@@ -1816,7 +1816,7 @@ var ContextWebGL = (function () {
         if (!this._drawing)
             throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-        this._gl.drawElements(this._gl.TRIANGLES, (numTriangles == -1) ? indexBuffer.numIndices : numTriangles * 3, this._gl.UNSIGNED_SHORT, firstIndex);
+        this._gl.drawElements(this._gl.TRIANGLES, (numTriangles == -1) ? indexBuffer.numIndices : numTriangles * 3, this._gl.UNSIGNED_SHORT, firstIndex * 2);
     };
     ContextWebGL.prototype.present = function () {
         this._drawing = false;
@@ -1966,9 +1966,10 @@ var ContextWebGL = (function () {
                 this._gl.disableVertexAttribArray(location);
             return;
         }
+        var properties = this._vertexBufferPropertiesDictionary[format];
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer.glBuffer);
         this._gl.enableVertexAttribArray(location);
-        this._gl.vertexAttribPointer(location, this._vertexBufferDimensionDictionary[format], this._gl.FLOAT, false, buffer.data32PerVertex * 4, bufferOffset * 4);
+        this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
     };
     ContextWebGL.prototype.setRenderToTexture = function (target, enableDepthAndStencil, antiAlias, surfaceSelector) {
         if (enableDepthAndStencil === void 0) { enableDepthAndStencil = false; }
@@ -2014,6 +2015,14 @@ var ContextWebGL = (function () {
     ContextWebGL.MAX_SAMPLERS = 8;
     ContextWebGL.modulo = 0;
     return ContextWebGL;
+})();
+var VertexBufferProperties = (function () {
+    function VertexBufferProperties(size, type, normalized) {
+        this.size = size;
+        this.type = type;
+        this.normalized = normalized;
+    }
+    return VertexBufferProperties;
 })();
 module.exports = ContextWebGL;
 
@@ -2167,6 +2176,8 @@ var IndexBufferFlash = (function (_super) {
         this._context.addStream(String.fromCharCode(OpCodes.uploadArrayIndexBuffer, this._pId + OpCodes.intMask) + data.join() + "#" + startOffset + "," + count + ",");
         this._context.execute();
     };
+    IndexBufferFlash.prototype.uploadFromByteArray = function (data, startOffset, count) {
+    };
     IndexBufferFlash.prototype.dispose = function () {
         this._context.addStream(String.fromCharCode(OpCodes.disposeIndexBuffer, this._pId + OpCodes.intMask));
         this._context.execute();
@@ -2193,8 +2204,17 @@ var IndexBufferWebGL = (function () {
     }
     IndexBufferWebGL.prototype.uploadFromArray = function (data, startOffset, count) {
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
-        // TODO add index offsets
-        this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
+        if (startOffset)
+            this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset * 2, new Uint16Array(data));
+        else
+            this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
+    };
+    IndexBufferWebGL.prototype.uploadFromByteArray = function (data, startOffset, count) {
+        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
+        if (startOffset)
+            this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset * 2, data);
+        else
+            this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
     };
     IndexBufferWebGL.prototype.dispose = function () {
         this._gl.deleteBuffer(this._buffer);
@@ -2393,12 +2413,14 @@ var CSS = require("awayjs-core/lib/utils/CSS");
 var ContextMode = require("awayjs-stagegl/lib/base/ContextMode");
 var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
 var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 var ContextWebGL = require("awayjs-stagegl/lib/base/ContextWebGL");
 var StageEvent = require("awayjs-stagegl/lib/events/StageEvent");
 var ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
 var ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
+var AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
  * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -2426,7 +2448,9 @@ var Stage = (function (_super) {
         //private _mouse3DManager:away.managers.Mouse3DManager;
         //private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
         this._initialised = false;
+        this._bufferFormatDictionary = new Array(5);
         this._imageObjectPool = new ImageObjectPool(this);
+        this._attributesBufferVOPool = new AttributesBufferVOPool(this);
         this._programDataPool = new ProgramDataPool(this);
         this._container = container;
         this._stageIndex = stageIndex;
@@ -2435,6 +2459,13 @@ var Stage = (function (_super) {
         this._enableDepthAndStencil = true;
         CSS.setElementX(this._container, 0);
         CSS.setElementY(this._container, 0);
+        this._bufferFormatDictionary[1] = new Array(5);
+        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTES_4;
+        this._bufferFormatDictionary[4] = new Array(5);
+        this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
+        this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
+        this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
+        this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
         this.visible = true;
     }
     Stage.prototype.getProgramData = function (vertexString, fragmentString) {
@@ -2459,53 +2490,8 @@ var Stage = (function (_super) {
     Stage.prototype.getImageObject = function (image) {
         return this._imageObjectPool.getItem(image);
     };
-    /**
-     * Assigns an attribute stream
-     *
-     * @param index The attribute stream index for the vertex shader
-     * @param buffer
-     * @param offset
-     * @param stride
-     * @param format
-     */
-    Stage.prototype.activateBuffer = function (index, buffer, offset, format) {
-        if (!buffer.contexts[this._stageIndex])
-            buffer.contexts[this._stageIndex] = this._context;
-        if (!buffer.buffers[this._stageIndex]) {
-            buffer.buffers[this._stageIndex] = this._context.createVertexBuffer(buffer.data.length / buffer.dataPerVertex, buffer.dataPerVertex);
-            buffer.invalid[this._stageIndex] = true;
-        }
-        if (buffer.invalid[this._stageIndex]) {
-            buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length / buffer.dataPerVertex);
-            buffer.invalid[this._stageIndex] = false;
-        }
-        this._context.setVertexBufferAt(index, buffer.buffers[this._stageIndex], offset, format);
-    };
-    Stage.prototype.disposeVertexData = function (buffer) {
-        buffer.buffers[this._stageIndex].dispose();
-        buffer.buffers[this._stageIndex] = null;
-    };
-    /**
-     * Retrieves the VertexBuffer object that contains triangle indices.
-     * @param context The ContextWeb for which we request the buffer
-     * @return The VertexBuffer object that contains triangle indices.
-     */
-    Stage.prototype.getIndexBuffer = function (buffer) {
-        if (!buffer.contexts[this._stageIndex])
-            buffer.contexts[this._stageIndex] = this._context;
-        if (!buffer.buffers[this._stageIndex]) {
-            buffer.buffers[this._stageIndex] = this._context.createIndexBuffer(buffer.data.length);
-            buffer.invalid[this._stageIndex] = true;
-        }
-        if (buffer.invalid[this._stageIndex]) {
-            buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
-            buffer.invalid[this._stageIndex] = false;
-        }
-        return buffer.buffers[this._stageIndex];
-    };
-    Stage.prototype.disposeIndexData = function (buffer) {
-        buffer.buffers[this._stageIndex].dispose();
-        buffer.buffers[this._stageIndex] = null;
+    Stage.prototype.getAttributesBufferVO = function (attributesBuffer) {
+        return this._attributesBufferVOPool.getItem(attributesBuffer);
     };
     /**
      * Requests a Context object to attach to the managed gl canvas.
@@ -2955,6 +2941,9 @@ var Stage = (function (_super) {
         this.dispatchEvent(new StageEvent(this._initialised ? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED));
         this._initialised = true;
     };
+    Stage.prototype.setVertexBuffer = function (index, buffer, size, dimensions, offset) {
+        this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[size][dimensions]);
+    };
     Stage.prototype.setSamplerState = function (index, repeat, smooth, mipmap) {
         var wrap = repeat ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP;
         var filter = smooth ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
@@ -2965,7 +2954,7 @@ var Stage = (function (_super) {
 })(EventDispatcher);
 module.exports = Stage;
 
-},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","awayjs-stagegl/lib/pool/ImageObjectPool":"awayjs-stagegl/lib/pool/ImageObjectPool","awayjs-stagegl/lib/pool/ProgramDataPool":"awayjs-stagegl/lib/pool/ProgramDataPool"}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
+},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","awayjs-stagegl/lib/pool/ImageObjectPool":"awayjs-stagegl/lib/pool/ImageObjectPool","awayjs-stagegl/lib/pool/ProgramDataPool":"awayjs-stagegl/lib/pool/ProgramDataPool","awayjs-stagegl/lib/vos/AttributesBufferVOPool":"awayjs-stagegl/lib/vos/AttributesBufferVOPool"}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
 var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
 var TextureBaseWebGL = (function () {
     function TextureBaseWebGL(gl) {
@@ -3145,18 +3134,20 @@ var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
 var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var VertexBufferFlash = (function (_super) {
     __extends(VertexBufferFlash, _super);
-    function VertexBufferFlash(context, numVertices, data32PerVertex) {
+    function VertexBufferFlash(context, numVertices, dataPerVertex) {
         _super.call(this);
         this._context = context;
         this._numVertices = numVertices;
-        this._data32PerVertex = data32PerVertex;
-        this._context.addStream(String.fromCharCode(OpCodes.initVertexBuffer, data32PerVertex + OpCodes.intMask) + numVertices.toString() + ",");
+        this._dataPerVertex = dataPerVertex;
+        this._context.addStream(String.fromCharCode(OpCodes.initVertexBuffer, dataPerVertex + OpCodes.intMask) + numVertices.toString() + ",");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     VertexBufferFlash.prototype.uploadFromArray = function (data, startVertex, numVertices) {
         this._context.addStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer, this._pId + OpCodes.intMask) + data.join() + "#" + [startVertex, numVertices].join() + ",");
         this._context.execute();
+    };
+    VertexBufferFlash.prototype.uploadFromByteArray = function (data, startVertex, numVertices) {
     };
     Object.defineProperty(VertexBufferFlash.prototype, "numVertices", {
         get: function () {
@@ -3165,9 +3156,9 @@ var VertexBufferFlash = (function (_super) {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(VertexBufferFlash.prototype, "data32PerVertex", {
+    Object.defineProperty(VertexBufferFlash.prototype, "dataPerVertex", {
         get: function () {
-            return this._data32PerVertex;
+            return this._dataPerVertex;
         },
         enumerable: true,
         configurable: true
@@ -3184,17 +3175,25 @@ module.exports = VertexBufferFlash;
 
 },{"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/VertexBufferWebGL":[function(require,module,exports){
 var VertexBufferWebGL = (function () {
-    function VertexBufferWebGL(gl, numVertices, data32PerVertex) {
+    function VertexBufferWebGL(gl, numVertices, dataPerVertex) {
         this._gl = gl;
         this._buffer = this._gl.createBuffer();
         this._numVertices = numVertices;
-        this._data32PerVertex = data32PerVertex;
+        this._dataPerVertex = dataPerVertex;
     }
     VertexBufferWebGL.prototype.uploadFromArray = function (vertices, startVertex, numVertices) {
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
-        //console.log( "** WARNING upload not fully implemented, startVertex & numVertices not considered." );
-        // TODO add offsets , startVertex, numVertices * this._data32PerVertex
-        this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
+        if (startVertex)
+            this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex * this._dataPerVertex, new Float32Array(vertices));
+        else
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
+    };
+    VertexBufferWebGL.prototype.uploadFromByteArray = function (data, startVertex, numVertices) {
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
+        if (startVertex)
+            this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex * this._dataPerVertex, data);
+        else
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
     };
     Object.defineProperty(VertexBufferWebGL.prototype, "numVertices", {
         get: function () {
@@ -3203,9 +3202,9 @@ var VertexBufferWebGL = (function () {
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(VertexBufferWebGL.prototype, "data32PerVertex", {
+    Object.defineProperty(VertexBufferWebGL.prototype, "dataPerVertex", {
         get: function () {
-            return this._data32PerVertex;
+            return this._dataPerVertex;
         },
         enumerable: true,
         configurable: true
@@ -3693,154 +3692,7 @@ var ImageObjectPool = (function () {
 })();
 module.exports = ImageObjectPool;
 
-},{"awayjs-stagegl/lib/pool/BitmapImage2DObject":"awayjs-stagegl/lib/pool/BitmapImage2DObject","awayjs-stagegl/lib/pool/BitmapImageCubeObject":"awayjs-stagegl/lib/pool/BitmapImageCubeObject","awayjs-stagegl/lib/pool/RenderImage2DObject":"awayjs-stagegl/lib/pool/RenderImage2DObject","awayjs-stagegl/lib/pool/RenderImageCubeObject":"awayjs-stagegl/lib/pool/RenderImageCubeObject","awayjs-stagegl/lib/pool/SpecularImage2DObject":"awayjs-stagegl/lib/pool/SpecularImage2DObject"}],"awayjs-stagegl/lib/pool/IndexDataPool":[function(require,module,exports){
-var IndexData = require("awayjs-stagegl/lib/pool/IndexData");
-/**
- *
- */
-var IndexDataPool = (function () {
-    function IndexDataPool() {
-    }
-    IndexDataPool.getItem = function (subGeometry, level, indexOffset) {
-        var subGeometryData = (IndexDataPool._pool[subGeometry.id] || (IndexDataPool._pool[subGeometry.id] = new Array()));
-        var indexData = subGeometryData[level] || (subGeometryData[level] = new IndexData(level));
-        indexData.updateData(indexOffset, subGeometry.indices, subGeometry.numVertices);
-        return indexData;
-    };
-    IndexDataPool.disposeItem = function (id, level) {
-        var subGeometryData = this._pool[id];
-        subGeometryData[level].dispose();
-        subGeometryData[level] = null;
-    };
-    IndexDataPool.prototype.disposeData = function (id) {
-        var subGeometryData = IndexDataPool._pool[id];
-        var len = subGeometryData.length;
-        for (var i = 0; i < len; i++) {
-            subGeometryData[i].dispose();
-            subGeometryData[i] = null;
-        }
-        IndexDataPool._pool[id] = null;
-    };
-    IndexDataPool._pool = new Object();
-    return IndexDataPool;
-})();
-module.exports = IndexDataPool;
-
-},{"awayjs-stagegl/lib/pool/IndexData":"awayjs-stagegl/lib/pool/IndexData"}],"awayjs-stagegl/lib/pool/IndexData":[function(require,module,exports){
-/**
- *
- */
-var IndexData = (function () {
-    function IndexData(level) {
-        this._dataDirty = true;
-        this.invalid = new Array(8);
-        this.contexts = new Array(8);
-        this.buffers = new Array(8);
-        this.level = level;
-    }
-    IndexData.prototype.updateData = function (offset, indices, numVertices) {
-        if (this._dataDirty) {
-            this._dataDirty = false;
-            if (indices.length < IndexData.LIMIT_INDICES && numVertices < IndexData.LIMIT_VERTS) {
-                //shortcut for those buffers that fit into the maximum buffer sizes
-                this.indexMappings = null;
-                this.originalIndices = null;
-                this.setData(indices);
-                this.offset = indices.length;
-            }
-            else {
-                var i;
-                var len;
-                var outIndex;
-                var j;
-                var k;
-                var splitIndices = new Array();
-                this.indexMappings = new Array(indices.length);
-                this.originalIndices = new Array();
-                i = this.indexMappings.length;
-                while (i--)
-                    this.indexMappings[i] = -1;
-                var originalIndex;
-                var splitIndex;
-                // Loop over all triangles
-                outIndex = 0;
-                len = indices.length;
-                i = offset;
-                k = 0;
-                while (i < len && outIndex + 3 < IndexData.LIMIT_INDICES && k + 3 < IndexData.LIMIT_VERTS) {
-                    for (j = 0; j < 3; j++) {
-                        originalIndex = indices[i + j];
-                        if (this.indexMappings[originalIndex] >= 0) {
-                            splitIndex = this.indexMappings[originalIndex];
-                        }
-                        else {
-                            // This vertex does not yet exist in the split list and
-                            // needs to be copied from the long list.
-                            splitIndex = k++;
-                            this.indexMappings[originalIndex] = splitIndex;
-                            this.originalIndices.push(originalIndex);
-                        }
-                        // Store new index, which may have come from the mapping look-up,
-                        // or from copying a new set of vertex data from the original vector
-                        splitIndices[outIndex + j] = splitIndex;
-                    }
-                    outIndex += 3;
-                    i += 3;
-                }
-                this.setData(splitIndices);
-                this.offset = i;
-            }
-        }
-    };
-    IndexData.prototype.invalidateData = function () {
-        this._dataDirty = true;
-    };
-    IndexData.prototype.dispose = function () {
-        for (var i = 0; i < 8; ++i) {
-            if (this.contexts[i]) {
-                this.buffers[i].dispose();
-                this.buffers[i] = null;
-                this.contexts[i] = null;
-            }
-        }
-    };
-    /**
-     * @private
-     */
-    IndexData.prototype.disposeBuffers = function () {
-        for (var i = 0; i < 8; ++i) {
-            if (this.buffers[i]) {
-                this.buffers[i].dispose();
-                this.buffers[i] = null;
-            }
-        }
-    };
-    /**
-     * @private
-     */
-    IndexData.prototype.invalidateBuffers = function () {
-        for (var i = 0; i < 8; ++i)
-            this.invalid[i] = true;
-    };
-    /**
-     *
-     * @param data
-     * @private
-     */
-    IndexData.prototype.setData = function (data) {
-        if (this.data && this.data.length != data.length)
-            this.disposeBuffers();
-        else
-            this.invalidateBuffers();
-        this.data = data;
-    };
-    IndexData.LIMIT_VERTS = 0xffff;
-    IndexData.LIMIT_INDICES = 0xffffff;
-    return IndexData;
-})();
-module.exports = IndexData;
-
-},{}],"awayjs-stagegl/lib/pool/ProgramDataPool":[function(require,module,exports){
+},{"awayjs-stagegl/lib/pool/BitmapImage2DObject":"awayjs-stagegl/lib/pool/BitmapImage2DObject","awayjs-stagegl/lib/pool/BitmapImageCubeObject":"awayjs-stagegl/lib/pool/BitmapImageCubeObject","awayjs-stagegl/lib/pool/RenderImage2DObject":"awayjs-stagegl/lib/pool/RenderImage2DObject","awayjs-stagegl/lib/pool/RenderImageCubeObject":"awayjs-stagegl/lib/pool/RenderImageCubeObject","awayjs-stagegl/lib/pool/SpecularImage2DObject":"awayjs-stagegl/lib/pool/SpecularImage2DObject"}],"awayjs-stagegl/lib/pool/ProgramDataPool":[function(require,module,exports){
 var ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
 /**
  * @class away.pool.ProgramDataPool
@@ -4037,149 +3889,129 @@ var SpecularImage2DObject = (function (_super) {
 })(Image2DObject);
 module.exports = SpecularImage2DObject;
 
-},{"awayjs-core/lib/data/SpecularImage2D":undefined,"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/pool/Image2DObject":"awayjs-stagegl/lib/pool/Image2DObject"}],"awayjs-stagegl/lib/pool/VertexDataPool":[function(require,module,exports){
-var SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
-var VertexData = require("awayjs-stagegl/lib/pool/VertexData");
+},{"awayjs-core/lib/data/SpecularImage2D":undefined,"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/pool/Image2DObject":"awayjs-stagegl/lib/pool/Image2DObject"}],"awayjs-stagegl/lib/vos/AttributesBufferVOPool":[function(require,module,exports){
+var AttributesBufferVO = require("awayjs-stagegl/lib/vos/AttributesBufferVO");
 /**
- *
+ * @class away.pool.AttributesBufferVOPool
  */
-var VertexDataPool = (function () {
-    function VertexDataPool() {
-    }
-    VertexDataPool.getItem = function (subGeometry, indexData, dataType) {
-        if (subGeometry.concatenateArrays)
-            dataType = SubGeometryBase.VERTEX_DATA;
-        var subGeometryDictionary = (VertexDataPool._pool[subGeometry.id] || (VertexDataPool._pool[subGeometry.id] = new Object()));
-        var subGeometryData = (subGeometryDictionary[dataType] || (subGeometryDictionary[dataType] = new Array()));
-        var vertexData = subGeometryData[indexData.level] || (subGeometryData[indexData.level] = new VertexData(subGeometry, dataType));
-        vertexData.updateData(indexData.originalIndices, indexData.indexMappings);
-        return vertexData;
-    };
-    VertexDataPool.disposeItem = function (subGeometry, level, dataType) {
-        var subGeometryDictionary = VertexDataPool._pool[subGeometry.id];
-        var subGeometryData = subGeometryDictionary[dataType];
-        subGeometryData[level].dispose();
-        subGeometryData[level] = null;
-    };
-    VertexDataPool.prototype.disposeData = function (subGeometry) {
-        var subGeometryDictionary = VertexDataPool._pool[subGeometry.id];
-        for (var key in subGeometryDictionary) {
-            var subGeometryData = subGeometryDictionary[key];
-            var len = subGeometryData.length;
-            for (var i = 0; i < len; i++) {
-                subGeometryData[i].dispose();
-                subGeometryData[i] = null;
-            }
-        }
-        VertexDataPool._pool[subGeometry.id] = null;
-    };
-    VertexDataPool._pool = new Object();
-    return VertexDataPool;
-})();
-module.exports = VertexDataPool;
-
-},{"awayjs-core/lib/data/SubGeometryBase":undefined,"awayjs-stagegl/lib/pool/VertexData":"awayjs-stagegl/lib/pool/VertexData"}],"awayjs-stagegl/lib/pool/VertexData":[function(require,module,exports){
-var SubGeometryBase = require("awayjs-core/lib/data/SubGeometryBase");
-var SubGeometryEvent = require("awayjs-core/lib/events/SubGeometryEvent");
-/**
- *
- */
-var VertexData = (function () {
-    function VertexData(subGeometry, dataType) {
-        var _this = this;
-        this._dataDirty = true;
-        this.invalid = new Array(8);
-        this.buffers = new Array(8);
-        this.contexts = new Array(8);
-        this._subGeometry = subGeometry;
-        this._dataType = dataType;
-        this._onVerticesUpdatedDelegate = function (event) { return _this._onVerticesUpdated(event); };
-        this._subGeometry.addEventListener(SubGeometryEvent.VERTICES_UPDATED, this._onVerticesUpdatedDelegate);
-    }
-    VertexData.prototype.updateData = function (originalIndices, indexMappings) {
-        if (originalIndices === void 0) { originalIndices = null; }
-        if (indexMappings === void 0) { indexMappings = null; }
-        if (this._dataDirty) {
-            this._dataDirty = false;
-            this.dataPerVertex = this._subGeometry.getStride(this._dataType);
-            var vertices = this._subGeometry[this._dataType];
-            if (indexMappings == null) {
-                this.setData(vertices);
-            }
-            else {
-                var splitVerts = new Array(originalIndices.length * this.dataPerVertex);
-                var originalIndex;
-                var splitIndex;
-                var i = 0;
-                var j = 0;
-                while (i < originalIndices.length) {
-                    originalIndex = originalIndices[i];
-                    splitIndex = indexMappings[originalIndex] * this.dataPerVertex;
-                    originalIndex *= this.dataPerVertex;
-                    for (j = 0; j < this.dataPerVertex; j++)
-                        splitVerts[splitIndex + j] = vertices[originalIndex + j];
-                    i++;
-                }
-                this.setData(splitVerts);
-            }
-        }
-    };
-    VertexData.prototype.dispose = function () {
-        for (var i = 0; i < 8; ++i) {
-            if (this.contexts[i]) {
-                this.buffers[i].dispose();
-                this.buffers[i] = null;
-                this.contexts[i] = null;
-            }
-        }
-    };
+var AttributesBufferVOPool = (function () {
     /**
-     * @private
+     *
      */
-    VertexData.prototype.disposeBuffers = function () {
-        for (var i = 0; i < 8; ++i) {
-            if (this.buffers[i]) {
-                this.buffers[i].dispose();
-                this.buffers[i] = null;
-            }
-        }
-    };
+    function AttributesBufferVOPool(stage) {
+        this._pool = new Object();
+        this._stage = stage;
+    }
     /**
-     * @private
+     *
+     * @param attributesBuffer
+     * @returns {AttributesBufferVO}
      */
-    VertexData.prototype.invalidateBuffers = function () {
-        for (var i = 0; i < 8; ++i)
-            this.invalid[i] = true;
+    AttributesBufferVOPool.prototype.getItem = function (attributesBuffer) {
+        return this._pool[attributesBuffer.id] || (this._pool[attributesBuffer.id] = attributesBuffer._iAddAttributesBufferVO(new (AttributesBufferVOPool.getClass(attributesBuffer))(this, attributesBuffer, this._stage)));
     };
     /**
      *
-     * @param data
-     * @param dataPerVertex
-     * @private
+     * @param attributesBuffer
      */
-    VertexData.prototype.setData = function (data) {
-        if (this.data && this.data.length != data.length)
-            this.disposeBuffers();
-        else
-            this.invalidateBuffers();
-        this.data = data;
+    AttributesBufferVOPool.prototype.disposeItem = function (attributesBuffer) {
+        attributesBuffer._iRemoveAttributesBufferVO(this._pool[attributesBuffer.id]);
+        this._pool[attributesBuffer.id] = null;
     };
     /**
-     * //TODO
      *
-     * @param event
-     * @private
+     * @param attributesBufferClass
      */
-    VertexData.prototype._onVerticesUpdated = function (event) {
-        var dataType = this._subGeometry.concatenateArrays ? SubGeometryBase.VERTEX_DATA : event.dataType;
-        if (dataType == this._dataType)
-            this._dataDirty = true;
+    AttributesBufferVOPool.registerClass = function (attributesBufferClass) {
+        AttributesBufferVOPool.classPool[attributesBufferClass.assetClass.assetType] = attributesBufferClass;
     };
-    return VertexData;
+    /**
+     *
+     * @param subGeometry
+     */
+    AttributesBufferVOPool.getClass = function (texture) {
+        return AttributesBufferVOPool.classPool[texture.assetType];
+    };
+    AttributesBufferVOPool.addDefaults = function () {
+        AttributesBufferVOPool.registerClass(AttributesBufferVO);
+    };
+    AttributesBufferVOPool.classPool = new Object();
+    AttributesBufferVOPool.main = AttributesBufferVOPool.addDefaults();
+    return AttributesBufferVOPool;
 })();
-module.exports = VertexData;
+module.exports = AttributesBufferVOPool;
 
-},{"awayjs-core/lib/data/SubGeometryBase":undefined,"awayjs-core/lib/events/SubGeometryEvent":undefined}]},{},[])
+},{"awayjs-stagegl/lib/vos/AttributesBufferVO":"awayjs-stagegl/lib/vos/AttributesBufferVO"}],"awayjs-stagegl/lib/vos/AttributesBufferVO":[function(require,module,exports){
+var AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
+/**
+ *
+ * @class away.pool.AttributesBufferVO
+ */
+var AttributesBufferVO = (function () {
+    function AttributesBufferVO(pool, attributesBuffer, stage) {
+        this._pool = pool;
+        this._attributesBuffer = attributesBuffer;
+        this._stage = stage;
+    }
+    /**
+     *
+     */
+    AttributesBufferVO.prototype.dispose = function () {
+        this._pool.disposeItem(this._attributesBuffer);
+        if (this._indexBuffer) {
+            this._indexBuffer.dispose();
+            this._indexBuffer = null;
+        }
+        if (this._vertexBuffer) {
+            this._vertexBuffer.dispose();
+            this._vertexBuffer = null;
+        }
+    };
+    /**
+     *
+     */
+    AttributesBufferVO.prototype.invalidate = function () {
+        this._invalid = true;
+    };
+    AttributesBufferVO.prototype.activate = function (index, size, dimensions, offset) {
+        this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
+    };
+    AttributesBufferVO.prototype.draw = function (firstIndex, numTriangles) {
+        this._stage.context.drawTriangles(this._getIndexBuffer(), firstIndex, numTriangles);
+    };
+    AttributesBufferVO.prototype._getIndexBuffer = function () {
+        if (!this._indexBuffer) {
+            this._invalid = true;
+            this._indexBuffer = this._stage.context.createIndexBuffer(this._attributesBuffer.count * this._attributesBuffer.stride / 2); //hardcoded assuming UintArray
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            this._indexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.length);
+        }
+        return this._indexBuffer;
+    };
+    AttributesBufferVO.prototype._getVertexBuffer = function () {
+        if (!this._vertexBuffer) {
+            this._invalid = true;
+            this._vertexBuffer = this._stage.context.createVertexBuffer(this._attributesBuffer.count, this._attributesBuffer.stride);
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            this._vertexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.count);
+        }
+        return this._vertexBuffer;
+    };
+    /**
+     *
+     */
+    AttributesBufferVO.assetClass = AttributesBuffer;
+    return AttributesBufferVO;
+})();
+module.exports = AttributesBufferVO;
+
+},{"awayjs-core/lib/attributes/AttributesBuffer":undefined}],"awayjs-stagegl/lib/vos/IAttributesBufferVOClass":[function(require,module,exports){
+
+},{}]},{},[])
 
 
 //# sourceMappingURL=awayjs-stagegl.js.map
