@@ -33,7 +33,7 @@ class ContextWebGL implements IContextGL
 	private _filterDictionary:Object = new Object();
 	private _mipmapFilterDictionary:Object = new Object();
 	private _uniformLocationNameDictionary:Object = new Object();
-	private _vertexBufferDimensionDictionary:Object = new Object();
+	private _vertexBufferPropertiesDictionary:Object = new Object();
 
 	private _container:HTMLElement;
 	private _width:number;
@@ -161,11 +161,11 @@ class ContextWebGL implements IContextGL
 			this._uniformLocationNameDictionary[ContextGLProgramType.VERTEX] = "vc";
 			this._uniformLocationNameDictionary[ContextGLProgramType.FRAGMENT] = "fc";
 
-			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_1] = 1;
-			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_2] = 2;
-			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_3] = 3;
-			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.FLOAT_4] = 4;
-			this._vertexBufferDimensionDictionary[ContextGLVertexBufferFormat.BYTES_4] = 4;
+			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
+			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
+			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
+			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
+			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTES_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
 
             this._stencilCompareMode = this._gl.ALWAYS;
             this._stencilCompareModeBack = this._gl.ALWAYS;
@@ -252,9 +252,9 @@ class ContextWebGL implements IContextGL
 		return texture;
 	}
 
-	public createVertexBuffer(numVertices:number, data32PerVertex:number):VertexBufferWebGL
+	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferWebGL
 	{
-		var vertexBuffer:VertexBufferWebGL = new VertexBufferWebGL(this._gl, numVertices, data32PerVertex);
+		var vertexBuffer:VertexBufferWebGL = new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
 		this._vertexBufferList.push(vertexBuffer);
 		return vertexBuffer;
 	}
@@ -304,7 +304,7 @@ class ContextWebGL implements IContextGL
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-		this._gl.drawElements(this._gl.TRIANGLES, (numTriangles == -1)? indexBuffer.numIndices : numTriangles*3, this._gl.UNSIGNED_SHORT, firstIndex);
+		this._gl.drawElements(this._gl.TRIANGLES, (numTriangles == -1)? indexBuffer.numIndices : numTriangles*3, this._gl.UNSIGNED_SHORT, firstIndex*2);
 	}
 
 	public present()
@@ -492,9 +492,11 @@ class ContextWebGL implements IContextGL
 			return;
 		}
 
+		var properties:VertexBufferProperties = this._vertexBufferPropertiesDictionary[format];
+
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer.glBuffer);
 		this._gl.enableVertexAttribArray(location);
-		this._gl.vertexAttribPointer(location, this._vertexBufferDimensionDictionary[format], this._gl.FLOAT, false, buffer.data32PerVertex*4, bufferOffset*4);
+		this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
 	}
 
 	public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0)
@@ -546,3 +548,20 @@ class ContextWebGL implements IContextGL
 }
 
 export = ContextWebGL;
+
+
+class VertexBufferProperties
+{
+	public size:number;
+
+	public type:number;
+
+	public normalized:boolean;
+
+	constructor(size:number, type:number, normalized:boolean)
+	{
+		this.size = size;
+		this.type = type;
+		this.normalized = normalized;
+	}
+}

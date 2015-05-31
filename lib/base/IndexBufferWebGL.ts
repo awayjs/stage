@@ -18,8 +18,20 @@ class IndexBufferWebGL implements IIndexBuffer
 	{
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 
-		// TODO add index offsets
-		this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
+		if (startOffset)
+			this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset*2, new Uint16Array(data));
+		else
+			this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
+	}
+
+	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number)
+	{
+		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
+
+		if (startOffset)
+			this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset*2, data);
+		else
+			this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
 	}
 
 	public dispose():void

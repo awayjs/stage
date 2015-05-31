@@ -1,3 +1,4 @@
+import AttributesBuffer				= require("awayjs-core/lib/attributes/AttributesBuffer");
 import ImageBase					= require("awayjs-core/lib/data/ImageBase");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import Event						= require("awayjs-core/lib/events/Event");
@@ -7,24 +8,26 @@ import CSS							= require("awayjs-core/lib/utils/CSS");
 import ContextMode					= require("awayjs-stagegl/lib/base/ContextMode");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
 import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
 import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
 import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
+import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
 import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
 import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
-import IndexData					= require("awayjs-stagegl/lib/pool/IndexData");
 import Image2DObject				= require("awayjs-stagegl/lib/pool/Image2DObject");
 import ImageCubeObject				= require("awayjs-stagegl/lib/pool/ImageCubeObject");
 import ImageObjectBase				= require("awayjs-stagegl/lib/pool/ImageObjectBase");
 import ImageObjectPool				= require("awayjs-stagegl/lib/pool/ImageObjectPool");
 import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
 import ProgramDataPool				= require("awayjs-stagegl/lib/pool/ProgramDataPool");
-import VertexData					= require("awayjs-stagegl/lib/pool/VertexData");
 import StageManager					= require("awayjs-stagegl/lib/managers/StageManager");
+import AttributesBufferVO			= require("awayjs-stagegl/lib/vos/AttributesBufferVO");
+import AttributesBufferVOPool		= require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -38,6 +41,7 @@ class Stage extends EventDispatcher
 {
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
 	private _imageObjectPool:ImageObjectPool;
+	private _attributesBufferVOPool:AttributesBufferVOPool;
 	private _programDataPool:ProgramDataPool;
 	private _context:IContextGL;
 	private _container:HTMLElement;
@@ -76,11 +80,14 @@ class Stage extends EventDispatcher
 
 	private _initialised:boolean = false;
 
+	private _bufferFormatDictionary:Array<Array<string>> = new Array<Array<string>>(5);
+
 	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:string = "baseline")
 	{
 		super();
 
 		this._imageObjectPool = new ImageObjectPool(this);
+		this._attributesBufferVOPool = new AttributesBufferVOPool(this);
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
@@ -95,6 +102,14 @@ class Stage extends EventDispatcher
 
 		CSS.setElementX(this._container, 0);
 		CSS.setElementY(this._container, 0);
+
+		this._bufferFormatDictionary[1] = new Array<string>(5);
+		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTES_4;
+		this._bufferFormatDictionary[4] = new Array<string>(5);
+		this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
+		this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
+		this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
+		this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
 
 		this.visible = true;
 	}
@@ -125,66 +140,9 @@ class Stage extends EventDispatcher
 		return this._imageObjectPool.getItem(image);
 	}
 
-	/**
-	 * Assigns an attribute stream
-	 *
-	 * @param index The attribute stream index for the vertex shader
-	 * @param buffer
-	 * @param offset
-	 * @param stride
-	 * @param format
-	 */
-	public activateBuffer(index:number, buffer:VertexData, offset:number, format:string)
+	public getAttributesBufferVO(attributesBuffer:AttributesBuffer):AttributesBufferVO
 	{
-		if (!buffer.contexts[this._stageIndex])
-			buffer.contexts[this._stageIndex] = this._context;
-
-		if (!buffer.buffers[this._stageIndex]) {
-			buffer.buffers[this._stageIndex] = this._context.createVertexBuffer(buffer.data.length/buffer.dataPerVertex, buffer.dataPerVertex);
-			buffer.invalid[this._stageIndex] = true;
-		}
-
-		if (buffer.invalid[this._stageIndex]) {
-			buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length/buffer.dataPerVertex);
-			buffer.invalid[this._stageIndex] = false;
-		}
-
-		this._context.setVertexBufferAt(index, buffer.buffers[this._stageIndex], offset, format);
-	}
-
-	public disposeVertexData(buffer:VertexData)
-	{
-		buffer.buffers[this._stageIndex].dispose();
-		buffer.buffers[this._stageIndex] = null;
-	}
-
-	/**
-	 * Retrieves the VertexBuffer object that contains triangle indices.
-	 * @param context The ContextWeb for which we request the buffer
-	 * @return The VertexBuffer object that contains triangle indices.
-	 */
-	public getIndexBuffer(buffer:IndexData):IIndexBuffer
-	{
-		if (!buffer.contexts[this._stageIndex])
-			buffer.contexts[this._stageIndex] = this._context;
-
-		if (!buffer.buffers[this._stageIndex]) {
-			buffer.buffers[this._stageIndex] = this._context.createIndexBuffer(buffer.data.length);
-			buffer.invalid[this._stageIndex] = true;
-		}
-
-		if (buffer.invalid[this._stageIndex]) {
-			buffer.buffers[this._stageIndex].uploadFromArray(buffer.data, 0, buffer.data.length);
-			buffer.invalid[this._stageIndex] = false;
-		}
-
-		return buffer.buffers[this._stageIndex];
-	}
-
-	public disposeIndexData(buffer:IndexData)
-	{
-		buffer.buffers[this._stageIndex].dispose();
-		buffer.buffers[this._stageIndex] = null;
+		return this._attributesBufferVOPool.getItem(attributesBuffer);
 	}
 
 	/**
@@ -701,6 +659,11 @@ class Stage extends EventDispatcher
 		this.dispatchEvent(new StageEvent(this._initialised? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED));
 
 		this._initialised = true;
+	}
+
+	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number)
+	{
+		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[size][dimensions]);
 	}
 
 	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)

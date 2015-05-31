@@ -7,16 +7,16 @@ class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 {
 	private _context:ContextStage3D;
 	private _numVertices:number;
-	private _data32PerVertex:number;
+	private _dataPerVertex:number;
 
-	constructor(context:ContextStage3D, numVertices:number, data32PerVertex:number)
+	constructor(context:ContextStage3D, numVertices:number, dataPerVertex:number)
 	{
 		super();
 
 		this._context = context;
 		this._numVertices = numVertices;
-		this._data32PerVertex = data32PerVertex;
-		this._context.addStream(String.fromCharCode(OpCodes.initVertexBuffer, data32PerVertex + OpCodes.intMask) + numVertices.toString() + ",");
+		this._dataPerVertex = dataPerVertex;
+		this._context.addStream(String.fromCharCode(OpCodes.initVertexBuffer, dataPerVertex + OpCodes.intMask) + numVertices.toString() + ",");
 		this._pId = this._context.execute();
 		this._context._iAddResource(this);
 	}
@@ -27,14 +27,19 @@ class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 		this._context.execute();
 	}
 
+	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number)
+	{
+
+	}
+
 	public get numVertices():number
 	{
 		return this._numVertices;
 	}
 
-	public get data32PerVertex():number
+	public get dataPerVertex():number
 	{
-		return this._data32PerVertex;
+		return this._dataPerVertex;
 	}
 
 	public dispose()

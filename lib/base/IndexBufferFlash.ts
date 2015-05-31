@@ -18,11 +18,15 @@ class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 		this._pId = this._context.execute();
 		this._context._iAddResource(this);
 	}
-
 	public uploadFromArray(data:number[], startOffset:number, count:number):void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.uploadArrayIndexBuffer, this._pId + OpCodes.intMask) + data.join() + "#" + startOffset + "," + count + ",");
 		this._context.execute();
+	}
+
+	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number)
+	{
+
 	}
 
 	public dispose():void

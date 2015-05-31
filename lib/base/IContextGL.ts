@@ -25,7 +25,7 @@ interface IContextGL
 
 	createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels?:number):ITexture;
 
-	createVertexBuffer(numVertices:number, data32PerVertex:number):IVertexBuffer;
+	createVertexBuffer(numVertices:number, dataPerVertex:number):IVertexBuffer;
 
 	dispose();
 
