@@ -1,6 +1,6 @@
 interface IIndexBuffer
 {
-	numIndices:number;
+	numElements:number;
 
 	uploadFromArray(data:number[], startOffset:number, count:number);
 

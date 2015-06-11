@@ -4,14 +4,14 @@ class IndexBufferWebGL implements IIndexBuffer
 {
 
 	private _gl:WebGLRenderingContext;
-	private _numIndices:number;
+	private _numElements:number;
 	private _buffer:WebGLBuffer;
 
-	constructor(gl:WebGLRenderingContext, numIndices:number)
+	constructor(gl:WebGLRenderingContext, numElements:number)
 	{
 		this._gl = gl;
 		this._buffer = this._gl.createBuffer();
-		this._numIndices = numIndices;
+		this._numElements = numElements;
 	}
 
 	public uploadFromArray(data:number[], startOffset:number, count:number):void
@@ -39,9 +39,9 @@ class IndexBufferWebGL implements IIndexBuffer
 		this._gl.deleteBuffer(this._buffer);
 	}
 
-	public get numIndices():number
+	public get numElements():number
 	{
-		return this._numIndices;
+		return this._numElements;
 	}
 
 	public get glBuffer():WebGLBuffer

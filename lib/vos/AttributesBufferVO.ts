@@ -72,9 +72,9 @@ class AttributesBufferVO implements IAttributesBufferVO
 		this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
 	}
 
-	public draw(firstIndex:number, numTriangles:number)
+	public draw(mode:string, firstIndex:number, numElements:number)
 	{
-		this._stage.context.drawTriangles(this._getIndexBuffer(), firstIndex, numTriangles);
+		this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numElements);
 	}
 
 	public _getIndexBuffer():IIndexBuffer

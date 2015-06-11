@@ -4,6 +4,7 @@ import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
 import ContextGLBlendFactor			= require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
+import ContextGLDrawMode			= require("awayjs-stagegl/lib/base/ContextGLDrawMode");
 import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
 import ContextGLCompareMode			= require("awayjs-stagegl/lib/base/ContextGLCompareMode");
 import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
@@ -25,6 +26,7 @@ import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL"
 class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
+	private _drawModeDictionary:Object = new Object();
 	private _compareModeDictionary:Object = new Object();
 	private _stencilActionDictionary:Object = new Object();
 	private _textureIndexDictionary:Array<number> = new Array<number>(8);
@@ -112,6 +114,9 @@ class ContextWebGL implements IContextGL
 			this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
 			this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
 			this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
+
+			this._drawModeDictionary[ContextGLDrawMode.LINES] = this._gl.LINES;
+			this._drawModeDictionary[ContextGLDrawMode.TRIANGLES] = this._gl.TRIANGLES;
 
             this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
             this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
@@ -298,13 +303,22 @@ class ContextWebGL implements IContextGL
 		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), byteArray);
 	}
 
-	public drawTriangles(indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numTriangles:number = -1)
+	public drawIndices(mode:string, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numElements:number = -1)
 	{
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 
+
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-		this._gl.drawElements(this._gl.TRIANGLES, (numTriangles == -1)? indexBuffer.numIndices : numTriangles*3, this._gl.UNSIGNED_SHORT, firstIndex*2);
+		this._gl.drawElements(this._drawModeDictionary[mode], (numElements == -1)? indexBuffer.numElements : numElements, this._gl.UNSIGNED_SHORT, firstIndex*2);
+	}
+
+	public drawVertices(mode:string, firstElement:number = 0, numVertices:number = -1)
+	{
+		if (!this._drawing)
+			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
+
+		this._gl.drawArrays(this._drawModeDictionary[mode], firstElement, numVertices);
 	}
 
 	public present()

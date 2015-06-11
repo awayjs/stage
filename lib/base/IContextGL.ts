@@ -31,7 +31,9 @@ interface IContextGL
 
 	drawToBitmapImage2D(destination:BitmapImage2D);
 
-	drawTriangles(indexBuffer:IIndexBuffer, firstIndex?:number, numTriangles?:number);
+	drawIndices(mode:string, indexBuffer:IIndexBuffer, firstIndex?:number, numElements?:number);
+
+	drawVertices(mode:string, firstIndex?:number, numVertices?:number);
 
 	present();
 

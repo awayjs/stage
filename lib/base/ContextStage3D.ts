@@ -180,17 +180,24 @@ class ContextStage3D implements IContextGL
 			this.execute();
 	}
 
-	public drawTriangles(indexBuffer:IndexBufferFlash, firstIndex:number = 0, numTriangles:number = -1)
+	public drawIndices(mode:string, indexBuffer:IndexBufferFlash, firstIndex:number = 0, numElements:number = -1)
 	{
 		firstIndex = firstIndex || 0;
-		if (!numTriangles || numTriangles < 0)
-			numTriangles = indexBuffer.numIndices/3;
+		if (!numElements || numElements < 0)
+			numElements = indexBuffer.numElements;
 
-		this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numTriangles + ",");
+		//assume triangles
+		this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numElements + ",");
 
 		if (ContextStage3D.debug)
 			this.execute();
 	}
+
+	public drawVertices(mode:string, firstElement:number = 0, numVertices:number = -1)
+	{
+		//can't be done in Stage3D
+	}
+
 
 	public setProgramConstantsFromMatrix(programType:string, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
 	{
