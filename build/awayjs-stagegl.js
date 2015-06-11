@@ -1134,6 +1134,16 @@ var ContextGLCompareMode = (function () {
 })();
 module.exports = ContextGLCompareMode;
 
+},{}],"awayjs-stagegl/lib/base/ContextGLDrawMode":[function(require,module,exports){
+var ContextGLDrawMode = (function () {
+    function ContextGLDrawMode() {
+    }
+    ContextGLDrawMode.TRIANGLES = "triangles";
+    ContextGLDrawMode.LINES = "lines";
+    return ContextGLDrawMode;
+})();
+module.exports = ContextGLDrawMode;
+
 },{}],"awayjs-stagegl/lib/base/ContextGLMipFilter":[function(require,module,exports){
 var ContextGLMipFilter = (function () {
     function ContextGLMipFilter() {
@@ -1381,15 +1391,21 @@ var ContextStage3D = (function () {
         if (ContextStage3D.debug)
             this.execute();
     };
-    ContextStage3D.prototype.drawTriangles = function (indexBuffer, firstIndex, numTriangles) {
+    ContextStage3D.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numElements) {
         if (firstIndex === void 0) { firstIndex = 0; }
-        if (numTriangles === void 0) { numTriangles = -1; }
+        if (numElements === void 0) { numElements = -1; }
         firstIndex = firstIndex || 0;
-        if (!numTriangles || numTriangles < 0)
-            numTriangles = indexBuffer.numIndices / 3;
-        this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numTriangles + ",");
+        if (!numElements || numElements < 0)
+            numElements = indexBuffer.numElements;
+        //assume triangles
+        this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numElements + ",");
         if (ContextStage3D.debug)
             this.execute();
+    };
+    ContextStage3D.prototype.drawVertices = function (mode, firstElement, numVertices) {
+        if (firstElement === void 0) { firstElement = 0; }
+        if (numVertices === void 0) { numVertices = -1; }
+        //can't be done in Stage3D
     };
     ContextStage3D.prototype.setProgramConstantsFromMatrix = function (programType, firstRegister, matrix, transposedMatrix) {
         //this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
@@ -1582,6 +1598,7 @@ module.exports = ContextStage3D;
 var Rectangle = require("awayjs-core/lib/geom/Rectangle");
 var ByteArray = require("awayjs-core/lib/utils/ByteArray");
 var ContextGLBlendFactor = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
+var ContextGLDrawMode = require("awayjs-stagegl/lib/base/ContextGLDrawMode");
 var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
 var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
 var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
@@ -1600,6 +1617,7 @@ var VertexBufferWebGL = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 var ContextWebGL = (function () {
     function ContextWebGL(canvas) {
         this._blendFactorDictionary = new Object();
+        this._drawModeDictionary = new Object();
         this._compareModeDictionary = new Object();
         this._stencilActionDictionary = new Object();
         this._textureIndexDictionary = new Array(8);
@@ -1645,6 +1663,8 @@ var ContextWebGL = (function () {
             this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
             this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
             this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
+            this._drawModeDictionary[ContextGLDrawMode.LINES] = this._gl.LINES;
+            this._drawModeDictionary[ContextGLDrawMode.TRIANGLES] = this._gl.TRIANGLES;
             this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
             this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
             this._compareModeDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
@@ -1810,13 +1830,20 @@ var ContextWebGL = (function () {
         byteArray.setArrayBuffer(arrayBuffer);
         destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), byteArray);
     };
-    ContextWebGL.prototype.drawTriangles = function (indexBuffer, firstIndex, numTriangles) {
+    ContextWebGL.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numElements) {
         if (firstIndex === void 0) { firstIndex = 0; }
-        if (numTriangles === void 0) { numTriangles = -1; }
+        if (numElements === void 0) { numElements = -1; }
         if (!this._drawing)
             throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-        this._gl.drawElements(this._gl.TRIANGLES, (numTriangles == -1) ? indexBuffer.numIndices : numTriangles * 3, this._gl.UNSIGNED_SHORT, firstIndex * 2);
+        this._gl.drawElements(this._drawModeDictionary[mode], (numElements == -1) ? indexBuffer.numElements : numElements, this._gl.UNSIGNED_SHORT, firstIndex * 2);
+    };
+    ContextWebGL.prototype.drawVertices = function (mode, firstElement, numVertices) {
+        if (firstElement === void 0) { firstElement = 0; }
+        if (numVertices === void 0) { numVertices = -1; }
+        if (!this._drawing)
+            throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
+        this._gl.drawArrays(this._drawModeDictionary[mode], firstElement, numVertices);
     };
     ContextWebGL.prototype.present = function () {
         this._drawing = false;
@@ -2026,7 +2053,7 @@ var VertexBufferProperties = (function () {
 })();
 module.exports = ContextWebGL;
 
-},{"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","awayjs-stagegl/lib/base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","awayjs-stagegl/lib/base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","awayjs-stagegl/lib/base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","awayjs-stagegl/lib/base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","awayjs-stagegl/lib/base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
+},{"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","awayjs-stagegl/lib/base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","awayjs-stagegl/lib/base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","awayjs-stagegl/lib/base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","awayjs-stagegl/lib/base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","awayjs-stagegl/lib/base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -2164,11 +2191,11 @@ var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
 var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var IndexBufferFlash = (function (_super) {
     __extends(IndexBufferFlash, _super);
-    function IndexBufferFlash(context, numIndices) {
+    function IndexBufferFlash(context, numElements) {
         _super.call(this);
         this._context = context;
-        this._numIndices = numIndices;
-        this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numIndices + OpCodes.intMask));
+        this._numElements = numElements;
+        this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numElements * 3 + OpCodes.intMask));
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
@@ -2184,9 +2211,9 @@ var IndexBufferFlash = (function (_super) {
         this._context._iRemoveResource(this);
         this._context = null;
     };
-    Object.defineProperty(IndexBufferFlash.prototype, "numIndices", {
+    Object.defineProperty(IndexBufferFlash.prototype, "numElements", {
         get: function () {
-            return this._numIndices;
+            return this._numElements;
         },
         enumerable: true,
         configurable: true
@@ -2197,10 +2224,10 @@ module.exports = IndexBufferFlash;
 
 },{"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/IndexBufferWebGL":[function(require,module,exports){
 var IndexBufferWebGL = (function () {
-    function IndexBufferWebGL(gl, numIndices) {
+    function IndexBufferWebGL(gl, numElements) {
         this._gl = gl;
         this._buffer = this._gl.createBuffer();
-        this._numIndices = numIndices;
+        this._numElements = numElements;
     }
     IndexBufferWebGL.prototype.uploadFromArray = function (data, startOffset, count) {
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
@@ -2219,9 +2246,9 @@ var IndexBufferWebGL = (function () {
     IndexBufferWebGL.prototype.dispose = function () {
         this._gl.deleteBuffer(this._buffer);
     };
-    Object.defineProperty(IndexBufferWebGL.prototype, "numIndices", {
+    Object.defineProperty(IndexBufferWebGL.prototype, "numElements", {
         get: function () {
-            return this._numIndices;
+            return this._numElements;
         },
         enumerable: true,
         configurable: true
@@ -3976,8 +4003,8 @@ var AttributesBufferVO = (function () {
     AttributesBufferVO.prototype.activate = function (index, size, dimensions, offset) {
         this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
     };
-    AttributesBufferVO.prototype.draw = function (firstIndex, numTriangles) {
-        this._stage.context.drawTriangles(this._getIndexBuffer(), firstIndex, numTriangles);
+    AttributesBufferVO.prototype.draw = function (mode, firstIndex, numElements) {
+        this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numElements);
     };
     AttributesBufferVO.prototype._getIndexBuffer = function () {
         if (!this._indexBuffer) {

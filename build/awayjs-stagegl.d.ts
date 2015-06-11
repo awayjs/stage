@@ -1,3 +1,14 @@
+declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
+	import Description = require("awayjs-stagegl/lib/aglsl/Description");
+	class AGLSLParser {
+	    parse(desc: Description): string;
+	    regtostring(regtype: number, regnum: number, desc: Description, tag: any): string;
+	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
+	}
+	export = AGLSLParser;
+	
+}
+
 declare module "awayjs-stagegl/lib/aglsl/AGALTokenizer" {
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import Description = require("awayjs-stagegl/lib/aglsl/Description");
@@ -7,17 +18,6 @@ declare module "awayjs-stagegl/lib/aglsl/AGALTokenizer" {
 	    readReg(s: any, mh: any, desc: any, bytes: any): void;
 	}
 	export = AGALTokenizer;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
-	import Description = require("awayjs-stagegl/lib/aglsl/Description");
-	class AGLSLParser {
-	    parse(desc: Description): string;
-	    regtostring(regtype: number, regnum: number, desc: Description, tag: any): string;
-	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
-	}
-	export = AGLSLParser;
 	
 }
 
@@ -276,6 +276,15 @@ declare module "awayjs-stagegl/lib/base/ContextGLCompareMode" {
 	
 }
 
+declare module "awayjs-stagegl/lib/base/ContextGLDrawMode" {
+	class ContextGLDrawMode {
+	    static TRIANGLES: string;
+	    static LINES: string;
+	}
+	export = ContextGLDrawMode;
+	
+}
+
 declare module "awayjs-stagegl/lib/base/ContextGLMipFilter" {
 	class ContextGLMipFilter {
 	    static MIPLINEAR: string;
@@ -429,7 +438,8 @@ declare module "awayjs-stagegl/lib/base/ContextStage3D" {
 	    setStencilActions(triangleFace?: string, compareMode?: string, actionOnBothPass?: string, actionOnDepthFail?: string, actionOnDepthPassStencilFail?: string, coordinateSystem?: string): void;
 	    setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number): void;
 	    setCulling(triangleFaceToCull: string, coordinateSystem?: string): void;
-	    drawTriangles(indexBuffer: IndexBufferFlash, firstIndex?: number, numTriangles?: number): void;
+	    drawIndices(mode: string, indexBuffer: IndexBufferFlash, firstIndex?: number, numElements?: number): void;
+	    drawVertices(mode: string, firstElement?: number, numVertices?: number): void;
 	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
 	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters?: number): void;
 	    setProgram(program: ProgramFlash): void;
@@ -468,6 +478,7 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	import VertexBufferWebGL = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 	class ContextWebGL implements IContextGL {
 	    private _blendFactorDictionary;
+	    private _drawModeDictionary;
 	    private _compareModeDictionary;
 	    private _stencilActionDictionary;
 	    private _textureIndexDictionary;
@@ -513,7 +524,8 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    createVertexBuffer(numVertices: number, dataPerVertex: number): VertexBufferWebGL;
 	    dispose(): void;
 	    drawToBitmapImage2D(destination: BitmapImage2D): void;
-	    drawTriangles(indexBuffer: IndexBufferWebGL, firstIndex?: number, numTriangles?: number): void;
+	    drawIndices(mode: string, indexBuffer: IndexBufferWebGL, firstIndex?: number, numElements?: number): void;
+	    drawVertices(mode: string, firstElement?: number, numVertices?: number): void;
 	    present(): void;
 	    setBlendFactors(sourceFactor: string, destinationFactor: string): void;
 	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void;
@@ -599,7 +611,8 @@ declare module "awayjs-stagegl/lib/base/IContextGL" {
 	    createVertexBuffer(numVertices: number, dataPerVertex: number): IVertexBuffer;
 	    dispose(): any;
 	    drawToBitmapImage2D(destination: BitmapImage2D): any;
-	    drawTriangles(indexBuffer: IIndexBuffer, firstIndex?: number, numTriangles?: number): any;
+	    drawIndices(mode: string, indexBuffer: IIndexBuffer, firstIndex?: number, numElements?: number): any;
+	    drawVertices(mode: string, firstIndex?: number, numVertices?: number): any;
 	    present(): any;
 	    setBlendFactors(sourceFactor: string, destinationFactor: string): any;
 	    setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): any;
@@ -636,7 +649,7 @@ declare module "awayjs-stagegl/lib/base/ICubeTexture" {
 
 declare module "awayjs-stagegl/lib/base/IIndexBuffer" {
 	interface IIndexBuffer {
-	    numIndices: number;
+	    numElements: number;
 	    uploadFromArray(data: number[], startOffset: number, count: number): any;
 	    uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): any;
 	    dispose(): any;
@@ -693,12 +706,12 @@ declare module "awayjs-stagegl/lib/base/IndexBufferFlash" {
 	import ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 	class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer {
 	    private _context;
-	    private _numIndices;
-	    constructor(context: ContextStage3D, numIndices: number);
+	    private _numElements;
+	    constructor(context: ContextStage3D, numElements: number);
 	    uploadFromArray(data: number[], startOffset: number, count: number): void;
 	    uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): void;
 	    dispose(): void;
-	    numIndices: number;
+	    numElements: number;
 	}
 	export = IndexBufferFlash;
 	
@@ -708,13 +721,13 @@ declare module "awayjs-stagegl/lib/base/IndexBufferWebGL" {
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
 	class IndexBufferWebGL implements IIndexBuffer {
 	    private _gl;
-	    private _numIndices;
+	    private _numElements;
 	    private _buffer;
-	    constructor(gl: WebGLRenderingContext, numIndices: number);
+	    constructor(gl: WebGLRenderingContext, numElements: number);
 	    uploadFromArray(data: number[], startOffset: number, count: number): void;
 	    uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): void;
 	    dispose(): void;
-	    numIndices: number;
+	    numElements: number;
 	    glBuffer: WebGLBuffer;
 	}
 	export = IndexBufferWebGL;
@@ -1566,7 +1579,7 @@ declare module "awayjs-stagegl/lib/vos/AttributesBufferVO" {
 	     */
 	    invalidate(): void;
 	    activate(index: number, size: number, dimensions: number, offset: number): void;
-	    draw(firstIndex: number, numTriangles: number): void;
+	    draw(mode: string, firstIndex: number, numElements: number): void;
 	    _getIndexBuffer(): IIndexBuffer;
 	    _getVertexBuffer(): IVertexBuffer;
 	}
