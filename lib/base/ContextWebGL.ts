@@ -303,22 +303,22 @@ class ContextWebGL implements IContextGL
 		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), byteArray);
 	}
 
-	public drawIndices(mode:string, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numElements:number = -1)
+	public drawIndices(mode:string, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numIndices:number = -1)
 	{
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 
 
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-		this._gl.drawElements(this._drawModeDictionary[mode], (numElements == -1)? indexBuffer.numElements : numElements, this._gl.UNSIGNED_SHORT, firstIndex*2);
+		this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
 	}
 
-	public drawVertices(mode:string, firstElement:number = 0, numVertices:number = -1)
+	public drawVertices(mode:string, firstVertex:number = 0, numVertices:number = -1)
 	{
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 
-		this._gl.drawArrays(this._drawModeDictionary[mode], firstElement, numVertices);
+		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
 	}
 
 	public present()

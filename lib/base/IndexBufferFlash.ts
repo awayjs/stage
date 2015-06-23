@@ -6,15 +6,15 @@ import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash"
 class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 {
 	private _context:ContextStage3D;
-	private _numElements:number;
+	private _numIndices:number;
 
-	constructor(context:ContextStage3D, numElements:number)
+	constructor(context:ContextStage3D, numIndices:number)
 	{
 		super();
 
 		this._context = context;
-		this._numElements = numElements;
-		this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numElements*3 + OpCodes.intMask));
+		this._numIndices = numIndices;
+		this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numIndices + OpCodes.intMask));
 		this._pId = this._context.execute();
 		this._context._iAddResource(this);
 	}
@@ -38,9 +38,9 @@ class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 		this._context = null;
 	}
 
-	public get numElements():number
+	public get numIndices():number
 	{
-		return this._numElements;
+		return this._numIndices;
 	}
 }
 
