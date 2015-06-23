@@ -1391,19 +1391,19 @@ var ContextStage3D = (function () {
         if (ContextStage3D.debug)
             this.execute();
     };
-    ContextStage3D.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numElements) {
+    ContextStage3D.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
         if (firstIndex === void 0) { firstIndex = 0; }
-        if (numElements === void 0) { numElements = -1; }
+        if (numIndices === void 0) { numIndices = -1; }
         firstIndex = firstIndex || 0;
-        if (!numElements || numElements < 0)
-            numElements = indexBuffer.numElements;
+        if (!numIndices || numIndices < 0)
+            numIndices = indexBuffer.numIndices;
         //assume triangles
-        this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numElements + ",");
+        this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numIndices + ",");
         if (ContextStage3D.debug)
             this.execute();
     };
-    ContextStage3D.prototype.drawVertices = function (mode, firstElement, numVertices) {
-        if (firstElement === void 0) { firstElement = 0; }
+    ContextStage3D.prototype.drawVertices = function (mode, firstVertex, numVertices) {
+        if (firstVertex === void 0) { firstVertex = 0; }
         if (numVertices === void 0) { numVertices = -1; }
         //can't be done in Stage3D
     };
@@ -1830,20 +1830,20 @@ var ContextWebGL = (function () {
         byteArray.setArrayBuffer(arrayBuffer);
         destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), byteArray);
     };
-    ContextWebGL.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numElements) {
+    ContextWebGL.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
         if (firstIndex === void 0) { firstIndex = 0; }
-        if (numElements === void 0) { numElements = -1; }
+        if (numIndices === void 0) { numIndices = -1; }
         if (!this._drawing)
             throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-        this._gl.drawElements(this._drawModeDictionary[mode], (numElements == -1) ? indexBuffer.numElements : numElements, this._gl.UNSIGNED_SHORT, firstIndex * 2);
+        this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1) ? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex * 2);
     };
-    ContextWebGL.prototype.drawVertices = function (mode, firstElement, numVertices) {
-        if (firstElement === void 0) { firstElement = 0; }
+    ContextWebGL.prototype.drawVertices = function (mode, firstVertex, numVertices) {
+        if (firstVertex === void 0) { firstVertex = 0; }
         if (numVertices === void 0) { numVertices = -1; }
         if (!this._drawing)
             throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
-        this._gl.drawArrays(this._drawModeDictionary[mode], firstElement, numVertices);
+        this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
     };
     ContextWebGL.prototype.present = function () {
         this._drawing = false;
@@ -2191,11 +2191,11 @@ var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
 var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var IndexBufferFlash = (function (_super) {
     __extends(IndexBufferFlash, _super);
-    function IndexBufferFlash(context, numElements) {
+    function IndexBufferFlash(context, numIndices) {
         _super.call(this);
         this._context = context;
-        this._numElements = numElements;
-        this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numElements * 3 + OpCodes.intMask));
+        this._numIndices = numIndices;
+        this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numIndices + OpCodes.intMask));
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
@@ -2211,9 +2211,9 @@ var IndexBufferFlash = (function (_super) {
         this._context._iRemoveResource(this);
         this._context = null;
     };
-    Object.defineProperty(IndexBufferFlash.prototype, "numElements", {
+    Object.defineProperty(IndexBufferFlash.prototype, "numIndices", {
         get: function () {
-            return this._numElements;
+            return this._numIndices;
         },
         enumerable: true,
         configurable: true
@@ -2224,10 +2224,10 @@ module.exports = IndexBufferFlash;
 
 },{"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/IndexBufferWebGL":[function(require,module,exports){
 var IndexBufferWebGL = (function () {
-    function IndexBufferWebGL(gl, numElements) {
+    function IndexBufferWebGL(gl, numIndices) {
         this._gl = gl;
         this._buffer = this._gl.createBuffer();
-        this._numElements = numElements;
+        this._numIndices = numIndices;
     }
     IndexBufferWebGL.prototype.uploadFromArray = function (data, startOffset, count) {
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
@@ -2246,9 +2246,9 @@ var IndexBufferWebGL = (function () {
     IndexBufferWebGL.prototype.dispose = function () {
         this._gl.deleteBuffer(this._buffer);
     };
-    Object.defineProperty(IndexBufferWebGL.prototype, "numElements", {
+    Object.defineProperty(IndexBufferWebGL.prototype, "numIndices", {
         get: function () {
-            return this._numElements;
+            return this._numIndices;
         },
         enumerable: true,
         configurable: true
@@ -4003,8 +4003,8 @@ var AttributesBufferVO = (function () {
     AttributesBufferVO.prototype.activate = function (index, size, dimensions, offset) {
         this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
     };
-    AttributesBufferVO.prototype.draw = function (mode, firstIndex, numElements) {
-        this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numElements);
+    AttributesBufferVO.prototype.draw = function (mode, firstIndex, numIndices) {
+        this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
     };
     AttributesBufferVO.prototype._getIndexBuffer = function () {
         if (!this._indexBuffer) {
