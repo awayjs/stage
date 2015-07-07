@@ -12,6 +12,7 @@ import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLV
 import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
 import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
+import ContextSoftware				= require("awayjs-stagegl/lib/base/ContextSoftware");
 import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
@@ -163,6 +164,8 @@ class Stage extends EventDispatcher
 		try {
 			if (mode == ContextMode.FLASH)
 				new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+			else if(mode == ContextMode.SOFTWARE)
+				this._context = new ContextSoftware(<HTMLCanvasElement> this._container);
 			else
 				this._context = new ContextWebGL(<HTMLCanvasElement> this._container);
 
