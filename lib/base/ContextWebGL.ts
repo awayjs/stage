@@ -437,7 +437,7 @@ class ContextWebGL implements IContextGL
 		var startIndex:number;
 		for (var i:number = 0; i < numRegisters; i++) {
 			startIndex = i*4;
-			this._gl.uniform4f(this._gl.getUniformLocation(this._currentProgram.glProgram, locationName + (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+			this._gl.uniform4f(this._currentProgram.getUniformLocation(locationName + (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
 		}
 	}
 
