@@ -30,6 +30,7 @@ class ImageObjectBase implements IImageObject
 		this._pool = pool;
 		this._image = image;
 		this._stage = stage;
+		this.invalidate();
 	}
 
 	/**
