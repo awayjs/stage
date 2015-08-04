@@ -2295,7 +2295,7 @@ var ContextWebGL = (function () {
         var startIndex;
         for (var i = 0; i < numRegisters; i++) {
             startIndex = i * 4;
-            this._gl.uniform4f(this._gl.getUniformLocation(this._currentProgram.glProgram, locationName + (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+            this._gl.uniform4f(this._currentProgram.getUniformLocation(locationName + (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
         }
     };
     ContextWebGL.prototype.setScissorRectangle = function (rectangle) {
@@ -2788,6 +2788,10 @@ var ProgramWebGL = (function () {
         if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
             throw new Error(this._gl.getProgramInfoLog(this._program));
         }
+        this._uniforms = new Object();
+    };
+    ProgramWebGL.prototype.getUniformLocation = function (name) {
+        return this._uniforms[name] || (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
     };
     ProgramWebGL.prototype.dispose = function () {
         this._gl.deleteProgram(this._program);
