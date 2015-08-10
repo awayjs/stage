@@ -70,11 +70,6 @@ class ContextSoftware implements IContextGL {
     public _fragmentConstants:Array<Vector3D> = [];
     public _vertexConstants:Array<Vector3D> = [];
 
-    //remove
-    private _positionBufferIndex:number;
-    private _uvBufferIndex:number;
-    private _projectionMatrix:Matrix3D;
-
     constructor(canvas:HTMLCanvasElement) {
         this._canvas = canvas;
         this._context = this._canvas.getContext("2d");
@@ -211,11 +206,6 @@ class ContextSoftware implements IContextGL {
             target = this._fragmentConstants;
         }
 
-        if (firstRegister == 0 && numRegisters == 4) {
-            this._projectionMatrix = new Matrix3D(data);
-            this._projectionMatrix.transpose();
-        }
-
         var k:number = 0;
         for (var i:number = firstRegister; i < firstRegister + numRegisters; i++) {
             target[i] = new Vector3D(data[k++], data[k++], data[k++], data[k++]);
@@ -232,14 +222,6 @@ class ContextSoftware implements IContextGL {
         this._vertexBuffers[index] = buffer;
         this._vertexBufferOffsets[index] = bufferOffset;
         this._vertexBufferFormats[index] = format;
-
-        if (format == ContextGLVertexBufferFormat.FLOAT_3) {
-            this._positionBufferIndex = index;
-        }
-
-        if (format == ContextGLVertexBufferFormat.FLOAT_2) {
-            this._uvBufferIndex = index;
-        }
     }
 
     public present() {
@@ -248,150 +230,8 @@ class ContextSoftware implements IContextGL {
     public drawToBitmapImage2D(destination:BitmapImage2D) {
     }
 
-    public drawIndices2(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number) {
-        console.log("drawIndices mode: " + mode + " firstIndex: " + firstIndex + " numIndices: " + numIndices);
-        if (this._projectionMatrix == null) {
-            return;
-        }
-
-        var positionBuffer:VertexBufferSoftware = this._vertexBuffers[this._positionBufferIndex];
-        var uvBuffer:VertexBufferSoftware = this._vertexBuffers[this._uvBufferIndex];
-        if (uvBuffer == null || positionBuffer == null) {
-            return;
-        }
-
-        this._backBufferColor.lock();
-
-        for (var i:number = firstIndex; i < numIndices; i += 3) {
-
-            var index0:number = this._vertexBufferOffsets[this._positionBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i] * positionBuffer.attributesPerVertex;
-            var index1:number = this._vertexBufferOffsets[this._positionBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 1] * positionBuffer.attributesPerVertex;
-            var index2:number = this._vertexBufferOffsets[this._positionBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 2] * positionBuffer.attributesPerVertex;
-
-            var t0:Vector3D = new Vector3D(positionBuffer.data[index0], positionBuffer.data[index0 + 1], positionBuffer.data[index0 + 2]);
-            var t1:Vector3D = new Vector3D(positionBuffer.data[index1], positionBuffer.data[index1 + 1], positionBuffer.data[index1 + 2]);
-            var t2:Vector3D = new Vector3D(positionBuffer.data[index2], positionBuffer.data[index2 + 1], positionBuffer.data[index2 + 2]);
-
-            console.log("this._projectionMatrix: "+this._projectionMatrix.rawData);
-            console.log("this.t0: "+t0);
-            console.log("this.t1: "+t1);
-            console.log("this.t2: "+t2);
-
-            t0 = this._projectionMatrix.transformVector(t0);
-            t1 = this._projectionMatrix.transformVector(t1);
-            t2 = this._projectionMatrix.transformVector(t2);
-
-            var u0:Point;
-            var u1:Point;
-            var u2:Point;
-
-            if (uvBuffer) {
-                index0 = this._vertexBufferOffsets[this._uvBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i] * uvBuffer.attributesPerVertex;
-                index1 = this._vertexBufferOffsets[this._uvBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 1] * uvBuffer.attributesPerVertex;
-                index2 = this._vertexBufferOffsets[this._uvBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 2] * uvBuffer.attributesPerVertex;
-
-                u0 = new Point(uvBuffer.data[index0], uvBuffer.data[index0 + 1]);
-                u1 = new Point(uvBuffer.data[index1], uvBuffer.data[index1 + 1]);
-                u2 = new Point(uvBuffer.data[index2], uvBuffer.data[index2 + 1]);
-            }
-
-            this.triangle2(t0, t1, t2, u0, u1, u2);
-        }
-
-        this._backBufferColor.unlock();
-    }
-
-    public triangle2(p0:Vector3D, p1:Vector3D, p2:Vector3D, uv1:Point, uv2:Point, uv3:Point):void {
-        p0.scaleBy(1/p0.w);
-        p1.scaleBy(1/p1.w);
-        p2.scaleBy(1/p2.w);
-
-        var depth:Vector3D = new Vector3D(p0.z, p1.z, p2.z);
-        var project:Vector3D = new Vector3D(p0.w, p1.w, p2.w);
-
-        p0 = this._screenMatrix.transformVector(p0);
-        p1 = this._screenMatrix.transformVector(p1);
-        p2 = this._screenMatrix.transformVector(p2);
-
-        this._bboxMin.x = 1000000;
-        this._bboxMin.y = 1000000;
-        this._bboxMax.x = -1000000;
-        this._bboxMax.y = -1000000;
-
-        this._clamp.x = this._backBufferWidth - 1;
-        this._clamp.y = this._backBufferHeight - 1;
-
-        this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p0.x));
-        this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p0.y));
-
-        this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p1.x));
-        this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p1.y));
-
-        this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p2.x));
-        this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p2.y));
-
-        this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p0.x));
-        this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p0.y));
-
-        this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p1.x));
-        this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p1.y));
-
-        this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p2.x));
-        this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p2.y));
-
-        this._bboxMin.x = Math.floor(this._bboxMin.x);
-        this._bboxMin.y = Math.floor(this._bboxMin.y);
-        this._bboxMax.x = Math.floor(this._bboxMax.x);
-        this._bboxMax.y = Math.floor(this._bboxMax.y);
-
-        for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
-            for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
-                var screen:Vector3D = this.barycentric(p0, p1, p2, x, y);
-
-                var clip:Vector3D = new Vector3D(screen.x/project.x, screen.y/project.y, screen.z/project.z);
-
-                var sum:number = clip.x+clip.y+clip.z;
-                clip.scaleBy(1/sum);
-
-                var index:number = ((x % this._backBufferWidth) + y * this._backBufferWidth);
-
-                var fragDepth:number = depth.x*screen.x+depth.y*screen.y+depth.z*screen.z;
-
-                if (screen.x<0 || screen.y<0 || screen.z<0 || this._zbuffer[index]<fragDepth) continue;
-                this._zbuffer[index] = fragDepth;
-
-                var u:number  = clip.x*uv1.x+clip.y*uv2.x+clip.z*uv3.x;
-                var v:number  = clip.x*uv1.y+clip.y*uv2.y+clip.z*uv3.y;
-
-                this.putPixel(x,y, this.sampleDiffuse(new Point(u,v)));
-            }
-        }
-    }
-
-    private sampleDiffuse(uv:Point):number {
-        if (this._textures[0] != null) {
-            var texture:TextureSoftware = this._textures[0];
-
-            var u:number = Math.abs(((uv.x * texture.width) % texture.width)) >> 0;
-            var v:number = Math.abs(((uv.y * texture.height) % texture.height)) >> 0;
-
-            var pos:number = (u + v * texture.width) * 4;
-
-            var r:number = texture.data[pos];
-            var g:number = texture.data[pos + 1];
-            var b:number = texture.data[pos + 2];
-            var a:number = texture.data[pos + 3];
-
-            return ColorUtils.ARGBtoFloat32(a,r,g,b)
-        }
-        return ColorUtils.ARGBtoFloat32(255, uv.x * 255, uv.y * 255, 0);
-    }
-
     public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number) {
         console.log("drawIndices mode: " + mode + " firstIndex: " + firstIndex + " numIndices: " + numIndices);
-
-        //this.drawIndices2(mode, indexBuffer, firstIndex, numIndices);
-        //return;
 
         if (!this._program) {
             return;
@@ -539,14 +379,6 @@ class ContextSoftware implements IContextGL {
                 }else{
                     this.putPixel(x,y, 0xffff0000);
                 }
-
-
-                //this._program.fragment(clip);
-
-                //var u:number = clip.x * uv1.x + clip.y * uv2.x + clip.z * uv3.x;
-                //var v:number = clip.x * uv1.y + clip.y * uv2.y + clip.z * uv3.y;
-
-                //this.putPixel(x, y, this.sample(u, v));
             }
         }
     }
