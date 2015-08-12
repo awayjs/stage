@@ -45,6 +45,16 @@ declare module "awayjs-stagegl/lib/aglsl/Destination" {
 	    regnum: number;
 	    regtype: number;
 	    dim: number;
+	    indexoffset: number;
+	    swizzle: number;
+	    lodbiad: number;
+	    readmode: number;
+	    special: number;
+	    wrap: number;
+	    filter: number;
+	    indexregtype: number;
+	    indexselect: number;
+	    indirectflag: number;
 	    constructor();
 	}
 	export = Destination;
@@ -397,18 +407,17 @@ declare module "awayjs-stagegl/lib/base/ContextMode" {
 declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
-	import Point = require("awayjs-core/lib/geom/Point");
 	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
-	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
 	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	import IndexBufferSoftware = require("awayjs-stagegl/lib/base/IndexBufferSoftware");
 	import VertexBufferSoftware = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
 	import TextureSoftware = require("awayjs-stagegl/lib/base/TextureSoftware");
 	import ProgramSoftware = require("awayjs-stagegl/lib/base/ProgramSoftware");
+	import ProgramVOSoftware = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
 	class ContextSoftware implements IContextGL {
 	    private _canvas;
 	    static MAX_SAMPLERS: number;
@@ -427,14 +436,18 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    private _colorMaskA;
 	    private _writeDepth;
 	    private _depthCompareMode;
-	    private _textures;
-	    private _vertexBuffers;
-	    private _vertexBufferOffsets;
-	    private _vertexBufferFormats;
-	    private _positionBufferIndex;
-	    private _uvBufferIndex;
-	    private _projectionMatrix;
+	    private _program;
+	    private _screenMatrix;
+	    private _bboxMin;
+	    private _bboxMax;
+	    private _clamp;
 	    private _drawRect;
+	    _textures: Array<TextureSoftware>;
+	    _vertexBuffers: Array<VertexBufferSoftware>;
+	    _vertexBufferOffsets: Array<number>;
+	    _vertexBufferFormats: Array<string>;
+	    _fragmentConstants: Array<Vector3D>;
+	    _vertexConstants: Array<Vector3D>;
 	    constructor(canvas: HTMLCanvasElement);
 	    container: HTMLElement;
 	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
@@ -451,7 +464,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    setStencilReferenceValue(referenceValue: number, readMask: number, writeMask: number): void;
 	    setCulling(triangleFaceToCull: string, coordinateSystem: string): void;
 	    setDepthTest(depthMask: boolean, passCompareMode: string): void;
-	    setProgram(program: IProgram): void;
+	    setProgram(program: ProgramSoftware): void;
 	    setProgramConstantsFromMatrix(programType: string, firstRegister: number, matrix: Matrix3D, transposedMatrix: boolean): void;
 	    setProgramConstantsFromArray(programType: string, firstRegister: number, data: number[], numRegisters: number): void;
 	    setTextureAt(sampler: number, texture: TextureSoftware): void;
@@ -464,13 +477,12 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): void;
 	    setRenderToTexture(target: ITextureBase, enableDepthAndStencil: boolean, antiAlias: number, surfaceSelector: number): void;
 	    setRenderToBackBuffer(): void;
-	    private sampleDiffuse(uv);
-	    putPixel(x: number, y: number, z: number, color: number): void;
-	    drawPoint(point: Vector3D, color: number): void;
+	    putPixel(x: number, y: number, color: number): void;
+	    drawRect(x: number, y: number, color: number): void;
 	    clamp(value: number, min?: number, max?: number): number;
 	    interpolate(min: number, max: number, gradient: number): number;
-	    processScanLine(currentY: number, pa: Vector3D, pb: Vector3D, pc: Vector3D, pd: Vector3D, uva: Point, uvb: Point, uvc: Point, uvd: Point): void;
-	    triangle(p1: Vector3D, p2: Vector3D, p3: Vector3D, uv1: Point, uv2: Point, uv3: Point): void;
+	    triangle(vo0: ProgramVOSoftware, vo1: ProgramVOSoftware, vo2: ProgramVOSoftware): void;
+	    barycentric(a: Vector3D, b: Vector3D, c: Vector3D, x: number, y: number): Vector3D;
 	}
 	export = ContextSoftware;
 	
@@ -902,14 +914,70 @@ declare module "awayjs-stagegl/lib/base/ProgramFlash" {
 declare module "awayjs-stagegl/lib/base/ProgramSoftware" {
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
+	import ProgramVOSoftware = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
+	import ContextSoftware = require("awayjs-stagegl/lib/base/ContextSoftware");
+	import Description = require("awayjs-stagegl/lib/aglsl/Description");
+	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
+	import Destination = require("awayjs-stagegl/lib/aglsl/Destination");
 	class ProgramSoftware implements IProgram {
-	    private _vertexShader;
-	    private _fragmentShader;
+	    private static _tokenizer;
+	    private static _opCodeFunc;
+	    private _vertexDescr;
+	    private _fragmentDescr;
 	    constructor();
 	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
 	    dispose(): void;
+	    vertex(contextSoftware: ContextSoftware, vertexIndex: number): ProgramVOSoftware;
+	    fragment(context: ContextSoftware, clip: Vector3D, vo0: ProgramVOSoftware, vo1: ProgramVOSoftware, vo2: ProgramVOSoftware): ProgramVOSoftware;
+	    private static getDestTarget(vo, desc, dest);
+	    private static getSourceTargetType(vo, desc, dest, context);
+	    private static getSourceTargetByIndex(targetType, targetIndex);
+	    private static getSourceTarget(vo, desc, dest, context);
+	    static mov(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static m44(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    private static sample(context, u, v, textureIndex?);
+	    static tex(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static add(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sub(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static mul(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static div(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static rcp(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static min(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static max(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static frc(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sqt(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static rsq(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static pow(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static log(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static exp(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static nrm(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sin(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static cos(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static crs(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static dp3(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static dp4(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static abs(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static neg(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sat(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static m33(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static m34(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static kil(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	}
 	export = ProgramSoftware;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/ProgramVOSoftware" {
+	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
+	class ProgramVOSoftware {
+	    outputPosition: Vector3D[];
+	    outputColor: Vector3D[];
+	    varying: Vector3D[];
+	    temp: Vector3D[];
+	    attributes: Vector3D[];
+	    discard: boolean;
+	}
+	export = ProgramVOSoftware;
 	
 }
 
@@ -924,9 +992,11 @@ declare module "awayjs-stagegl/lib/base/ProgramWebGL" {
 	    private _vertexShader;
 	    private _fragmentShader;
 	    private _uniforms;
+	    private _attribs;
 	    constructor(gl: WebGLRenderingContext);
 	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
 	    getUniformLocation(name: string): WebGLUniformLocation;
+	    getAttribLocation(name: string): number;
 	    dispose(): void;
 	    focusProgram(): void;
 	    glProgram: WebGLProgram;

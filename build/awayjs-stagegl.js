@@ -393,6 +393,16 @@ var Destination = (function () {
         this.regnum = 0;
         this.regtype = 0;
         this.dim = 0;
+        this.indexoffset = 0;
+        this.swizzle = 0;
+        this.lodbiad = 0;
+        this.readmode = 0;
+        this.special = 0;
+        this.wrap = 0;
+        this.filter = 0;
+        this.indexregtype = 0;
+        this.indexselect = 0;
+        this.indirectflag = 0;
     }
     return Destination;
 })();
@@ -1273,8 +1283,8 @@ var ColorUtils = require("awayjs-core/lib/utils/ColorUtils");
 var ContextGLBlendFactor = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
 var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
 var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
+var ContextGLProgramType = require("awayjs-stagegl/lib/base/ContextGLProgramType");
 var ContextGLTriangleFace = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
-var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 var IndexBufferSoftware = require("awayjs-stagegl/lib/base/IndexBufferSoftware");
 var VertexBufferSoftware = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
 var TextureSoftware = require("awayjs-stagegl/lib/base/TextureSoftware");
@@ -1294,11 +1304,17 @@ var ContextSoftware = (function () {
         this._colorMaskA = true;
         this._writeDepth = true;
         this._depthCompareMode = ContextGLCompareMode.LESS;
+        this._screenMatrix = new Matrix3D();
+        this._bboxMin = new Point();
+        this._bboxMax = new Point();
+        this._clamp = new Point();
+        this._drawRect = new Rectangle();
         this._textures = [];
         this._vertexBuffers = [];
         this._vertexBufferOffsets = [];
         this._vertexBufferFormats = [];
-        this._drawRect = new Rectangle();
+        this._fragmentConstants = [];
+        this._vertexConstants = [];
         this._canvas = canvas;
         this._context = this._canvas.getContext("2d");
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
@@ -1338,6 +1354,25 @@ var ContextSoftware = (function () {
         this._backBufferRect.width = width;
         this._backBufferRect.height = height;
         this._backBufferColor._setSize(width, height);
+        this._screenMatrix.rawData = [
+            this._backBufferWidth / 2,
+            0,
+            0,
+            this._backBufferWidth / 2,
+            0,
+            -this._backBufferHeight / 2,
+            0,
+            this._backBufferHeight / 2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ];
+        this._screenMatrix.transpose();
     };
     ContextSoftware.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         //TODO: impl
@@ -1350,11 +1385,9 @@ var ContextSoftware = (function () {
         return new ProgramSoftware();
     };
     ContextSoftware.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
-        console.log("createTexture");
         return new TextureSoftware(width, height);
     };
     ContextSoftware.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
-        console.log("createVertexBuffer");
         return new VertexBufferSoftware(numVertices, dataPerVertex);
     };
     ContextSoftware.prototype.dispose = function () {
@@ -1380,21 +1413,43 @@ var ContextSoftware = (function () {
         this._cullingMode = triangleFaceToCull;
     };
     ContextSoftware.prototype.setDepthTest = function (depthMask, passCompareMode) {
-        console.log("setDepthTest: " + depthMask + " compare: " + passCompareMode);
         this._writeDepth = depthMask;
         this._depthCompareMode = passCompareMode;
     };
     ContextSoftware.prototype.setProgram = function (program) {
-        console.log("setProgram: " + program);
+        this._program = program;
     };
     ContextSoftware.prototype.setProgramConstantsFromMatrix = function (programType, firstRegister, matrix, transposedMatrix) {
         console.log("setProgramConstantsFromMatrix: programType" + programType + " firstRegister: " + firstRegister + " matrix: " + matrix + " transposedMatrix: " + transposedMatrix);
+        if (transposedMatrix) {
+            var tempMatrix = matrix.clone();
+            tempMatrix.transpose();
+            matrix = tempMatrix;
+        }
+        var target;
+        if (programType == ContextGLProgramType.VERTEX) {
+            target = this._vertexConstants;
+        }
+        else if (programType == ContextGLProgramType.FRAGMENT) {
+            target = this._fragmentConstants;
+        }
+        var matrixData = matrix.rawData;
+        for (var i = firstRegister; i < firstRegister + 4; i++) {
+            target[i] = new Vector3D(matrixData[i * 4], matrixData[i * 4 + 1], matrixData[i * 4 + 2], matrixData[i * 4 + 3]);
+        }
     };
     ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
         console.log("setProgramConstantsFromArray: programType" + programType + " firstRegister: " + firstRegister + " data: " + data + " numRegisters: " + numRegisters);
-        if (firstRegister == 0 && numRegisters == 4) {
-            this._projectionMatrix = new Matrix3D(data);
-            this._projectionMatrix.transpose();
+        var target;
+        if (programType == ContextGLProgramType.VERTEX) {
+            target = this._vertexConstants;
+        }
+        else if (programType == ContextGLProgramType.FRAGMENT) {
+            target = this._fragmentConstants;
+        }
+        var k = 0;
+        for (var i = firstRegister; i < firstRegister + numRegisters; i++) {
+            target[i] = new Vector3D(data[k++], data[k++], data[k++], data[k++]);
         }
     };
     ContextSoftware.prototype.setTextureAt = function (sampler, texture) {
@@ -1406,64 +1461,25 @@ var ContextSoftware = (function () {
         this._vertexBuffers[index] = buffer;
         this._vertexBufferOffsets[index] = bufferOffset;
         this._vertexBufferFormats[index] = format;
-        if (format == ContextGLVertexBufferFormat.FLOAT_3) {
-            this._positionBufferIndex = index;
-        }
-        if (format == ContextGLVertexBufferFormat.FLOAT_2) {
-            this._uvBufferIndex = index;
-        }
     };
     ContextSoftware.prototype.present = function () {
-        console.log("present");
-        //this._backBufferColor.fillRect(new Rectangle(0, 0, Math.random() * 300, Math.random() * 500), Math.random() * 100000000);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
     };
     ContextSoftware.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
         console.log("drawIndices mode: " + mode + " firstIndex: " + firstIndex + " numIndices: " + numIndices);
-        if (this._projectionMatrix == null) {
-            return;
-        }
-        var positionBuffer = this._vertexBuffers[this._positionBufferIndex];
-        var uvBuffer = this._vertexBuffers[this._uvBufferIndex];
-        if (uvBuffer == null || positionBuffer == null) {
+        if (!this._program) {
             return;
         }
         this._backBufferColor.lock();
         for (var i = firstIndex; i < numIndices; i += 3) {
-            var index0 = this._vertexBufferOffsets[this._positionBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i] * positionBuffer.attributesPerVertex;
-            var index1 = this._vertexBufferOffsets[this._positionBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 1] * positionBuffer.attributesPerVertex;
-            var index2 = this._vertexBufferOffsets[this._positionBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 2] * positionBuffer.attributesPerVertex;
-            var t0 = new Vector3D(positionBuffer.data[index0], positionBuffer.data[index0 + 1], positionBuffer.data[index0 + 2]);
-            var t1 = new Vector3D(positionBuffer.data[index1], positionBuffer.data[index1 + 1], positionBuffer.data[index1 + 2]);
-            var t2 = new Vector3D(positionBuffer.data[index2], positionBuffer.data[index2 + 1], positionBuffer.data[index2 + 2]);
-            t0 = this._projectionMatrix.transformVector(t0);
-            t1 = this._projectionMatrix.transformVector(t1);
-            t2 = this._projectionMatrix.transformVector(t2);
-            t0.x = t0.x / t0.w;
-            t0.y = t0.y / t0.w;
-            t1.x = t1.x / t1.w;
-            t1.y = t1.y / t1.w;
-            t2.x = t2.x / t2.w;
-            t2.y = t2.y / t2.w;
-            t0.x = t0.x * this._backBufferWidth + this._backBufferWidth / 2;
-            t1.x = t1.x * this._backBufferWidth + this._backBufferWidth / 2;
-            t2.x = t2.x * this._backBufferWidth + this._backBufferWidth / 2;
-            t0.y = -t0.y * this._backBufferHeight + this._backBufferHeight / 2;
-            t1.y = -t1.y * this._backBufferHeight + this._backBufferHeight / 2;
-            t2.y = -t2.y * this._backBufferHeight + this._backBufferHeight / 2;
-            var u0;
-            var u1;
-            var u2;
-            if (uvBuffer) {
-                index0 = this._vertexBufferOffsets[this._uvBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i] * uvBuffer.attributesPerVertex;
-                index1 = this._vertexBufferOffsets[this._uvBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 1] * uvBuffer.attributesPerVertex;
-                index2 = this._vertexBufferOffsets[this._uvBufferIndex] / 4 + indexBuffer.data[indexBuffer.startOffset + i + 2] * uvBuffer.attributesPerVertex;
-                u0 = new Point(uvBuffer.data[index0], uvBuffer.data[index0 + 1]);
-                u1 = new Point(uvBuffer.data[index1], uvBuffer.data[index1 + 1]);
-                u2 = new Point(uvBuffer.data[index2], uvBuffer.data[index2 + 1]);
-            }
-            this.triangle(t0, t1, t2, u0, u1, u2);
+            var index0 = indexBuffer.data[indexBuffer.startOffset + i];
+            var index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+            var index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+            var vo0 = this._program.vertex(this, index0);
+            var vo1 = this._program.vertex(this, index1);
+            var vo2 = this._program.vertex(this, index2);
+            this.triangle(vo0, vo1, vo2);
         }
         this._backBufferColor.unlock();
     };
@@ -1482,37 +1498,19 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setRenderToBackBuffer = function () {
         //TODO:
     };
-    ContextSoftware.prototype.sampleDiffuse = function (uv) {
-        if (this._textures[0] != null) {
-            var texture = this._textures[0];
-            var u = Math.abs(((uv.x * texture.width) % texture.width)) >> 0;
-            var v = Math.abs(((uv.y * texture.height) % texture.height)) >> 0;
-            var pos = (u + v * texture.width) * 4;
-            var r = texture.data[pos];
-            var g = texture.data[pos + 1];
-            var b = texture.data[pos + 2];
-            var a = texture.data[pos + 3];
-            return ColorUtils.ARGBtoFloat32(a, r, g, b);
-        }
-        return ColorUtils.ARGBtoFloat32(255, uv.x * 255, uv.y * 255, 0);
-    };
-    ContextSoftware.prototype.putPixel = function (x, y, z, color) {
-        var index = ((x >> 0) + (y >> 0) * this._backBufferWidth);
-        if (this._zbuffer[index] < z) {
-            return;
-        }
-        this._zbuffer[index] = z;
+    ContextSoftware.prototype.putPixel = function (x, y, color) {
         this._drawRect.x = x;
         this._drawRect.y = y;
         this._drawRect.width = 1;
         this._drawRect.height = 1;
-        //this._backBufferColor.fillRect(this._drawRect, color);
         this._backBufferColor.setPixel32(x, y, color);
     };
-    ContextSoftware.prototype.drawPoint = function (point, color) {
-        if (point.x >= 0 && point.y >= 0 && point.x < this._backBufferWidth && point.y < this._backBufferWidth) {
-            this.putPixel(point.x, point.y, point.z, color);
-        }
+    ContextSoftware.prototype.drawRect = function (x, y, color) {
+        this._drawRect.x = x;
+        this._drawRect.y = y;
+        this._drawRect.width = 5;
+        this._drawRect.height = 5;
+        this._backBufferColor.fillRect(this._drawRect, color);
     };
     ContextSoftware.prototype.clamp = function (value, min, max) {
         if (min === void 0) { min = 0; }
@@ -1522,86 +1520,84 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.interpolate = function (min, max, gradient) {
         return min + (max - min) * this.clamp(gradient);
     };
-    ContextSoftware.prototype.processScanLine = function (currentY, pa, pb, pc, pd, uva, uvb, uvc, uvd) {
-        var gradient1 = pa.y != pb.y ? (currentY - pa.y) / (pb.y - pa.y) : 1;
-        var gradient2 = pc.y != pd.y ? (currentY - pc.y) / (pd.y - pc.y) : 1;
-        var sx = this.interpolate(pa.x, pb.x, gradient1) >> 0;
-        var ex = this.interpolate(pc.x, pd.x, gradient2) >> 0;
-        var z1 = this.interpolate(pa.z, pb.z, gradient1);
-        var z2 = this.interpolate(pc.z, pd.z, gradient2);
-        //var snl:number = this.interpolate(data.ndotla, data.ndotlb, gradient1);
-        //var enl:number = this.interpolate(data.ndotlc, data.ndotld, gradient2);
-        var su = this.interpolate(uva.x, uvb.x, gradient1);
-        var eu = this.interpolate(uvc.x, uvd.x, gradient2);
-        var sv = this.interpolate(uva.y, uvb.y, gradient1);
-        var ev = this.interpolate(uvc.y, uvd.y, gradient2);
-        for (var x = sx; x < ex; x++) {
-            var gradient = (x - sx) / (ex - sx);
-            var z = this.interpolate(z1, z2, gradient);
-            //var ndotl = this.interpolate(snl, enl, gradient);
-            var u = this.interpolate(su, eu, gradient);
-            var v = this.interpolate(sv, ev, gradient);
-            var color = this.sampleDiffuse(new Point(u, v));
-            this.drawPoint(new Vector3D(x, currentY, z), color);
+    ContextSoftware.prototype.triangle = function (vo0, vo1, vo2) {
+        var p0 = vo0.outputPosition[0];
+        if (!p0 || p0.w == 0 || isNaN(p0.w)) {
+            console.error("wrong position");
+            return;
+        }
+        var p1 = vo1.outputPosition[0];
+        var p2 = vo2.outputPosition[0];
+        p0.scaleBy(1 / p0.w);
+        p1.scaleBy(1 / p1.w);
+        p2.scaleBy(1 / p2.w);
+        var depth = new Vector3D(p0.z, p1.z, p2.z);
+        var project = new Vector3D(p0.w, p1.w, p2.w);
+        p0 = this._screenMatrix.transformVector(p0);
+        p1 = this._screenMatrix.transformVector(p1);
+        p2 = this._screenMatrix.transformVector(p2);
+        this._bboxMin.x = 1000000;
+        this._bboxMin.y = 1000000;
+        this._bboxMax.x = -1000000;
+        this._bboxMax.y = -1000000;
+        this._clamp.x = this._backBufferWidth - 1;
+        this._clamp.y = this._backBufferHeight - 1;
+        this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p0.x));
+        this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p0.y));
+        this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p1.x));
+        this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p1.y));
+        this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p2.x));
+        this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p2.y));
+        this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p0.x));
+        this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p0.y));
+        this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p1.x));
+        this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p1.y));
+        this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p2.x));
+        this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p2.y));
+        this._bboxMin.x = Math.floor(this._bboxMin.x);
+        this._bboxMin.y = Math.floor(this._bboxMin.y);
+        this._bboxMax.x = Math.floor(this._bboxMax.x);
+        this._bboxMax.y = Math.floor(this._bboxMax.y);
+        for (var x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
+            for (var y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
+                var screen = this.barycentric(p0, p1, p2, x, y);
+                var clip = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+                var sum = clip.x + clip.y + clip.z;
+                clip.scaleBy(1 / sum);
+                var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
+                var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
+                if (screen.x < 0 || screen.y < 0 || screen.z < 0 || this._zbuffer[index] < fragDepth) {
+                    continue;
+                }
+                var fragmentVO = this._program.fragment(this, clip, vo0, vo1, vo2);
+                if (fragmentVO.discard) {
+                    continue;
+                }
+                this._zbuffer[index] = fragDepth;
+                var color = fragmentVO.outputColor[0];
+                if (color) {
+                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(color.w * 255, color.x * 255, color.y * 255, color.z * 255));
+                }
+                else {
+                    this.putPixel(x, y, 0xffff0000);
+                }
+            }
         }
     };
-    ContextSoftware.prototype.triangle = function (p1, p2, p3, uv1, uv2, uv3) {
-        var temp;
-        if (p1.y > p2.y) {
-            temp = p2;
-            p2 = p1;
-            p1 = temp;
-            temp = uv2;
-            uv2 = uv1;
-            uv1 = temp;
+    ContextSoftware.prototype.barycentric = function (a, b, c, x, y) {
+        var sx = new Vector3D();
+        sx.x = c.x - a.x;
+        sx.y = b.x - a.x;
+        sx.z = a.x - x;
+        var sy = new Vector3D();
+        sy.x = c.y - a.y;
+        sy.y = b.y - a.y;
+        sy.z = a.y - y;
+        var u = sx.crossProduct(sy);
+        if (u.z < 0.01) {
+            return new Vector3D(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
         }
-        if (p2.y > p3.y) {
-            temp = p2;
-            p2 = p3;
-            p3 = temp;
-            temp = uv2;
-            uv2 = uv3;
-            uv3 = temp;
-        }
-        if (p1.y > p2.y) {
-            temp = p2;
-            p2 = p1;
-            p1 = temp;
-            temp = uv2;
-            uv2 = uv1;
-            uv1 = temp;
-        }
-        var dP1P2;
-        var dP1P3;
-        // http://en.wikipedia.org/wiki/Slope
-        if (p2.y - p1.y > 0)
-            dP1P2 = (p2.x - p1.x) / (p2.y - p1.y);
-        else
-            dP1P2 = 0;
-        if (p3.y - p1.y > 0)
-            dP1P3 = (p3.x - p1.x) / (p3.y - p1.y);
-        else
-            dP1P3 = 0;
-        if (dP1P2 > dP1P3) {
-            for (var y = p1.y >> 0; y <= p3.y >> 0; y++) {
-                if (y < p2.y) {
-                    this.processScanLine(y, p1, p3, p1, p2, uv1, uv3, uv1, uv2);
-                }
-                else {
-                    this.processScanLine(y, p1, p3, p2, p3, uv1, uv3, uv2, uv3);
-                }
-            }
-        }
-        else {
-            for (var y = p1.y >> 0; y <= p3.y >> 0; y++) {
-                if (y < p2.y) {
-                    this.processScanLine(y, p1, p2, p1, p3, uv1, uv2, uv1, uv3);
-                }
-                else {
-                    this.processScanLine(y, p2, p3, p1, p3, uv2, uv3, uv1, uv3);
-                }
-            }
-        }
+        return new Vector3D(-1, 1, 1);
     };
     ContextSoftware.MAX_SAMPLERS = 8;
     return ContextSoftware;
@@ -1616,7 +1612,7 @@ var VertexBufferProperties = (function () {
 })();
 module.exports = ContextSoftware;
 
-},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
+},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 //import swfobject					= require("awayjs-stagegl/lib/swfobject");
 var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
 var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
@@ -2322,7 +2318,7 @@ var ContextWebGL = (function () {
         var textureType = this._textureTypeDictionary[texture.textureType];
         samplerState.type = textureType;
         this._gl.bindTexture(textureType, texture.glTexture);
-        this._gl.uniform1i(this._gl.getUniformLocation(this._currentProgram.glProgram, "fs" + sampler), sampler);
+        this._gl.uniform1i(this._currentProgram.getUniformLocation("fs" + sampler), sampler);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
@@ -2341,7 +2337,7 @@ var ContextWebGL = (function () {
     ContextWebGL.prototype.setVertexBufferAt = function (index, buffer, bufferOffset, format) {
         if (bufferOffset === void 0) { bufferOffset = 0; }
         if (format === void 0) { format = null; }
-        var location = this._currentProgram ? this._gl.getAttribLocation(this._currentProgram.glProgram, "va" + index) : -1;
+        var location = this._currentProgram ? this._currentProgram.getAttribLocation("va" + index) : -1;
         if (!buffer) {
             if (location > -1)
                 this._gl.disableVertexAttribArray(location);
@@ -2746,16 +2742,756 @@ var ProgramFlash = (function (_super) {
 module.exports = ProgramFlash;
 
 },{"awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/ProgramSoftware":[function(require,module,exports){
+var AGALTokenizer = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
+var ProgramVOSoftware = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
+var Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+var Vector3D = require("awayjs-core/lib/geom/Vector3D");
+var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 var ProgramSoftware = (function () {
     function ProgramSoftware() {
     }
     ProgramSoftware.prototype.upload = function (vertexProgram, fragmentProgram) {
+        this._vertexDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(vertexProgram);
+        this._fragmentDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(fragmentProgram);
     };
     ProgramSoftware.prototype.dispose = function () {
+        this._vertexDescr = null;
+        this._fragmentDescr = null;
     };
+    ProgramSoftware.prototype.vertex = function (contextSoftware, vertexIndex) {
+        var vo = new ProgramVOSoftware();
+        //parse attributes
+        var i;
+        for (i = 0; i < contextSoftware._vertexBuffers.length; i++) {
+            var buffer = contextSoftware._vertexBuffers[i];
+            if (!buffer)
+                continue;
+            var attribute = new Vector3D();
+            var index = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_1) {
+                attribute.x = buffer.data[index];
+            }
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_2) {
+                attribute.x = buffer.data[index];
+                attribute.y = buffer.data[index + 1];
+            }
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_3) {
+                attribute.x = buffer.data[index];
+                attribute.y = buffer.data[index + 1];
+                attribute.z = buffer.data[index + 2];
+            }
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_4) {
+                attribute.x = buffer.data[index];
+                attribute.y = buffer.data[index + 1];
+                attribute.z = buffer.data[index + 2];
+                attribute.w = buffer.data[index + 3];
+            }
+            vo.attributes[i] = attribute;
+        }
+        var len = this._vertexDescr.tokens.length;
+        for (var i = 0; i < len; i++) {
+            var token = this._vertexDescr.tokens[i];
+            ProgramSoftware._opCodeFunc[token.opcode](vo, this._vertexDescr, token.dest, token.a, token.b, contextSoftware);
+        }
+        return vo;
+    };
+    ProgramSoftware.prototype.fragment = function (context, clip, vo0, vo1, vo2) {
+        var vo = new ProgramVOSoftware();
+        for (var i = 0; i < vo0.varying.length; i++) {
+            var varying0 = vo0.varying[i];
+            var varying1 = vo1.varying[i];
+            var varying2 = vo2.varying[i];
+            if (!varying0 || !varying1 || !varying2)
+                continue;
+            var result = vo.varying[i] = new Vector3D();
+            result.x = clip.x * varying0.x + clip.y * varying1.x + clip.z * varying2.x;
+            result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
+            result.z = clip.x * varying0.y + clip.y * varying1.z + clip.z * varying2.z;
+            result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
+        }
+        var len = this._fragmentDescr.tokens.length;
+        for (var i = 0; i < len; i++) {
+            var token = this._fragmentDescr.tokens[i];
+            ProgramSoftware._opCodeFunc[token.opcode](vo, this._fragmentDescr, token.dest, token.a, token.b, context);
+        }
+        return vo;
+    };
+    ProgramSoftware.getDestTarget = function (vo, desc, dest) {
+        var targetType;
+        if (dest.regtype == 0x2) {
+            targetType = vo.temp;
+        }
+        else if (dest.regtype == 0x3) {
+            if (desc.header.type == "vertex") {
+                targetType = vo.outputPosition;
+            }
+            else {
+                targetType = vo.outputColor;
+            }
+        }
+        else if (dest.regtype == 0x4) {
+            targetType = vo.varying;
+        }
+        var targetIndex = dest.regnum;
+        var target = targetType[targetIndex];
+        if (!target) {
+            target = targetType[targetIndex] = new Vector3D();
+        }
+        return target;
+    };
+    ProgramSoftware.getSourceTargetType = function (vo, desc, dest, context) {
+        var targetType;
+        if (dest.regtype == 0x0) {
+            targetType = vo.attributes;
+        }
+        else if (dest.regtype == 0x1) {
+            if (desc.header.type == "vertex") {
+                targetType = context._vertexConstants;
+            }
+            else {
+                targetType = context._fragmentConstants;
+            }
+        }
+        else if (dest.regtype == 0x2) {
+            targetType = vo.temp;
+        }
+        else if (dest.regtype == 0x4) {
+            targetType = vo.varying;
+        }
+        return targetType;
+    };
+    ProgramSoftware.getSourceTargetByIndex = function (targetType, targetIndex) {
+        var target = targetType[targetIndex];
+        if (!target) {
+            target = targetType[targetIndex] = new Vector3D();
+        }
+        return target;
+    };
+    ProgramSoftware.getSourceTarget = function (vo, desc, dest, context) {
+        var targetType = ProgramSoftware.getSourceTargetType(vo, desc, dest, context);
+        return ProgramSoftware.getSourceTargetByIndex(targetType, dest.regnum);
+    };
+    ProgramSoftware.mov = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.m44 = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Type = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
+        var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
+        var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
+        var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
+        var source2Target3 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 3);
+        var matrix = new Matrix3D([
+            source2Target0.x,
+            source2Target1.x,
+            source2Target2.x,
+            source2Target3.x,
+            source2Target0.y,
+            source2Target1.y,
+            source2Target2.y,
+            source2Target3.y,
+            source2Target0.z,
+            source2Target1.z,
+            source2Target2.z,
+            source2Target3.z,
+            source2Target0.w,
+            source2Target1.w,
+            source2Target2.w,
+            source2Target3.w
+        ]);
+        var result = matrix.transformVector(source1Target);
+        if (dest.mask & 1) {
+            target.x = result.x;
+        }
+        if (dest.mask & 2) {
+            target.y = result.y;
+        }
+        if (dest.mask & 4) {
+            target.z = result.z;
+        }
+        if (dest.mask & 8) {
+            target.w = result.w;
+        }
+    };
+    ProgramSoftware.sample = function (context, u, v, textureIndex) {
+        if (textureIndex === void 0) { textureIndex = 0; }
+        if (textureIndex < context._textures.length && context._textures[textureIndex] != null) {
+            var texture = context._textures[textureIndex];
+            var repeatU = Math.abs(((u * texture.width) % texture.width)) >> 0;
+            var repeatV = Math.abs(((v * texture.height) % texture.height)) >> 0;
+            var pos = (repeatU + repeatV * texture.width) * 4;
+            var r = texture.data[pos] / 255;
+            var g = texture.data[pos + 1] / 255;
+            var b = texture.data[pos + 2] / 255;
+            var a = texture.data[pos + 3] / 255;
+            return [a, r, g, b];
+        }
+        return [1, u, v, 0];
+    };
+    ProgramSoftware.tex = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        var u = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var v = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var color = ProgramSoftware.sample(context, u, v, source2.regnum);
+        if (dest.mask & 1) {
+            target.x = color[1];
+        }
+        if (dest.mask & 2) {
+            target.y = color[2];
+        }
+        if (dest.mask & 4) {
+            target.z = color[3];
+        }
+        if (dest.mask & 8) {
+            target.w = color[0];
+        }
+    };
+    ProgramSoftware.add = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] + source2Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] + source2Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] + source2Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] + source2Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.sub = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] - source2Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] - source2Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] - source2Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] - source2Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.mul = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] * source2Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] * source2Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] * source2Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] * source2Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.div = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] / source2Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] / source2Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] / source2Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] / source2Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.rcp = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = 1 / source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = 1 / source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = 1 / source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = 1 / source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.min = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.min(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.min(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.min(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.min(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.max = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.max(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.max(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.max(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.max(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.frc = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.sqt = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.sqrt(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.sqrt(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.sqrt(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.sqrt(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.rsq = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.pow = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.pow(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.pow(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.pow(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.pow(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.log = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.log(source1Target[swiz[(source1.swizzle >> 0) & 3]]) / Math.LN2;
+        }
+        if (dest.mask & 2) {
+            target.y = Math.log(source1Target[swiz[(source1.swizzle >> 2) & 3]]) / Math.LN2;
+        }
+        if (dest.mask & 4) {
+            target.z = Math.log(source1Target[swiz[(source1.swizzle >> 4) & 3]]) / Math.LN2;
+        }
+        if (dest.mask & 8) {
+            target.w = Math.log(source1Target[swiz[(source1.swizzle >> 6) & 3]]) / Math.LN2;
+        }
+    };
+    ProgramSoftware.exp = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.exp(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.exp(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.exp(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.exp(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.nrm = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        var x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var len = Math.sqrt(x * x + y * y + z * z);
+        x /= len;
+        y /= len;
+        z /= len;
+        if (dest.mask & 1) {
+            target.x = x;
+        }
+        if (dest.mask & 2) {
+            target.y = y;
+        }
+        if (dest.mask & 4) {
+            target.z = z;
+        }
+    };
+    ProgramSoftware.sin = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.sin(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.sin(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.sin(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.sin(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.cos = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.cos(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.cos(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.cos(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.cos(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.crs = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var swiz = ["x", "y", "z", "w"];
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        if (dest.mask & 1) {
+            target.x = source1TargetY * source2TargetZ - source1TargetZ * source2TargetY;
+        }
+        if (dest.mask & 2) {
+            target.y = source1TargetZ * source2TargetX - source1TargetX * source2TargetZ;
+        }
+        if (dest.mask & 4) {
+            target.z = source1TargetX * source2TargetY - source1TargetY * source2TargetX;
+        }
+    };
+    ProgramSoftware.dp3 = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var swiz = ["x", "y", "z", "w"];
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        if (dest.mask & 1) {
+            target.x = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
+        }
+    };
+    ProgramSoftware.dp4 = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var swiz = ["x", "y", "z", "w"];
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        var source2TargetW = source2Target[swiz[(source2.swizzle >> 6) & 3]];
+        if (dest.mask & 1) {
+            target.x = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
+        }
+    };
+    ProgramSoftware.abs = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.abs(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
+        if (dest.mask & 2) {
+            target.y = Math.abs(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
+        if (dest.mask & 4) {
+            target.z = Math.abs(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
+        if (dest.mask & 8) {
+            target.w = Math.abs(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
+    };
+    ProgramSoftware.neg = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = -source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = -source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = -source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = -source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.sat = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 0) & 3]]));
+        }
+        if (dest.mask & 2) {
+            target.y = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 2) & 3]]));
+        }
+        if (dest.mask & 4) {
+            target.z = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 4) & 3]]));
+        }
+        if (dest.mask & 8) {
+            target.w = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 6) & 3]]));
+        }
+    };
+    ProgramSoftware.m33 = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Type = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
+        var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
+        var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
+        var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
+        var matrix = new Matrix3D([
+            source2Target0.x,
+            source2Target1.x,
+            source2Target2.x,
+            0,
+            source2Target0.y,
+            source2Target1.y,
+            source2Target2.y,
+            0,
+            source2Target0.z,
+            source2Target1.z,
+            source2Target2.z,
+            0,
+            0,
+            0,
+            0,
+            0
+        ]);
+        var result = matrix.transformVector(source1Target);
+        if (dest.mask & 1) {
+            target.x = result.x;
+        }
+        if (dest.mask & 2) {
+            target.y = result.y;
+        }
+        if (dest.mask & 4) {
+            target.z = result.z;
+        }
+        if (dest.mask & 8) {
+            target.w = result.w;
+        }
+    };
+    ProgramSoftware.m34 = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source2Type = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
+        var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
+        var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
+        var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
+        var matrix = new Matrix3D([
+            source2Target0.x,
+            source2Target1.x,
+            source2Target2.x,
+            0,
+            source2Target0.y,
+            source2Target1.y,
+            source2Target2.y,
+            0,
+            source2Target0.z,
+            source2Target1.z,
+            source2Target2.z,
+            0,
+            source2Target0.w,
+            source2Target1.w,
+            source2Target2.w,
+            1
+        ]);
+        var result = matrix.transformVector(source1Target);
+        if (dest.mask & 1) {
+            target.x = result.x;
+        }
+        if (dest.mask & 2) {
+            target.y = result.y;
+        }
+        if (dest.mask & 4) {
+            target.z = result.z;
+        }
+        if (dest.mask & 8) {
+            target.w = result.w;
+        }
+    };
+    ProgramSoftware.kil = function (vo, desc, dest, source1, source2, context) {
+        vo.discard = true;
+    };
+    ProgramSoftware._tokenizer = new AGALTokenizer();
+    ProgramSoftware._opCodeFunc = [
+        ProgramSoftware.mov,
+        ProgramSoftware.add,
+        ProgramSoftware.sub,
+        ProgramSoftware.mul,
+        ProgramSoftware.div,
+        ProgramSoftware.rcp,
+        ProgramSoftware.min,
+        ProgramSoftware.max,
+        ProgramSoftware.frc,
+        ProgramSoftware.sqt,
+        ProgramSoftware.rsq,
+        ProgramSoftware.pow,
+        ProgramSoftware.log,
+        ProgramSoftware.exp,
+        ProgramSoftware.nrm,
+        ProgramSoftware.sin,
+        ProgramSoftware.cos,
+        ProgramSoftware.crs,
+        ProgramSoftware.dp3,
+        ProgramSoftware.dp4,
+        ProgramSoftware.abs,
+        ProgramSoftware.neg,
+        ProgramSoftware.sat,
+        ProgramSoftware.m33,
+        ProgramSoftware.m44,
+        ProgramSoftware.m34,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        ProgramSoftware.kil,
+        ProgramSoftware.tex
+    ];
     return ProgramSoftware;
 })();
 module.exports = ProgramSoftware;
+
+},{"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-stagegl/lib/aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware"}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
+var ProgramVOSoftware = (function () {
+    function ProgramVOSoftware() {
+        this.outputPosition = [];
+        this.outputColor = [];
+        this.varying = [];
+        this.temp = [];
+        this.attributes = [];
+        this.discard = false;
+    }
+    return ProgramVOSoftware;
+})();
+module.exports = ProgramVOSoftware;
 
 },{}],"awayjs-stagegl/lib/base/ProgramWebGL":[function(require,module,exports){
 var AGALTokenizer = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
@@ -2789,9 +3525,17 @@ var ProgramWebGL = (function () {
             throw new Error(this._gl.getProgramInfoLog(this._program));
         }
         this._uniforms = new Object();
+        this._attribs = new Object();
     };
     ProgramWebGL.prototype.getUniformLocation = function (name) {
-        return this._uniforms[name] || (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
+        if (this._uniforms[name] != null)
+            return this._uniforms[name];
+        return (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
+    };
+    ProgramWebGL.prototype.getAttribLocation = function (name) {
+        if (this._attribs[name] != null)
+            return this._attribs[name];
+        return (this._attribs[name] = this._gl.getAttribLocation(this._program, name));
     };
     ProgramWebGL.prototype.dispose = function () {
         this._gl.deleteProgram(this._program);
