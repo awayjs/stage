@@ -475,7 +475,7 @@ class ContextWebGL implements IContextGL
 
 		this._gl.bindTexture(textureType, texture.glTexture);
 
-		this._gl.uniform1i(this._gl.getUniformLocation(this._currentProgram.glProgram, "fs" + sampler), sampler);
+		this._gl.uniform1i(this._currentProgram.getUniformLocation("fs" + sampler), sampler);
 
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
@@ -497,7 +497,7 @@ class ContextWebGL implements IContextGL
 
 	public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:string = null)
 	{
-		var location:number = this._currentProgram? this._gl.getAttribLocation(this._currentProgram.glProgram, "va" + index) : -1;
+		var location:number = this._currentProgram? this._currentProgram.getAttribLocation("va" + index) : -1;
 
 		if (!buffer) {
 			if (location > -1)

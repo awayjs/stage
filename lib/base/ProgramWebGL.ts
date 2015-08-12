@@ -15,6 +15,7 @@ class ProgramWebGL implements IProgram
 	private _vertexShader:WebGLShader;
 	private _fragmentShader:WebGLShader;
 	private _uniforms:Object;
+	private _attribs:Object;
 
 	constructor(gl:WebGLRenderingContext)
 	{
@@ -55,12 +56,24 @@ class ProgramWebGL implements IProgram
 		}
 
 		this._uniforms = new Object();
+		this._attribs = new Object();
 	}
 
 	public getUniformLocation(name:string):WebGLUniformLocation
 	{
-		return this._uniforms[name] || (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
+		if (this._uniforms[name] != null)
+			return this._uniforms[name];
 
+		return (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
+	}
+
+
+	public getAttribLocation(name:string):number
+	{
+		if (this._attribs[name] != null)
+			return this._attribs[name];
+
+		return (this._attribs[name] = this._gl.getAttribLocation(this._program, name));
 	}
 
 
