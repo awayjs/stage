@@ -45,7 +45,7 @@ class ContextSoftware implements IContextGL {
     private _context:CanvasRenderingContext2D;
     private _cullingMode:string = ContextGLTriangleFace.BACK;
     private _blendSource:string = ContextGLBlendFactor.ONE;
-    private _blendDestination:string = ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA;
+    private _blendDestination:string = ContextGLBlendFactor.ZERO;
     private _colorMaskR:boolean = true;
     private _colorMaskG:boolean = true;
     private _colorMaskB:boolean = true;
@@ -111,7 +111,7 @@ class ContextSoftware implements IContextGL {
         this._screenMatrix.rawData = [
             this._backBufferWidth / 2, 0, 0, this._backBufferWidth / 2,
             0, -this._backBufferHeight / 2, 0, this._backBufferHeight / 2,
-            0, 0, 0, 0,
+            0, 0, 1, 0,
             0, 0, 0, 0
         ];
         this._screenMatrix.transpose();
@@ -142,6 +142,7 @@ class ContextSoftware implements IContextGL {
     }
 
     public setBlendFactors(sourceFactor:string, destinationFactor:string) {
+        console.log("setBlendFactors sourceFactor: "+sourceFactor+" destinationFactor: "+destinationFactor);
         this._blendSource = sourceFactor;
         this._blendDestination = destinationFactor;
     }
@@ -279,7 +280,87 @@ class ContextSoftware implements IContextGL {
         this._drawRect.y = y;
         this._drawRect.width = 1;
         this._drawRect.height = 1;
-        this._backBufferColor.setPixel32(x, y, color);
+
+        var dest:number[] = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
+        var source:number[] = ColorUtils.float32ColorToARGB(color);
+
+        var destModified:number[] = this.applyBlendMode(dest, this._blendDestination, dest, source);
+        var sourceModified:number[] = this.applyBlendMode(source, this._blendSource, dest, source);
+
+        var a:number = destModified[0] + sourceModified[0];
+        var r:number = destModified[1] + sourceModified[1];
+        var g:number = destModified[2] + sourceModified[2];
+        var b:number = destModified[3] + sourceModified[3];
+
+        a = Math.max(0, Math.min(a, 255));
+        r = Math.max(0, Math.min(r, 255));
+        g = Math.max(0, Math.min(g, 255));
+        b = Math.max(0, Math.min(b, 255));
+        //
+        //r*=a/255;
+        //g*=a/255;
+        //b*=a/255;
+        //a = 255;
+
+        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a, r, g, b));
+    }
+
+    private applyBlendMode(argb:number[], blend:string, dest:number[], source:number[]):number[] {
+        var result:number[] = [];
+
+        result[0] = argb[0];
+        result[1] = argb[1];
+        result[2] = argb[2];
+        result[3] = argb[3];
+
+        if (blend == ContextGLBlendFactor.DESTINATION_ALPHA) {
+            result[0] *= dest[0];
+            result[1] *= dest[0];
+            result[2] *= dest[0];
+            result[3] *= dest[0];
+        } else if (blend == ContextGLBlendFactor.DESTINATION_COLOR) {
+            result[0] *= dest[0];
+            result[1] *= dest[1];
+            result[2] *= dest[2];
+            result[3] *= dest[3];
+        } else if (blend == ContextGLBlendFactor.ZERO) {
+            result[0] = 0;
+            result[1] = 0;
+            result[2] = 0;
+            result[3] = 0;
+        } else if (blend == ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA) {
+            result[0] *= 1 - dest[0];
+            result[1] *= 1 - dest[0];
+            result[2] *= 1 - dest[0];
+            result[3] *= 1 - dest[0];
+        } else if (blend == ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR) {
+            result[0] *= 1 - dest[0];
+            result[1] *= 1 - dest[1];
+            result[2] *= 1 - dest[2];
+            result[3] *= 1 - dest[3];
+        } else if (blend == ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA) {
+            result[0] *= 1 - source[0];
+            result[1] *= 1 - source[0];
+            result[2] *= 1 - source[0];
+            result[3] *= 1 - source[0];
+        } else if (blend == ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR) {
+            result[0] *= 1 - source[0];
+            result[1] *= 1 - source[1];
+            result[2] *= 1 - source[2];
+            result[3] *= 1 - source[3];
+        } else if (blend == ContextGLBlendFactor.SOURCE_ALPHA) {
+            result[0] *= source[0];
+            result[1] *= source[0];
+            result[2] *= source[0];
+            result[3] *= source[0];
+        } else if (blend == ContextGLBlendFactor.SOURCE_COLOR) {
+            result[0] *= source[0];
+            result[1] *= source[1];
+            result[2] *= source[2];
+            result[3] *= source[3];
+        }
+
+        return result;
     }
 
     public drawRect(x:number, y:number, color:number):void {
@@ -300,12 +381,16 @@ class ContextSoftware implements IContextGL {
 
     public triangle(vo0:ProgramVOSoftware, vo1:ProgramVOSoftware, vo2:ProgramVOSoftware):void {
         var p0:Vector3D = vo0.outputPosition[0];
-        if(!p0 || p0.w == 0 || isNaN(p0.w)) {
+        if (!p0 || p0.w == 0 || isNaN(p0.w)) {
             console.error("wrong position");
             return;
         }
         var p1:Vector3D = vo1.outputPosition[0];
         var p2:Vector3D = vo2.outputPosition[0];
+
+        p0.z = p0.z * 2 - p0.w;
+        p1.z = p1.z * 2 - p1.w;
+        p2.z = p2.z * 2 - p2.w;
 
         p0.scaleBy(1 / p0.w);
         p1.scaleBy(1 / p1.w);
@@ -367,17 +452,28 @@ class ContextSoftware implements IContextGL {
                 }
 
                 var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, vo0, vo1, vo2);
-                if(fragmentVO.discard) {
+                if (fragmentVO.discard) {
                     continue;
                 }
 
                 this._zbuffer[index] = fragDepth;
 
                 var color:Vector3D = fragmentVO.outputColor[0];
-                if(color) {
-                    this.putPixel(x,y, ColorUtils.ARGBtoFloat32(color.w*255, color.x*255, color.y*255, color.z*255));
-                }else{
-                    this.putPixel(x,y, 0xffff0000);
+
+                color.x = Math.max(0, Math.min(color.x, 1));
+                color.y = Math.max(0, Math.min(color.y, 1));
+                color.z = Math.max(0, Math.min(color.z, 1));
+                color.w = Math.max(0, Math.min(color.w, 1));
+
+                color.x *= 255;
+                color.y *= 255;
+                color.z *= 255;
+                color.w *= 255;
+
+                if (color) {
+                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(color.w, color.x, color.y, color.z));
+                } else {
+                    this.putPixel(x, y, 0xffff0000);
                 }
             }
         }

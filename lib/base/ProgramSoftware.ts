@@ -82,14 +82,13 @@ class ProgramSoftware implements IProgram {
 
     public vertex(contextSoftware:ContextSoftware, vertexIndex:number):ProgramVOSoftware {
         var vo:ProgramVOSoftware = new ProgramVOSoftware();
-
         //parse attributes
         var i:number;
         for (i = 0; i < contextSoftware._vertexBuffers.length; i++) {
             var buffer:VertexBufferSoftware = contextSoftware._vertexBuffers[i];
             if (!buffer) continue;
 
-            var attribute:Vector3D = new Vector3D();
+            var attribute:Vector3D = new Vector3D(0,0,0,1);
 
             var index:number = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
             if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_1) {
@@ -113,7 +112,6 @@ class ProgramSoftware implements IProgram {
                 attribute.z = buffer.data[index + 2];
                 attribute.w = buffer.data[index + 3];
             }
-
             vo.attributes[i] = attribute;
         }
 
@@ -135,11 +133,10 @@ class ProgramSoftware implements IProgram {
             var varying2:Vector3D = vo2.varying[i];
             if (!varying0 || !varying1 || !varying2) continue;
 
-            var result:Vector3D = vo.varying[i] = new Vector3D();
-
+            var result:Vector3D = vo.varying[i] = new Vector3D(0,0,0,1);
             result.x = clip.x * varying0.x + clip.y * varying1.x + clip.z * varying2.x;
             result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
-            result.z = clip.x * varying0.y + clip.y * varying1.z + clip.z * varying2.z;
+            result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
             result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
         }
 
@@ -170,7 +167,7 @@ class ProgramSoftware implements IProgram {
         var targetIndex:number = dest.regnum;
         var target:Vector3D = targetType[targetIndex];
         if (!target) {
-            target = targetType[targetIndex] = new Vector3D();
+            target = targetType[targetIndex] = new Vector3D(0,0,0,1);
         }
         return target;
     }
@@ -197,7 +194,7 @@ class ProgramSoftware implements IProgram {
     private static getSourceTargetByIndex(targetType:Vector3D[], targetIndex:number):Vector3D {
         var target:Vector3D = targetType[targetIndex];
         if (!target) {
-            target = targetType[targetIndex] = new Vector3D();
+            target = targetType[targetIndex] = new Vector3D(0,0,0,1);
         }
         return target;
     }
@@ -326,19 +323,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] + source2Target[swiz[(source1.swizzle >> 0) & 3]];
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] + source2Target[swiz[(source2.swizzle >> 0) & 3]];
         }
 
         if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] + source2Target[swiz[(source1.swizzle >> 2) & 3]];
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] + source2Target[swiz[(source2.swizzle >> 2) & 3]];
         }
 
         if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] + source2Target[swiz[(source1.swizzle >> 4) & 3]];
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] + source2Target[swiz[(source2.swizzle >> 4) & 3]];
         }
 
         if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] + source2Target[swiz[(source1.swizzle >> 6) & 3]];
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] + source2Target[swiz[(source2.swizzle >> 6) & 3]];
         }
     }
 
@@ -351,19 +348,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] - source2Target[swiz[(source1.swizzle >> 0) & 3]];
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] - source2Target[swiz[(source2.swizzle >> 0) & 3]];
         }
 
         if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] - source2Target[swiz[(source1.swizzle >> 2) & 3]];
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] - source2Target[swiz[(source2.swizzle >> 2) & 3]];
         }
 
         if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] - source2Target[swiz[(source1.swizzle >> 4) & 3]];
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] - source2Target[swiz[(source2.swizzle >> 4) & 3]];
         }
 
         if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] - source2Target[swiz[(source1.swizzle >> 6) & 3]];
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] - source2Target[swiz[(source2.swizzle >> 6) & 3]];
         }
     }
 
@@ -376,19 +373,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] * source2Target[swiz[(source1.swizzle >> 0) & 3]];
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] * source2Target[swiz[(source2.swizzle >> 0) & 3]];
         }
 
         if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] * source2Target[swiz[(source1.swizzle >> 2) & 3]];
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] * source2Target[swiz[(source2.swizzle >> 2) & 3]];
         }
 
         if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] * source2Target[swiz[(source1.swizzle >> 4) & 3]];
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] * source2Target[swiz[(source2.swizzle >> 4) & 3]];
         }
 
         if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] * source2Target[swiz[(source1.swizzle >> 6) & 3]];
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] * source2Target[swiz[(source2.swizzle >> 6) & 3]];
         }
     }
 
@@ -401,19 +398,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] / source2Target[swiz[(source1.swizzle >> 0) & 3]];
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] / source2Target[swiz[(source2.swizzle >> 0) & 3]];
         }
 
         if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] / source2Target[swiz[(source1.swizzle >> 2) & 3]];
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] / source2Target[swiz[(source2.swizzle >> 2) & 3]];
         }
 
         if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] / source2Target[swiz[(source1.swizzle >> 4) & 3]];
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] / source2Target[swiz[(source2.swizzle >> 4) & 3]];
         }
 
         if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] / source2Target[swiz[(source1.swizzle >> 6) & 3]];
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] / source2Target[swiz[(source2.swizzle >> 6) & 3]];
         }
     }
 
@@ -450,19 +447,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = Math.min(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source1.swizzle >> 0) & 3]]);
+            target.x = Math.min(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source2.swizzle >> 0) & 3]]);
         }
 
         if (dest.mask & 2) {
-            target.y = Math.min(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source1.swizzle >> 2) & 3]]);
+            target.y = Math.min(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source2.swizzle >> 2) & 3]]);
         }
 
         if (dest.mask & 4) {
-            target.z = Math.min(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source1.swizzle >> 4) & 3]]);
+            target.z = Math.min(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source2.swizzle >> 4) & 3]]);
         }
 
         if (dest.mask & 8) {
-            target.w = Math.min(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source1.swizzle >> 6) & 3]]);
+            target.w = Math.min(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source2.swizzle >> 6) & 3]]);
         }
     }
 
@@ -475,19 +472,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = Math.max(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source1.swizzle >> 0) & 3]]);
+            target.x = Math.max(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source2.swizzle >> 0) & 3]]);
         }
 
         if (dest.mask & 2) {
-            target.y = Math.max(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source1.swizzle >> 2) & 3]]);
+            target.y = Math.max(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source2.swizzle >> 2) & 3]]);
         }
 
         if (dest.mask & 4) {
-            target.z = Math.max(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source1.swizzle >> 4) & 3]]);
+            target.z = Math.max(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source2.swizzle >> 4) & 3]]);
         }
 
         if (dest.mask & 8) {
-            target.w = Math.max(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source1.swizzle >> 6) & 3]]);
+            target.w = Math.max(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source2.swizzle >> 6) & 3]]);
         }
     }
 
@@ -572,19 +569,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = Math.pow(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source1.swizzle >> 0) & 3]]);
+            target.x = Math.pow(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source2.swizzle >> 0) & 3]]);
         }
 
         if (dest.mask & 2) {
-            target.y = Math.pow(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source1.swizzle >> 2) & 3]]);
+            target.y = Math.pow(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source2.swizzle >> 2) & 3]]);
         }
 
         if (dest.mask & 4) {
-            target.z = Math.pow(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source1.swizzle >> 4) & 3]]);
+            target.z = Math.pow(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source2.swizzle >> 4) & 3]]);
         }
 
         if (dest.mask & 8) {
-            target.w = Math.pow(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source1.swizzle >> 6) & 3]]);
+            target.w = Math.pow(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source2.swizzle >> 6) & 3]]);
         }
     }
 
@@ -759,6 +756,18 @@ class ProgramSoftware implements IProgram {
         if (dest.mask & 1) {
             target.x = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
         }
+
+        if (dest.mask & 2) {
+            target.y = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+        }
+
+        if (dest.mask & 4) {
+            target.z = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+        }
+
+        if (dest.mask & 8) {
+            target.w = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+        }
     }
 
     public static dp4(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
@@ -780,6 +789,18 @@ class ProgramSoftware implements IProgram {
 
         if (dest.mask & 1) {
             target.x = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+        }
+
+        if (dest.mask & 2) {
+            target.y = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+        }
+
+        if (dest.mask & 4) {
+            target.z = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+        }
+
+        if (dest.mask & 8) {
+            target.w = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
         }
     }
 
@@ -885,10 +906,6 @@ class ProgramSoftware implements IProgram {
 
       if (dest.mask & 4) {
           target.z = result.z;
-      }
-
-      if (dest.mask & 8) {
-          target.w = result.w;
       }
     }
 
