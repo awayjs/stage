@@ -1180,8 +1180,9 @@ module.exports = ContextGLProfile;
 var ContextGLProgramType = (function () {
     function ContextGLProgramType() {
     }
-    ContextGLProgramType.FRAGMENT = "fragment";
-    ContextGLProgramType.VERTEX = "vertex";
+    ContextGLProgramType.FRAGMENT = 0;
+    ContextGLProgramType.SAMPLER = 1;
+    ContextGLProgramType.VERTEX = 2;
     return ContextGLProgramType;
 })();
 module.exports = ContextGLProgramType;
@@ -1241,11 +1242,11 @@ module.exports = ContextGLTriangleFace;
 var ContextGLVertexBufferFormat = (function () {
     function ContextGLVertexBufferFormat() {
     }
-    ContextGLVertexBufferFormat.BYTES_4 = "bytes4";
-    ContextGLVertexBufferFormat.FLOAT_1 = "float1";
-    ContextGLVertexBufferFormat.FLOAT_2 = "float2";
-    ContextGLVertexBufferFormat.FLOAT_3 = "float3";
-    ContextGLVertexBufferFormat.FLOAT_4 = "float4";
+    ContextGLVertexBufferFormat.BYTES_4 = 0;
+    ContextGLVertexBufferFormat.FLOAT_1 = 1;
+    ContextGLVertexBufferFormat.FLOAT_2 = 2;
+    ContextGLVertexBufferFormat.FLOAT_3 = 3;
+    ContextGLVertexBufferFormat.FLOAT_4 = 4;
     return ContextGLVertexBufferFormat;
 })();
 module.exports = ContextGLVertexBufferFormat;
@@ -1975,8 +1976,7 @@ var ContextWebGL = (function () {
         this._wrapDictionary = new Object();
         this._filterDictionary = new Object();
         this._mipmapFilterDictionary = new Object();
-        this._uniformLocationNameDictionary = new Object();
-        this._vertexBufferPropertiesDictionary = new Object();
+        this._vertexBufferPropertiesDictionary = [];
         this._indexBufferList = new Array();
         this._vertexBufferList = new Array();
         this._textureList = new Array();
@@ -2053,8 +2053,6 @@ var ContextWebGL = (function () {
             this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
             this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
             this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNONE] = this._gl.NEAREST;
-            this._uniformLocationNameDictionary[ContextGLProgramType.VERTEX] = "vc";
-            this._uniformLocationNameDictionary[ContextGLProgramType.FRAGMENT] = "fc";
             this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
             this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
             this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
@@ -2287,11 +2285,10 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
         if (numRegisters === void 0) { numRegisters = -1; }
-        var locationName = this._uniformLocationNameDictionary[programType];
         var startIndex;
         for (var i = 0; i < numRegisters; i++) {
             startIndex = i * 4;
-            this._gl.uniform4f(this._currentProgram.getUniformLocation(locationName + (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+            this._gl.uniform4f(this._currentProgram.getUniformLocation(programType, (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
         }
     };
     ContextWebGL.prototype.setScissorRectangle = function (rectangle) {
@@ -2318,7 +2315,7 @@ var ContextWebGL = (function () {
         var textureType = this._textureTypeDictionary[texture.textureType];
         samplerState.type = textureType;
         this._gl.bindTexture(textureType, texture.glTexture);
-        this._gl.uniform1i(this._currentProgram.getUniformLocation("fs" + sampler), sampler);
+        this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
@@ -2336,15 +2333,19 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.setVertexBufferAt = function (index, buffer, bufferOffset, format) {
         if (bufferOffset === void 0) { bufferOffset = 0; }
-        if (format === void 0) { format = null; }
-        var location = this._currentProgram ? this._currentProgram.getAttribLocation("va" + index) : -1;
+        if (format === void 0) { format = 4; }
+        var location = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
         if (!buffer) {
             if (location > -1)
                 this._gl.disableVertexAttribArray(location);
             return;
         }
+        //buffer may not have changed if concatenated buffers are being used
+        if (this._currentArrayBuffer != buffer) {
+            this._currentArrayBuffer = buffer;
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
+        }
         var properties = this._vertexBufferPropertiesDictionary[format];
-        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer.glBuffer);
         this._gl.enableVertexAttribArray(location);
         this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
     };
@@ -3498,6 +3499,8 @@ var AGALTokenizer = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
 var AGLSLParser = require("awayjs-stagegl/lib/aglsl/AGLSLParser");
 var ProgramWebGL = (function () {
     function ProgramWebGL(gl) {
+        this._uniforms = [[], [], []];
+        this._attribs = [];
         this._gl = gl;
         this._program = this._gl.createProgram();
     }
@@ -3524,18 +3527,20 @@ var ProgramWebGL = (function () {
         if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
             throw new Error(this._gl.getProgramInfoLog(this._program));
         }
-        this._uniforms = new Object();
-        this._attribs = new Object();
+        this._uniforms[0].length = 0;
+        this._uniforms[1].length = 0;
+        this._uniforms[2].length = 0;
+        this._attribs.length = 0;
     };
-    ProgramWebGL.prototype.getUniformLocation = function (name) {
-        if (this._uniforms[name] != null)
-            return this._uniforms[name];
-        return (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
+    ProgramWebGL.prototype.getUniformLocation = function (programType, index) {
+        if (this._uniforms[programType][index] != null)
+            return this._uniforms[programType][index];
+        return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
     };
-    ProgramWebGL.prototype.getAttribLocation = function (name) {
-        if (this._attribs[name] != null)
-            return this._attribs[name];
-        return (this._attribs[name] = this._gl.getAttribLocation(this._program, name));
+    ProgramWebGL.prototype.getAttribLocation = function (index) {
+        if (this._attribs[index] != null)
+            return this._attribs[index];
+        return (this._attribs[index] = this._gl.getAttribLocation(this._program, "va" + index));
     };
     ProgramWebGL.prototype.dispose = function () {
         this._gl.deleteProgram(this._program);
@@ -3552,6 +3557,7 @@ var ProgramWebGL = (function () {
     });
     ProgramWebGL._tokenizer = new AGALTokenizer();
     ProgramWebGL._aglslParser = new AGLSLParser();
+    ProgramWebGL._uniformLocationNameDictionary = ["fc", "fs", "vc"];
     return ProgramWebGL;
 })();
 module.exports = ProgramWebGL;
