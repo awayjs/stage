@@ -65,7 +65,7 @@ class ContextSoftware implements IContextGL {
     public _textures:Array<TextureSoftware> = [];
     public _vertexBuffers:Array<VertexBufferSoftware> = [];
     public _vertexBufferOffsets:Array<number> = [];
-    public _vertexBufferFormats:Array<string> = [];
+    public _vertexBufferFormats:Array<number> = [];
 
     public _fragmentConstants:Array<Vector3D> = [];
     public _vertexConstants:Array<Vector3D> = [];
@@ -175,7 +175,7 @@ class ContextSoftware implements IContextGL {
         this._program = program;
     }
 
-    public setProgramConstantsFromMatrix(programType:string, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean) {
+    public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean) {
         console.log("setProgramConstantsFromMatrix: programType" + programType + " firstRegister: " + firstRegister + " matrix: " + matrix + " transposedMatrix: " + transposedMatrix);
 
         if (transposedMatrix) {
@@ -197,7 +197,7 @@ class ContextSoftware implements IContextGL {
         }
     }
 
-    public setProgramConstantsFromArray(programType:string, firstRegister:number, data:number[], numRegisters:number) {
+    public setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters:number) {
         console.log("setProgramConstantsFromArray: programType" + programType + " firstRegister: " + firstRegister + " data: " + data + " numRegisters: " + numRegisters);
         var target:Array<Vector3D>;
         if (programType == ContextGLProgramType.VERTEX) {
@@ -217,7 +217,7 @@ class ContextSoftware implements IContextGL {
         this._textures[sampler] = texture;
     }
 
-    public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:string) {
+    public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number) {
         console.log("setVertexBufferAt index: " + index + " buffer: " + buffer + " bufferOffset: " + bufferOffset + " format: " + format);
         this._vertexBuffers[index] = buffer;
         this._vertexBufferOffsets[index] = bufferOffset;

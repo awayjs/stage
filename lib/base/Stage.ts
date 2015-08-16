@@ -81,7 +81,7 @@ class Stage extends EventDispatcher
 
 	private _initialised:boolean = false;
 
-	private _bufferFormatDictionary:Array<Array<string>> = new Array<Array<string>>(5);
+	private _bufferFormatDictionary:Array<Array<number>> = new Array<Array<number>>(5);
 
 	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:string = "baseline")
 	{
@@ -104,9 +104,9 @@ class Stage extends EventDispatcher
 		CSS.setElementX(this._container, 0);
 		CSS.setElementY(this._container, 0);
 
-		this._bufferFormatDictionary[1] = new Array<string>(5);
+		this._bufferFormatDictionary[1] = new Array<number>(5);
 		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTES_4;
-		this._bufferFormatDictionary[4] = new Array<string>(5);
+		this._bufferFormatDictionary[4] = new Array<number>(5);
 		this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
 		this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
 		this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;

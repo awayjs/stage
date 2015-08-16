@@ -3,19 +3,20 @@ import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 import AGALTokenizer				= require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
 import AGLSLParser					= require("awayjs-stagegl/lib/aglsl/AGLSLParser");
 import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
-
+import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 
 class ProgramWebGL implements IProgram
 {
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
 	private static _aglslParser:AGLSLParser = new AGLSLParser();
+	private static _uniformLocationNameDictionary:Array<string> = ["fc", "fs", "vc"];
 
 	private _gl:WebGLRenderingContext;
 	private _program:WebGLProgram;
 	private _vertexShader:WebGLShader;
 	private _fragmentShader:WebGLShader;
-	private _uniforms:Object;
-	private _attribs:Object;
+	private _uniforms:Array<Array<WebGLUniformLocation>> = [[],[],[]];
+	private _attribs:Array<number> = [];
 
 	constructor(gl:WebGLRenderingContext)
 	{
@@ -55,25 +56,27 @@ class ProgramWebGL implements IProgram
 			throw new Error(this._gl.getProgramInfoLog(this._program));
 		}
 
-		this._uniforms = new Object();
-		this._attribs = new Object();
+		this._uniforms[0].length = 0;
+		this._uniforms[1].length = 0;
+		this._uniforms[2].length = 0;
+		this._attribs.length = 0;
 	}
 
-	public getUniformLocation(name:string):WebGLUniformLocation
+	public getUniformLocation(programType:number, index:number):WebGLUniformLocation
 	{
-		if (this._uniforms[name] != null)
-			return this._uniforms[name];
+		if (this._uniforms[programType][index] != null)
+			return this._uniforms[programType][index];
 
-		return (this._uniforms[name] = this._gl.getUniformLocation(this._program, name));
+		return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
 	}
 
 
-	public getAttribLocation(name:string):number
+	public getAttribLocation(index:number):number
 	{
-		if (this._attribs[name] != null)
-			return this._attribs[name];
+		if (this._attribs[index] != null)
+			return this._attribs[index];
 
-		return (this._attribs[name] = this._gl.getAttribLocation(this._program, name));
+		return (this._attribs[index] = this._gl.getAttribLocation(this._program, "va" + index));
 	}
 
 

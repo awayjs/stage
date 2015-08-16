@@ -51,9 +51,9 @@ interface IContextGL
 
 	setProgram(program:IProgram);
 
-	setProgramConstantsFromMatrix(programType:string, firstRegister:number, matrix:Matrix3D, transposedMatrix?:boolean);
+	setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix?:boolean);
 
-	setProgramConstantsFromArray(programType:string, firstRegister:number, data:number[], numRegisters?:number);
+	setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters?:number);
 
 	setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string);
 
@@ -61,7 +61,7 @@ interface IContextGL
 
 	setTextureAt(sampler:number, texture:ITextureBase);
 
-	setVertexBufferAt(index:number, buffer:IVertexBuffer, bufferOffset?:number, format?:string);
+	setVertexBufferAt(index:number, buffer:IVertexBuffer, bufferOffset?:number, format?:number);
 
 	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number);
 

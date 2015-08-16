@@ -1,7 +1,8 @@
 class ContextGLProgramType
 {
-	static FRAGMENT:string = "fragment";
-	static VERTEX:string = "vertex";
+	static FRAGMENT:number = 0;
+	static SAMPLER:number = 1;
+	static VERTEX:number = 2;
 }
 
 export = ContextGLProgramType;

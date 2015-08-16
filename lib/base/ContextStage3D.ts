@@ -199,7 +199,7 @@ class ContextStage3D implements IContextGL
 	}
 
 
-	public setProgramConstantsFromMatrix(programType:string, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
+	public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
 	{
 		//this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
 
@@ -218,7 +218,7 @@ class ContextStage3D implements IContextGL
 		}
 	}
 
-	public setProgramConstantsFromArray(programType:string, firstRegister:number, data:number[], numRegisters:number = -1)
+	public setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters:number = -1)
 	{
 		var startIndex:number;
 		var target:number = (programType == ContextGLProgramType.VERTEX)? OpCodes.trueValue : OpCodes.falseValue;
@@ -282,7 +282,7 @@ class ContextStage3D implements IContextGL
 		//TODO
 	}
 
-	public setVertexBufferAt(index:number, buffer:VertexBufferFlash, bufferOffset:number = 0, format:string = null)
+	public setVertexBufferAt(index:number, buffer:VertexBufferFlash, bufferOffset:number = 0, format:number = null)
 	{
 		if (buffer) {
 			this.addStream(String.fromCharCode(OpCodes.setVertexBufferAt, index + OpCodes.intMask) + buffer.id + "," + bufferOffset + "," + format + "$");

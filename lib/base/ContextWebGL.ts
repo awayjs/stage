@@ -34,8 +34,7 @@ class ContextWebGL implements IContextGL
 	private _wrapDictionary:Object = new Object();
 	private _filterDictionary:Object = new Object();
 	private _mipmapFilterDictionary:Object = new Object();
-	private _uniformLocationNameDictionary:Object = new Object();
-	private _vertexBufferPropertiesDictionary:Object = new Object();
+	private _vertexBufferPropertiesDictionary:Array<VertexBufferProperties> = [];
 
 	private _container:HTMLElement;
 	private _width:number;
@@ -61,6 +60,7 @@ class ContextWebGL implements IContextGL
 
 	//@protected
 	public _currentProgram:ProgramWebGL;
+	private _currentArrayBuffer:VertexBufferWebGL;
 	private _activeTexture:number;
 
     private _stencilCompareMode:number;
@@ -162,9 +162,6 @@ class ContextWebGL implements IContextGL
 			this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
 			this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
 			this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNONE] = this._gl.NEAREST;
-
-			this._uniformLocationNameDictionary[ContextGLProgramType.VERTEX] = "vc";
-			this._uniformLocationNameDictionary[ContextGLProgramType.FRAGMENT] = "fc";
 
 			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
 			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
@@ -410,7 +407,7 @@ class ContextWebGL implements IContextGL
 		program.focusProgram();
 	}
 
-	public setProgramConstantsFromMatrix(programType:string, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
+	public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
 	{
 		//this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
 
@@ -431,13 +428,12 @@ class ContextWebGL implements IContextGL
 
 	public static modulo:number = 0;
 
-	public setProgramConstantsFromArray(programType:string, firstRegister:number, data:number[], numRegisters:number = -1)
+	public setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters:number = -1)
 	{
-		var locationName:string = this._uniformLocationNameDictionary[programType];
 		var startIndex:number;
 		for (var i:number = 0; i < numRegisters; i++) {
 			startIndex = i*4;
-			this._gl.uniform4f(this._currentProgram.getUniformLocation(locationName + (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
+			this._gl.uniform4f(this._currentProgram.getUniformLocation(programType, (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
 		}
 	}
 
@@ -475,7 +471,7 @@ class ContextWebGL implements IContextGL
 
 		this._gl.bindTexture(textureType, texture.glTexture);
 
-		this._gl.uniform1i(this._currentProgram.getUniformLocation("fs" + sampler), sampler);
+		this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
 
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
@@ -495,9 +491,9 @@ class ContextWebGL implements IContextGL
 		}
 	}
 
-	public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:string = null)
+	public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:number = 4)
 	{
-		var location:number = this._currentProgram? this._currentProgram.getAttribLocation("va" + index) : -1;
+		var location:number = this._currentProgram? this._currentProgram.getAttribLocation(index) : -1;
 
 		if (!buffer) {
 			if (location > -1)
@@ -506,9 +502,14 @@ class ContextWebGL implements IContextGL
 			return;
 		}
 
+		//buffer may not have changed if concatenated buffers are being used
+		if (this._currentArrayBuffer != buffer) {
+			this._currentArrayBuffer = buffer;
+			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer? buffer.glBuffer : null);
+		}
+
 		var properties:VertexBufferProperties = this._vertexBufferPropertiesDictionary[format];
 
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer.glBuffer);
 		this._gl.enableVertexAttribArray(location);
 		this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
 	}
