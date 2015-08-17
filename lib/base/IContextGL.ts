@@ -53,7 +53,7 @@ interface IContextGL
 
 	setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix?:boolean);
 
-	setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters?:number);
+	setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters?:number);
 
 	setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string);
 

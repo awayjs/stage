@@ -1,5 +1,6 @@
 import BitmapImage2D				= require("awayjs-core/lib/data/BitmapImage2D");
 import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
+import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
 import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
 import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
 
@@ -407,28 +408,42 @@ class ContextWebGL implements IContextGL
 		program.focusProgram();
 	}
 
+	private static _float4:Float32Array = new Float32Array(4);
+
 	public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
 	{
 		//this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
 
 		//TODO remove special case for WebGL matrix calls?
-		var d:number[] = matrix.rawData;
+		var d:Float32Array = matrix.rawData;
 		if (transposedMatrix) {
-			this.setProgramConstantsFromArray(programType, firstRegister, [ d[0], d[4], d[8], d[12] ], 1);
-			this.setProgramConstantsFromArray(programType, firstRegister + 1, [ d[1], d[5], d[9], d[13] ], 1);
-			this.setProgramConstantsFromArray(programType, firstRegister + 2, [ d[2], d[6], d[10], d[14] ], 1);
-			this.setProgramConstantsFromArray(programType, firstRegister + 3, [ d[3], d[7], d[11], d[15] ], 1);
+			var raw:Float32Array = Matrix3DUtils.RAW_DATA_CONTAINER;
+			raw[0] = d[0];
+			raw[1] = d[4];
+			raw[2] = d[8];
+			raw[3] = d[12];
+			raw[4] = d[1];
+			raw[5] = d[5];
+			raw[6] = d[9];
+			raw[7] = d[13];
+			raw[8] = d[2];
+			raw[9] = d[6];
+			raw[10] = d[10];
+			raw[11] = d[14];
+			raw[12] = d[3];
+			raw[13] = d[7];
+			raw[14] = d[11];
+			raw[15] = d[15];
+
+			this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
 		} else {
-			this.setProgramConstantsFromArray(programType, firstRegister, [ d[0], d[1], d[2], d[3] ], 1);
-			this.setProgramConstantsFromArray(programType, firstRegister + 1, [ d[4], d[5], d[6], d[7] ], 1);
-			this.setProgramConstantsFromArray(programType, firstRegister + 2, [ d[8], d[9], d[10], d[11] ], 1);
-			this.setProgramConstantsFromArray(programType, firstRegister + 3, [ d[12], d[13], d[14], d[15] ], 1);
+			this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
 		}
 	}
 
 	public static modulo:number = 0;
 
-	public setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters:number = -1)
+	public setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters:number = -1)
 	{
 		var startIndex:number;
 		for (var i:number = 0; i < numRegisters; i++) {

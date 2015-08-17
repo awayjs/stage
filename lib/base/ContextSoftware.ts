@@ -108,12 +108,28 @@ class ContextSoftware implements IContextGL {
 
         this._backBufferColor._setSize(width, height);
 
-        this._screenMatrix.rawData = [
-            this._backBufferWidth / 2, 0, 0, this._backBufferWidth / 2,
-            0, -this._backBufferHeight / 2, 0, this._backBufferHeight / 2,
-            0, 0, 1, 0,
-            0, 0, 0, 0
-        ];
+        var raw:Float32Array = this._screenMatrix.rawData;
+
+        raw[0] = this._backBufferWidth / 2;
+        raw[1] = 0;
+        raw[2] = 0;
+        raw[3] = this._backBufferWidth / 2;
+
+        raw[4] = 0;
+        raw[5] = -this._backBufferHeight / 2;
+        raw[6] = 0;
+        raw[7] = this._backBufferHeight / 2;
+
+        raw[8] = 0;
+        raw[9] = 0;
+        raw[10] = 1;
+        raw[11] = 0;
+
+        raw[12] = 0;
+        raw[13] = 0;
+        raw[14] = 0;
+        raw[15] = 0;
+
         this._screenMatrix.transpose();
     }
 
@@ -192,13 +208,13 @@ class ContextSoftware implements IContextGL {
             target = this._fragmentConstants;
         }
 
-        var matrixData:number[] = matrix.rawData;
+        var matrixData:Float32Array = matrix.rawData;
         for (var i:number = firstRegister; i < firstRegister + 4; i++) {
             target[i] = new Vector3D(matrixData[i * 4], matrixData[i * 4 + 1], matrixData[i * 4 + 2], matrixData[i * 4 + 3]);
         }
     }
 
-    public setProgramConstantsFromArray(programType:number, firstRegister:number, data:number[], numRegisters:number) {
+    public setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters:number) {
         console.log("setProgramConstantsFromArray: programType" + programType + " firstRegister: " + firstRegister + " data: " + data + " numRegisters: " + numRegisters);
         var target:Array<Vector3D>;
         if (programType == ContextGLProgramType.VERTEX) {

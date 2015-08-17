@@ -245,12 +245,12 @@ class ProgramSoftware implements IProgram {
         var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
         var source2Target3:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 3);
 
-        var matrix:Matrix3D = new Matrix3D([
+        var matrix:Matrix3D = new Matrix3D(new Float32Array([
             source2Target0.x, source2Target1.x, source2Target2.x, source2Target3.x,
             source2Target0.y, source2Target1.y, source2Target2.y, source2Target3.y,
             source2Target0.z, source2Target1.z, source2Target2.z, source2Target3.z,
             source2Target0.w, source2Target1.w, source2Target2.w, source2Target3.w
-        ]);
+        ]));
 
         var result:Vector3D = matrix.transformVector(source1Target);
 
@@ -892,12 +892,12 @@ class ProgramSoftware implements IProgram {
         var source2Target1:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
         var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
 
-        var matrix:Matrix3D = new Matrix3D([
+        var matrix:Matrix3D = new Matrix3D(new Float32Array([
             source2Target0.x, source2Target1.x, source2Target2.x, 0,
             source2Target0.y, source2Target1.y, source2Target2.y, 0,
             source2Target0.z, source2Target1.z, source2Target2.z, 0,
             0, 0, 0, 0
-        ]);
+        ]));
 
         var result:Vector3D = matrix.transformVector(source1Target);
 
@@ -925,12 +925,12 @@ class ProgramSoftware implements IProgram {
         var source2Target1:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
         var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
 
-        var matrix:Matrix3D = new Matrix3D([
+        var matrix:Matrix3D = new Matrix3D(new Float32Array([
             source2Target0.x, source2Target1.x, source2Target2.x, 0,
             source2Target0.y, source2Target1.y, source2Target2.y, 0,
             source2Target0.z, source2Target1.z, source2Target2.z, 0,
             source2Target0.w, source2Target1.w, source2Target2.w, 1
-        ]);
+        ]));
 
         var result:Vector3D = matrix.transformVector(source1Target);
 
