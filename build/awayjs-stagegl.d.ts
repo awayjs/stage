@@ -467,7 +467,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    setDepthTest(depthMask: boolean, passCompareMode: string): void;
 	    setProgram(program: ProgramSoftware): void;
 	    setProgramConstantsFromMatrix(programType: number, firstRegister: number, matrix: Matrix3D, transposedMatrix: boolean): void;
-	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: number[], numRegisters: number): void;
+	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: Float32Array, numRegisters: number): void;
 	    setTextureAt(sampler: number, texture: TextureSoftware): void;
 	    setVertexBufferAt(index: number, buffer: VertexBufferSoftware, bufferOffset: number, format: number): void;
 	    present(): void;
@@ -479,6 +479,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    setRenderToTexture(target: ITextureBase, enableDepthAndStencil: boolean, antiAlias: number, surfaceSelector: number): void;
 	    setRenderToBackBuffer(): void;
 	    putPixel(x: number, y: number, color: number): void;
+	    private applyBlendMode(argb, blend, dest, source);
 	    drawRect(x: number, y: number, color: number): void;
 	    clamp(value: number, min?: number, max?: number): number;
 	    interpolate(min: number, max: number, gradient: number): number;
@@ -537,7 +538,7 @@ declare module "awayjs-stagegl/lib/base/ContextStage3D" {
 	    drawIndices(mode: string, indexBuffer: IndexBufferFlash, firstIndex?: number, numIndices?: number): void;
 	    drawVertices(mode: string, firstVertex?: number, numVertices?: number): void;
 	    setProgramConstantsFromMatrix(programType: number, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
-	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: number[], numRegisters?: number): void;
+	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: Float32Array, numRegisters?: number): void;
 	    setProgram(program: ProgramFlash): void;
 	    present(): void;
 	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
@@ -630,9 +631,10 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    setStencilActions(triangleFace?: string, compareMode?: string, actionOnBothPass?: string, actionOnDepthFail?: string, actionOnDepthPassStencilFail?: string, coordinateSystem?: string): void;
 	    setStencilReferenceValue(referenceValue: number, readMask: number, writeMask: number): void;
 	    setProgram(program: ProgramWebGL): void;
+	    private static _float4;
 	    setProgramConstantsFromMatrix(programType: number, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): void;
 	    static modulo: number;
-	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: number[], numRegisters?: number): void;
+	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: Float32Array, numRegisters?: number): void;
 	    setScissorRectangle(rectangle: Rectangle): void;
 	    setTextureAt(sampler: number, texture: TextureBaseWebGL): void;
 	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): void;
@@ -718,7 +720,7 @@ declare module "awayjs-stagegl/lib/base/IContextGL" {
 	    setDepthTest(depthMask: boolean, passCompareMode: string): any;
 	    setProgram(program: IProgram): any;
 	    setProgramConstantsFromMatrix(programType: number, firstRegister: number, matrix: Matrix3D, transposedMatrix?: boolean): any;
-	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: number[], numRegisters?: number): any;
+	    setProgramConstantsFromArray(programType: number, firstRegister: number, data: Float32Array, numRegisters?: number): any;
 	    setSamplerStateAt(sampler: number, wrap: string, filter: string, mipfilter: string): any;
 	    setScissorRectangle(rectangle: Rectangle): any;
 	    setTextureAt(sampler: number, texture: ITextureBase): any;
@@ -962,6 +964,11 @@ declare module "awayjs-stagegl/lib/base/ProgramSoftware" {
 	    static sat(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static m33(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static m34(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sge(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static slt(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static seq(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sne(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static sgn(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static kil(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	}
 	export = ProgramSoftware;
