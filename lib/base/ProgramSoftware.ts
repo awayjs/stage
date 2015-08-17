@@ -61,7 +61,12 @@ class ProgramSoftware implements IProgram {
         null,//37
         null,//38
         ProgramSoftware.kil,
-        ProgramSoftware.tex
+        ProgramSoftware.tex,
+        ProgramSoftware.sge,
+        ProgramSoftware.slt,
+        ProgramSoftware.sgn,
+        ProgramSoftware.seq,
+        ProgramSoftware.sne
     ];
 
     private _vertexDescr:Description;
@@ -88,7 +93,7 @@ class ProgramSoftware implements IProgram {
             var buffer:VertexBufferSoftware = contextSoftware._vertexBuffers[i];
             if (!buffer) continue;
 
-            var attribute:Vector3D = new Vector3D(0,0,0,1);
+            var attribute:Vector3D = new Vector3D(0, 0, 0, 1);
 
             var index:number = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
             if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_1) {
@@ -133,7 +138,7 @@ class ProgramSoftware implements IProgram {
             var varying2:Vector3D = vo2.varying[i];
             if (!varying0 || !varying1 || !varying2) continue;
 
-            var result:Vector3D = vo.varying[i] = new Vector3D(0,0,0,1);
+            var result:Vector3D = vo.varying[i] = new Vector3D(0, 0, 0, 1);
             result.x = clip.x * varying0.x + clip.y * varying1.x + clip.z * varying2.x;
             result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
             result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
@@ -167,7 +172,7 @@ class ProgramSoftware implements IProgram {
         var targetIndex:number = dest.regnum;
         var target:Vector3D = targetType[targetIndex];
         if (!target) {
-            target = targetType[targetIndex] = new Vector3D(0,0,0,1);
+            target = targetType[targetIndex] = new Vector3D(0, 0, 0, 1);
         }
         return target;
     }
@@ -194,7 +199,7 @@ class ProgramSoftware implements IProgram {
     private static getSourceTargetByIndex(targetType:Vector3D[], targetIndex:number):Vector3D {
         var target:Vector3D = targetType[targetIndex];
         if (!target) {
-            target = targetType[targetIndex] = new Vector3D(0,0,0,1);
+            target = targetType[targetIndex] = new Vector3D(0, 0, 0, 1);
         }
         return target;
     }
@@ -422,19 +427,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = 1/source1Target[swiz[(source1.swizzle >> 0) & 3]];
+            target.x = 1 / source1Target[swiz[(source1.swizzle >> 0) & 3]];
         }
 
         if (dest.mask & 2) {
-            target.y = 1/source1Target[swiz[(source1.swizzle >> 2) & 3]];
+            target.y = 1 / source1Target[swiz[(source1.swizzle >> 2) & 3]];
         }
 
         if (dest.mask & 4) {
-            target.z = 1/source1Target[swiz[(source1.swizzle >> 4) & 3]];
+            target.z = 1 / source1Target[swiz[(source1.swizzle >> 4) & 3]];
         }
 
         if (dest.mask & 8) {
-            target.w = 1/source1Target[swiz[(source1.swizzle >> 6) & 3]];
+            target.w = 1 / source1Target[swiz[(source1.swizzle >> 6) & 3]];
         }
     }
 
@@ -544,19 +549,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = 1/Math.sqrt(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+            target.x = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
         }
 
         if (dest.mask & 2) {
-            target.y = 1/Math.sqrt(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+            target.y = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
         }
 
         if (dest.mask & 4) {
-            target.z = 1/Math.sqrt(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+            target.z = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
         }
 
         if (dest.mask & 8) {
-            target.w = 1/Math.sqrt(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+            target.w = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
         }
     }
 
@@ -593,19 +598,19 @@ class ProgramSoftware implements IProgram {
         var swiz:string[] = ["x", "y", "z", "w"];
 
         if (dest.mask & 1) {
-            target.x = Math.log(source1Target[swiz[(source1.swizzle >> 0) & 3]])/Math.LN2;
+            target.x = Math.log(source1Target[swiz[(source1.swizzle >> 0) & 3]]) / Math.LN2;
         }
 
         if (dest.mask & 2) {
-            target.y = Math.log(source1Target[swiz[(source1.swizzle >> 2) & 3]])/Math.LN2;
+            target.y = Math.log(source1Target[swiz[(source1.swizzle >> 2) & 3]]) / Math.LN2;
         }
 
         if (dest.mask & 4) {
-            target.z = Math.log(source1Target[swiz[(source1.swizzle >> 4) & 3]])/Math.LN2;
+            target.z = Math.log(source1Target[swiz[(source1.swizzle >> 4) & 3]]) / Math.LN2;
         }
 
         if (dest.mask & 8) {
-            target.w = Math.log(source1Target[swiz[(source1.swizzle >> 6) & 3]])/Math.LN2;
+            target.w = Math.log(source1Target[swiz[(source1.swizzle >> 6) & 3]]) / Math.LN2;
         }
     }
 
@@ -644,10 +649,10 @@ class ProgramSoftware implements IProgram {
         var y:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
         var z:number = source1Target[swiz[(source1.swizzle >> 4) & 3]];
 
-        var len:number = Math.sqrt(x*x+y*y+z*z);
-        x/=len;
-        y/=len;
-        z/=len;
+        var len:number = Math.sqrt(x * x + y * y + z * z);
+        x /= len;
+        y /= len;
+        z /= len;
 
         if (dest.mask & 1) {
             target.x = x;
@@ -754,19 +759,19 @@ class ProgramSoftware implements IProgram {
         var source2TargetZ:number = source2Target[swiz[(source2.swizzle >> 4) & 3]];
 
         if (dest.mask & 1) {
-            target.x = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+            target.x = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
         }
 
         if (dest.mask & 2) {
-            target.y = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+            target.y = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
         }
 
         if (dest.mask & 4) {
-            target.z = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+            target.z = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
         }
 
         if (dest.mask & 8) {
-            target.w = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
+            target.w = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
         }
     }
 
@@ -788,162 +793,347 @@ class ProgramSoftware implements IProgram {
         var source2TargetW:number = source2Target[swiz[(source2.swizzle >> 6) & 3]];
 
         if (dest.mask & 1) {
-            target.x = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+            target.x = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
         }
 
         if (dest.mask & 2) {
-            target.y = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+            target.y = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
         }
 
         if (dest.mask & 4) {
-            target.z = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+            target.z = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
         }
 
         if (dest.mask & 8) {
-            target.w = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ+source1TargetW*source2TargetW;
+            target.w = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
         }
     }
 
     public static abs(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
-      var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
 
-      var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-      var swiz:string[] = ["x", "y", "z", "w"];
+        var swiz:string[] = ["x", "y", "z", "w"];
 
-      if (dest.mask & 1) {
-          target.x = Math.abs(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-      }
+        if (dest.mask & 1) {
+            target.x = Math.abs(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
+        }
 
-      if (dest.mask & 2) {
-          target.y = Math.abs(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-      }
+        if (dest.mask & 2) {
+            target.y = Math.abs(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
+        }
 
-      if (dest.mask & 4) {
-          target.z = Math.abs(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-      }
+        if (dest.mask & 4) {
+            target.z = Math.abs(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
+        }
 
-      if (dest.mask & 8) {
-          target.w = Math.abs(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-      }
+        if (dest.mask & 8) {
+            target.w = Math.abs(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
+        }
     }
 
     public static neg(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
-      var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
 
-      var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-      var swiz:string[] = ["x", "y", "z", "w"];
+        var swiz:string[] = ["x", "y", "z", "w"];
 
-      if (dest.mask & 1) {
-          target.x = -source1Target[swiz[(source1.swizzle >> 0) & 3]];
-      }
+        if (dest.mask & 1) {
+            target.x = -source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
 
-      if (dest.mask & 2) {
-          target.y = -source1Target[swiz[(source1.swizzle >> 2) & 3]];
-      }
+        if (dest.mask & 2) {
+            target.y = -source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
 
-      if (dest.mask & 4) {
-          target.z = -source1Target[swiz[(source1.swizzle >> 4) & 3]];
-      }
+        if (dest.mask & 4) {
+            target.z = -source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
 
-      if (dest.mask & 8) {
-          target.w = -source1Target[swiz[(source1.swizzle >> 6) & 3]];
-      }
+        if (dest.mask & 8) {
+            target.w = -source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
     }
 
     public static sat(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
-      var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
 
-      var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-      var swiz:string[] = ["x", "y", "z", "w"];
+        var swiz:string[] = ["x", "y", "z", "w"];
 
-      if (dest.mask & 1) {
-          target.x = Math.max(0, Math.min(1,source1Target[swiz[(source1.swizzle >> 0) & 3]]));
-      }
+        if (dest.mask & 1) {
+            target.x = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 0) & 3]]));
+        }
 
-      if (dest.mask & 2) {
-          target.y = Math.max(0, Math.min(1,source1Target[swiz[(source1.swizzle >> 2) & 3]]));
-      }
+        if (dest.mask & 2) {
+            target.y = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 2) & 3]]));
+        }
 
-      if (dest.mask & 4) {
-          target.z = Math.max(0, Math.min(1,source1Target[swiz[(source1.swizzle >> 4) & 3]]));
-      }
+        if (dest.mask & 4) {
+            target.z = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 4) & 3]]));
+        }
 
-      if (dest.mask & 8) {
-          target.w = Math.max(0, Math.min(1,source1Target[swiz[(source1.swizzle >> 6) & 3]]));
-      }
+        if (dest.mask & 8) {
+            target.w = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 6) & 3]]));
+        }
     }
 
     public static m33(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
-      var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
 
-      var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-      var source2Type:Vector3D[] = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
+        var source2Type:Vector3D[] = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
 
-      var source2Target0:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
-      var source2Target1:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
-      var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
+        var source2Target0:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
+        var source2Target1:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
+        var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
 
-      var matrix:Matrix3D = new Matrix3D([
-          source2Target0.x, source2Target1.x, source2Target2.x, 0,
-          source2Target0.y, source2Target1.y, source2Target2.y, 0,
-          source2Target0.z, source2Target1.z, source2Target2.z, 0,
-          0,0,0,0
-      ]);
+        var matrix:Matrix3D = new Matrix3D([
+            source2Target0.x, source2Target1.x, source2Target2.x, 0,
+            source2Target0.y, source2Target1.y, source2Target2.y, 0,
+            source2Target0.z, source2Target1.z, source2Target2.z, 0,
+            0, 0, 0, 0
+        ]);
 
-      var result:Vector3D = matrix.transformVector(source1Target);
+        var result:Vector3D = matrix.transformVector(source1Target);
 
-      if (dest.mask & 1) {
-          target.x = result.x;
-      }
+        if (dest.mask & 1) {
+            target.x = result.x;
+        }
 
-      if (dest.mask & 2) {
-          target.y = result.y;
-      }
+        if (dest.mask & 2) {
+            target.y = result.y;
+        }
 
-      if (dest.mask & 4) {
-          target.z = result.z;
-      }
+        if (dest.mask & 4) {
+            target.z = result.z;
+        }
     }
 
     public static m34(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
-      var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
 
-      var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-      var source2Type:Vector3D[] = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
+        var source2Type:Vector3D[] = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
 
-      var source2Target0:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
-      var source2Target1:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
-      var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
+        var source2Target0:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
+        var source2Target1:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
+        var source2Target2:Vector3D = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
 
-      var matrix:Matrix3D = new Matrix3D([
-          source2Target0.x, source2Target1.x, source2Target2.x, 0,
-          source2Target0.y, source2Target1.y, source2Target2.y, 0,
-          source2Target0.z, source2Target1.z, source2Target2.z, 0,
-          source2Target0.w, source2Target1.w,  source2Target2.w,1
-      ]);
+        var matrix:Matrix3D = new Matrix3D([
+            source2Target0.x, source2Target1.x, source2Target2.x, 0,
+            source2Target0.y, source2Target1.y, source2Target2.y, 0,
+            source2Target0.z, source2Target1.z, source2Target2.z, 0,
+            source2Target0.w, source2Target1.w, source2Target2.w, 1
+        ]);
 
-      var result:Vector3D = matrix.transformVector(source1Target);
+        var result:Vector3D = matrix.transformVector(source1Target);
 
-      if (dest.mask & 1) {
-          target.x = result.x;
-      }
+        if (dest.mask & 1) {
+            target.x = result.x;
+        }
 
-      if (dest.mask & 2) {
-          target.y = result.y;
-      }
+        if (dest.mask & 2) {
+            target.y = result.y;
+        }
 
-      if (dest.mask & 4) {
-          target.z = result.z;
-      }
+        if (dest.mask & 4) {
+            target.z = result.z;
+        }
 
-      if (dest.mask & 8) {
-          target.w = result.w;
-      }
+        if (dest.mask & 8) {
+            target.w = result.w;
+        }
+    }
+
+    public static sge(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ:number = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetW:number = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+
+        var source2Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX:number = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY:number = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ:number = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        var source2TargetW:number = source2Target[swiz[(source2.swizzle >> 6) & 3]];
+
+        if (dest.mask & 1) {
+            target.x = source1TargetX >= source2TargetX ? 1 : 0;
+        }
+
+        if (dest.mask & 2) {
+            target.y = source1TargetY >= source2TargetY ? 1 : 0;
+        }
+
+        if (dest.mask & 4) {
+            target.z = source1TargetZ >= source2TargetZ ? 1 : 0;
+        }
+
+        if (dest.mask & 8) {
+            target.w = source1TargetW >= source2TargetW ? 1 : 0;
+        }
+    }
+
+    public static slt(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ:number = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetW:number = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+
+        var source2Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX:number = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY:number = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ:number = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        var source2TargetW:number = source2Target[swiz[(source2.swizzle >> 6) & 3]];
+
+        if (dest.mask & 1) {
+            target.x = source1TargetX < source2TargetX ? 1 : 0;
+        }
+
+        if (dest.mask & 2) {
+            target.y = source1TargetY < source2TargetY ? 1 : 0;
+        }
+
+        if (dest.mask & 4) {
+            target.z = source1TargetZ < source2TargetZ ? 1 : 0;
+        }
+
+        if (dest.mask & 8) {
+            target.w = source1TargetW < source2TargetW ? 1 : 0;
+        }
+    }
+
+    public static seq(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ:number = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetW:number = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+
+        var source2Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX:number = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY:number = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ:number = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        var source2TargetW:number = source2Target[swiz[(source2.swizzle >> 6) & 3]];
+
+        if (dest.mask & 1) {
+            target.x = source1TargetX == source2TargetX ? 1 : 0;
+        }
+
+        if (dest.mask & 2) {
+            target.y = source1TargetY == source2TargetY ? 1 : 0;
+        }
+
+        if (dest.mask & 4) {
+            target.z = source1TargetZ == source2TargetZ ? 1 : 0;
+        }
+
+        if (dest.mask & 8) {
+            target.w = source1TargetW == source2TargetW ? 1 : 0;
+        }
+    }
+
+    public static sne(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ:number = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetW:number = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+
+        var source2Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var source2TargetX:number = source2Target[swiz[(source2.swizzle >> 0) & 3]];
+        var source2TargetY:number = source2Target[swiz[(source2.swizzle >> 2) & 3]];
+        var source2TargetZ:number = source2Target[swiz[(source2.swizzle >> 4) & 3]];
+        var source2TargetW:number = source2Target[swiz[(source2.swizzle >> 6) & 3]];
+
+        if (dest.mask & 1) {
+            target.x = source1TargetX != source2TargetX ? 1 : 0;
+        }
+
+        if (dest.mask & 2) {
+            target.y = source1TargetY != source2TargetY ? 1 : 0;
+        }
+
+        if (dest.mask & 4) {
+            target.z = source1TargetZ != source2TargetZ ? 1 : 0;
+        }
+
+        if (dest.mask & 8) {
+            target.w = source1TargetW != source2TargetW ? 1 : 0;
+        }
+    }
+
+    public static sgn(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var source1TargetY:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var source1TargetZ:number = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetW:number = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+
+        if (dest.mask & 1) {
+
+            target.x = 1
+            if (source1TargetX < 0) {
+                target.x = -1;
+            } else if (source1TargetX == 0) {
+                target.x = 0;
+            }
+        }
+
+        if (dest.mask & 2) {
+            target.y = 1
+            if (source1TargetY < 0) {
+                target.y = -1;
+            } else if (source1TargetY == 0) {
+                target.y = 0;
+            }
+        }
+
+        if (dest.mask & 4) {
+            target.z = 1
+            if (source1TargetZ < 0) {
+                target.z = -1;
+            } else if (source1TargetZ == 0) {
+                target.z = 0;
+            }
+        }
+
+        if (dest.mask & 8) {
+            target.w = 1
+            if (source1TargetW < 0) {
+                target.w = -1;
+            } else if (source1TargetW == 0) {
+                target.w = 0;
+            }
+        }
     }
 
     public static kil(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {

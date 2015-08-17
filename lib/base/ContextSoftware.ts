@@ -447,7 +447,42 @@ class ContextSoftware implements IContextGL {
 
                 var fragDepth:number = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
 
-                if (screen.x < 0 || screen.y < 0 || screen.z < 0 || this._zbuffer[index] < fragDepth) {
+                if (screen.x < 0 || screen.y < 0 || screen.z < 0) {
+                    continue;
+                }
+
+                var currentDepth:number =this._zbuffer[index];
+                 //< fragDepth
+                var passDepthTest:boolean = false;
+                switch(this._depthCompareMode) {
+                    case ContextGLCompareMode.ALWAYS:
+                        passDepthTest = true;
+                        break;
+                    case ContextGLCompareMode.EQUAL:
+                        passDepthTest = fragDepth==currentDepth;
+                        break;
+                    case ContextGLCompareMode.GREATER:
+                        passDepthTest = fragDepth>currentDepth;
+                        break;
+                    case ContextGLCompareMode.GREATER_EQUAL:
+                        passDepthTest = fragDepth>=currentDepth;
+                        break;
+                    case ContextGLCompareMode.LESS:
+                        passDepthTest = fragDepth<currentDepth;
+                    break;
+                    case ContextGLCompareMode.LESS_EQUAL:
+                        passDepthTest = fragDepth<=currentDepth;
+                        break;
+                    case ContextGLCompareMode.NEVER:
+                        passDepthTest = false;
+                        break;
+                    case ContextGLCompareMode.NOT_EQUAL:
+                        passDepthTest = fragDepth!=currentDepth;
+                        break;
+                    default:
+                }
+
+                if(!passDepthTest) {
                     continue;
                 }
 
@@ -456,7 +491,9 @@ class ContextSoftware implements IContextGL {
                     continue;
                 }
 
-                this._zbuffer[index] = fragDepth;
+                if(this._writeDepth) {
+                    this._zbuffer[index] = fragDepth;
+                }
 
                 var color:Vector3D = fragmentVO.outputColor[0];
 
