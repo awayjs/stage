@@ -41,7 +41,7 @@ class AttributesBufferVOPool
 	{
 		attributesBuffer._iRemoveAttributesBufferVO(this._pool[attributesBuffer.id]);
 
-		this._pool[attributesBuffer.id] = null;
+		delete this._pool[attributesBuffer.id];
 	}
 
 	/**

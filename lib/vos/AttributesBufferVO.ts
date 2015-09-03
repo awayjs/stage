@@ -47,6 +47,9 @@ class AttributesBufferVO implements IAttributesBufferVO
 	public dispose()
 	{
 		this._pool.disposeItem(this._attributesBuffer);
+		this._pool = null;
+		this._attributesBuffer = null;
+		this._stage = null;
 
 		if (this._indexBuffer) {
 			this._indexBuffer.dispose();
