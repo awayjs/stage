@@ -5526,7 +5526,7 @@ var AttributesBufferVOPool = (function () {
      */
     AttributesBufferVOPool.prototype.disposeItem = function (attributesBuffer) {
         attributesBuffer._iRemoveAttributesBufferVO(this._pool[attributesBuffer.id]);
-        this._pool[attributesBuffer.id] = null;
+        delete this._pool[attributesBuffer.id];
     };
     /**
      *
@@ -5568,6 +5568,9 @@ var AttributesBufferVO = (function () {
      */
     AttributesBufferVO.prototype.dispose = function () {
         this._pool.disposeItem(this._attributesBuffer);
+        this._pool = null;
+        this._attributesBuffer = null;
+        this._stage = null;
         if (this._indexBuffer) {
             this._indexBuffer.dispose();
             this._indexBuffer = null;
