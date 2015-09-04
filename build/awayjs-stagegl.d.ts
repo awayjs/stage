@@ -592,10 +592,6 @@ declare module "awayjs-stagegl/lib/base/ContextWebGL" {
 	    private _blendSourceFactor;
 	    private _blendDestinationFactor;
 	    private _standardDerivatives;
-	    private _indexBufferList;
-	    private _vertexBufferList;
-	    private _textureList;
-	    private _programList;
 	    private _samplerStates;
 	    static MAX_SAMPLERS: number;
 	    _gl: WebGLRenderingContext;
@@ -1194,6 +1190,8 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	     * Typically the proxy.ENTER_FRAME listener would render the layers for this Stage instance.
 	     */
 	    private onEnterFrame(event);
+	    private onContextLost(event);
+	    private onContextRestored(event);
 	    recoverFromDisposal(): boolean;
 	    private _callback(context);
 	    setVertexBuffer(index: number, buffer: IVertexBuffer, size: number, dimensions: number, offset: number): void;

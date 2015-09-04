@@ -2115,10 +2115,6 @@ var ContextWebGL = (function () {
         this._filterDictionary = new Object();
         this._mipmapFilterDictionary = new Object();
         this._vertexBufferPropertiesDictionary = [];
-        this._indexBufferList = new Array();
-        this._vertexBufferList = new Array();
-        this._textureList = new Array();
-        this._programList = new Array();
         this._samplerStates = new Array(8);
         this._stencilReferenceValue = 0;
         this._stencilReadMask = 0xff;
@@ -2266,48 +2262,25 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
-        var texture = new CubeTextureWebGL(this._gl, size);
-        this._textureList.push(texture);
-        return texture;
+        return new CubeTextureWebGL(this._gl, size);
     };
     ContextWebGL.prototype.createIndexBuffer = function (numIndices) {
-        var indexBuffer = new IndexBufferWebGL(this._gl, numIndices);
-        this._indexBufferList.push(indexBuffer);
-        return indexBuffer;
+        return new IndexBufferWebGL(this._gl, numIndices);
     };
     ContextWebGL.prototype.createProgram = function () {
-        var program = new ProgramWebGL(this._gl);
-        this._programList.push(program);
-        return program;
+        return new ProgramWebGL(this._gl);
     };
     ContextWebGL.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO streaming
-        var texture = new TextureWebGL(this._gl, width, height);
-        this._textureList.push(texture);
-        return texture;
+        return new TextureWebGL(this._gl, width, height);
     };
     ContextWebGL.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
-        var vertexBuffer = new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
-        this._vertexBufferList.push(vertexBuffer);
-        return vertexBuffer;
+        return new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
     };
     ContextWebGL.prototype.dispose = function () {
-        var i;
-        for (i = 0; i < this._indexBufferList.length; ++i)
-            this._indexBufferList[i].dispose();
-        this._indexBufferList = null;
-        for (i = 0; i < this._vertexBufferList.length; ++i)
-            this._vertexBufferList[i].dispose();
-        this._vertexBufferList = null;
-        for (i = 0; i < this._textureList.length; ++i)
-            this._textureList[i].dispose();
-        this._textureList = null;
-        for (i = 0; i < this._programList.length; ++i)
-            this._programList[i].dispose();
-        for (i = 0; i < this._samplerStates.length; ++i)
+        for (var i = 0; i < this._samplerStates.length; ++i)
             this._samplerStates[i] = null;
-        this._programList = null;
     };
     ContextWebGL.prototype.drawToBitmapImage2D = function (destination) {
         var arrayBuffer = new ArrayBuffer(destination.width * destination.height * 4);
@@ -3940,6 +3913,7 @@ var AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOP
 var Stage = (function (_super) {
     __extends(Stage, _super);
     function Stage(container, stageIndex, stageManager, forceSoftware, profile) {
+        var _this = this;
         if (forceSoftware === void 0) { forceSoftware = false; }
         if (profile === void 0) { profile = "baseline"; }
         _super.call(this);
@@ -3961,6 +3935,8 @@ var Stage = (function (_super) {
         this._attributesBufferVOPool = new AttributesBufferVOPool(this);
         this._programDataPool = new ProgramDataPool(this);
         this._container = container;
+        this._container.addEventListener("webglcontextlost", function (event) { return _this.onContextLost(event); });
+        this._container.addEventListener("webglcontextrestored", function (event) { return _this.onContextRestored(event); });
         this._stageIndex = stageIndex;
         this._stageManager = stageManager;
         this._viewPort = new Rectangle();
@@ -4422,6 +4398,10 @@ var Stage = (function (_super) {
             this._context.present();
         //notify the exitframe listeners
         this.notifyExitFrame();
+    };
+    Stage.prototype.onContextLost = function (event) {
+    };
+    Stage.prototype.onContextRestored = function (event) {
     };
     Stage.prototype.recoverFromDisposal = function () {
         if (!this._context)
