@@ -5043,9 +5043,11 @@ var BitmapImage2DObject = (function (_super) {
      */
     BitmapImage2DObject.prototype.dispose = function () {
         _super.prototype.dispose.call(this);
-        var len = this._mipmapData.length;
-        for (var i = 0; i < len; i++)
-            MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+        if (this._mipmapData) {
+            var len = this._mipmapData.length;
+            for (var i = 0; i < len; i++)
+                MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+        }
     };
     /**
      *
@@ -5116,9 +5118,11 @@ var BitmapImageCubeObject = (function (_super) {
         _super.prototype.dispose.call(this);
         for (var i = 0; i < 6; i++) {
             var mipmapData = this._mipmapDataArray[i];
-            var len = mipmapData.length;
-            for (var j = 0; j < len; i++)
-                MipmapGenerator._freeMipMapHolder(mipmapData[j]);
+            if (mipmapData) {
+                var len = mipmapData.length;
+                for (var j = 0; j < len; i++)
+                    MipmapGenerator._freeMipMapHolder(mipmapData[j]);
+            }
         }
     };
     /**
@@ -5211,6 +5215,7 @@ var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
  */
 var ImageObjectBase = (function () {
     function ImageObjectBase(pool, image, stage) {
+        this.usages = 0;
         this._pool = pool;
         this._image = image;
         this._stage = stage;
@@ -5221,8 +5226,13 @@ var ImageObjectBase = (function () {
      */
     ImageObjectBase.prototype.dispose = function () {
         this._pool.disposeItem(this._image);
-        this._texture.dispose();
-        this._texture = null;
+        this._pool = null;
+        this._image = null;
+        this._stage = null;
+        if (this._texture) {
+            this._texture.dispose();
+            this._texture = null;
+        }
     };
     /**
      *

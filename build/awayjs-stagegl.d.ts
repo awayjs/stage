@@ -1577,6 +1577,7 @@ declare module "awayjs-stagegl/lib/pool/ImageObjectBase" {
 	 * @class away.pool.ImageObjectBase
 	 */
 	class ImageObjectBase implements IImageObject {
+	    usages: number;
 	    private _pool;
 	    _stage: Stage;
 	    _texture: ITextureBase;
