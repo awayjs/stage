@@ -76,6 +76,7 @@ class Stage extends EventDispatcher
 	private _viewportDirty:boolean;
 	private _bufferClear:boolean;
 
+
 	//private _mouse3DManager:away.managers.Mouse3DManager;
 	//private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
 
@@ -92,6 +93,8 @@ class Stage extends EventDispatcher
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
+		this._container.addEventListener("webglcontextlost", (event) => this.onContextLost(event));
+		this._container.addEventListener("webglcontextrestored", (event) => this.onContextRestored(event));
 
 		this._stageIndex = stageIndex;
 
@@ -623,6 +626,16 @@ class Stage extends EventDispatcher
 			this._context.present();
 		//notify the exitframe listeners
 		this.notifyExitFrame();
+	}
+
+	private onContextLost(event)
+	{
+
+	}
+
+	private onContextRestored(event)
+	{
+
 	}
 
 	public recoverFromDisposal():boolean

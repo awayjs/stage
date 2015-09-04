@@ -47,11 +47,6 @@ class ContextWebGL implements IContextGL
 
 	private _standardDerivatives:boolean;
 
-	private _indexBufferList:Array<IndexBufferWebGL> = new Array<IndexBufferWebGL>();
-	private _vertexBufferList:Array<VertexBufferWebGL> = new Array<VertexBufferWebGL>();
-	private _textureList:Array<TextureBaseWebGL> = new Array<TextureBaseWebGL>();
-	private _programList:Array<ProgramWebGL> = new Array<ProgramWebGL>();
-
 	private _samplerStates:Array<SamplerState> = new Array<SamplerState>(8);
 
 	public static MAX_SAMPLERS:number = 8;
@@ -228,65 +223,34 @@ class ContextWebGL implements IContextGL
 
 	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureWebGL
 	{
-		var texture:CubeTextureWebGL = new CubeTextureWebGL(this._gl, size);
-		this._textureList.push(texture);
-		return texture;
+		return new CubeTextureWebGL(this._gl, size);
 	}
 
 	public createIndexBuffer(numIndices:number):IndexBufferWebGL
 	{
-		var indexBuffer:IndexBufferWebGL = new IndexBufferWebGL(this._gl, numIndices);
-		this._indexBufferList.push(indexBuffer);
-		return indexBuffer;
+		return new IndexBufferWebGL(this._gl, numIndices);
 	}
 
 	public createProgram():ProgramWebGL
 	{
-		var program:ProgramWebGL = new ProgramWebGL(this._gl);
-		this._programList.push(program);
-		return program;
+		return new ProgramWebGL(this._gl);
 	}
 
 	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureWebGL
 	{
 		//TODO streaming
-		var texture:TextureWebGL = new TextureWebGL(this._gl, width, height);
-		this._textureList.push(texture);
-		return texture;
+		return new TextureWebGL(this._gl, width, height);
 	}
 
 	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferWebGL
 	{
-		var vertexBuffer:VertexBufferWebGL = new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
-		this._vertexBufferList.push(vertexBuffer);
-		return vertexBuffer;
+		return new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
 	}
 
 	public dispose()
 	{
-		var i:number;
-		for (i = 0; i < this._indexBufferList.length; ++i)
-			this._indexBufferList[i].dispose();
-
-		this._indexBufferList = null;
-
-		for (i = 0; i < this._vertexBufferList.length; ++i)
-			this._vertexBufferList[i].dispose();
-
-		this._vertexBufferList = null;
-
-		for (i = 0; i < this._textureList.length; ++i)
-			this._textureList[i].dispose();
-
-		this._textureList = null;
-
-		for (i = 0; i < this._programList.length; ++i)
-			this._programList[i].dispose();
-
-		for (i = 0; i < this._samplerStates.length; ++i)
+		for (var i:number = 0; i < this._samplerStates.length; ++i)
 			this._samplerStates[i] = null;
-
-		this._programList = null;
 	}
 
 	public drawToBitmapImage2D(destination:BitmapImage2D)
