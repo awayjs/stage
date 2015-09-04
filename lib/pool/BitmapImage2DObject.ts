@@ -59,9 +59,11 @@ class BitmapImage2DObject extends Image2DObject
 	{
 		super.dispose();
 
-		var len:number = this._mipmapData.length;
-		for (var i:number = 0; i < len; i++)
-			MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+		if (this._mipmapData) {
+			var len:number = this._mipmapData.length;
+			for (var i:number = 0; i < len; i++)
+				MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+		}
 	}
 
 	/**

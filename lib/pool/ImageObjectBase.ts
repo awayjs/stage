@@ -13,6 +13,8 @@ import ImageObjectPool				= require("awayjs-stagegl/lib/pool/ImageObjectPool");
  */
 class ImageObjectBase implements IImageObject
 {
+	public usages:number = 0;
+
 	private _pool:ImageObjectPool;
 
 	public _stage:Stage;
@@ -30,6 +32,7 @@ class ImageObjectBase implements IImageObject
 		this._pool = pool;
 		this._image = image;
 		this._stage = stage;
+
 		this.invalidate();
 	}
 
@@ -39,9 +42,14 @@ class ImageObjectBase implements IImageObject
 	public dispose()
 	{
 		this._pool.disposeItem(this._image);
+		this._pool = null;
+		this._image = null;
+		this._stage = null;
 
-		this._texture.dispose();
-		this._texture = null;
+		if (this._texture) {
+			this._texture.dispose();
+			this._texture = null;
+		}
 	}
 
 	/**

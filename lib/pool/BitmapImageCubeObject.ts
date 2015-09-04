@@ -66,10 +66,13 @@ class BitmapImageCubeObject extends ImageCubeObject
 
 		for (var i:number = 0; i < 6; i++) {
 			var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i];
-			var len:number = mipmapData.length;
 
-			for (var j:number = 0; j < len; i++)
-				MipmapGenerator._freeMipMapHolder(mipmapData[j]);
+			if (mipmapData) {
+				var len:number = mipmapData.length;
+
+				for (var j:number = 0; j < len; i++)
+					MipmapGenerator._freeMipMapHolder(mipmapData[j]);
+			}
 		}
 	}
 
