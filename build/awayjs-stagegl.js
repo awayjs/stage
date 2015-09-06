@@ -4616,9 +4616,9 @@ var TextureWebGL = (function (_super) {
                 this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
                 var renderBuffer = this._gl.createRenderbuffer();
                 this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
-                this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_COMPONENT16, this._width, this._height);
+                this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_STENCIL, this._width, this._height);
                 this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, 0);
-                this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_ATTACHMENT, this._gl.RENDERBUFFER, renderBuffer);
+                this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBuffer);
                 this._gl.bindTexture(this._gl.TEXTURE_2D, null);
                 this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
                 this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
