@@ -45,11 +45,11 @@ class ProgramData
 
 			this.stage.unRegisterProgram(this);
 
-			if (this.program)
+			if (this.program) {
 				this.program.dispose();
+				this.program = null;
+			}
 		}
-
-		this.program = null;
 	}
 }
 
