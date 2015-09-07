@@ -5351,10 +5351,11 @@ var ProgramData = (function () {
         if (!this.usages) {
             this._pool.disposeItem(this.vertexString + this.fragmentString);
             this.stage.unRegisterProgram(this);
-            if (this.program)
+            if (this.program) {
                 this.program.dispose();
+                this.program = null;
+            }
         }
-        this.program = null;
     };
     ProgramData.PROGRAMDATA_ID_COUNT = 0;
     return ProgramData;
