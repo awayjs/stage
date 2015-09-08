@@ -281,7 +281,6 @@ var AGLSLParser = (function () {
         }
         // close main
         body += "}\n";
-        console.log(header + body);
         return header + body;
     };
     AGLSLParser.prototype.regtostring = function (regtype, regnum, desc, tag) {
