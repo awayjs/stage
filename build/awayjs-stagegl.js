@@ -1316,10 +1316,18 @@ var ContextSoftware = (function () {
         this._fragmentConstants = [];
         this._vertexConstants = [];
         this._canvas = canvas;
-        this._context = this._canvas.getContext("2d");
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        document.body.appendChild(this._backBufferColor.getCanvas());
+        if (document && document.body) {
+            document.body.appendChild(this._backBufferColor.getCanvas());
+        }
     }
+    Object.defineProperty(ContextSoftware.prototype, "backBufferColor", {
+        get: function () {
+            return this._backBufferColor;
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(ContextSoftware.prototype, "container", {
         get: function () {
             return this._canvas;
@@ -3934,8 +3942,10 @@ var Stage = (function (_super) {
         this._attributesBufferVOPool = new AttributesBufferVOPool(this);
         this._programDataPool = new ProgramDataPool(this);
         this._container = container;
-        this._container.addEventListener("webglcontextlost", function (event) { return _this.onContextLost(event); });
-        this._container.addEventListener("webglcontextrestored", function (event) { return _this.onContextRestored(event); });
+        if (this._container) {
+            this._container.addEventListener("webglcontextlost", function (event) { return _this.onContextLost(event); });
+            this._container.addEventListener("webglcontextrestored", function (event) { return _this.onContextRestored(event); });
+        }
         this._stageIndex = stageIndex;
         this._stageManager = stageManager;
         this._viewPort = new Rectangle();
@@ -4887,9 +4897,11 @@ var StageManager = (function (_super) {
             throw new ArgumentError("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
         if (!this._stages[index]) {
             StageManager._numStages++;
-            var canvas = document.createElement("canvas");
-            canvas.id = "stage" + index;
-            document.body.appendChild(canvas);
+            if (document) {
+                var canvas = document.createElement("canvas");
+                canvas.id = "stage" + index;
+                document.body.appendChild(canvas);
+            }
             var stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
             stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
             stage.requestContext(forceSoftware, profile, mode);
@@ -5007,7 +5019,12 @@ var BitmapImage2DObject = (function (_super) {
             this._invalid = false;
             if (mipmap) {
                 var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                MipmapGenerator._generateMipMaps(this._image.getCanvas(), mipmapData, true);
+                if (this._image.getCanvas()) {
+                    MipmapGenerator._generateMipMaps(this._image.getCanvas(), mipmapData, true);
+                }
+                else {
+                    MipmapGenerator._generateMipMaps(this._image, mipmapData, true);
+                }
                 var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
                     this._texture.uploadFromData(mipmapData[i].getImageData(), i);

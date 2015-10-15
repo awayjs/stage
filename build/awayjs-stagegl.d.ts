@@ -21,6 +21,120 @@ declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
 	
 }
 
+declare module "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler" {
+	import Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
+	class AGALMiniAssembler {
+	    r: Object;
+	    cur: Part;
+	    constructor();
+	    assemble(source: string, ext_part?: any, ext_version?: any): Object;
+	    private processLine(line, linenr);
+	    emitHeader(pr: Part): void;
+	    emitOpcode(pr: Part, opcode: any): void;
+	    emitZeroDword(pr: Part): void;
+	    emitZeroQword(pr: any): void;
+	    emitDest(pr: any, token: any, opdest: any): boolean;
+	    stringToMask(s: string): number;
+	    stringToSwizzle(s: any): number;
+	    emitSampler(pr: Part, token: any, opsrc: any, opts: any): boolean;
+	    emitSource(pr: any, token: any, opsrc: any): boolean;
+	    addHeader(partname: any, version: any): void;
+	}
+	export = AGALMiniAssembler;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Flags" {
+	class Flags {
+	    simple: boolean;
+	    horizontal: boolean;
+	    fragonly: boolean;
+	    matrix: boolean;
+	}
+	export = Flags;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/FS" {
+	class FS {
+	    format: string;
+	    size: number;
+	}
+	export = FS;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Opcode" {
+	import Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
+	import FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
+	/**
+	 *
+	 */
+	class Opcode {
+	    dest: string;
+	    a: FS;
+	    b: FS;
+	    opcode: number;
+	    flags: Flags;
+	    constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean);
+	}
+	export = Opcode;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap" {
+	class OpcodeMap {
+	    private static _map;
+	    static map: Object[];
+	    constructor();
+	}
+	export = OpcodeMap;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Part" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	class Part {
+	    name: string;
+	    version: number;
+	    data: ByteArray;
+	    constructor(name?: string, version?: number);
+	}
+	export = Part;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/RegMap" {
+	class RegMap {
+	    private static _map;
+	    static map: any[];
+	    constructor();
+	}
+	export = RegMap;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
+	class Sampler {
+	    shift: number;
+	    mask: number;
+	    value: number;
+	    constructor(shift: number, mask: number, value: number);
+	}
+	export = Sampler;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/SamplerMap" {
+	class SamplerMap {
+	    private static _map;
+	    static map: Object[];
+	    constructor();
+	}
+	export = SamplerMap;
+	
+}
+
 declare module "awayjs-stagegl/lib/aglsl/Description" {
 	import Header = require("awayjs-stagegl/lib/aglsl/Header");
 	import Token = require("awayjs-stagegl/lib/aglsl/Token");
@@ -126,120 +240,6 @@ declare module "awayjs-stagegl/lib/aglsl/Token" {
 	    constructor();
 	}
 	export = Token;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler" {
-	import Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
-	class AGALMiniAssembler {
-	    r: Object;
-	    cur: Part;
-	    constructor();
-	    assemble(source: string, ext_part?: any, ext_version?: any): Object;
-	    private processLine(line, linenr);
-	    emitHeader(pr: Part): void;
-	    emitOpcode(pr: Part, opcode: any): void;
-	    emitZeroDword(pr: Part): void;
-	    emitZeroQword(pr: any): void;
-	    emitDest(pr: any, token: any, opdest: any): boolean;
-	    stringToMask(s: string): number;
-	    stringToSwizzle(s: any): number;
-	    emitSampler(pr: Part, token: any, opsrc: any, opts: any): boolean;
-	    emitSource(pr: any, token: any, opsrc: any): boolean;
-	    addHeader(partname: any, version: any): void;
-	}
-	export = AGALMiniAssembler;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/FS" {
-	class FS {
-	    format: string;
-	    size: number;
-	}
-	export = FS;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Flags" {
-	class Flags {
-	    simple: boolean;
-	    horizontal: boolean;
-	    fragonly: boolean;
-	    matrix: boolean;
-	}
-	export = Flags;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Opcode" {
-	import Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
-	import FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
-	/**
-	 *
-	 */
-	class Opcode {
-	    dest: string;
-	    a: FS;
-	    b: FS;
-	    opcode: number;
-	    flags: Flags;
-	    constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean);
-	}
-	export = Opcode;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap" {
-	class OpcodeMap {
-	    private static _map;
-	    static map: Object[];
-	    constructor();
-	}
-	export = OpcodeMap;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Part" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	class Part {
-	    name: string;
-	    version: number;
-	    data: ByteArray;
-	    constructor(name?: string, version?: number);
-	}
-	export = Part;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/RegMap" {
-	class RegMap {
-	    private static _map;
-	    static map: any[];
-	    constructor();
-	}
-	export = RegMap;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
-	class Sampler {
-	    shift: number;
-	    mask: number;
-	    value: number;
-	    constructor(shift: number, mask: number, value: number);
-	}
-	export = Sampler;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/SamplerMap" {
-	class SamplerMap {
-	    private static _map;
-	    static map: Object[];
-	    constructor();
-	}
-	export = SamplerMap;
 	
 }
 
@@ -427,7 +427,6 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    private _backBufferHeight;
 	    private _backBufferColor;
 	    private _zbuffer;
-	    private _context;
 	    private _cullingMode;
 	    private _blendSource;
 	    private _blendDestination;
@@ -450,6 +449,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    _fragmentConstants: Array<Vector3D>;
 	    _vertexConstants: Array<Vector3D>;
 	    constructor(canvas: HTMLCanvasElement);
+	    backBufferColor: BitmapImage2D;
 	    container: HTMLElement;
 	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
 	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil: boolean): void;
@@ -752,48 +752,6 @@ declare module "awayjs-stagegl/lib/base/IIndexBuffer" {
 	
 }
 
-declare module "awayjs-stagegl/lib/base/IProgram" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	interface IProgram {
-	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): any;
-	    dispose(): any;
-	}
-	export = IProgram;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/ITexture" {
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	interface ITexture extends ITextureBase {
-	    width: number;
-	    height: number;
-	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
-	    uploadFromData(imageData: ImageData, miplevel?: number): any;
-	}
-	export = ITexture;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/ITextureBase" {
-	interface ITextureBase {
-	    dispose(): any;
-	}
-	export = ITextureBase;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
-	interface IVertexBuffer {
-	    numVertices: number;
-	    dataPerVertex: number;
-	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
-	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): any;
-	    dispose(): any;
-	}
-	export = IVertexBuffer;
-	
-}
-
 declare module "awayjs-stagegl/lib/base/IndexBufferFlash" {
 	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
@@ -843,6 +801,48 @@ declare module "awayjs-stagegl/lib/base/IndexBufferWebGL" {
 	    glBuffer: WebGLBuffer;
 	}
 	export = IndexBufferWebGL;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/IProgram" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	interface IProgram {
+	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): any;
+	    dispose(): any;
+	}
+	export = IProgram;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/ITexture" {
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	interface ITexture extends ITextureBase {
+	    width: number;
+	    height: number;
+	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, miplevel?: number): any;
+	}
+	export = ITexture;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/ITextureBase" {
+	interface ITextureBase {
+	    dispose(): any;
+	}
+	export = ITextureBase;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
+	interface IVertexBuffer {
+	    numVertices: number;
+	    dataPerVertex: number;
+	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
+	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): any;
+	    dispose(): any;
+	}
+	export = IVertexBuffer;
 	
 }
 
