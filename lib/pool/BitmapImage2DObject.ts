@@ -42,7 +42,12 @@ class BitmapImage2DObject extends Image2DObject
 			if (mipmap) {
 				var mipmapData:Array<BitmapImage2D> = this._mipmapData || (this._mipmapData = new Array<BitmapImage2D>());
 
-				MipmapGenerator._generateMipMaps((<BitmapImage2D> this._image).getCanvas(), mipmapData, true);
+				if((<BitmapImage2D> this._image).getCanvas()) {
+					MipmapGenerator._generateMipMaps((<BitmapImage2D> this._image).getCanvas(), mipmapData, true);
+				}else{
+					MipmapGenerator._generateMipMaps((<BitmapImage2D> this._image), mipmapData, true);
+				}
+
 				var len:number = mipmapData.length;
 				for (var i:number = 0; i < len; i++)
 					(<ITexture> this._texture).uploadFromData(mipmapData[i].getImageData(), i);

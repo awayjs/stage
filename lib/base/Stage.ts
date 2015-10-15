@@ -93,8 +93,10 @@ class Stage extends EventDispatcher
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
-		this._container.addEventListener("webglcontextlost", (event) => this.onContextLost(event));
-		this._container.addEventListener("webglcontextrestored", (event) => this.onContextRestored(event));
+		if(this._container) {
+			this._container.addEventListener("webglcontextlost", (event) => this.onContextLost(event));
+			this._container.addEventListener("webglcontextrestored", (event) => this.onContextRestored(event));
+		}
 
 		this._stageIndex = stageIndex;
 

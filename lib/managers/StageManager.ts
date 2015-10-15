@@ -61,9 +61,11 @@ class StageManager extends EventDispatcher
 		if (!this._stages[index]) {
 			StageManager._numStages++;
 
-			var canvas:HTMLCanvasElement = document.createElement("canvas");
-			canvas.id = "stage" + index;
-			document.body.appendChild(canvas);
+			if(document) {
+				var canvas:HTMLCanvasElement = document.createElement("canvas");
+				canvas.id = "stage" + index;
+				document.body.appendChild(canvas);
+			}
 			var stage:Stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
 			stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
 			stage.requestContext(forceSoftware, profile, mode);

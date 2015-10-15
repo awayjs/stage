@@ -42,7 +42,6 @@ class ContextSoftware implements IContextGL {
     private _backBufferHeight:number = 100;
     private _backBufferColor:BitmapImage2D;
     private _zbuffer:number[] = [];
-    private _context:CanvasRenderingContext2D;
     private _cullingMode:string = ContextGLTriangleFace.BACK;
     private _blendSource:string = ContextGLBlendFactor.ONE;
     private _blendDestination:string = ContextGLBlendFactor.ZERO;
@@ -72,10 +71,16 @@ class ContextSoftware implements IContextGL {
 
     constructor(canvas:HTMLCanvasElement) {
         this._canvas = canvas;
-        this._context = this._canvas.getContext("2d");
+
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
 
-        document.body.appendChild(this._backBufferColor.getCanvas());
+        if(document && document.body) {
+            document.body.appendChild(this._backBufferColor.getCanvas());
+        }
+    }
+
+    public get backBufferColor():BitmapImage2D {
+        return this._backBufferColor;
     }
 
     public get container():HTMLElement {
@@ -468,7 +473,7 @@ class ContextSoftware implements IContextGL {
                 }
 
                 var currentDepth:number =this._zbuffer[index];
-                 //< fragDepth
+                //< fragDepth
                 var passDepthTest:boolean = false;
                 switch(this._depthCompareMode) {
                     case ContextGLCompareMode.ALWAYS:
@@ -485,7 +490,7 @@ class ContextSoftware implements IContextGL {
                         break;
                     case ContextGLCompareMode.LESS:
                         passDepthTest = fragDepth<currentDepth;
-                    break;
+                        break;
                     case ContextGLCompareMode.LESS_EQUAL:
                         passDepthTest = fragDepth<=currentDepth;
                         break;
