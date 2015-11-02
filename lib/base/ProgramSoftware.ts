@@ -279,15 +279,50 @@ class ProgramSoftware implements IProgram {
             var repeatV:number = Math.abs(((v * texture.height) % texture.height)) >> 0;
 
             var pos:number = (repeatU + repeatV * texture.width) * 4;
-
-            var r:number = texture.data[pos] / 255;
-            var g:number = texture.data[pos + 1] / 255;
-            var b:number = texture.data[pos + 2] / 255;
-            var a:number = texture.data[pos + 3] / 255;
+            var data:number[] = texture.getData(0);
+            var r:number = data[pos] / 255;
+            var g:number = data[pos + 1] / 255;
+            var b:number = data[pos + 2] / 255;
+            var a:number = data[pos + 3] / 255;
 
             return [a, r, g, b];
         }
         return [1, u, v, 0];
+    }
+
+    private static sampleBilinear(context:ContextSoftware, u:number, v:number, textureIndex:number = 0):number[] {
+        if (textureIndex >= context._textures.length || context._textures[textureIndex] == null) {
+            return [1, u, v, 0];
+        }
+
+        var texture:TextureSoftware = context._textures[textureIndex];
+        var texelSizeX:number = 1 / texture.width;
+        var texelSizeY:number = 1 / texture.height;
+
+        var color00:number[] = ProgramSoftware.sample(context, u, v, textureIndex);
+        var color10:number[] = ProgramSoftware.sample(context, u + texelSizeX, v, textureIndex);
+
+        var color01:number[] = ProgramSoftware.sample(context, u, v + texelSizeY, textureIndex);
+        var color11:number[] = ProgramSoftware.sample(context, u + texelSizeX, v + texelSizeY, textureIndex);
+
+        var a:number = u*texture.width;
+        a = a - Math.floor(a);
+
+        var interColor0:number[] = ProgramSoftware.interpolateColor(color00, color10, a);
+        var interColor1:number[] = ProgramSoftware.interpolateColor(color01, color11, a);
+
+        var b:number = v*texture.height;
+        b = b - Math.floor(b);
+        return ProgramSoftware.interpolateColor(interColor0, interColor1, b);
+    }
+
+    private static interpolateColor(source:number[], target:number[], a:number):number[]{
+        var result:number[] = [];
+        result[0] = source[0]+(target[0]-source[0])*a;
+        result[1] = source[1]+(target[1]-source[1])*a;
+        result[2] = source[2]+(target[2]-source[2])*a;
+        result[3] = source[3]+(target[3]-source[3])*a;
+        return result;
     }
 
     public static tex(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
@@ -300,7 +335,7 @@ class ProgramSoftware implements IProgram {
         var u:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
         var v:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
 
-        var color:number[] = ProgramSoftware.sample(context, u, v, source2.regnum);
+        var color:number[] = ProgramSoftware.sampleBilinear(context, u, v, source2.regnum);
 
         if (dest.mask & 1) {
             target.x = color[1];

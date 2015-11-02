@@ -1,5 +1,6 @@
 import BitmapImage2D                = require("awayjs-core/lib/data/BitmapImage2D");
 import Matrix3D                        = require("awayjs-core/lib/geom/Matrix3D");
+import Matrix                        = require("awayjs-core/lib/geom/Matrix");
 import Point                        = require("awayjs-core/lib/geom/Point");
 import Vector3D                        = require("awayjs-core/lib/geom/Vector3D");
 import Rectangle                    = require("awayjs-core/lib/geom/Rectangle");
@@ -41,6 +42,8 @@ class ContextSoftware implements IContextGL {
     private _backBufferWidth:number = 100;
     private _backBufferHeight:number = 100;
     private _backBufferColor:BitmapImage2D;
+    private _antiAliasedBuffer:BitmapImage2D;
+    private _antiAliasMatrix:Matrix = new Matrix(0.5, 0,0,0.5);
     private _zbuffer:number[] = [];
     private _cullingMode:string = ContextGLTriangleFace.BACK;
     private _blendSource:string = ContextGLBlendFactor.ONE;
@@ -73,6 +76,7 @@ class ContextSoftware implements IContextGL {
         this._canvas = canvas;
 
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._antiAliasedBuffer = new BitmapImage2D(2,2, false, 0, false);
 
         if(document && document.body) {
             document.body.appendChild(this._backBufferColor.getCanvas());
@@ -81,6 +85,10 @@ class ContextSoftware implements IContextGL {
 
     public get backBufferColor():BitmapImage2D {
         return this._backBufferColor;
+    }
+
+    public get antiAliasedBuffer():BitmapImage2D {
+        return this._antiAliasedBuffer;
     }
 
     public get container():HTMLElement {
@@ -104,14 +112,16 @@ class ContextSoftware implements IContextGL {
     }
 
     public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean) {
-        console.log("configureBackBuffer");
-        this._backBufferWidth = width;
-        this._backBufferHeight = height;
+        console.log("configureBackBuffer antiAlias: "+antiAlias);
+        this._backBufferWidth = width*2;
+        this._backBufferHeight = height*2;
 
         this._backBufferRect.width = width;
         this._backBufferRect.height = height;
 
-        this._backBufferColor._setSize(width, height);
+        this._backBufferColor._setSize(width*2, height*2);
+
+        this._antiAliasedBuffer._setSize(width, height);
 
         var raw:Float32Array = this._screenMatrix.rawData;
 
@@ -247,6 +257,8 @@ class ContextSoftware implements IContextGL {
     }
 
     public present() {
+        console.log("present()");
+        this._antiAliasedBuffer.draw(this._backBufferColor, this._antiAliasMatrix);
     }
 
     public drawToBitmapImage2D(destination:BitmapImage2D) {
