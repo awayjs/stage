@@ -1276,6 +1276,7 @@ module.exports = ContextMode;
 },{}],"awayjs-stagegl/lib/base/ContextSoftware":[function(require,module,exports){
 var BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
 var Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
+var Matrix = require("awayjs-core/lib/geom/Matrix");
 var Point = require("awayjs-core/lib/geom/Point");
 var Vector3D = require("awayjs-core/lib/geom/Vector3D");
 var Rectangle = require("awayjs-core/lib/geom/Rectangle");
@@ -1294,6 +1295,7 @@ var ContextSoftware = (function () {
         this._backBufferRect = new Rectangle();
         this._backBufferWidth = 100;
         this._backBufferHeight = 100;
+        this._antiAliasMatrix = new Matrix(0.5, 0, 0, 0.5);
         this._zbuffer = [];
         this._cullingMode = ContextGLTriangleFace.BACK;
         this._blendSource = ContextGLBlendFactor.ONE;
@@ -1317,6 +1319,7 @@ var ContextSoftware = (function () {
         this._vertexConstants = [];
         this._canvas = canvas;
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._antiAliasedBuffer = new BitmapImage2D(2, 2, false, 0, false);
         if (document && document.body) {
             document.body.appendChild(this._backBufferColor.getCanvas());
         }
@@ -1324,6 +1327,13 @@ var ContextSoftware = (function () {
     Object.defineProperty(ContextSoftware.prototype, "backBufferColor", {
         get: function () {
             return this._backBufferColor;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ContextSoftware.prototype, "antiAliasedBuffer", {
+        get: function () {
+            return this._antiAliasedBuffer;
         },
         enumerable: true,
         configurable: true
@@ -1356,12 +1366,13 @@ var ContextSoftware = (function () {
         }
     };
     ContextSoftware.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
-        console.log("configureBackBuffer");
-        this._backBufferWidth = width;
-        this._backBufferHeight = height;
+        console.log("configureBackBuffer antiAlias: " + antiAlias);
+        this._backBufferWidth = width * 2;
+        this._backBufferHeight = height * 2;
         this._backBufferRect.width = width;
         this._backBufferRect.height = height;
-        this._backBufferColor._setSize(width, height);
+        this._backBufferColor._setSize(width * 2, height * 2);
+        this._antiAliasedBuffer._setSize(width, height);
         var raw = this._screenMatrix.rawData;
         raw[0] = this._backBufferWidth / 2;
         raw[1] = 0;
@@ -1471,6 +1482,8 @@ var ContextSoftware = (function () {
         this._vertexBufferFormats[index] = format;
     };
     ContextSoftware.prototype.present = function () {
+        console.log("present()");
+        this._antiAliasedBuffer.draw(this._backBufferColor, this._antiAliasMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
     };
@@ -1745,7 +1758,7 @@ var VertexBufferProperties = (function () {
 })();
 module.exports = ContextSoftware;
 
-},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
+},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
 //import swfobject					= require("awayjs-stagegl/lib/swfobject");
 var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -3066,13 +3079,42 @@ var ProgramSoftware = (function () {
             var repeatU = Math.abs(((u * texture.width) % texture.width)) >> 0;
             var repeatV = Math.abs(((v * texture.height) % texture.height)) >> 0;
             var pos = (repeatU + repeatV * texture.width) * 4;
-            var r = texture.data[pos] / 255;
-            var g = texture.data[pos + 1] / 255;
-            var b = texture.data[pos + 2] / 255;
-            var a = texture.data[pos + 3] / 255;
+            var data = texture.getData(0);
+            var r = data[pos] / 255;
+            var g = data[pos + 1] / 255;
+            var b = data[pos + 2] / 255;
+            var a = data[pos + 3] / 255;
             return [a, r, g, b];
         }
         return [1, u, v, 0];
+    };
+    ProgramSoftware.sampleBilinear = function (context, u, v, textureIndex) {
+        if (textureIndex === void 0) { textureIndex = 0; }
+        if (textureIndex >= context._textures.length || context._textures[textureIndex] == null) {
+            return [1, u, v, 0];
+        }
+        var texture = context._textures[textureIndex];
+        var texelSizeX = 1 / texture.width;
+        var texelSizeY = 1 / texture.height;
+        var color00 = ProgramSoftware.sample(context, u, v, textureIndex);
+        var color10 = ProgramSoftware.sample(context, u + texelSizeX, v, textureIndex);
+        var color01 = ProgramSoftware.sample(context, u, v + texelSizeY, textureIndex);
+        var color11 = ProgramSoftware.sample(context, u + texelSizeX, v + texelSizeY, textureIndex);
+        var a = u * texture.width;
+        a = a - Math.floor(a);
+        var interColor0 = ProgramSoftware.interpolateColor(color00, color10, a);
+        var interColor1 = ProgramSoftware.interpolateColor(color01, color11, a);
+        var b = v * texture.height;
+        b = b - Math.floor(b);
+        return ProgramSoftware.interpolateColor(interColor0, interColor1, b);
+    };
+    ProgramSoftware.interpolateColor = function (source, target, a) {
+        var result = [];
+        result[0] = source[0] + (target[0] - source[0]) * a;
+        result[1] = source[1] + (target[1] - source[1]) * a;
+        result[2] = source[2] + (target[2] - source[2]) * a;
+        result[3] = source[3] + (target[3] - source[3]) * a;
+        return result;
     };
     ProgramSoftware.tex = function (vo, desc, dest, source1, source2, context) {
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
@@ -3080,7 +3122,7 @@ var ProgramSoftware = (function () {
         var swiz = ["x", "y", "z", "w"];
         var u = source1Target[swiz[(source1.swizzle >> 0) & 3]];
         var v = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var color = ProgramSoftware.sample(context, u, v, source2.regnum);
+        var color = ProgramSoftware.sampleBilinear(context, u, v, source2.regnum);
         if (dest.mask & 1) {
             target.x = color[1];
         }
@@ -4543,11 +4585,12 @@ module.exports = TextureFlash;
 var TextureSoftware = (function () {
     function TextureSoftware(width, height) {
         this.textureType = "texture2d";
+        this._mipLevels = [];
         this._width = width;
         this._height = height;
     }
     TextureSoftware.prototype.dispose = function () {
-        this._data = null;
+        this._mipLevels = null;
     };
     Object.defineProperty(TextureSoftware.prototype, "width", {
         get: function () {
@@ -4565,19 +4608,12 @@ var TextureSoftware = (function () {
     });
     TextureSoftware.prototype.uploadFromData = function (data, miplevel) {
         if (miplevel === void 0) { miplevel = 0; }
-        if (miplevel == 0) {
-            console.log("uploadFromData: " + data + " miplevel: " + miplevel);
-            this._data = new Uint8Array(data.data);
-            this._mipLevel = miplevel;
-        }
+        console.log("uploadFromData: " + data + " miplevel: " + miplevel);
+        this._mipLevels[miplevel] = data.data;
     };
-    Object.defineProperty(TextureSoftware.prototype, "data", {
-        get: function () {
-            return this._data;
-        },
-        enumerable: true,
-        configurable: true
-    });
+    TextureSoftware.prototype.getData = function (miplevel) {
+        return this._mipLevels[miplevel];
+    };
     return TextureSoftware;
 })();
 module.exports = TextureSoftware;

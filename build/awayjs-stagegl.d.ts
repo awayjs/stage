@@ -426,6 +426,8 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    private _backBufferWidth;
 	    private _backBufferHeight;
 	    private _backBufferColor;
+	    private _antiAliasedBuffer;
+	    private _antiAliasMatrix;
 	    private _zbuffer;
 	    private _cullingMode;
 	    private _blendSource;
@@ -450,6 +452,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    _vertexConstants: Array<Vector3D>;
 	    constructor(canvas: HTMLCanvasElement);
 	    backBufferColor: BitmapImage2D;
+	    antiAliasedBuffer: BitmapImage2D;
 	    container: HTMLElement;
 	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
 	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil: boolean): void;
@@ -935,6 +938,8 @@ declare module "awayjs-stagegl/lib/base/ProgramSoftware" {
 	    static mov(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static m44(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    private static sample(context, u, v, textureIndex?);
+	    private static sampleBilinear(context, u, v, textureIndex?);
+	    private static interpolateColor(source, target, a);
 	    static tex(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static add(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static sub(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
@@ -1238,15 +1243,14 @@ declare module "awayjs-stagegl/lib/base/TextureSoftware" {
 	    textureType: string;
 	    private _width;
 	    private _height;
-	    private _data;
-	    private _mipLevel;
+	    private _mipLevels;
 	    constructor(width: number, height: number);
 	    dispose(): void;
 	    width: number;
 	    height: number;
 	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
 	    uploadFromData(imageData: ImageData, miplevel?: number): any;
-	    data: Uint32Array;
+	    getData(miplevel: number): number[];
 	}
 	export = TextureSoftware;
 	
