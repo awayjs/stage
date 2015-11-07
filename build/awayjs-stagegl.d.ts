@@ -419,6 +419,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	import TextureSoftware = require("awayjs-stagegl/lib/base/TextureSoftware");
 	import ProgramSoftware = require("awayjs-stagegl/lib/base/ProgramSoftware");
 	import ProgramVOSoftware = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
+	import SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
 	class ContextSoftware implements IContextGL {
 	    private _canvas;
 	    static MAX_SAMPLERS: number;
@@ -426,8 +427,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    private _backBufferWidth;
 	    private _backBufferHeight;
 	    private _backBufferColor;
-	    private _antiAliasedBuffer;
-	    private _antiAliasMatrix;
+	    private _frontBuffer;
 	    private _zbuffer;
 	    private _cullingMode;
 	    private _blendSource;
@@ -440,19 +440,20 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    private _depthCompareMode;
 	    private _program;
 	    private _screenMatrix;
+	    private _frontBufferMatrix;
 	    private _bboxMin;
 	    private _bboxMax;
 	    private _clamp;
-	    private _drawRect;
+	    _samplerStates: SoftwareSamplerState[];
 	    _textures: Array<TextureSoftware>;
 	    _vertexBuffers: Array<VertexBufferSoftware>;
 	    _vertexBufferOffsets: Array<number>;
 	    _vertexBufferFormats: Array<number>;
 	    _fragmentConstants: Array<Vector3D>;
 	    _vertexConstants: Array<Vector3D>;
+	    private _antialias;
 	    constructor(canvas: HTMLCanvasElement);
-	    backBufferColor: BitmapImage2D;
-	    antiAliasedBuffer: BitmapImage2D;
+	    frontBuffer: BitmapImage2D;
 	    container: HTMLElement;
 	    clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: number): void;
 	    configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil: boolean): void;
@@ -483,10 +484,10 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 	    setRenderToBackBuffer(): void;
 	    putPixel(x: number, y: number, color: number): void;
 	    private applyBlendMode(argb, blend, dest, source);
-	    drawRect(x: number, y: number, color: number): void;
 	    clamp(value: number, min?: number, max?: number): number;
 	    interpolate(min: number, max: number, gradient: number): number;
 	    triangle(vo0: ProgramVOSoftware, vo1: ProgramVOSoftware, vo2: ProgramVOSoftware): void;
+	    calcPixel(x: number, y: number, p0: Vector3D, p1: Vector3D, p2: Vector3D, project: Vector3D, depth: Vector3D, vo0: ProgramVOSoftware, vo1: ProgramVOSoftware, vo2: ProgramVOSoftware): Vector3D;
 	    barycentric(a: Vector3D, b: Vector3D, c: Vector3D, x: number, y: number): Vector3D;
 	}
 	export = ContextSoftware;
@@ -922,6 +923,7 @@ declare module "awayjs-stagegl/lib/base/ProgramSoftware" {
 	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
 	import Destination = require("awayjs-stagegl/lib/aglsl/Destination");
 	class ProgramSoftware implements IProgram {
+	    private static _defaultSamplerState;
 	    private static _tokenizer;
 	    private static _opCodeFunc;
 	    private _vertexDescr;
@@ -930,15 +932,16 @@ declare module "awayjs-stagegl/lib/base/ProgramSoftware" {
 	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void;
 	    dispose(): void;
 	    vertex(contextSoftware: ContextSoftware, vertexIndex: number): ProgramVOSoftware;
-	    fragment(context: ContextSoftware, clip: Vector3D, vo0: ProgramVOSoftware, vo1: ProgramVOSoftware, vo2: ProgramVOSoftware): ProgramVOSoftware;
+	    fragment(context: ContextSoftware, clip: Vector3D, clipRight: Vector3D, clipBottom: Vector3D, vo0: ProgramVOSoftware, vo1: ProgramVOSoftware, vo2: ProgramVOSoftware, fragDepth: number): ProgramVOSoftware;
 	    private static getDestTarget(vo, desc, dest);
 	    private static getSourceTargetType(vo, desc, dest, context);
 	    private static getSourceTargetByIndex(targetType, targetIndex);
 	    private static getSourceTarget(vo, desc, dest, context);
 	    static mov(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static m44(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
-	    private static sample(context, u, v, textureIndex?);
-	    private static sampleBilinear(context, u, v, textureIndex?);
+	    private static sample(vo, context, u, v, textureIndex, dux, dvx, duy, dvy);
+	    private static sampleNearest(u, v, textureData, textureWidth, textureHeight, repeat);
+	    private static sampleBilinear(u, v, textureData, textureWidth, textureHeight, repeat);
 	    private static interpolateColor(source, target, a);
 	    static tex(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static add(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
@@ -965,6 +968,8 @@ declare module "awayjs-stagegl/lib/base/ProgramSoftware" {
 	    static sat(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static m33(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static m34(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static ddx(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
+	    static ddy(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static sge(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static slt(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
 	    static seq(vo: ProgramVOSoftware, desc: Description, dest: Destination, source1: Destination, source2: Destination, context: ContextSoftware): void;
@@ -981,7 +986,10 @@ declare module "awayjs-stagegl/lib/base/ProgramVOSoftware" {
 	class ProgramVOSoftware {
 	    outputPosition: Vector3D[];
 	    outputColor: Vector3D[];
+	    outputDepth: number;
 	    varying: Vector3D[];
+	    derivativeX: Vector3D[];
+	    derivativeY: Vector3D[];
 	    temp: Vector3D[];
 	    attributes: Vector3D[];
 	    discard: boolean;
@@ -1033,6 +1041,21 @@ declare module "awayjs-stagegl/lib/base/SamplerState" {
 	    mipfilter: number;
 	}
 	export = SamplerState;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/SoftwareSamplerState" {
+	/**
+	 * The same as SamplerState, but with strings
+	 * TODO: replace two similar classes with one
+	 */
+	class SoftwareSamplerState {
+	    type: string;
+	    wrap: string;
+	    filter: string;
+	    mipfilter: string;
+	}
+	export = SoftwareSamplerState;
 	
 }
 

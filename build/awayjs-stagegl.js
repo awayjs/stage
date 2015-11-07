@@ -1290,12 +1290,12 @@ var IndexBufferSoftware = require("awayjs-stagegl/lib/base/IndexBufferSoftware")
 var VertexBufferSoftware = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
 var TextureSoftware = require("awayjs-stagegl/lib/base/TextureSoftware");
 var ProgramSoftware = require("awayjs-stagegl/lib/base/ProgramSoftware");
+var SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
 var ContextSoftware = (function () {
     function ContextSoftware(canvas) {
         this._backBufferRect = new Rectangle();
         this._backBufferWidth = 100;
         this._backBufferHeight = 100;
-        this._antiAliasMatrix = new Matrix(0.5, 0, 0, 0.5);
         this._zbuffer = [];
         this._cullingMode = ContextGLTriangleFace.BACK;
         this._blendSource = ContextGLBlendFactor.ONE;
@@ -1307,33 +1307,28 @@ var ContextSoftware = (function () {
         this._writeDepth = true;
         this._depthCompareMode = ContextGLCompareMode.LESS;
         this._screenMatrix = new Matrix3D();
+        this._frontBufferMatrix = new Matrix();
         this._bboxMin = new Point();
         this._bboxMax = new Point();
         this._clamp = new Point();
-        this._drawRect = new Rectangle();
+        this._samplerStates = [];
         this._textures = [];
         this._vertexBuffers = [];
         this._vertexBufferOffsets = [];
         this._vertexBufferFormats = [];
         this._fragmentConstants = [];
         this._vertexConstants = [];
+        this._antialias = 0;
         this._canvas = canvas;
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        this._antiAliasedBuffer = new BitmapImage2D(2, 2, false, 0, false);
+        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
         if (document && document.body) {
-            document.body.appendChild(this._backBufferColor.getCanvas());
+            document.body.appendChild(this._frontBuffer.getCanvas());
         }
     }
-    Object.defineProperty(ContextSoftware.prototype, "backBufferColor", {
+    Object.defineProperty(ContextSoftware.prototype, "frontBuffer", {
         get: function () {
-            return this._backBufferColor;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ContextSoftware.prototype, "antiAliasedBuffer", {
-        get: function () {
-            return this._antiAliasedBuffer;
+            return this._frontBuffer;
         },
         enumerable: true,
         configurable: true
@@ -1353,8 +1348,9 @@ var ContextSoftware = (function () {
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
         if (mask === void 0) { mask = ContextGLClearMask.ALL; }
+        console.log("clear: " + red + ", " + green + ", " + blue + ", alpha: " + alpha);
         if (mask & ContextGLClearMask.COLOR) {
-            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha, red, green, blue));
+            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
         }
         //TODO: mask & ContextGLClearMask.STENCIL
         if (mask & ContextGLClearMask.DEPTH) {
@@ -1367,21 +1363,28 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         console.log("configureBackBuffer antiAlias: " + antiAlias);
-        this._backBufferWidth = width * 2;
-        this._backBufferHeight = height * 2;
-        this._backBufferRect.width = width;
-        this._backBufferRect.height = height;
-        this._backBufferColor._setSize(width * 2, height * 2);
-        this._antiAliasedBuffer._setSize(width, height);
+        this._antialias = antiAlias;
+        if (this._antialias % 2 != 0) {
+            this._antialias = Math.floor(this._antialias - 0.5);
+        }
+        if (this._antialias == 0) {
+            this._antialias = 1;
+        }
+        this._frontBuffer._setSize(width, height);
+        this._backBufferWidth = width * this._antialias;
+        this._backBufferHeight = height * this._antialias;
+        this._backBufferRect.width = this._backBufferWidth;
+        this._backBufferRect.height = this._backBufferHeight;
+        this._backBufferColor._setSize(this._backBufferWidth, this._backBufferHeight);
         var raw = this._screenMatrix.rawData;
-        raw[0] = this._backBufferWidth / 2;
+        raw[0] = (this._backBufferWidth) / 2;
         raw[1] = 0;
         raw[2] = 0;
-        raw[3] = this._backBufferWidth / 2;
+        raw[3] = (this._backBufferWidth) / 2;
         raw[4] = 0;
-        raw[5] = -this._backBufferHeight / 2;
+        raw[5] = -(this._backBufferHeight) / 2;
         raw[6] = 0;
-        raw[7] = this._backBufferHeight / 2;
+        raw[7] = (this._backBufferHeight) / 2;
         raw[8] = 0;
         raw[9] = 0;
         raw[10] = 1;
@@ -1391,6 +1394,8 @@ var ContextSoftware = (function () {
         raw[14] = 0;
         raw[15] = 0;
         this._screenMatrix.transpose();
+        this._frontBufferMatrix = new Matrix();
+        this._frontBufferMatrix.scale(1 / this._antialias, 1 / this._antialias);
     };
     ContextSoftware.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         //TODO: impl
@@ -1483,7 +1488,7 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.present = function () {
         console.log("present()");
-        this._antiAliasedBuffer.draw(this._backBufferColor, this._antiAliasMatrix);
+        this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
     };
@@ -1505,13 +1510,20 @@ var ContextSoftware = (function () {
         this._backBufferColor.unlock();
     };
     ContextSoftware.prototype.drawVertices = function (mode, firstVertex, numVertices) {
-        console.log("drawVertices");
+        //TODO:
     };
     ContextSoftware.prototype.setScissorRectangle = function (rectangle) {
         //TODO:
     };
     ContextSoftware.prototype.setSamplerStateAt = function (sampler, wrap, filter, mipfilter) {
-        //TODO:
+        //console.log("setSamplerStateAt: "+sampler+" wrap: "+wrap+" filter: "+filter+" mipfilter: "+mipfilter);
+        var state = this._samplerStates[sampler];
+        if (!state) {
+            state = this._samplerStates[sampler] = new SoftwareSamplerState();
+        }
+        state.wrap = wrap;
+        state.filter = filter;
+        state.mipfilter = mipfilter;
     };
     ContextSoftware.prototype.setRenderToTexture = function (target, enableDepthAndStencil, antiAlias, surfaceSelector) {
         //TODO:
@@ -1520,10 +1532,6 @@ var ContextSoftware = (function () {
         //TODO:
     };
     ContextSoftware.prototype.putPixel = function (x, y, color) {
-        this._drawRect.x = x;
-        this._drawRect.y = y;
-        this._drawRect.width = 1;
-        this._drawRect.height = 1;
         var dest = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
         var source = ColorUtils.float32ColorToARGB(color);
         var destModified = this.applyBlendMode(dest, this._blendDestination, dest, source);
@@ -1605,13 +1613,6 @@ var ContextSoftware = (function () {
         }
         return result;
     };
-    ContextSoftware.prototype.drawRect = function (x, y, color) {
-        this._drawRect.x = x;
-        this._drawRect.y = y;
-        this._drawRect.width = 5;
-        this._drawRect.height = 5;
-        this._backBufferColor.fillRect(this._drawRect, color);
-    };
     ContextSoftware.prototype.clamp = function (value, min, max) {
         if (min === void 0) { min = 0; }
         if (max === void 0) { max = 1; }
@@ -1634,11 +1635,11 @@ var ContextSoftware = (function () {
         p0.scaleBy(1 / p0.w);
         p1.scaleBy(1 / p1.w);
         p2.scaleBy(1 / p2.w);
-        var depth = new Vector3D(p0.z, p1.z, p2.z);
         var project = new Vector3D(p0.w, p1.w, p2.w);
         p0 = this._screenMatrix.transformVector(p0);
         p1 = this._screenMatrix.transformVector(p1);
         p2 = this._screenMatrix.transformVector(p2);
+        var depth = new Vector3D(p0.z, p1.z, p2.z);
         this._bboxMin.x = 1000000;
         this._bboxMin.y = 1000000;
         this._bboxMax.x = -1000000;
@@ -1663,72 +1664,78 @@ var ContextSoftware = (function () {
         this._bboxMax.y = Math.floor(this._bboxMax.y);
         for (var x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
             for (var y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
-                var screen = this.barycentric(p0, p1, p2, x, y);
-                var clip = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
-                var sum = clip.x + clip.y + clip.z;
-                clip.scaleBy(1 / sum);
-                var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
-                var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
-                if (screen.x < 0 || screen.y < 0 || screen.z < 0) {
-                    continue;
-                }
-                var currentDepth = this._zbuffer[index];
-                //< fragDepth
-                var passDepthTest = false;
-                switch (this._depthCompareMode) {
-                    case ContextGLCompareMode.ALWAYS:
-                        passDepthTest = true;
-                        break;
-                    case ContextGLCompareMode.EQUAL:
-                        passDepthTest = fragDepth == currentDepth;
-                        break;
-                    case ContextGLCompareMode.GREATER:
-                        passDepthTest = fragDepth > currentDepth;
-                        break;
-                    case ContextGLCompareMode.GREATER_EQUAL:
-                        passDepthTest = fragDepth >= currentDepth;
-                        break;
-                    case ContextGLCompareMode.LESS:
-                        passDepthTest = fragDepth < currentDepth;
-                        break;
-                    case ContextGLCompareMode.LESS_EQUAL:
-                        passDepthTest = fragDepth <= currentDepth;
-                        break;
-                    case ContextGLCompareMode.NEVER:
-                        passDepthTest = false;
-                        break;
-                    case ContextGLCompareMode.NOT_EQUAL:
-                        passDepthTest = fragDepth != currentDepth;
-                        break;
-                    default:
-                }
-                if (!passDepthTest) {
-                    continue;
-                }
-                var fragmentVO = this._program.fragment(this, clip, vo0, vo1, vo2);
-                if (fragmentVO.discard) {
-                    continue;
-                }
-                if (this._writeDepth) {
-                    this._zbuffer[index] = fragDepth;
-                }
-                var color = fragmentVO.outputColor[0];
-                color.x = Math.max(0, Math.min(color.x, 1));
-                color.y = Math.max(0, Math.min(color.y, 1));
-                color.z = Math.max(0, Math.min(color.z, 1));
-                color.w = Math.max(0, Math.min(color.w, 1));
-                color.x *= 255;
-                color.y *= 255;
-                color.z *= 255;
-                color.w *= 255;
+                var color = this.calcPixel(x, y, p0, p1, p2, project, depth, vo0, vo1, vo2);
                 if (color) {
                     this.putPixel(x, y, ColorUtils.ARGBtoFloat32(color.w, color.x, color.y, color.z));
                 }
-                else {
-                    this.putPixel(x, y, 0xffff0000);
-                }
             }
         }
+    };
+    ContextSoftware.prototype.calcPixel = function (x, y, p0, p1, p2, project, depth, vo0, vo1, vo2) {
+        var screen = this.barycentric(p0, p1, p2, x, y);
+        var screenRight = this.barycentric(p0, p1, p2, x + 1, y);
+        var screenBottom = this.barycentric(p0, p1, p2, x, y + 1);
+        var clip = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+        clip.scaleBy(1 / (clip.x + clip.y + clip.z));
+        var clipRight = new Vector3D(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
+        clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
+        var clipBottom = new Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
+        clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
+        var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
+        var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
+        if (screen.x < 0 || screen.y < 0 || screen.z < 0) {
+            return null;
+        }
+        var currentDepth = this._zbuffer[index];
+        //< fragDepth
+        var passDepthTest = false;
+        switch (this._depthCompareMode) {
+            case ContextGLCompareMode.ALWAYS:
+                passDepthTest = true;
+                break;
+            case ContextGLCompareMode.EQUAL:
+                passDepthTest = fragDepth == currentDepth;
+                break;
+            case ContextGLCompareMode.GREATER:
+                passDepthTest = fragDepth > currentDepth;
+                break;
+            case ContextGLCompareMode.GREATER_EQUAL:
+                passDepthTest = fragDepth >= currentDepth;
+                break;
+            case ContextGLCompareMode.LESS:
+                passDepthTest = fragDepth < currentDepth;
+                break;
+            case ContextGLCompareMode.LESS_EQUAL:
+                passDepthTest = fragDepth <= currentDepth;
+                break;
+            case ContextGLCompareMode.NEVER:
+                passDepthTest = false;
+                break;
+            case ContextGLCompareMode.NOT_EQUAL:
+                passDepthTest = fragDepth != currentDepth;
+                break;
+            default:
+        }
+        if (!passDepthTest) {
+            return null;
+        }
+        var fragmentVO = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
+        if (fragmentVO.discard) {
+            return null;
+        }
+        if (this._writeDepth) {
+            this._zbuffer[index] = fragDepth; //todo: fragmentVO.outputDepth?
+        }
+        var color = fragmentVO.outputColor[0];
+        color.x = Math.max(0, Math.min(color.x, 1));
+        color.y = Math.max(0, Math.min(color.y, 1));
+        color.z = Math.max(0, Math.min(color.z, 1));
+        color.w = Math.max(0, Math.min(color.w, 1));
+        color.x *= 255;
+        color.y *= 255;
+        color.z *= 255;
+        color.w *= 255;
+        return color;
     };
     ContextSoftware.prototype.barycentric = function (a, b, c, x, y) {
         var sx = new Vector3D();
@@ -1758,7 +1765,7 @@ var VertexBufferProperties = (function () {
 })();
 module.exports = ContextSoftware;
 
-},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
+},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
 //import swfobject					= require("awayjs-stagegl/lib/swfobject");
 var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -2891,6 +2898,10 @@ var ProgramVOSoftware = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
 var Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 var Vector3D = require("awayjs-core/lib/geom/Vector3D");
 var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
+var SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 var ProgramSoftware = (function () {
     function ProgramSoftware() {
     }
@@ -2939,8 +2950,9 @@ var ProgramSoftware = (function () {
         }
         return vo;
     };
-    ProgramSoftware.prototype.fragment = function (context, clip, vo0, vo1, vo2) {
+    ProgramSoftware.prototype.fragment = function (context, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth) {
         var vo = new ProgramVOSoftware();
+        vo.outputDepth = fragDepth;
         for (var i = 0; i < vo0.varying.length; i++) {
             var varying0 = vo0.varying[i];
             var varying1 = vo1.varying[i];
@@ -2952,6 +2964,24 @@ var ProgramSoftware = (function () {
             result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
             result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
             result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
+            var derivativeX = vo.derivativeX[i] = new Vector3D();
+            derivativeX.x = clipRight.x * varying0.x + clipRight.y * varying1.x + clipRight.z * varying2.x;
+            derivativeX.y = clipRight.x * varying0.y + clipRight.y * varying1.y + clipRight.z * varying2.y;
+            derivativeX.z = clipRight.x * varying0.z + clipRight.y * varying1.z + clipRight.z * varying2.z;
+            derivativeX.w = clipRight.x * varying0.w + clipRight.y * varying1.w + clipRight.z * varying2.w;
+            derivativeX.x -= result.x;
+            derivativeX.y -= result.y;
+            derivativeX.z -= result.z;
+            derivativeX.w -= result.w;
+            var derivativeY = vo.derivativeY[i] = new Vector3D();
+            derivativeY.x = clipBottom.x * varying0.x + clipBottom.y * varying1.x + clipBottom.z * varying2.x;
+            derivativeY.y = clipBottom.x * varying0.y + clipBottom.y * varying1.y + clipBottom.z * varying2.y;
+            derivativeY.z = clipBottom.x * varying0.z + clipBottom.y * varying1.z + clipBottom.z * varying2.z;
+            derivativeY.w = clipBottom.x * varying0.w + clipBottom.y * varying1.w + clipBottom.z * varying2.w;
+            derivativeY.x -= result.x;
+            derivativeY.y -= result.y;
+            derivativeY.z -= result.z;
+            derivativeY.w -= result.w;
         }
         var len = this._fragmentDescr.tokens.length;
         for (var i = 0; i < len; i++) {
@@ -3072,39 +3102,107 @@ var ProgramSoftware = (function () {
             target.w = result.w;
         }
     };
-    ProgramSoftware.sample = function (context, u, v, textureIndex) {
-        if (textureIndex === void 0) { textureIndex = 0; }
-        if (textureIndex < context._textures.length && context._textures[textureIndex] != null) {
-            var texture = context._textures[textureIndex];
-            var repeatU = Math.abs(((u * texture.width) % texture.width)) >> 0;
-            var repeatV = Math.abs(((v * texture.height) % texture.height)) >> 0;
-            var pos = (repeatU + repeatV * texture.width) * 4;
-            var data = texture.getData(0);
-            var r = data[pos] / 255;
-            var g = data[pos + 1] / 255;
-            var b = data[pos + 2] / 255;
-            var a = data[pos + 3] / 255;
-            return [a, r, g, b];
-        }
-        return [1, u, v, 0];
-    };
-    ProgramSoftware.sampleBilinear = function (context, u, v, textureIndex) {
-        if (textureIndex === void 0) { textureIndex = 0; }
+    ProgramSoftware.sample = function (vo, context, u, v, textureIndex, dux, dvx, duy, dvy) {
         if (textureIndex >= context._textures.length || context._textures[textureIndex] == null) {
             return [1, u, v, 0];
         }
         var texture = context._textures[textureIndex];
-        var texelSizeX = 1 / texture.width;
-        var texelSizeY = 1 / texture.height;
-        var color00 = ProgramSoftware.sample(context, u, v, textureIndex);
-        var color10 = ProgramSoftware.sample(context, u + texelSizeX, v, textureIndex);
-        var color01 = ProgramSoftware.sample(context, u, v + texelSizeY, textureIndex);
-        var color11 = ProgramSoftware.sample(context, u + texelSizeX, v + texelSizeY, textureIndex);
-        var a = u * texture.width;
+        var state = context._samplerStates[textureIndex];
+        if (!state) {
+            state = this._defaultSamplerState;
+        }
+        var repeat = state.wrap == ContextGLWrapMode.REPEAT;
+        var mipmap = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
+        if (mipmap) {
+            dux = Math.abs(dux);
+            dvx = Math.abs(dvx);
+            duy = Math.abs(duy);
+            dvy = Math.abs(dvy);
+            var lambda = Math.log(Math.max(texture.width * Math.sqrt(dux * dux + dvx * dvx), texture.height * Math.sqrt(duy * duy + dvy * dvy))) / Math.LN2;
+            if (lambda > 0) {
+                var miplevelLow = Math.floor(lambda);
+                var miplevelHigh = Math.ceil(lambda);
+                var maxmiplevel = Math.log(Math.min(texture.width, texture.height)) / Math.LN2;
+                if (miplevelHigh > maxmiplevel) {
+                    miplevelHigh = maxmiplevel;
+                }
+                if (miplevelLow > maxmiplevel) {
+                    miplevelLow = maxmiplevel;
+                }
+                var mipblend = lambda - Math.floor(lambda);
+                var resultLow = [];
+                var resultHigh = [];
+                var dataLow = texture.getData(miplevelLow);
+                var dataLowWidth = texture.width / Math.pow(2, miplevelLow);
+                var dataLowHeight = texture.height / Math.pow(2, miplevelLow);
+                var dataHigh = texture.getData(miplevelHigh);
+                var dataHighWidth = texture.width / Math.pow(2, miplevelHigh);
+                var dataHighHeight = texture.height / Math.pow(2, miplevelHigh);
+                if (state.filter == ContextGLTextureFilter.LINEAR) {
+                    resultLow = ProgramSoftware.sampleBilinear(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
+                    resultHigh = ProgramSoftware.sampleBilinear(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
+                }
+                else {
+                    resultLow = ProgramSoftware.sampleNearest(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
+                    resultHigh = ProgramSoftware.sampleNearest(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
+                }
+                return ProgramSoftware.interpolateColor(resultLow, resultHigh, mipblend);
+            }
+        }
+        var result;
+        var data = texture.getData(0);
+        if (state.filter == ContextGLTextureFilter.LINEAR) {
+            result = ProgramSoftware.sampleBilinear(u, v, data, texture.width, texture.height, repeat);
+        }
+        else {
+            result = ProgramSoftware.sampleNearest(u, v, data, texture.width, texture.height, repeat);
+        }
+        return result;
+    };
+    ProgramSoftware.sampleNearest = function (u, v, textureData, textureWidth, textureHeight, repeat) {
+        u *= textureWidth;
+        v *= textureHeight;
+        if (repeat) {
+            u = Math.abs(u % textureWidth);
+            v = Math.abs(v % textureHeight);
+        }
+        else {
+            if (u < 0) {
+                u = 0;
+            }
+            else if (u > textureWidth - 1) {
+                u = textureWidth - 1;
+            }
+            if (v < 0) {
+                v = 0;
+            }
+            else if (v > textureHeight - 1) {
+                v = textureHeight - 1;
+            }
+        }
+        u = Math.floor(u);
+        v = Math.floor(v);
+        var pos = (u + v * textureWidth) * 4;
+        var r = textureData[pos] / 255;
+        var g = textureData[pos + 1] / 255;
+        var b = textureData[pos + 2] / 255;
+        var a = textureData[pos + 3] / 255;
+        return [a, r, g, b];
+    };
+    ProgramSoftware.sampleBilinear = function (u, v, textureData, textureWidth, textureHeight, repeat) {
+        var texelSizeX = 1 / textureWidth;
+        var texelSizeY = 1 / textureHeight;
+        u -= texelSizeX / 2;
+        v -= texelSizeY / 2;
+        var color00 = ProgramSoftware.sampleNearest(u, v, textureData, textureWidth, textureHeight, repeat);
+        var color10 = ProgramSoftware.sampleNearest(u + texelSizeX, v, textureData, textureWidth, textureHeight, repeat);
+        var color01 = ProgramSoftware.sampleNearest(u, v + texelSizeY, textureData, textureWidth, textureHeight, repeat);
+        var color11 = ProgramSoftware.sampleNearest(u + texelSizeX, v + texelSizeY, textureData, textureWidth, textureHeight, repeat);
+        var a = u * textureWidth;
         a = a - Math.floor(a);
         var interColor0 = ProgramSoftware.interpolateColor(color00, color10, a);
         var interColor1 = ProgramSoftware.interpolateColor(color01, color11, a);
-        var b = v * texture.height;
+        var b = v * textureHeight;
         b = b - Math.floor(b);
         return ProgramSoftware.interpolateColor(interColor0, interColor1, b);
     };
@@ -3122,7 +3220,11 @@ var ProgramSoftware = (function () {
         var swiz = ["x", "y", "z", "w"];
         var u = source1Target[swiz[(source1.swizzle >> 0) & 3]];
         var v = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var color = ProgramSoftware.sampleBilinear(context, u, v, source2.regnum);
+        var dux = vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
+        var dvx = vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
+        var duy = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
+        var dvy = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
+        var color = ProgramSoftware.sample(vo, context, u, v, source2.regnum, dux, dvx, duy, dvy);
         if (dest.mask & 1) {
             target.x = color[1];
         }
@@ -3616,6 +3718,40 @@ var ProgramSoftware = (function () {
             target.w = result.w;
         }
     };
+    ProgramSoftware.ddx = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = vo.derivativeX[source1.regnum];
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
+    ProgramSoftware.ddy = function (vo, desc, dest, source1, source2, context) {
+        var target = ProgramSoftware.getDestTarget(vo, desc, dest);
+        var source1Target = vo.derivativeY[source1.regnum];
+        var swiz = ["x", "y", "z", "w"];
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+        if (dest.mask & 2) {
+            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+        if (dest.mask & 4) {
+            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+        if (dest.mask & 8) {
+            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    };
     ProgramSoftware.sge = function (vo, desc, dest, source1, source2, context) {
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var swiz = ["x", "y", "z", "w"];
@@ -3768,6 +3904,7 @@ var ProgramSoftware = (function () {
     ProgramSoftware.kil = function (vo, desc, dest, source1, source2, context) {
         vo.discard = true;
     };
+    ProgramSoftware._defaultSamplerState = new SoftwareSamplerState();
     ProgramSoftware._tokenizer = new AGALTokenizer();
     ProgramSoftware._opCodeFunc = [
         ProgramSoftware.mov,
@@ -3821,12 +3958,14 @@ var ProgramSoftware = (function () {
 })();
 module.exports = ProgramSoftware;
 
-},{"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-stagegl/lib/aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware"}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
+},{"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-stagegl/lib/aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState"}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
 var ProgramVOSoftware = (function () {
     function ProgramVOSoftware() {
         this.outputPosition = [];
         this.outputColor = [];
         this.varying = [];
+        this.derivativeX = [];
+        this.derivativeY = [];
         this.temp = [];
         this.attributes = [];
         this.discard = false;
@@ -3928,7 +4067,25 @@ var SamplerState = (function () {
 })();
 module.exports = SamplerState;
 
-},{}],"awayjs-stagegl/lib/base/Stage":[function(require,module,exports){
+},{}],"awayjs-stagegl/lib/base/SoftwareSamplerState":[function(require,module,exports){
+var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+/**
+ * The same as SamplerState, but with strings
+ * TODO: replace two similar classes with one
+ */
+var SoftwareSamplerState = (function () {
+    function SoftwareSamplerState() {
+        this.wrap = ContextGLWrapMode.REPEAT;
+        this.filter = ContextGLTextureFilter.LINEAR;
+        this.mipfilter = ContextGLMipFilter.MIPLINEAR;
+    }
+    return SoftwareSamplerState;
+})();
+module.exports = SoftwareSamplerState;
+
+},{"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode"}],"awayjs-stagegl/lib/base/Stage":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
