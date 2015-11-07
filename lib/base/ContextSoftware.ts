@@ -31,7 +31,7 @@ import VertexBufferSoftware                    = require("awayjs-stagegl/lib/bas
 import TextureSoftware                    = require("awayjs-stagegl/lib/base/TextureSoftware");
 import ProgramSoftware                    = require("awayjs-stagegl/lib/base/ProgramSoftware");
 import ProgramVOSoftware                        = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
-
+import SoftwareSamplerState                     = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
 class ContextSoftware implements IContextGL {
 
     private _canvas:HTMLCanvasElement;
@@ -42,7 +42,6 @@ class ContextSoftware implements IContextGL {
     private _backBufferWidth:number = 100;
     private _backBufferHeight:number = 100;
     private _backBufferColor:BitmapImage2D;
-    private _antiAliasedBuffer:BitmapImage2D;
     private _antiAliasMatrix:Matrix = new Matrix(0.5, 0,0,0.5);
     private _zbuffer:number[] = [];
     private _cullingMode:string = ContextGLTriangleFace.BACK;
@@ -64,6 +63,7 @@ class ContextSoftware implements IContextGL {
 
     private _drawRect:Rectangle = new Rectangle();
 
+    public _samplerStates:SoftwareSamplerState[] = [];
     public _textures:Array<TextureSoftware> = [];
     public _vertexBuffers:Array<VertexBufferSoftware> = [];
     public _vertexBufferOffsets:Array<number> = [];
@@ -76,7 +76,6 @@ class ContextSoftware implements IContextGL {
         this._canvas = canvas;
 
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        this._antiAliasedBuffer = new BitmapImage2D(2,2, false, 0, false);
 
         if(document && document.body) {
             document.body.appendChild(this._backBufferColor.getCanvas());
@@ -88,7 +87,7 @@ class ContextSoftware implements IContextGL {
     }
 
     public get antiAliasedBuffer():BitmapImage2D {
-        return this._antiAliasedBuffer;
+        return this._backBufferColor;
     }
 
     public get container():HTMLElement {
@@ -113,15 +112,13 @@ class ContextSoftware implements IContextGL {
 
     public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean) {
         console.log("configureBackBuffer antiAlias: "+antiAlias);
-        this._backBufferWidth = width*2;
-        this._backBufferHeight = height*2;
+        this._backBufferWidth = width;
+        this._backBufferHeight = height;
 
         this._backBufferRect.width = width;
         this._backBufferRect.height = height;
 
-        this._backBufferColor._setSize(width*2, height*2);
-
-        this._antiAliasedBuffer._setSize(width, height);
+        this._backBufferColor._setSize(width, height);
 
         var raw:Float32Array = this._screenMatrix.rawData;
 
@@ -258,7 +255,7 @@ class ContextSoftware implements IContextGL {
 
     public present() {
         console.log("present()");
-        this._antiAliasedBuffer.draw(this._backBufferColor, this._antiAliasMatrix);
+        //this._antiAliasedBuffer.draw(this._backBufferColor, this._antiAliasMatrix);
     }
 
     public drawToBitmapImage2D(destination:BitmapImage2D) {
@@ -289,7 +286,7 @@ class ContextSoftware implements IContextGL {
     }
 
     public drawVertices(mode:string, firstVertex:number, numVertices:number) {
-        console.log("drawVertices");
+        //TODO:
     }
 
     public setScissorRectangle(rectangle:Rectangle) {
@@ -297,7 +294,14 @@ class ContextSoftware implements IContextGL {
     }
 
     public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string) {
-        //TODO:
+        //console.log("setSamplerStateAt: "+sampler+" wrap: "+wrap+" filter: "+filter+" mipfilter: "+mipfilter);
+        var state:SoftwareSamplerState = this._samplerStates[sampler];
+        if(!state) {
+            state = this._samplerStates[sampler] = new SoftwareSamplerState();
+        }
+        state.wrap = wrap;
+        state.filter = filter;
+        state.mipfilter = mipfilter;
     }
 
     public setRenderToTexture(target:ITextureBase, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number) {
@@ -470,11 +474,17 @@ class ContextSoftware implements IContextGL {
         for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
             for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
                 var screen:Vector3D = this.barycentric(p0, p1, p2, x, y);
+                var screenRight:Vector3D = this.barycentric(p0, p1, p2, x+1, y);
+                var screenBottom:Vector3D = this.barycentric(p0, p1, p2, x, y+1);
 
                 var clip:Vector3D = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+                clip.scaleBy(1 / (clip.x + clip.y + clip.z));
 
-                var sum:number = clip.x + clip.y + clip.z;
-                clip.scaleBy(1 / sum);
+                var clipRight:Vector3D = new Vector3D(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
+                clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
+
+                var clipBottom:Vector3D = new Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
+                clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
 
                 var index:number = ((x % this._backBufferWidth) + y * this._backBufferWidth);
 
@@ -519,13 +529,13 @@ class ContextSoftware implements IContextGL {
                     continue;
                 }
 
-                var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, vo0, vo1, vo2);
+                var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
                 if (fragmentVO.discard) {
                     continue;
                 }
 
                 if(this._writeDepth) {
-                    this._zbuffer[index] = fragDepth;
+                    this._zbuffer[index] = fragDepth;//todo: fragmentVO.outputDepth?
                 }
 
                 var color:Vector3D = fragmentVO.outputColor[0];

@@ -17,8 +17,16 @@ import AGALMiniAssembler            = require("awayjs-stagegl/lib/aglsl/assemble
 import VertexBufferSoftware                    = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
 import ContextGLVertexBufferFormat    = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
 import TextureSoftware                    = require("awayjs-stagegl/lib/base/TextureSoftware");
+import SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+import SamplerBase = require("awayjs-core/lib/data/SamplerBase");
+import Sampler2D = require("awayjs-core/lib/data/Sampler2D");
+import SamplerCube = require("awayjs-core/lib/data/SamplerCube");
+import ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+import ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+import ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 
 class ProgramSoftware implements IProgram {
+    private static _defaultSamplerState:SoftwareSamplerState = new SoftwareSamplerState();
     private static _tokenizer:AGALTokenizer = new AGALTokenizer();
     private static _opCodeFunc:{(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void}[] = [
         ProgramSoftware.mov,
@@ -73,6 +81,7 @@ class ProgramSoftware implements IProgram {
     private _fragmentDescr:Description;
 
     constructor() {
+
     }
 
     public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray) {
@@ -129,8 +138,9 @@ class ProgramSoftware implements IProgram {
         return vo;
     }
 
-    public fragment(context:ContextSoftware, clip:Vector3D, vo0:ProgramVOSoftware, vo1:ProgramVOSoftware, vo2:ProgramVOSoftware):ProgramVOSoftware {
+    public fragment(context:ContextSoftware, clip:Vector3D, clipRight:Vector3D, clipBottom:Vector3D, vo0:ProgramVOSoftware, vo1:ProgramVOSoftware, vo2:ProgramVOSoftware, fragDepth:number):ProgramVOSoftware {
         var vo:ProgramVOSoftware = new ProgramVOSoftware();
+        vo.outputDepth = fragDepth;
 
         for (var i:number = 0; i < vo0.varying.length; i++) {
             var varying0:Vector3D = vo0.varying[i];
@@ -143,6 +153,26 @@ class ProgramSoftware implements IProgram {
             result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
             result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
             result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
+
+            var derivativeX:Vector3D = vo.derivativeX[i] = new Vector3D();
+            derivativeX.x = clipRight.x * varying0.x + clipRight.y * varying1.x + clipRight.z * varying2.x;
+            derivativeX.y = clipRight.x * varying0.y + clipRight.y * varying1.y + clipRight.z * varying2.y;
+            derivativeX.z = clipRight.x * varying0.z + clipRight.y * varying1.z + clipRight.z * varying2.z;
+            derivativeX.w = clipRight.x * varying0.w + clipRight.y * varying1.w + clipRight.z * varying2.w;
+            derivativeX.x -= result.x;
+            derivativeX.y -= result.y;
+            derivativeX.z -= result.z;
+            derivativeX.w -= result.w;
+
+            var derivativeY:Vector3D = vo.derivativeY[i] = new Vector3D();
+            derivativeY.x = clipBottom.x * varying0.x + clipBottom.y * varying1.x + clipBottom.z * varying2.x;
+            derivativeY.y = clipBottom.x * varying0.y + clipBottom.y * varying1.y + clipBottom.z * varying2.y;
+            derivativeY.z = clipBottom.x * varying0.z + clipBottom.y * varying1.z + clipBottom.z * varying2.z;
+            derivativeY.w = clipBottom.x * varying0.w + clipBottom.y * varying1.w + clipBottom.z * varying2.w;
+            derivativeY.x -= result.x;
+            derivativeY.y -= result.y;
+            derivativeY.z -= result.z;
+            derivativeY.w -= result.w;
         }
 
         var len:number = this._fragmentDescr.tokens.length;
@@ -271,57 +301,138 @@ class ProgramSoftware implements IProgram {
         }
     }
 
-    private static sample(context:ContextSoftware, u:number, v:number, textureIndex:number = 0):number[] {
-        if (textureIndex < context._textures.length && context._textures[textureIndex] != null) {
-            var texture:TextureSoftware = context._textures[textureIndex];
-
-            var repeatU:number = Math.abs(((u * texture.width) % texture.width)) >> 0;
-            var repeatV:number = Math.abs(((v * texture.height) % texture.height)) >> 0;
-
-            var pos:number = (repeatU + repeatV * texture.width) * 4;
-            var data:number[] = texture.getData(0);
-            var r:number = data[pos] / 255;
-            var g:number = data[pos + 1] / 255;
-            var b:number = data[pos + 2] / 255;
-            var a:number = data[pos + 3] / 255;
-
-            return [a, r, g, b];
-        }
-        return [1, u, v, 0];
-    }
-
-    private static sampleBilinear(context:ContextSoftware, u:number, v:number, textureIndex:number = 0):number[] {
+    private static sample(vo:ProgramVOSoftware, context:ContextSoftware, u:number, v:number, textureIndex:number, dux:number, dvx:number, duy:number, dvy:number):number[] {
         if (textureIndex >= context._textures.length || context._textures[textureIndex] == null) {
             return [1, u, v, 0];
         }
 
         var texture:TextureSoftware = context._textures[textureIndex];
-        var texelSizeX:number = 1 / texture.width;
-        var texelSizeY:number = 1 / texture.height;
+        var state:SoftwareSamplerState = context._samplerStates[textureIndex];
+        if (!state) {
+            state = this._defaultSamplerState;
+        }
+        var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
+        var mipmap:boolean = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
 
-        var color00:number[] = ProgramSoftware.sample(context, u, v, textureIndex);
-        var color10:number[] = ProgramSoftware.sample(context, u + texelSizeX, v, textureIndex);
+        if (mipmap) {
+            dux = Math.abs(dux);
+            dvx = Math.abs(dvx);
+            duy = Math.abs(duy);
+            dvy = Math.abs(dvy);
 
-        var color01:number[] = ProgramSoftware.sample(context, u, v + texelSizeY, textureIndex);
-        var color11:number[] = ProgramSoftware.sample(context, u + texelSizeX, v + texelSizeY, textureIndex);
+            var lambda:number = Math.log(Math.max(texture.width * Math.sqrt(dux * dux + dvx * dvx), texture.height * Math.sqrt(duy * duy + dvy * dvy))) / Math.LN2;
+            if (lambda > 0) {
 
-        var a:number = u*texture.width;
+                var miplevelLow:number = Math.floor(lambda);
+                var miplevelHigh:number = Math.ceil(lambda);
+
+                var maxmiplevel:number = Math.log(Math.min(texture.width, texture.height)) / Math.LN2;
+
+                if (miplevelHigh > maxmiplevel) {
+                    miplevelHigh = maxmiplevel;
+                }
+                if (miplevelLow > maxmiplevel) {
+                    miplevelLow = maxmiplevel;
+                }
+
+                var mipblend:number = lambda - Math.floor(lambda);
+
+                var resultLow:number[] = [];
+                var resultHigh:number[] = [];
+
+
+                var dataLow:number[] = texture.getData(miplevelLow);
+                var dataLowWidth:number = texture.width / Math.pow(2, miplevelLow);
+                var dataLowHeight:number = texture.height / Math.pow(2, miplevelLow);
+                var dataHigh:number[] = texture.getData(miplevelHigh);
+                var dataHighWidth:number = texture.width / Math.pow(2, miplevelHigh);
+                var dataHighHeight:number = texture.height / Math.pow(2, miplevelHigh);
+
+                if (state.filter == ContextGLTextureFilter.LINEAR) {
+                    resultLow = ProgramSoftware.sampleBilinear(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
+                    resultHigh = ProgramSoftware.sampleBilinear(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
+                } else {
+                    resultLow = ProgramSoftware.sampleNearest(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
+                    resultHigh = ProgramSoftware.sampleNearest(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
+                }
+
+                return ProgramSoftware.interpolateColor(resultLow, resultHigh, mipblend);
+            }
+        }
+
+        var result:number[];
+        var data:number[] = texture.getData(0);
+        if (state.filter == ContextGLTextureFilter.LINEAR) {
+            result = ProgramSoftware.sampleBilinear(u, v, data, texture.width, texture.height, repeat);
+        } else {
+            result = ProgramSoftware.sampleNearest(u, v, data, texture.width, texture.height, repeat);
+        }
+        return result;
+    }
+
+    private static sampleNearest(u:number, v:number, textureData:number[], textureWidth:number, textureHeight:number, repeat:boolean):number[] {
+        u *= textureWidth;
+        v *= textureHeight;
+
+        if (repeat) {
+            u = Math.abs(u % textureWidth);
+            v = Math.abs(v % textureHeight);
+        } else {
+            if (u < 0) {
+                u = 0;
+            } else if (u > textureWidth - 1) {
+                u = textureWidth - 1;
+            }
+
+            if (v < 0) {
+                v = 0;
+            } else if (v > textureHeight - 1) {
+                v = textureHeight - 1;
+            }
+        }
+
+        u = Math.floor(u);
+        v = Math.floor(v);
+
+        var pos:number = (u + v * textureWidth) * 4;
+        var r:number = textureData[pos] / 255;
+        var g:number = textureData[pos + 1] / 255;
+        var b:number = textureData[pos + 2] / 255;
+        var a:number = textureData[pos + 3] / 255;
+
+        return [a, r, g, b];
+    }
+
+    private static sampleBilinear(u:number, v:number, textureData:number[], textureWidth:number, textureHeight:number, repeat:boolean):number[] {
+        var texelSizeX:number = 1 / textureWidth;
+        var texelSizeY:number = 1 / textureHeight;
+        u -= texelSizeX / 2;
+        v -= texelSizeY / 2;
+
+        var color00:number[] = ProgramSoftware.sampleNearest(u, v, textureData, textureWidth, textureHeight, repeat);
+        var color10:number[] = ProgramSoftware.sampleNearest(u + texelSizeX, v, textureData, textureWidth, textureHeight, repeat);
+
+        var color01:number[] = ProgramSoftware.sampleNearest(u, v + texelSizeY, textureData, textureWidth, textureHeight, repeat);
+        var color11:number[] = ProgramSoftware.sampleNearest(u + texelSizeX, v + texelSizeY, textureData, textureWidth, textureHeight, repeat);
+
+        var a:number = u * textureWidth;
         a = a - Math.floor(a);
 
         var interColor0:number[] = ProgramSoftware.interpolateColor(color00, color10, a);
         var interColor1:number[] = ProgramSoftware.interpolateColor(color01, color11, a);
 
-        var b:number = v*texture.height;
+        var b:number = v * textureHeight;
         b = b - Math.floor(b);
         return ProgramSoftware.interpolateColor(interColor0, interColor1, b);
     }
 
-    private static interpolateColor(source:number[], target:number[], a:number):number[]{
+
+    private static interpolateColor(source:number[], target:number[], a:number):number[] {
         var result:number[] = [];
-        result[0] = source[0]+(target[0]-source[0])*a;
-        result[1] = source[1]+(target[1]-source[1])*a;
-        result[2] = source[2]+(target[2]-source[2])*a;
-        result[3] = source[3]+(target[3]-source[3])*a;
+        result[0] = source[0] + (target[0] - source[0]) * a;
+        result[1] = source[1] + (target[1] - source[1]) * a;
+        result[2] = source[2] + (target[2] - source[2]) * a;
+        result[3] = source[3] + (target[3] - source[3]) * a;
         return result;
     }
 
@@ -335,7 +446,13 @@ class ProgramSoftware implements IProgram {
         var u:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
         var v:number = source1Target[swiz[(source1.swizzle >> 2) & 3]];
 
-        var color:number[] = ProgramSoftware.sampleBilinear(context, u, v, source2.regnum);
+        var dux:number = vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
+        var dvx:number = vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
+        var duy:number = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
+        var dvy:number = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
+
+
+        var color:number[] = ProgramSoftware.sample(vo, context, u, v, source2.regnum, dux, dvx, duy, dvy);
 
         if (dest.mask & 1) {
             target.x = color[1];
