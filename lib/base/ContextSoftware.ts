@@ -32,6 +32,7 @@ import TextureSoftware                    = require("awayjs-stagegl/lib/base/Tex
 import ProgramSoftware                    = require("awayjs-stagegl/lib/base/ProgramSoftware");
 import ProgramVOSoftware                        = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
 import SoftwareSamplerState                     = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+
 class ContextSoftware implements IContextGL {
 
     private _canvas:HTMLCanvasElement;
@@ -41,9 +42,9 @@ class ContextSoftware implements IContextGL {
     private _backBufferRect:Rectangle = new Rectangle();
     private _backBufferWidth:number = 100;
     private _backBufferHeight:number = 100;
-    private _backBufferAAWidth:number = 100;
-    private _backBufferAAHeight:number = 100;
     private _backBufferColor:BitmapImage2D;
+    private _frontBuffer:BitmapImage2D;
+
     private _zbuffer:number[] = [];
     private _cullingMode:string = ContextGLTriangleFace.BACK;
     private _blendSource:string = ContextGLBlendFactor.ONE;
@@ -57,7 +58,7 @@ class ContextSoftware implements IContextGL {
     private _program:ProgramSoftware;
 
     private _screenMatrix:Matrix3D = new Matrix3D();
-    private _screenAntialiasMatrix:Matrix3D = new Matrix3D();
+    private _frontBufferMatrix:Matrix = new Matrix();
 
     private _bboxMin:Point = new Point();
     private _bboxMax:Point = new Point();
@@ -78,14 +79,15 @@ class ContextSoftware implements IContextGL {
         this._canvas = canvas;
 
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
 
         if (document && document.body) {
-            document.body.appendChild(this._backBufferColor.getCanvas());
+            document.body.appendChild(this._frontBuffer.getCanvas());
         }
     }
 
-    public get backBufferColor():BitmapImage2D {
-        return this._backBufferColor;
+    public get frontBuffer():BitmapImage2D {
+        return this._frontBuffer;
     }
 
     public get container():HTMLElement {
@@ -102,7 +104,7 @@ class ContextSoftware implements IContextGL {
 
         if (mask & ContextGLClearMask.DEPTH) {
             this._zbuffer.length = 0;
-            var len:number = this._backBufferWidth * this._backBufferHeight * this._antialias * this._antialias;
+            var len:number = this._backBufferWidth * this._backBufferHeight;
             for (var i:number = 0; i < len; i++) {
                 this._zbuffer[i] = 10000000;
             }
@@ -114,8 +116,6 @@ class ContextSoftware implements IContextGL {
 
         this._antialias = antiAlias;
 
-
-
         if (this._antialias % 2 != 0) {
             this._antialias = Math.floor(this._antialias - 0.5);
         }
@@ -124,16 +124,15 @@ class ContextSoftware implements IContextGL {
             this._antialias = 1;
         }
 
-        this._backBufferAAWidth = width * this._antialias;
-        this._backBufferAAHeight = height * this._antialias;
+        this._frontBuffer._setSize(width, height);
 
-        this._backBufferWidth = width;
-        this._backBufferHeight = height;
+        this._backBufferWidth = width * this._antialias;
+        this._backBufferHeight = height * this._antialias;
 
-        this._backBufferRect.width = width;
-        this._backBufferRect.height = height;
+        this._backBufferRect.width = this._backBufferWidth;
+        this._backBufferRect.height = this._backBufferHeight;
 
-        this._backBufferColor._setSize(width, height);
+        this._backBufferColor._setSize(this._backBufferWidth, this._backBufferHeight);
 
         var raw:Float32Array = this._screenMatrix.rawData;
 
@@ -159,29 +158,8 @@ class ContextSoftware implements IContextGL {
 
         this._screenMatrix.transpose();
 
-        raw = this._screenAntialiasMatrix.rawData;
-
-        raw[0] = (this._backBufferWidth * this._antialias) / 2;
-        raw[1] = 0;
-        raw[2] = 0;
-        raw[3] = (this._backBufferWidth * this._antialias) / 2;
-
-        raw[4] = 0;
-        raw[5] = -(this._backBufferHeight * this._antialias) / 2;
-        raw[6] = 0;
-        raw[7] = (this._backBufferHeight * this._antialias) / 2;
-
-        raw[8] = 0;
-        raw[9] = 0;
-        raw[10] = 1;
-        raw[11] = 0;
-
-        raw[12] = 0;
-        raw[13] = 0;
-        raw[14] = 0;
-        raw[15] = 0;
-
-        this._screenAntialiasMatrix.transpose();
+        this._frontBufferMatrix = new Matrix();
+        this._frontBufferMatrix.scale(1 / this._antialias, 1 / this._antialias);
     }
 
     public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture {
@@ -294,7 +272,7 @@ class ContextSoftware implements IContextGL {
 
     public present() {
         console.log("present()");
-        //this._antiAliasedBuffer.draw(this._backBufferColor, this._antiAliasMatrix);
+        this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     }
 
     public drawToBitmapImage2D(destination:BitmapImage2D) {
@@ -460,21 +438,10 @@ class ContextSoftware implements IContextGL {
         p2.scaleBy(1 / p2.w);
 
         var project:Vector3D = new Vector3D(p0.w, p1.w, p2.w);
-
-        var pa0:Vector3D = p0;
-        pa0 = this._screenAntialiasMatrix.transformVector(pa0);
-
-        var pa1:Vector3D = p1;
-        pa1 = this._screenAntialiasMatrix.transformVector(pa1);
-
-        var pa2:Vector3D = p2;
-        pa2 = this._screenAntialiasMatrix.transformVector(pa2);
-
-        var depth:Vector3D = new Vector3D(pa0.z, pa1.z, pa2.z);
-
         p0 = this._screenMatrix.transformVector(p0);
         p1 = this._screenMatrix.transformVector(p1);
         p2 = this._screenMatrix.transformVector(p2);
+        var depth:Vector3D = new Vector3D(p0.z, p1.z, p2.z);
 
         this._bboxMin.x = 1000000;
         this._bboxMin.y = 1000000;
@@ -509,44 +476,9 @@ class ContextSoftware implements IContextGL {
 
         for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
             for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
-                var colorSum:Vector3D = new Vector3D();
-                var pixelsCount:number = 0;
-                var emptyCount:number = 0;
-                for (var subsampleX:number = 0; subsampleX < this._antialias; subsampleX++) {
-                    for (var subsampleY:number = 0; subsampleY < this._antialias; subsampleY++) {
-                        var color:Vector3D = this.calcPixel(x * this._antialias + subsampleX, y * this._antialias + subsampleY, pa0, pa1, pa2, project, depth, vo0, vo1, vo2);
-                        if (color) {
-                            colorSum.x += color.x;
-                            colorSum.y += color.y;
-                            colorSum.z += color.z;
-                            colorSum.w += color.w;
-
-                            pixelsCount++;
-                        } else {
-                            emptyCount++;
-                        }
-                    }
-                }
-                //
-                //if (pixelsCount > 0) {
-                //
-                //}
-
-                var factor:number = 1 / (this._antialias * this._antialias);
-                //var emptyFactor:number = emptyCount * factor;
-                //factor = 1 / pixelsCount;
-                colorSum.x *= factor;
-                colorSum.y *= factor;
-                colorSum.z *= factor;
-                colorSum.w *= factor;
-
-                colorSum.x = colorSum.x & 0xFF;
-                colorSum.y = colorSum.y & 0xFF;
-                colorSum.z = colorSum.z & 0xFF;
-                colorSum.w = colorSum.w & 0xFF;
-
-                if(colorSum.w>0) {
-                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(colorSum.w, colorSum.x, colorSum.y, colorSum.z));
+                var color:Vector3D = this.calcPixel(x, y, p0, p1, p2, project, depth, vo0, vo1, vo2);
+                if (color) {
+                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(color.w, color.x, color.y, color.z));
                 }
             }
         }
@@ -566,7 +498,7 @@ class ContextSoftware implements IContextGL {
         var clipBottom:Vector3D = new Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
         clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
 
-        var index:number = ((x % this._backBufferAAWidth) + y * this._backBufferAAWidth);
+        var index:number = ((x % this._backBufferWidth) + y * this._backBufferWidth);
 
         var fragDepth:number = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
 
