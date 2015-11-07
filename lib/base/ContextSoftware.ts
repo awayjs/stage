@@ -41,8 +41,9 @@ class ContextSoftware implements IContextGL {
     private _backBufferRect:Rectangle = new Rectangle();
     private _backBufferWidth:number = 100;
     private _backBufferHeight:number = 100;
+    private _backBufferAAWidth:number = 100;
+    private _backBufferAAHeight:number = 100;
     private _backBufferColor:BitmapImage2D;
-    private _antiAliasMatrix:Matrix = new Matrix(0.5, 0,0,0.5);
     private _zbuffer:number[] = [];
     private _cullingMode:string = ContextGLTriangleFace.BACK;
     private _blendSource:string = ContextGLBlendFactor.ONE;
@@ -56,12 +57,11 @@ class ContextSoftware implements IContextGL {
     private _program:ProgramSoftware;
 
     private _screenMatrix:Matrix3D = new Matrix3D();
+    private _screenAntialiasMatrix:Matrix3D = new Matrix3D();
 
     private _bboxMin:Point = new Point();
     private _bboxMax:Point = new Point();
     private _clamp:Point = new Point();
-
-    private _drawRect:Rectangle = new Rectangle();
 
     public _samplerStates:SoftwareSamplerState[] = [];
     public _textures:Array<TextureSoftware> = [];
@@ -72,12 +72,14 @@ class ContextSoftware implements IContextGL {
     public _fragmentConstants:Array<Vector3D> = [];
     public _vertexConstants:Array<Vector3D> = [];
 
+    private _antialias:number = 0;
+
     constructor(canvas:HTMLCanvasElement) {
         this._canvas = canvas;
 
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
 
-        if(document && document.body) {
+        if (document && document.body) {
             document.body.appendChild(this._backBufferColor.getCanvas());
         }
     }
@@ -86,24 +88,21 @@ class ContextSoftware implements IContextGL {
         return this._backBufferColor;
     }
 
-    public get antiAliasedBuffer():BitmapImage2D {
-        return this._backBufferColor;
-    }
-
     public get container():HTMLElement {
         return this._canvas;
     }
 
     public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL) {
+        console.log("clear: " + red + ", " + green + ", " + blue + ", alpha: " + alpha);
         if (mask & ContextGLClearMask.COLOR) {
-            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha, red, green, blue));
+            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
         }
 
         //TODO: mask & ContextGLClearMask.STENCIL
 
         if (mask & ContextGLClearMask.DEPTH) {
             this._zbuffer.length = 0;
-            var len:number = this._backBufferWidth * this._backBufferHeight;
+            var len:number = this._backBufferWidth * this._backBufferHeight * this._antialias * this._antialias;
             for (var i:number = 0; i < len; i++) {
                 this._zbuffer[i] = 10000000;
             }
@@ -111,7 +110,23 @@ class ContextSoftware implements IContextGL {
     }
 
     public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean) {
-        console.log("configureBackBuffer antiAlias: "+antiAlias);
+        console.log("configureBackBuffer antiAlias: " + antiAlias);
+
+        this._antialias = antiAlias;
+
+
+
+        if (this._antialias % 2 != 0) {
+            this._antialias = Math.floor(this._antialias - 0.5);
+        }
+
+        if (this._antialias == 0) {
+            this._antialias = 1;
+        }
+
+        this._backBufferAAWidth = width * this._antialias;
+        this._backBufferAAHeight = height * this._antialias;
+
         this._backBufferWidth = width;
         this._backBufferHeight = height;
 
@@ -122,15 +137,15 @@ class ContextSoftware implements IContextGL {
 
         var raw:Float32Array = this._screenMatrix.rawData;
 
-        raw[0] = this._backBufferWidth / 2;
+        raw[0] = (this._backBufferWidth ) / 2;
         raw[1] = 0;
         raw[2] = 0;
-        raw[3] = this._backBufferWidth / 2;
+        raw[3] = (this._backBufferWidth ) / 2;
 
         raw[4] = 0;
-        raw[5] = -this._backBufferHeight / 2;
+        raw[5] = -(this._backBufferHeight ) / 2;
         raw[6] = 0;
-        raw[7] = this._backBufferHeight / 2;
+        raw[7] = (this._backBufferHeight ) / 2;
 
         raw[8] = 0;
         raw[9] = 0;
@@ -143,6 +158,30 @@ class ContextSoftware implements IContextGL {
         raw[15] = 0;
 
         this._screenMatrix.transpose();
+
+        raw = this._screenAntialiasMatrix.rawData;
+
+        raw[0] = (this._backBufferWidth * this._antialias) / 2;
+        raw[1] = 0;
+        raw[2] = 0;
+        raw[3] = (this._backBufferWidth * this._antialias) / 2;
+
+        raw[4] = 0;
+        raw[5] = -(this._backBufferHeight * this._antialias) / 2;
+        raw[6] = 0;
+        raw[7] = (this._backBufferHeight * this._antialias) / 2;
+
+        raw[8] = 0;
+        raw[9] = 0;
+        raw[10] = 1;
+        raw[11] = 0;
+
+        raw[12] = 0;
+        raw[13] = 0;
+        raw[14] = 0;
+        raw[15] = 0;
+
+        this._screenAntialiasMatrix.transpose();
     }
 
     public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture {
@@ -170,7 +209,7 @@ class ContextSoftware implements IContextGL {
     }
 
     public setBlendFactors(sourceFactor:string, destinationFactor:string) {
-        console.log("setBlendFactors sourceFactor: "+sourceFactor+" destinationFactor: "+destinationFactor);
+        console.log("setBlendFactors sourceFactor: " + sourceFactor + " destinationFactor: " + destinationFactor);
         this._blendSource = sourceFactor;
         this._blendDestination = destinationFactor;
     }
@@ -296,7 +335,7 @@ class ContextSoftware implements IContextGL {
     public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string) {
         //console.log("setSamplerStateAt: "+sampler+" wrap: "+wrap+" filter: "+filter+" mipfilter: "+mipfilter);
         var state:SoftwareSamplerState = this._samplerStates[sampler];
-        if(!state) {
+        if (!state) {
             state = this._samplerStates[sampler] = new SoftwareSamplerState();
         }
         state.wrap = wrap;
@@ -313,11 +352,6 @@ class ContextSoftware implements IContextGL {
     }
 
     public putPixel(x:number, y:number, color:number):void {
-        this._drawRect.x = x;
-        this._drawRect.y = y;
-        this._drawRect.width = 1;
-        this._drawRect.height = 1;
-
         var dest:number[] = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
         var source:number[] = ColorUtils.float32ColorToARGB(color);
 
@@ -400,14 +434,6 @@ class ContextSoftware implements IContextGL {
         return result;
     }
 
-    public drawRect(x:number, y:number, color:number):void {
-        this._drawRect.x = x;
-        this._drawRect.y = y;
-        this._drawRect.width = 5;
-        this._drawRect.height = 5;
-        this._backBufferColor.fillRect(this._drawRect, color);
-    }
-
     public clamp(value:number, min:number = 0, max:number = 1):number {
         return Math.max(min, Math.min(value, max));
     }
@@ -433,8 +459,18 @@ class ContextSoftware implements IContextGL {
         p1.scaleBy(1 / p1.w);
         p2.scaleBy(1 / p2.w);
 
-        var depth:Vector3D = new Vector3D(p0.z, p1.z, p2.z);
         var project:Vector3D = new Vector3D(p0.w, p1.w, p2.w);
+
+        var pa0:Vector3D = p0;
+        pa0 = this._screenAntialiasMatrix.transformVector(pa0);
+
+        var pa1:Vector3D = p1;
+        pa1 = this._screenAntialiasMatrix.transformVector(pa1);
+
+        var pa2:Vector3D = p2;
+        pa2 = this._screenAntialiasMatrix.transformVector(pa2);
+
+        var depth:Vector3D = new Vector3D(pa0.z, pa1.z, pa2.z);
 
         p0 = this._screenMatrix.transformVector(p0);
         p1 = this._screenMatrix.transformVector(p1);
@@ -473,90 +509,127 @@ class ContextSoftware implements IContextGL {
 
         for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
             for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
-                var screen:Vector3D = this.barycentric(p0, p1, p2, x, y);
-                var screenRight:Vector3D = this.barycentric(p0, p1, p2, x+1, y);
-                var screenBottom:Vector3D = this.barycentric(p0, p1, p2, x, y+1);
+                var colorSum:Vector3D = new Vector3D();
+                var pixelsCount:number = 0;
+                var emptyCount:number = 0;
+                for (var subsampleX:number = 0; subsampleX < this._antialias; subsampleX++) {
+                    for (var subsampleY:number = 0; subsampleY < this._antialias; subsampleY++) {
+                        var color:Vector3D = this.calcPixel(x * this._antialias + subsampleX, y * this._antialias + subsampleY, pa0, pa1, pa2, project, depth, vo0, vo1, vo2);
+                        if (color) {
+                            colorSum.x += color.x;
+                            colorSum.y += color.y;
+                            colorSum.z += color.z;
+                            colorSum.w += color.w;
 
-                var clip:Vector3D = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
-                clip.scaleBy(1 / (clip.x + clip.y + clip.z));
-
-                var clipRight:Vector3D = new Vector3D(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
-                clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
-
-                var clipBottom:Vector3D = new Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
-                clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
-
-                var index:number = ((x % this._backBufferWidth) + y * this._backBufferWidth);
-
-                var fragDepth:number = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
-
-                if (screen.x < 0 || screen.y < 0 || screen.z < 0) {
-                    continue;
+                            pixelsCount++;
+                        } else {
+                            emptyCount++;
+                        }
+                    }
                 }
+                //
+                //if (pixelsCount > 0) {
+                //
+                //}
 
-                var currentDepth:number =this._zbuffer[index];
-                //< fragDepth
-                var passDepthTest:boolean = false;
-                switch(this._depthCompareMode) {
-                    case ContextGLCompareMode.ALWAYS:
-                        passDepthTest = true;
-                        break;
-                    case ContextGLCompareMode.EQUAL:
-                        passDepthTest = fragDepth==currentDepth;
-                        break;
-                    case ContextGLCompareMode.GREATER:
-                        passDepthTest = fragDepth>currentDepth;
-                        break;
-                    case ContextGLCompareMode.GREATER_EQUAL:
-                        passDepthTest = fragDepth>=currentDepth;
-                        break;
-                    case ContextGLCompareMode.LESS:
-                        passDepthTest = fragDepth<currentDepth;
-                        break;
-                    case ContextGLCompareMode.LESS_EQUAL:
-                        passDepthTest = fragDepth<=currentDepth;
-                        break;
-                    case ContextGLCompareMode.NEVER:
-                        passDepthTest = false;
-                        break;
-                    case ContextGLCompareMode.NOT_EQUAL:
-                        passDepthTest = fragDepth!=currentDepth;
-                        break;
-                    default:
-                }
+                var factor:number = 1 / (this._antialias * this._antialias);
+                //var emptyFactor:number = emptyCount * factor;
+                //factor = 1 / pixelsCount;
+                colorSum.x *= factor;
+                colorSum.y *= factor;
+                colorSum.z *= factor;
+                colorSum.w *= factor;
 
-                if(!passDepthTest) {
-                    continue;
-                }
+                colorSum.x = colorSum.x & 0xFF;
+                colorSum.y = colorSum.y & 0xFF;
+                colorSum.z = colorSum.z & 0xFF;
+                colorSum.w = colorSum.w & 0xFF;
 
-                var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
-                if (fragmentVO.discard) {
-                    continue;
-                }
-
-                if(this._writeDepth) {
-                    this._zbuffer[index] = fragDepth;//todo: fragmentVO.outputDepth?
-                }
-
-                var color:Vector3D = fragmentVO.outputColor[0];
-
-                color.x = Math.max(0, Math.min(color.x, 1));
-                color.y = Math.max(0, Math.min(color.y, 1));
-                color.z = Math.max(0, Math.min(color.z, 1));
-                color.w = Math.max(0, Math.min(color.w, 1));
-
-                color.x *= 255;
-                color.y *= 255;
-                color.z *= 255;
-                color.w *= 255;
-
-                if (color) {
-                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(color.w, color.x, color.y, color.z));
-                } else {
-                    this.putPixel(x, y, 0xffff0000);
+                if(colorSum.w>0) {
+                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(colorSum.w, colorSum.x, colorSum.y, colorSum.z));
                 }
             }
         }
+    }
+
+    public calcPixel(x:number, y:number, p0:Vector3D, p1:Vector3D, p2:Vector3D, project:Vector3D, depth:Vector3D, vo0:ProgramVOSoftware, vo1:ProgramVOSoftware, vo2:ProgramVOSoftware):Vector3D {
+        var screen:Vector3D = this.barycentric(p0, p1, p2, x, y);
+        var screenRight:Vector3D = this.barycentric(p0, p1, p2, x + 1, y);
+        var screenBottom:Vector3D = this.barycentric(p0, p1, p2, x, y + 1);
+
+        var clip:Vector3D = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+        clip.scaleBy(1 / (clip.x + clip.y + clip.z));
+
+        var clipRight:Vector3D = new Vector3D(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
+        clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
+
+        var clipBottom:Vector3D = new Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
+        clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
+
+        var index:number = ((x % this._backBufferAAWidth) + y * this._backBufferAAWidth);
+
+        var fragDepth:number = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
+
+        if (screen.x < 0 || screen.y < 0 || screen.z < 0) {
+            return null;
+        }
+
+        var currentDepth:number = this._zbuffer[index];
+        //< fragDepth
+        var passDepthTest:boolean = false;
+        switch (this._depthCompareMode) {
+            case ContextGLCompareMode.ALWAYS:
+                passDepthTest = true;
+                break;
+            case ContextGLCompareMode.EQUAL:
+                passDepthTest = fragDepth == currentDepth;
+                break;
+            case ContextGLCompareMode.GREATER:
+                passDepthTest = fragDepth > currentDepth;
+                break;
+            case ContextGLCompareMode.GREATER_EQUAL:
+                passDepthTest = fragDepth >= currentDepth;
+                break;
+            case ContextGLCompareMode.LESS:
+                passDepthTest = fragDepth < currentDepth;
+                break;
+            case ContextGLCompareMode.LESS_EQUAL:
+                passDepthTest = fragDepth <= currentDepth;
+                break;
+            case ContextGLCompareMode.NEVER:
+                passDepthTest = false;
+                break;
+            case ContextGLCompareMode.NOT_EQUAL:
+                passDepthTest = fragDepth != currentDepth;
+                break;
+            default:
+        }
+
+        if (!passDepthTest) {
+            return null;
+        }
+
+        var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
+        if (fragmentVO.discard) {
+            return null;
+        }
+
+        if (this._writeDepth) {
+            this._zbuffer[index] = fragDepth;//todo: fragmentVO.outputDepth?
+        }
+
+        var color:Vector3D = fragmentVO.outputColor[0];
+
+        color.x = Math.max(0, Math.min(color.x, 1));
+        color.y = Math.max(0, Math.min(color.y, 1));
+        color.z = Math.max(0, Math.min(color.z, 1));
+        color.w = Math.max(0, Math.min(color.w, 1));
+
+        color.x *= 255;
+        color.y *= 255;
+        color.z *= 255;
+        color.w *= 255;
+        return color;
     }
 
     public barycentric(a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number):Vector3D {

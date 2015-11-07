@@ -451,7 +451,6 @@ class ProgramSoftware implements IProgram {
         var duy:number = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
         var dvy:number = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
 
-
         var color:number[] = ProgramSoftware.sample(vo, context, u, v, source2.regnum, dux, dvx, duy, dvy);
 
         if (dest.mask & 1) {
@@ -1100,6 +1099,54 @@ class ProgramSoftware implements IProgram {
 
         if (dest.mask & 8) {
             target.w = result.w;
+        }
+    }
+
+    public static ddx(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var source1Target:Vector3D = vo.derivativeX[source1.regnum];
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+
+        if (dest.mask & 2) {
+            target.y =source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+
+        if (dest.mask & 4) {
+            target.z =source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+
+        if (dest.mask & 8) {
+            target.w =source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        }
+    }
+
+    public static ddy(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
+        var target:Vector3D = ProgramSoftware.getDestTarget(vo, desc, dest);
+
+        var source1Target:Vector3D = vo.derivativeY[source1.regnum];
+
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        if (dest.mask & 1) {
+            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        }
+
+        if (dest.mask & 2) {
+            target.y =source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        }
+
+        if (dest.mask & 4) {
+            target.z =source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        }
+
+        if (dest.mask & 8) {
+            target.w =source1Target[swiz[(source1.swizzle >> 6) & 3]];
         }
     }
 
