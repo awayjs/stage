@@ -3902,7 +3902,12 @@ var ProgramSoftware = (function () {
         }
     };
     ProgramSoftware.kil = function (vo, desc, dest, source1, source2, context) {
-        vo.discard = true;
+        var swiz = ["x", "y", "z", "w"];
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        if (source1TargetX < 0) {
+            vo.discard = true;
+        }
     };
     ProgramSoftware._defaultSamplerState = new SoftwareSamplerState();
     ProgramSoftware._tokenizer = new AGALTokenizer();
