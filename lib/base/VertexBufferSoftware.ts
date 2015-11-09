@@ -3,8 +3,9 @@ import IVertexBuffer                = require("awayjs-stagegl/lib/base/IVertexBu
 class VertexBufferSoftware implements IVertexBuffer {
     private _numVertices:number;
     private _dataPerVertex:number;
-    private _data:Float32Array;
-    private _dataOffset:number;
+    private _floatData:Float32Array;
+    private _uintData:Uint8Array;
+    //private _dataOffset:number;
 
     constructor(numVertices:number, dataPerVertex:number) {
         this._numVertices = numVertices;
@@ -12,14 +13,16 @@ class VertexBufferSoftware implements IVertexBuffer {
     }
 
     public uploadFromArray(vertices:number[], startVertex:number, numVertices:number) {
-        this._dataOffset = startVertex * this._dataPerVertex;
-        this._data = new Float32Array(vertices);
+        console.log("VertexBufferSoftware.uploadFromArray")
+        //this._dataOffset = startVertex * this._dataPerVertex;
+        this._floatData = new Float32Array(vertices);
     }
 
-
     public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number) {
-        this._dataOffset = startVertex * this._dataPerVertex;
-        this._data = new Float32Array(data);
+        console.log("VertexBufferSoftware.uploadFromByteArray")
+        //this._dataOffset = startVertex * this._dataPerVertex;
+        this._floatData = new Float32Array(data, startVertex * this._dataPerVertex, numVertices * this._dataPerVertex / 4);
+        this._uintData = new Uint8Array(data);
     }
 
     public get numVertices():number {
@@ -31,19 +34,19 @@ class VertexBufferSoftware implements IVertexBuffer {
     }
 
     public get attributesPerVertex():number {
-        return this._dataPerVertex/4;
+        return this._dataPerVertex / 4;
     }
 
     public dispose() {
-        this._data.length = 0;
+        this._floatData.length = 0;
     }
 
     public get data():Float32Array {
-        return this._data;
+        return this._floatData;
     }
 
-    public get dataOffset():number {
-        return this._dataOffset;
+    public get uintData():Uint8Array {
+        return this._uintData;
     }
 }
 
