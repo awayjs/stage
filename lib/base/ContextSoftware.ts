@@ -73,6 +73,8 @@ class ContextSoftware implements IContextGL {
     public _fragmentConstants:Array<Vector3D> = [];
     public _vertexConstants:Array<Vector3D> = [];
 
+    //public static _drawCallback:Function = null;
+
     private _antialias:number = 0;
 
     constructor(canvas:HTMLCanvasElement) {
@@ -213,6 +215,7 @@ class ContextSoftware implements IContextGL {
     }
 
     public setDepthTest(depthMask:boolean, passCompareMode:string) {
+        console.log("setDepthTest: " + depthMask + " , " + passCompareMode);
         this._writeDepth = depthMask;
         this._depthCompareMode = passCompareMode;
     }
@@ -287,18 +290,64 @@ class ContextSoftware implements IContextGL {
 
         this._backBufferColor.lock();
 
-        for (var i:number = firstIndex; i < numIndices; i += 3) {
-            var index0:number = indexBuffer.data[indexBuffer.startOffset + i];
-            var index1:number = indexBuffer.data[indexBuffer.startOffset + i + 1];
-            var index2:number = indexBuffer.data[indexBuffer.startOffset + i + 2];
+        var index0:number;
+        var index1:number;
+        var index2:number;
 
-            var vo0:ProgramVOSoftware = this._program.vertex(this, index0);
-            var vo1:ProgramVOSoftware = this._program.vertex(this, index1);
-            var vo2:ProgramVOSoftware = this._program.vertex(this, index2);
+        var vo0:ProgramVOSoftware;
+        var vo1:ProgramVOSoftware;
+        var vo2:ProgramVOSoftware;
 
-            this.triangle(vo0, vo1, vo2);
+        if (this._cullingMode == ContextGLTriangleFace.BACK) {
+            for (var i:number = firstIndex; i < numIndices; i += 3) {
+                index0 = indexBuffer.data[indexBuffer.startOffset + i];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+
+                this.triangle(vo0, vo1, vo2);
+            }
+        } else if (this._cullingMode == ContextGLTriangleFace.FRONT) {
+            for (var i:number = firstIndex; i < numIndices; i += 3) {
+                index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 0];
+
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+
+                this.triangle(vo0, vo1, vo2);
+            }
+        } else if (this._cullingMode == ContextGLTriangleFace.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace.NONE) {
+            for (var i:number = firstIndex; i < numIndices; i += 3) {
+                index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 0];
+
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+
+                this.triangle(vo0, vo1, vo2);
+
+                index0 = indexBuffer.data[indexBuffer.startOffset + i];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+                this.triangle(vo0, vo1, vo2);
+            }
         }
 
+        //if (ContextSoftware._drawCallback) {
+        //    ContextSoftware._drawCallback(this._backBufferColor);
+        //}
         this._backBufferColor.unlock();
     }
 
@@ -331,7 +380,16 @@ class ContextSoftware implements IContextGL {
 
     public putPixel(x:number, y:number, color:number):void {
         var dest:number[] = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
+        dest[0]/=255;
+        dest[1]/=255;
+        dest[2]/=255;
+        dest[3]/=255;
+
         var source:number[] = ColorUtils.float32ColorToARGB(color);
+        source[0]/=255;
+        source[1]/=255;
+        source[2]/=255;
+        source[3]/=255;
 
         var destModified:number[] = this.applyBlendMode(dest, this._blendDestination, dest, source);
         var sourceModified:number[] = this.applyBlendMode(source, this._blendSource, dest, source);
@@ -341,17 +399,17 @@ class ContextSoftware implements IContextGL {
         var g:number = destModified[2] + sourceModified[2];
         var b:number = destModified[3] + sourceModified[3];
 
-        a = Math.max(0, Math.min(a, 255));
-        r = Math.max(0, Math.min(r, 255));
-        g = Math.max(0, Math.min(g, 255));
-        b = Math.max(0, Math.min(b, 255));
+        a = Math.max(0, Math.min(a, 1));
+        r = Math.max(0, Math.min(r, 1));
+        g = Math.max(0, Math.min(g, 1));
+        b = Math.max(0, Math.min(b, 1));
         //
         //r*=a/255;
         //g*=a/255;
         //b*=a/255;
         //a = 255;
 
-        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a, r, g, b));
+        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a*255, r*255, g*255, b*255));
     }
 
     private applyBlendMode(argb:number[], blend:string, dest:number[], source:number[]):number[] {
