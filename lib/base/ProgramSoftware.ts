@@ -1336,7 +1336,14 @@ class ProgramSoftware implements IProgram {
     }
 
     public static kil(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void {
-        vo.discard = true;
+        var swiz:string[] = ["x", "y", "z", "w"];
+
+        var source1Target:Vector3D = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var source1TargetX:number = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+
+        if(source1TargetX<0) {
+            vo.discard = true;
+        }
     }
 }
 
