@@ -1328,8 +1328,8 @@ declare module "awayjs-stagegl/lib/base/VertexBufferSoftware" {
 	class VertexBufferSoftware implements IVertexBuffer {
 	    private _numVertices;
 	    private _dataPerVertex;
-	    private _data;
-	    private _dataOffset;
+	    private _floatData;
+	    private _uintData;
 	    constructor(numVertices: number, dataPerVertex: number);
 	    uploadFromArray(vertices: number[], startVertex: number, numVertices: number): void;
 	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): void;
@@ -1338,7 +1338,7 @@ declare module "awayjs-stagegl/lib/base/VertexBufferSoftware" {
 	    attributesPerVertex: number;
 	    dispose(): void;
 	    data: Float32Array;
-	    dataOffset: number;
+	    uintData: Uint8Array;
 	}
 	export = VertexBufferSoftware;
 	

@@ -1281,6 +1281,7 @@ var Point = require("awayjs-core/lib/geom/Point");
 var Vector3D = require("awayjs-core/lib/geom/Vector3D");
 var Rectangle = require("awayjs-core/lib/geom/Rectangle");
 var ColorUtils = require("awayjs-core/lib/utils/ColorUtils");
+var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
 var ContextGLBlendFactor = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
 var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
 var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
@@ -1318,10 +1319,11 @@ var ContextSoftware = (function () {
         this._vertexBufferFormats = [];
         this._fragmentConstants = [];
         this._vertexConstants = [];
+        //public static _drawCallback:Function = null;
         this._antialias = 0;
         this._canvas = canvas;
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
         if (document && document.body) {
             document.body.appendChild(this._frontBuffer.getCanvas());
         }
@@ -1437,6 +1439,7 @@ var ContextSoftware = (function () {
         this._cullingMode = triangleFaceToCull;
     };
     ContextSoftware.prototype.setDepthTest = function (depthMask, passCompareMode) {
+        console.log("setDepthTest: " + depthMask + " , " + passCompareMode);
         this._writeDepth = depthMask;
         this._depthCompareMode = passCompareMode;
     };
@@ -1445,21 +1448,29 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.setProgramConstantsFromMatrix = function (programType, firstRegister, matrix, transposedMatrix) {
         console.log("setProgramConstantsFromMatrix: programType" + programType + " firstRegister: " + firstRegister + " matrix: " + matrix + " transposedMatrix: " + transposedMatrix);
+        var d = matrix.rawData;
         if (transposedMatrix) {
-            var tempMatrix = matrix.clone();
-            tempMatrix.transpose();
-            matrix = tempMatrix;
+            var raw = Matrix3DUtils.RAW_DATA_CONTAINER;
+            raw[0] = d[0];
+            raw[1] = d[4];
+            raw[2] = d[8];
+            raw[3] = d[12];
+            raw[4] = d[1];
+            raw[5] = d[5];
+            raw[6] = d[9];
+            raw[7] = d[13];
+            raw[8] = d[2];
+            raw[9] = d[6];
+            raw[10] = d[10];
+            raw[11] = d[14];
+            raw[12] = d[3];
+            raw[13] = d[7];
+            raw[14] = d[11];
+            raw[15] = d[15];
+            this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
         }
-        var target;
-        if (programType == ContextGLProgramType.VERTEX) {
-            target = this._vertexConstants;
-        }
-        else if (programType == ContextGLProgramType.FRAGMENT) {
-            target = this._fragmentConstants;
-        }
-        var matrixData = matrix.rawData;
-        for (var i = firstRegister; i < firstRegister + 4; i++) {
-            target[i] = new Vector3D(matrixData[i * 4], matrixData[i * 4 + 1], matrixData[i * 4 + 2], matrixData[i * 4 + 3]);
+        else {
+            this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
         }
     };
     ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
@@ -1488,6 +1499,7 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.present = function () {
         console.log("present()");
+        this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
         this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
@@ -1498,15 +1510,55 @@ var ContextSoftware = (function () {
             return;
         }
         this._backBufferColor.lock();
-        for (var i = firstIndex; i < numIndices; i += 3) {
-            var index0 = indexBuffer.data[indexBuffer.startOffset + i];
-            var index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
-            var index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
-            var vo0 = this._program.vertex(this, index0);
-            var vo1 = this._program.vertex(this, index1);
-            var vo2 = this._program.vertex(this, index2);
-            this.triangle(vo0, vo1, vo2);
+        var index0;
+        var index1;
+        var index2;
+        var vo0;
+        var vo1;
+        var vo2;
+        if (this._cullingMode == ContextGLTriangleFace.BACK) {
+            for (var i = firstIndex; i < numIndices; i += 3) {
+                index0 = indexBuffer.data[indexBuffer.startOffset + i];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+                this.triangle(vo0, vo1, vo2);
+            }
         }
+        else if (this._cullingMode == ContextGLTriangleFace.FRONT) {
+            for (var i = firstIndex; i < numIndices; i += 3) {
+                index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 0];
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+                this.triangle(vo0, vo1, vo2);
+            }
+        }
+        else if (this._cullingMode == ContextGLTriangleFace.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace.NONE) {
+            for (var i = firstIndex; i < numIndices; i += 3) {
+                index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 0];
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+                this.triangle(vo0, vo1, vo2);
+                index0 = indexBuffer.data[indexBuffer.startOffset + i];
+                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
+                index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
+                vo0 = this._program.vertex(this, index0);
+                vo1 = this._program.vertex(this, index1);
+                vo2 = this._program.vertex(this, index2);
+                this.triangle(vo0, vo1, vo2);
+            }
+        }
+        //if (ContextSoftware._drawCallback) {
+        //    ContextSoftware._drawCallback(this._backBufferColor);
+        //}
         this._backBufferColor.unlock();
     };
     ContextSoftware.prototype.drawVertices = function (mode, firstVertex, numVertices) {
@@ -1533,23 +1585,31 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.putPixel = function (x, y, color) {
         var dest = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
+        dest[0] /= 255;
+        dest[1] /= 255;
+        dest[2] /= 255;
+        dest[3] /= 255;
         var source = ColorUtils.float32ColorToARGB(color);
+        source[0] /= 255;
+        source[1] /= 255;
+        source[2] /= 255;
+        source[3] /= 255;
         var destModified = this.applyBlendMode(dest, this._blendDestination, dest, source);
         var sourceModified = this.applyBlendMode(source, this._blendSource, dest, source);
         var a = destModified[0] + sourceModified[0];
         var r = destModified[1] + sourceModified[1];
         var g = destModified[2] + sourceModified[2];
         var b = destModified[3] + sourceModified[3];
-        a = Math.max(0, Math.min(a, 255));
-        r = Math.max(0, Math.min(r, 255));
-        g = Math.max(0, Math.min(g, 255));
-        b = Math.max(0, Math.min(b, 255));
+        a = Math.max(0, Math.min(a, 1));
+        r = Math.max(0, Math.min(r, 1));
+        g = Math.max(0, Math.min(g, 1));
+        b = Math.max(0, Math.min(b, 1));
         //
         //r*=a/255;
         //g*=a/255;
         //b*=a/255;
         //a = 255;
-        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a, r, g, b));
+        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
     };
     ContextSoftware.prototype.applyBlendMode = function (argb, blend, dest, source) {
         var result = [];
@@ -1765,7 +1825,7 @@ var VertexBufferProperties = (function () {
 })();
 module.exports = ContextSoftware;
 
-},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
+},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
 //import swfobject					= require("awayjs-stagegl/lib/swfobject");
 var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -2923,6 +2983,12 @@ var ProgramSoftware = (function () {
                 continue;
             var attribute = new Vector3D(0, 0, 0, 1);
             var index = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.BYTES_4) {
+                attribute.x = buffer.uintData[index * 4];
+                attribute.y = buffer.uintData[index * 4 + 1];
+                attribute.z = buffer.uintData[index * 4 + 2];
+                attribute.w = buffer.uintData[index * 4 + 3];
+            }
             if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_1) {
                 attribute.x = buffer.data[index];
             }
@@ -4915,17 +4981,21 @@ module.exports = VertexBufferFlash;
 
 },{"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/VertexBufferSoftware":[function(require,module,exports){
 var VertexBufferSoftware = (function () {
+    //private _dataOffset:number;
     function VertexBufferSoftware(numVertices, dataPerVertex) {
         this._numVertices = numVertices;
         this._dataPerVertex = dataPerVertex;
     }
     VertexBufferSoftware.prototype.uploadFromArray = function (vertices, startVertex, numVertices) {
-        this._dataOffset = startVertex * this._dataPerVertex;
-        this._data = new Float32Array(vertices);
+        console.log("VertexBufferSoftware.uploadFromArray");
+        //this._dataOffset = startVertex * this._dataPerVertex;
+        this._floatData = new Float32Array(vertices);
     };
     VertexBufferSoftware.prototype.uploadFromByteArray = function (data, startVertex, numVertices) {
-        this._dataOffset = startVertex * this._dataPerVertex;
-        this._data = new Float32Array(data);
+        console.log("VertexBufferSoftware.uploadFromByteArray");
+        //this._dataOffset = startVertex * this._dataPerVertex;
+        this._floatData = new Float32Array(data, startVertex * this._dataPerVertex, numVertices * this._dataPerVertex / 4);
+        this._uintData = new Uint8Array(data);
     };
     Object.defineProperty(VertexBufferSoftware.prototype, "numVertices", {
         get: function () {
@@ -4949,18 +5019,18 @@ var VertexBufferSoftware = (function () {
         configurable: true
     });
     VertexBufferSoftware.prototype.dispose = function () {
-        this._data.length = 0;
+        this._floatData.length = 0;
     };
     Object.defineProperty(VertexBufferSoftware.prototype, "data", {
         get: function () {
-            return this._data;
+            return this._floatData;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(VertexBufferSoftware.prototype, "dataOffset", {
+    Object.defineProperty(VertexBufferSoftware.prototype, "uintData", {
         get: function () {
-            return this._dataOffset;
+            return this._uintData;
         },
         enumerable: true,
         configurable: true
