@@ -7,7 +7,7 @@ import Rectangle                    = require("awayjs-core/lib/geom/Rectangle");
 import ByteArray                    = require("awayjs-core/lib/utils/ByteArray");
 import ColorUtils                    = require("awayjs-core/lib/utils/ColorUtils");
 
-import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
+import Matrix3DUtils                = require("awayjs-core/lib/geom/Matrix3DUtils");
 import ContextGLBlendFactor            = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
 import ContextGLDrawMode            = require("awayjs-stagegl/lib/base/ContextGLDrawMode");
 import ContextGLClearMask            = require("awayjs-stagegl/lib/base/ContextGLClearMask");
@@ -82,7 +82,7 @@ class ContextSoftware implements IContextGL {
         this._canvas = canvas;
 
         this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
 
         if (document && document.body) {
             document.body.appendChild(this._frontBuffer.getCanvas());
@@ -283,6 +283,7 @@ class ContextSoftware implements IContextGL {
 
     public present() {
         console.log("present()");
+        this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
         this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     }
 
@@ -388,16 +389,16 @@ class ContextSoftware implements IContextGL {
 
     public putPixel(x:number, y:number, color:number):void {
         var dest:number[] = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
-        dest[0]/=255;
-        dest[1]/=255;
-        dest[2]/=255;
-        dest[3]/=255;
+        dest[0] /= 255;
+        dest[1] /= 255;
+        dest[2] /= 255;
+        dest[3] /= 255;
 
         var source:number[] = ColorUtils.float32ColorToARGB(color);
-        source[0]/=255;
-        source[1]/=255;
-        source[2]/=255;
-        source[3]/=255;
+        source[0] /= 255;
+        source[1] /= 255;
+        source[2] /= 255;
+        source[3] /= 255;
 
         var destModified:number[] = this.applyBlendMode(dest, this._blendDestination, dest, source);
         var sourceModified:number[] = this.applyBlendMode(source, this._blendSource, dest, source);
@@ -417,7 +418,7 @@ class ContextSoftware implements IContextGL {
         //b*=a/255;
         //a = 255;
 
-        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a*255, r*255, g*255, b*255));
+        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
     }
 
     private applyBlendMode(argb:number[], blend:string, dest:number[], source:number[]):number[] {
