@@ -1,33 +1,21 @@
-import IAssetClass					= require("awayjs-core/lib/library/IAssetClass");
-import BitmapImage2D				= require("awayjs-core/lib/data/BitmapImage2D");
-import SpecularImage2D				= require("awayjs-core/lib/data/SpecularImage2D");
+import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
+import SpecularImage2D				= require("awayjs-core/lib/image/SpecularImage2D");
+import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
 import MipmapGenerator				= require("awayjs-core/lib/utils/MipmapGenerator");
 
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import Image2DObject				= require("awayjs-stagegl/lib/pool/Image2DObject");
-import ImageObjectPool				= require("awayjs-stagegl/lib/pool/ImageObjectPool");
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
+import GL_Image2D					= require("awayjs-stagegl/lib/image/GL_Image2D");
 
 /**
  *
  * @class away.pool.ImageObjectBase
  */
-class SpecularImage2DObject extends Image2DObject
+class GL_SpecularImage2D extends GL_Image2D
 {
 	private _mipmapData:Array<BitmapImage2D>;
-
-	/**
-	 *
-	 */
-	public static assetClass:IAssetClass = SpecularImage2D;
-
-	constructor(pool:ImageObjectPool, image:SpecularImage2D, stage:Stage)
-	{
-		super(pool, image, stage)
-	}
 
 	public activate(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
 	{
@@ -43,12 +31,12 @@ class SpecularImage2DObject extends Image2DObject
 			if (mipmap) {
 				var mipmapData:Array<BitmapImage2D> = this._mipmapData || (this._mipmapData = new Array<BitmapImage2D>());
 
-				MipmapGenerator._generateMipMaps((<SpecularImage2D> this._image).getCanvas(), mipmapData);
+				MipmapGenerator._generateMipMaps((<SpecularImage2D> this._asset).getCanvas(), mipmapData);
 				var len:number = mipmapData.length;
 				for (var i:number = 0; i < len; i++)
 					(<ITexture> this._texture).uploadFromData(mipmapData[i].getImageData(), i);
 			} else {
-				(<ITexture> this._texture).uploadFromData((<SpecularImage2D> this._image).getImageData(), 0);
+				(<ITexture> this._texture).uploadFromData((<SpecularImage2D> this._asset).getImageData(), 0);
 			}
 		}
 	}
@@ -56,9 +44,9 @@ class SpecularImage2DObject extends Image2DObject
 	/**
 	 *
 	 */
-	public dispose()
+	public onClear(event:AssetEvent)
 	{
-		super.dispose();
+		super.onClear(event);
 
 		var len:number = this._mipmapData.length;
 		for (var i:number = 0; i < len; i++)
@@ -70,15 +58,15 @@ class SpecularImage2DObject extends Image2DObject
 	 * @param context
 	 * @returns {ITexture}
 	 */
-	public getTexture(context:IContextGL):ITextureBase
+	public _getTexture():ITextureBase
 	{
 		if (!this._texture) {
 			this._invalid = true;
-			return super.getTexture(context);
+			return super._getTexture();
 		}
 
 		return this._texture;
 	}
 }
 
-export = SpecularImage2DObject;
+export = GL_SpecularImage2D;

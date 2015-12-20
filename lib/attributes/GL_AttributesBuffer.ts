@@ -1,32 +1,23 @@
-import IAssetClass					= require("awayjs-core/lib/library/IAssetClass");
-import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
-import IAttributesBufferVO			= require("awayjs-core/lib/vos/IAttributesBufferVO");
 import AttributesBuffer				= require("awayjs-core/lib/attributes/AttributesBuffer");
+import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
+import AbstractionBase				= require("awayjs-core/lib/library/AbstractionBase");
 
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
 import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
 import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
 import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
-import AttributesBufferVOPool		= require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
 
 /**
  *
- * @class away.pool.AttributesBufferVO
+ * @class away.pool.GL_AttributesBuffer
  */
-class AttributesBufferVO implements IAttributesBufferVO
+class GL_AttributesBuffer extends AbstractionBase
 {
-	/**
-	 *
-	 */
-	public static assetClass:IAssetClass = AttributesBuffer;
-
-	private _pool:AttributesBufferVOPool;
-
-	public _stage:Stage;
-
 	public _indexBuffer:IIndexBuffer;
 
 	public _vertexBuffer:IVertexBuffer;
+
+	public _stage:Stage;
 
 	public _attributesBuffer:AttributesBuffer;
 
@@ -34,22 +25,23 @@ class AttributesBufferVO implements IAttributesBufferVO
 
 	public _invalid:boolean;
 
-	constructor(pool:AttributesBufferVOPool, attributesBuffer:AttributesBuffer, stage:Stage)
+	constructor(attributesBuffer:AttributesBuffer, stage:Stage)
 	{
-		this._pool = pool;
-		this._attributesBuffer = attributesBuffer;
+		super(attributesBuffer, stage);
+
 		this._stage = stage;
+
+		this._attributesBuffer = attributesBuffer;
 	}
 
 	/**
 	 *
 	 */
-	public dispose()
+	public onClear(event:AssetEvent)
 	{
-		this._pool.disposeItem(this._attributesBuffer);
-		this._pool = null;
+		super.onClear(event);
+
 		this._attributesBuffer = null;
-		this._stage = null;
 
 		if (this._indexBuffer) {
 			this._indexBuffer.dispose();
@@ -60,14 +52,6 @@ class AttributesBufferVO implements IAttributesBufferVO
 			this._vertexBuffer.dispose();
 			this._vertexBuffer = null;
 		}
-	}
-
-	/**
-	 *
-	 */
-	public invalidate()
-	{
-		this._invalid = true;
 	}
 
 	public activate(index:number, size:number, dimensions:number, offset:number)
@@ -111,4 +95,4 @@ class AttributesBufferVO implements IAttributesBufferVO
 	}
 }
 
-export = AttributesBufferVO;
+export = GL_AttributesBuffer;

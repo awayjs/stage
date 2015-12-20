@@ -16,7 +16,7 @@ class StageManager extends EventDispatcher
 
 	private static _instance:StageManager;
 	private static _numStages:number = 0;
-	private _onContextCreatedDelegate:(event:Event) => void;
+	private _onContextCreatedDelegate:(event:StageEvent) => void;
 
 	/**
 	 * Creates a new StageManager class.
@@ -29,7 +29,7 @@ class StageManager extends EventDispatcher
 
 		this._stages = new Array<Stage>(StageManager.STAGE_MAX_QUANTITY);
 
-		this._onContextCreatedDelegate = (event:Event) => this.onContextCreated(event);
+		this._onContextCreatedDelegate = (event:StageEvent) => this.onContextCreated(event);
 	}
 
 	/**
@@ -144,7 +144,7 @@ class StageManager extends EventDispatcher
 		return this._stages.length;
 	}
 
-	private onContextCreated(event:Event):void
+	private onContextCreated(event:StageEvent):void
 	{
 		//var stage:Stage = <Stage> e.target;
 		//document.body.appendChild(stage.canvas)

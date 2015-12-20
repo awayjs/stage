@@ -1,4 +1,4 @@
-import ProgramDataPool				= require("awayjs-stagegl/lib/pool/ProgramDataPool");
+import ProgramDataPool				= require("awayjs-stagegl/lib/image/ProgramDataPool");
 import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
 import Stage						= require("awayjs-stagegl/lib/base/Stage");
 

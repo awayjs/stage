@@ -1,15 +1,11 @@
 import IAssetClass					= require("awayjs-core/lib/library/IAssetClass");
-import BitmapImageCube				= require("awayjs-core/lib/data/BitmapImageCube");
-import BitmapImage2D				= require("awayjs-core/lib/data/BitmapImage2D");
+import BitmapImageCube				= require("awayjs-core/lib/image/BitmapImageCube");
+import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
+import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
 import MipmapGenerator				= require("awayjs-core/lib/utils/MipmapGenerator");
 
-
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import ImageCubeObject				= require("awayjs-stagegl/lib/pool/ImageCubeObject");
-import ImageObjectPool				= require("awayjs-stagegl/lib/pool/ImageObjectPool");
+import GL_ImageCube					= require("awayjs-stagegl/lib/image/GL_ImageCube");
 import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
 import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
 import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
 
@@ -17,19 +13,9 @@ import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
  *
  * @class away.pool.ImageObjectBase
  */
-class BitmapImageCubeObject extends ImageCubeObject
+class GL_BitmapImageCube extends GL_ImageCube
 {
 	public _mipmapDataArray:Array<Array<BitmapImage2D>> = new Array<Array<BitmapImage2D>>(6);
-
-	/**
-	 *
-	 */
-	public static assetClass:IAssetClass = BitmapImageCube;
-
-	constructor(pool:ImageObjectPool, image:BitmapImageCube, stage:Stage)
-	{
-		super(pool, image, stage)
-	}
 
 	public activate(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
 	{
@@ -46,12 +32,12 @@ class BitmapImageCubeObject extends ImageCubeObject
 				if (mipmap) {
 					var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array<BitmapImage2D>());
 
-					MipmapGenerator._generateMipMaps((<BitmapImageCube> this._image).getCanvas(i), mipmapData, true);
+					MipmapGenerator._generateMipMaps((<BitmapImageCube> this._asset).getCanvas(i), mipmapData, true);
 					var len:number = mipmapData.length;
 					for (var j:number = 0; j < len; j++)
 						(<ICubeTexture> this._texture).uploadFromData(mipmapData[j].getImageData(), i, j);
 				} else {
-					(<ICubeTexture> this._texture).uploadFromData((<BitmapImageCube> this._image).getImageData(i), i, 0);
+					(<ICubeTexture> this._texture).uploadFromData((<BitmapImageCube> this._asset).getImageData(i), i, 0);
 				}
 			}
 		}
@@ -60,9 +46,9 @@ class BitmapImageCubeObject extends ImageCubeObject
 	/**
 	 *
 	 */
-	public dispose()
+	public onClear(event:AssetEvent)
 	{
-		super.dispose();
+		super.onClear(event);
 
 		for (var i:number = 0; i < 6; i++) {
 			var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i];
@@ -81,15 +67,15 @@ class BitmapImageCubeObject extends ImageCubeObject
 	 * @param context
 	 * @returns {ITexture}
 	 */
-	public getTexture(context:IContextGL):ITextureBase
+	public _getTexture():ITextureBase
 	{
 		if (!this._texture) {
 			this._invalid = true;
-			return super.getTexture(context);
+			return super._getTexture();
 		}
 
 		return this._texture;
 	}
 }
 
-export = BitmapImageCubeObject;
+export = GL_BitmapImageCube;
