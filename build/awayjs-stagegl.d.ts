@@ -1,3 +1,16 @@
+declare module "awayjs-stagegl/lib/StageGL" {
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	/**
+	 *
+	 * static shim
+	 */
+	var stagegl: {
+	    Stage: typeof Stage;
+	};
+	export = stagegl;
+	
+}
+
 declare module "awayjs-stagegl/lib/aglsl/AGALTokenizer" {
 	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
 	import Description = require("awayjs-stagegl/lib/aglsl/Description");
@@ -18,120 +31,6 @@ declare module "awayjs-stagegl/lib/aglsl/AGLSLParser" {
 	    sourcetostring(s: any, subline: any, dwm: any, isscalar: any, desc: any, tag: any): string;
 	}
 	export = AGLSLParser;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler" {
-	import Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
-	class AGALMiniAssembler {
-	    r: Object;
-	    cur: Part;
-	    constructor();
-	    assemble(source: string, ext_part?: any, ext_version?: any): Object;
-	    private processLine(line, linenr);
-	    emitHeader(pr: Part): void;
-	    emitOpcode(pr: Part, opcode: any): void;
-	    emitZeroDword(pr: Part): void;
-	    emitZeroQword(pr: any): void;
-	    emitDest(pr: any, token: any, opdest: any): boolean;
-	    stringToMask(s: string): number;
-	    stringToSwizzle(s: any): number;
-	    emitSampler(pr: Part, token: any, opsrc: any, opts: any): boolean;
-	    emitSource(pr: any, token: any, opsrc: any): boolean;
-	    addHeader(partname: any, version: any): void;
-	}
-	export = AGALMiniAssembler;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Flags" {
-	class Flags {
-	    simple: boolean;
-	    horizontal: boolean;
-	    fragonly: boolean;
-	    matrix: boolean;
-	}
-	export = Flags;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/FS" {
-	class FS {
-	    format: string;
-	    size: number;
-	}
-	export = FS;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Opcode" {
-	import Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
-	import FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
-	/**
-	 *
-	 */
-	class Opcode {
-	    dest: string;
-	    a: FS;
-	    b: FS;
-	    opcode: number;
-	    flags: Flags;
-	    constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean);
-	}
-	export = Opcode;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap" {
-	class OpcodeMap {
-	    private static _map;
-	    static map: Object[];
-	    constructor();
-	}
-	export = OpcodeMap;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Part" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	class Part {
-	    name: string;
-	    version: number;
-	    data: ByteArray;
-	    constructor(name?: string, version?: number);
-	}
-	export = Part;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/RegMap" {
-	class RegMap {
-	    private static _map;
-	    static map: any[];
-	    constructor();
-	}
-	export = RegMap;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
-	class Sampler {
-	    shift: number;
-	    mask: number;
-	    value: number;
-	    constructor(shift: number, mask: number, value: number);
-	}
-	export = Sampler;
-	
-}
-
-declare module "awayjs-stagegl/lib/aglsl/assembler/SamplerMap" {
-	class SamplerMap {
-	    private static _map;
-	    static map: Object[];
-	    constructor();
-	}
-	export = SamplerMap;
 	
 }
 
@@ -240,6 +139,152 @@ declare module "awayjs-stagegl/lib/aglsl/Token" {
 	    constructor();
 	}
 	export = Token;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler" {
+	import Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
+	class AGALMiniAssembler {
+	    r: Object;
+	    cur: Part;
+	    constructor();
+	    assemble(source: string, ext_part?: any, ext_version?: any): Object;
+	    private processLine(line, linenr);
+	    emitHeader(pr: Part): void;
+	    emitOpcode(pr: Part, opcode: any): void;
+	    emitZeroDword(pr: Part): void;
+	    emitZeroQword(pr: any): void;
+	    emitDest(pr: any, token: any, opdest: any): boolean;
+	    stringToMask(s: string): number;
+	    stringToSwizzle(s: any): number;
+	    emitSampler(pr: Part, token: any, opsrc: any, opts: any): boolean;
+	    emitSource(pr: any, token: any, opsrc: any): boolean;
+	    addHeader(partname: any, version: any): void;
+	}
+	export = AGALMiniAssembler;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/FS" {
+	class FS {
+	    format: string;
+	    size: number;
+	}
+	export = FS;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Flags" {
+	class Flags {
+	    simple: boolean;
+	    horizontal: boolean;
+	    fragonly: boolean;
+	    matrix: boolean;
+	}
+	export = Flags;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Opcode" {
+	import Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
+	import FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
+	/**
+	 *
+	 */
+	class Opcode {
+	    dest: string;
+	    a: FS;
+	    b: FS;
+	    opcode: number;
+	    flags: Flags;
+	    constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean);
+	}
+	export = Opcode;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap" {
+	class OpcodeMap {
+	    private static _map;
+	    static map: Object[];
+	    constructor();
+	}
+	export = OpcodeMap;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Part" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	class Part {
+	    name: string;
+	    version: number;
+	    data: ByteArray;
+	    constructor(name?: string, version?: number);
+	}
+	export = Part;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/RegMap" {
+	class RegMap {
+	    private static _map;
+	    static map: any[];
+	    constructor();
+	}
+	export = RegMap;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/Sampler" {
+	class Sampler {
+	    shift: number;
+	    mask: number;
+	    value: number;
+	    constructor(shift: number, mask: number, value: number);
+	}
+	export = Sampler;
+	
+}
+
+declare module "awayjs-stagegl/lib/aglsl/assembler/SamplerMap" {
+	class SamplerMap {
+	    private static _map;
+	    static map: Object[];
+	    constructor();
+	}
+	export = SamplerMap;
+	
+}
+
+declare module "awayjs-stagegl/lib/attributes/GL_AttributesBuffer" {
+	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
+	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
+	import AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
+	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
+	/**
+	 *
+	 * @class away.pool.GL_AttributesBuffer
+	 */
+	class GL_AttributesBuffer extends AbstractionBase {
+	    _indexBuffer: IIndexBuffer;
+	    _vertexBuffer: IVertexBuffer;
+	    _stage: Stage;
+	    _attributesBuffer: AttributesBuffer;
+	    _mipmap: boolean;
+	    _invalid: boolean;
+	    constructor(attributesBuffer: AttributesBuffer, stage: Stage);
+	    /**
+	     *
+	     */
+	    onClear(event: AssetEvent): void;
+	    activate(index: number, size: number, dimensions: number, offset: number): void;
+	    draw(mode: string, firstIndex: number, numIndices: number): void;
+	    _getIndexBuffer(): IIndexBuffer;
+	    _getVertexBuffer(): IVertexBuffer;
+	}
+	export = GL_AttributesBuffer;
 	
 }
 
@@ -406,7 +451,7 @@ declare module "awayjs-stagegl/lib/base/ContextMode" {
 }
 
 declare module "awayjs-stagegl/lib/base/ContextSoftware" {
-	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
+	import BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Vector3D = require("awayjs-core/lib/geom/Vector3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
@@ -495,7 +540,7 @@ declare module "awayjs-stagegl/lib/base/ContextSoftware" {
 }
 
 declare module "awayjs-stagegl/lib/base/ContextStage3D" {
-	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
+	import BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -567,7 +612,7 @@ declare module "awayjs-stagegl/lib/base/ContextStage3D" {
 }
 
 declare module "awayjs-stagegl/lib/base/ContextWebGL" {
-	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
+	import BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import CubeTextureWebGL = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
@@ -689,9 +734,9 @@ declare module "awayjs-stagegl/lib/base/CubeTextureWebGL" {
 }
 
 declare module "awayjs-stagegl/lib/base/IContextGL" {
-	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
 	import Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
 	import ICubeTexture = require("awayjs-stagegl/lib/base/ICubeTexture");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
 	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
@@ -756,6 +801,48 @@ declare module "awayjs-stagegl/lib/base/IIndexBuffer" {
 	
 }
 
+declare module "awayjs-stagegl/lib/base/IProgram" {
+	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
+	interface IProgram {
+	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): any;
+	    dispose(): any;
+	}
+	export = IProgram;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/ITexture" {
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	interface ITexture extends ITextureBase {
+	    width: number;
+	    height: number;
+	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
+	    uploadFromData(imageData: ImageData, miplevel?: number): any;
+	}
+	export = ITexture;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/ITextureBase" {
+	interface ITextureBase {
+	    dispose(): any;
+	}
+	export = ITextureBase;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
+	interface IVertexBuffer {
+	    numVertices: number;
+	    dataPerVertex: number;
+	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
+	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): any;
+	    dispose(): any;
+	}
+	export = IVertexBuffer;
+	
+}
+
 declare module "awayjs-stagegl/lib/base/IndexBufferFlash" {
 	import ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
@@ -805,48 +892,6 @@ declare module "awayjs-stagegl/lib/base/IndexBufferWebGL" {
 	    glBuffer: WebGLBuffer;
 	}
 	export = IndexBufferWebGL;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/IProgram" {
-	import ByteArray = require("awayjs-core/lib/utils/ByteArray");
-	interface IProgram {
-	    upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): any;
-	    dispose(): any;
-	}
-	export = IProgram;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/ITexture" {
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	interface ITexture extends ITextureBase {
-	    width: number;
-	    height: number;
-	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
-	    uploadFromData(imageData: ImageData, miplevel?: number): any;
-	}
-	export = ITexture;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/ITextureBase" {
-	interface ITextureBase {
-	    dispose(): any;
-	}
-	export = ITextureBase;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
-	interface IVertexBuffer {
-	    numVertices: number;
-	    dataPerVertex: number;
-	    uploadFromArray(data: number[], startVertex: number, numVertices: number): any;
-	    uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): any;
-	    dispose(): any;
-	}
-	export = IVertexBuffer;
 	
 }
 
@@ -1060,16 +1105,18 @@ declare module "awayjs-stagegl/lib/base/SoftwareSamplerState" {
 }
 
 declare module "awayjs-stagegl/lib/base/Stage" {
-	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
-	import ImageBase = require("awayjs-core/lib/data/ImageBase");
-	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
 	import EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
+	import Rectangle = require("awayjs-core/lib/geom/Rectangle");
+	import ImageBase = require("awayjs-core/lib/image/ImageBase");
+	import AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+	import IAsset = require("awayjs-core/lib/library/IAsset");
+	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
+	import IAbstractionPool = require("awayjs-core/lib/library/IAbstractionPool");
 	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
 	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
-	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
-	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
+	import GL_IAssetClass = require("awayjs-stagegl/lib/library/GL_IAssetClass");
+	import ProgramData = require("awayjs-stagegl/lib/image/ProgramData");
 	import StageManager = require("awayjs-stagegl/lib/managers/StageManager");
-	import AttributesBufferVO = require("awayjs-stagegl/lib/vos/AttributesBufferVO");
 	/**
 	 * Stage provides a proxy class to handle the creation and attachment of the Context
 	 * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -1078,10 +1125,10 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	 * @see away.managers.StageManager
 	 *
 	 */
-	class Stage extends EventDispatcher {
+	class Stage extends EventDispatcher implements IAbstractionPool {
+	    private static _abstractionClassPool;
+	    private _abstractionPool;
 	    private _programData;
-	    private _imageObjectPool;
-	    private _attributesBufferVOPool;
 	    private _programDataPool;
 	    private _context;
 	    private _container;
@@ -1102,8 +1149,6 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private _color;
 	    private _backBufferDirty;
 	    private _viewPort;
-	    private _enterFrame;
-	    private _exitFrame;
 	    private _viewportUpdated;
 	    private _viewportDirty;
 	    private _bufferClear;
@@ -1112,8 +1157,17 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    constructor(container: HTMLCanvasElement, stageIndex: number, stageManager: StageManager, forceSoftware?: boolean, profile?: string);
 	    getProgramData(vertexString: string, fragmentString: string): ProgramData;
 	    setRenderTarget(target: ImageBase, enableDepthAndStencil?: boolean, surfaceSelector?: number): void;
-	    getImageObject(image: ImageBase): ImageObjectBase;
-	    getAttributesBufferVO(attributesBuffer: AttributesBuffer): AttributesBufferVO;
+	    getAbstraction(asset: IAsset): AbstractionBase;
+	    /**
+	     *
+	     * @param image
+	     */
+	    clearAbstraction(asset: IAsset): void;
+	    /**
+	     *
+	     * @param imageObjectClass
+	     */
+	    static registerAbstraction(gl_assetClass: GL_IAssetClass, assetClass: IAssetClass): void;
 	    /**
 	     * Requests a Context object to attach to the managed gl canvas.
 	     */
@@ -1141,8 +1195,6 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	     */
 	    context: IContextGL;
 	    private notifyViewportUpdated();
-	    private notifyEnterFrame();
-	    private notifyExitFrame();
 	    profile: string;
 	    /**
 	     * Disposes the Stage object, freeing the Context attached to the Stage.
@@ -1160,26 +1212,6 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    renderTarget: ImageBase;
 	    renderSurfaceSelector: number;
 	    clear(): void;
-	    /**
-	     * Registers an event listener object with an EventDispatcher object so that the listener receives notification of an event. Special case for enterframe and exitframe events - will switch StageProxy into automatic render mode.
-	     * You can register event listeners on all nodes in the display list for a specific type of event, phase, and priority.
-	     *
-	     * @param type The type of event.
-	     * @param listener The listener function that processes the event.
-	     * @param useCapture Determines whether the listener works in the capture phase or the target and bubbling phases. If useCapture is set to true, the listener processes the event only during the capture phase and not in the target or bubbling phase. If useCapture is false, the listener processes the event only during the target or bubbling phase. To listen for the event in all three phases, call addEventListener twice, once with useCapture set to true, then again with useCapture set to false.
-	     * @param priority The priority level of the event listener. The priority is designated by a signed 32-bit integer. The higher the number, the higher the priority. All listeners with priority n are processed before listeners of priority n-1. If two or more listeners share the same priority, they are processed in the order in which they were added. The default priority is 0.
-	     * @param useWeakReference Determines whether the reference to the listener is strong or weak. A strong reference (the default) prevents your listener from being garbage-collected. A weak reference does not.
-	     */
-	    addEventListener(type: string, listener: Function): void;
-	    /**
-	     * Removes a listener from the EventDispatcher object. Special case for enterframe and exitframe events - will switch StageProxy out of automatic render mode.
-	     * If there is no matching listener registered with the EventDispatcher object, a call to this method has no effect.
-	     *
-	     * @param type The type of event.
-	     * @param listener The listener object to remove.
-	     * @param useCapture Specifies whether the listener was registered for the capture phase or the target and bubbling phases. If the listener was registered for both the capture phase and the target and bubbling phases, two calls to removeEventListener() are required to remove both, one call with useCapture() set to true, and another call with useCapture() set to false.
-	     */
-	    removeEventListener(type: string, listener: Function): void;
 	    scissorRect: Rectangle;
 	    /**
 	     * The index of the Stage which is managed by this instance of StageProxy.
@@ -1213,11 +1245,6 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	     * Frees the Context associated with this StageProxy.
 	     */
 	    private freeContext();
-	    /**
-	     * The Enter_Frame handler for processing the proxy.ENTER_FRAME and proxy.EXIT_FRAME event handlers.
-	     * Typically the proxy.ENTER_FRAME listener would render the layers for this Stage instance.
-	     */
-	    private onEnterFrame(event);
 	    private onContextLost(event);
 	    private onContextRestored(event);
 	    recoverFromDisposal(): boolean;
@@ -1364,15 +1391,291 @@ declare module "awayjs-stagegl/lib/base/VertexBufferWebGL" {
 }
 
 declare module "awayjs-stagegl/lib/events/StageEvent" {
-	import Event = require("awayjs-core/lib/events/Event");
-	class StageEvent extends Event {
+	import EventBase = require("awayjs-core/lib/events/EventBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	class StageEvent extends EventBase {
+	    /**
+	     *
+	     */
+	    static STAGE_ERROR: string;
+	    /**
+	     *
+	     */
 	    static CONTEXT_CREATED: string;
+	    /**
+	     *
+	     */
 	    static CONTEXT_DISPOSED: string;
+	    /**
+	     *
+	     */
 	    static CONTEXT_RECREATED: string;
+	    /**
+	     *
+	     */
 	    static VIEWPORT_UPDATED: string;
-	    constructor(type: string);
+	    private _stage;
+	    /**
+	     *
+	     */
+	    stage: Stage;
+	    constructor(type: string, stage: Stage);
+	    /**
+	     *
+	     */
+	    clone(): StageEvent;
 	}
 	export = StageEvent;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_BitmapImage2D" {
+	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
+	import GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class GL_BitmapImage2D extends GL_Image2D {
+	    private _mipmapData;
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    /**
+	     *
+	     */
+	    onClear(event: AssetEvent): void;
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    _getTexture(): ITextureBase;
+	}
+	export = GL_BitmapImage2D;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_BitmapImageCube" {
+	import BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
+	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
+	import GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class GL_BitmapImageCube extends GL_ImageCube {
+	    _mipmapDataArray: Array<Array<BitmapImage2D>>;
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    /**
+	     *
+	     */
+	    onClear(event: AssetEvent): void;
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    _getTexture(): ITextureBase;
+	}
+	export = GL_BitmapImageCube;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_Image2D" {
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	import GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
+	/**
+	 *
+	 * @class away.pool.GL_ImageBase
+	 */
+	class GL_Image2D extends GL_ImageBase {
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    _getTexture(): ITextureBase;
+	}
+	export = GL_Image2D;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_ImageBase" {
+	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
+	import IAsset = require("awayjs-core/lib/library/IAsset");
+	import AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	/**
+	 *
+	 * @class away.pool.GL_ImageBase
+	 */
+	class GL_ImageBase extends AbstractionBase {
+	    usages: number;
+	    _texture: ITextureBase;
+	    _mipmap: boolean;
+	    _stage: Stage;
+	    constructor(asset: IAsset, stage: Stage);
+	    /**
+	     *
+	     */
+	    onClear(event: AssetEvent): void;
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    _getTexture(): ITextureBase;
+	}
+	export = GL_ImageBase;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_ImageCube" {
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	import GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
+	/**
+	 *
+	 * @class away.pool.GL_ImageCubeBase
+	 */
+	class GL_ImageCube extends GL_ImageBase {
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    _getTexture(): ITextureBase;
+	}
+	export = GL_ImageCube;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_RenderImage2D" {
+	import GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class GL_RenderIimage2D extends GL_Image2D {
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	}
+	export = GL_RenderIimage2D;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_RenderImageCube" {
+	import GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class GL_RenderImageCube extends GL_ImageCube {
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	}
+	export = GL_RenderImageCube;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_SpecularImage2D" {
+	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
+	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
+	import GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+	/**
+	 *
+	 * @class away.pool.ImageObjectBase
+	 */
+	class GL_SpecularImage2D extends GL_Image2D {
+	    private _mipmapData;
+	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    /**
+	     *
+	     */
+	    onClear(event: AssetEvent): void;
+	    /**
+	     *
+	     * @param context
+	     * @returns {ITexture}
+	     */
+	    _getTexture(): ITextureBase;
+	}
+	export = GL_SpecularImage2D;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/ProgramData" {
+	import ProgramDataPool = require("awayjs-stagegl/lib/image/ProgramDataPool");
+	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	/**
+	 *
+	 * @class away.pool.ProgramDataBase
+	 */
+	class ProgramData {
+	    static PROGRAMDATA_ID_COUNT: number;
+	    private _pool;
+	    vertexString: string;
+	    fragmentString: string;
+	    stage: Stage;
+	    usages: number;
+	    program: IProgram;
+	    id: number;
+	    constructor(pool: ProgramDataPool, context: Stage, vertexString: string, fragmentString: string);
+	    /**
+	     *
+	     */
+	    dispose(): void;
+	}
+	export = ProgramData;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/ProgramDataPool" {
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import ProgramData = require("awayjs-stagegl/lib/image/ProgramData");
+	/**
+	 * @class away.pool.ProgramDataPool
+	 */
+	class ProgramDataPool {
+	    private _pool;
+	    private _stage;
+	    /**
+	     * //TODO
+	     *
+	     * @param textureDataClass
+	     */
+	    constructor(stage: Stage);
+	    /**
+	     * //TODO
+	     *
+	     * @param materialOwner
+	     * @returns ITexture
+	     */
+	    getItem(vertexString: string, fragmentString: string): ProgramData;
+	    /**
+	     * //TODO
+	     *
+	     * @param materialOwner
+	     */
+	    disposeItem(key: string): void;
+	}
+	export = ProgramDataPool;
+	
+}
+
+declare module "awayjs-stagegl/lib/library/GL_IAssetClass" {
+	import IAsset = require("awayjs-core/lib/library/IAsset");
+	import AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	/**
+	 * IImageObjectClass is an interface for the constructable class definition ITextureObject that is used to
+	 * create renderable objects in the rendering pipeline to render the contents of a partition
+	 *
+	 * @class away.render.IImageObjectClass
+	 */
+	interface GL_IAssetClass {
+	    /**
+	     *
+	     */
+	    new (asset: IAsset, stage: Stage): AbstractionBase;
+	}
+	export = GL_IAssetClass;
 	
 }
 
@@ -1446,473 +1749,6 @@ declare module "awayjs-stagegl/lib/managers/StageManager" {
 	    private onContextCreated(event);
 	}
 	export = StageManager;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/BitmapImage2DObject" {
-	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
-	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class BitmapImage2DObject extends Image2DObject {
-	    private _mipmapData;
-	    /**
-	     *
-	     */
-	    static assetClass: IAssetClass;
-	    constructor(pool: ImageObjectPool, image: BitmapImage2D, stage: Stage);
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    getTexture(context: IContextGL): ITextureBase;
-	}
-	export = BitmapImage2DObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/BitmapImageCubeObject" {
-	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
-	import BitmapImageCube = require("awayjs-core/lib/data/BitmapImageCube");
-	import BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ImageCubeObject = require("awayjs-stagegl/lib/pool/ImageCubeObject");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class BitmapImageCubeObject extends ImageCubeObject {
-	    _mipmapDataArray: Array<Array<BitmapImage2D>>;
-	    /**
-	     *
-	     */
-	    static assetClass: IAssetClass;
-	    constructor(pool: ImageObjectPool, image: BitmapImageCube, stage: Stage);
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    getTexture(context: IContextGL): ITextureBase;
-	}
-	export = BitmapImageCubeObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/IImageObjectClass" {
-	import ImageBase = require("awayjs-core/lib/data/ImageBase");
-	import IWrapperClass = require("awayjs-core/lib/library/IWrapperClass");
-	import IImageObject = require("awayjs-core/lib/pool/IImageObject");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	/**
-	 * IImageObjectClass is an interface for the constructable class definition ITextureObject that is used to
-	 * create renderable objects in the rendering pipeline to render the contents of a partition
-	 *
-	 * @class away.render.IImageObjectClass
-	 */
-	interface IImageObjectClass extends IWrapperClass {
-	    /**
-	     *
-	     */
-	    new (pool: ImageObjectPool, image: ImageBase, stage: Stage): IImageObject;
-	}
-	export = IImageObjectClass;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/Image2DObject" {
-	import Image2D = require("awayjs-core/lib/data/Image2D");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class Image2DObject extends ImageObjectBase {
-	    constructor(pool: ImageObjectPool, image: Image2D, stage: Stage);
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    getTexture(context: IContextGL): ITextureBase;
-	}
-	export = Image2DObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/ImageCubeObject" {
-	import ImageCube = require("awayjs-core/lib/data/ImageCube");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	/**
-	 *
-	 * @class away.pool.ImageCubeObjectBase
-	 */
-	class ImageCubeObject extends ImageObjectBase {
-	    constructor(pool: ImageObjectPool, image: ImageCube, stage: Stage);
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    getTexture(context: IContextGL): ITextureBase;
-	}
-	export = ImageCubeObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/ImageObjectBase" {
-	import IImageObject = require("awayjs-core/lib/pool/IImageObject");
-	import ImageBase = require("awayjs-core/lib/data/ImageBase");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class ImageObjectBase implements IImageObject {
-	    usages: number;
-	    private _pool;
-	    _stage: Stage;
-	    _texture: ITextureBase;
-	    _image: ImageBase;
-	    _mipmap: boolean;
-	    _invalid: boolean;
-	    constructor(pool: ImageObjectPool, image: ImageBase, stage: Stage);
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	    /**
-	     *
-	     */
-	    invalidate(): void;
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	    getTexture(context: IContextGL): ITextureBase;
-	}
-	export = ImageObjectBase;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/ImageObjectPool" {
-	import ImageBase = require("awayjs-core/lib/data/ImageBase");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
-	import IImageObjectClass = require("awayjs-stagegl/lib/pool/IImageObjectClass");
-	/**
-	 * @class away.pool.ImageObjectPool
-	 */
-	class ImageObjectPool {
-	    private static classPool;
-	    private _pool;
-	    _stage: Stage;
-	    /**
-	     *
-	     */
-	    constructor(stage: Stage);
-	    /**
-	     *
-	     * @param image
-	     * @returns {ImageObjectBase}
-	     */
-	    getItem(image: ImageBase): ImageObjectBase;
-	    /**
-	     *
-	     * @param image
-	     */
-	    disposeItem(image: ImageBase): void;
-	    /**
-	     *
-	     * @param imageObjectClass
-	     */
-	    static registerClass(imageObjectClass: IImageObjectClass): void;
-	    /**
-	     *
-	     * @param subGeometry
-	     */
-	    static getClass(texture: ImageBase): IImageObjectClass;
-	    private static main;
-	    private static addDefaults();
-	}
-	export = ImageObjectPool;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/ProgramData" {
-	import ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
-	import IProgram = require("awayjs-stagegl/lib/base/IProgram");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	/**
-	 *
-	 * @class away.pool.ProgramDataBase
-	 */
-	class ProgramData {
-	    static PROGRAMDATA_ID_COUNT: number;
-	    private _pool;
-	    vertexString: string;
-	    fragmentString: string;
-	    stage: Stage;
-	    usages: number;
-	    program: IProgram;
-	    id: number;
-	    constructor(pool: ProgramDataPool, context: Stage, vertexString: string, fragmentString: string);
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	}
-	export = ProgramData;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/ProgramDataPool" {
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
-	/**
-	 * @class away.pool.ProgramDataPool
-	 */
-	class ProgramDataPool {
-	    private _pool;
-	    private _stage;
-	    /**
-	     * //TODO
-	     *
-	     * @param textureDataClass
-	     */
-	    constructor(stage: Stage);
-	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     * @returns ITexture
-	     */
-	    getItem(vertexString: string, fragmentString: string): ProgramData;
-	    /**
-	     * //TODO
-	     *
-	     * @param materialOwner
-	     */
-	    disposeItem(key: string): void;
-	}
-	export = ProgramDataPool;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/RenderImage2DObject" {
-	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
-	import Image2D = require("awayjs-core/lib/data/Image2D");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class RenderImage2DObject extends Image2DObject {
-	    /**
-	     *
-	     */
-	    static assetClass: IAssetClass;
-	    constructor(pool: ImageObjectPool, image: Image2D, stage: Stage);
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	}
-	export = RenderImage2DObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/RenderImageCubeObject" {
-	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
-	import ImageCube = require("awayjs-core/lib/data/ImageCube");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import ImageCubeObject = require("awayjs-stagegl/lib/pool/ImageCubeObject");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class RenderImageCubeObject extends ImageCubeObject {
-	    /**
-	     *
-	     */
-	    static assetClass: IAssetClass;
-	    constructor(pool: ImageObjectPool, image: ImageCube, stage: Stage);
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	}
-	export = RenderImageCubeObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/pool/SpecularImage2DObject" {
-	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
-	import SpecularImage2D = require("awayjs-core/lib/data/SpecularImage2D");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
-	import ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-	import IContextGL = require("awayjs-stagegl/lib/base/IContextGL");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	/**
-	 *
-	 * @class away.pool.ImageObjectBase
-	 */
-	class SpecularImage2DObject extends Image2DObject {
-	    private _mipmapData;
-	    /**
-	     *
-	     */
-	    static assetClass: IAssetClass;
-	    constructor(pool: ImageObjectPool, image: SpecularImage2D, stage: Stage);
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    getTexture(context: IContextGL): ITextureBase;
-	}
-	export = SpecularImage2DObject;
-	
-}
-
-declare module "awayjs-stagegl/lib/vos/AttributesBufferVO" {
-	import IAssetClass = require("awayjs-core/lib/library/IAssetClass");
-	import IAttributesBufferVO = require("awayjs-core/lib/vos/IAttributesBufferVO");
-	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import IIndexBuffer = require("awayjs-stagegl/lib/base/IIndexBuffer");
-	import IVertexBuffer = require("awayjs-stagegl/lib/base/IVertexBuffer");
-	import AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
-	/**
-	 *
-	 * @class away.pool.AttributesBufferVO
-	 */
-	class AttributesBufferVO implements IAttributesBufferVO {
-	    /**
-	     *
-	     */
-	    static assetClass: IAssetClass;
-	    private _pool;
-	    _stage: Stage;
-	    _indexBuffer: IIndexBuffer;
-	    _vertexBuffer: IVertexBuffer;
-	    _attributesBuffer: AttributesBuffer;
-	    _mipmap: boolean;
-	    _invalid: boolean;
-	    constructor(pool: AttributesBufferVOPool, attributesBuffer: AttributesBuffer, stage: Stage);
-	    /**
-	     *
-	     */
-	    dispose(): void;
-	    /**
-	     *
-	     */
-	    invalidate(): void;
-	    activate(index: number, size: number, dimensions: number, offset: number): void;
-	    draw(mode: string, firstIndex: number, numIndices: number): void;
-	    _getIndexBuffer(): IIndexBuffer;
-	    _getVertexBuffer(): IVertexBuffer;
-	}
-	export = AttributesBufferVO;
-	
-}
-
-declare module "awayjs-stagegl/lib/vos/AttributesBufferVOPool" {
-	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import IAttributesBufferVOClass = require("awayjs-stagegl/lib/vos/IAttributesBufferVOClass");
-	import AttributesBufferVO = require("awayjs-stagegl/lib/vos/AttributesBufferVO");
-	/**
-	 * @class away.pool.AttributesBufferVOPool
-	 */
-	class AttributesBufferVOPool {
-	    private static classPool;
-	    private _pool;
-	    _stage: Stage;
-	    /**
-	     *
-	     */
-	    constructor(stage: Stage);
-	    /**
-	     *
-	     * @param attributesBuffer
-	     * @returns {AttributesBufferVO}
-	     */
-	    getItem(attributesBuffer: AttributesBuffer): AttributesBufferVO;
-	    /**
-	     *
-	     * @param attributesBuffer
-	     */
-	    disposeItem(attributesBuffer: AttributesBuffer): void;
-	    /**
-	     *
-	     * @param attributesBufferClass
-	     */
-	    static registerClass(attributesBufferClass: IAttributesBufferVOClass): void;
-	    /**
-	     *
-	     * @param subGeometry
-	     */
-	    static getClass(texture: AttributesBuffer): IAttributesBufferVOClass;
-	    private static main;
-	    private static addDefaults();
-	}
-	export = AttributesBufferVOPool;
-	
-}
-
-declare module "awayjs-stagegl/lib/vos/IAttributesBufferVOClass" {
-	import AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
-	import IWrapperClass = require("awayjs-core/lib/library/IWrapperClass");
-	import IAttributesBufferVO = require("awayjs-core/lib/vos/IAttributesBufferVO");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
-	import AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
-	/**
-	 * IAttributesBufferVOClass is an interface for the constructable class definition ITextureObject that is used to
-	 * create renderable objects in the rendering pipeline to render the contents of a partition
-	 *
-	 * @class away.render.IAttributesBufferVOClass
-	 */
-	interface IAttributesBufferVOClass extends IWrapperClass {
-	    /**
-	     *
-	     */
-	    new (pool: AttributesBufferVOPool, attributesBuffer: AttributesBuffer, stage: Stage): IAttributesBufferVO;
-	}
-	export = IAttributesBufferVOClass;
 	
 }
 

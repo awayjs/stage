@@ -1,4 +1,34 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"awayjs-stagegl/lib/StageGL":[function(require,module,exports){
+var AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
+var BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
+var BitmapImageCube = require("awayjs-core/lib/image/BitmapImageCube");
+var Image2D = require("awayjs-core/lib/image/Image2D");
+var ImageCube = require("awayjs-core/lib/image/ImageCube");
+var SpecularImage2D = require("awayjs-core/lib/image/SpecularImage2D");
+var Stage = require("awayjs-stagegl/lib/base/Stage");
+var GL_AttributesBuffer = require("awayjs-stagegl/lib/attributes/GL_AttributesBuffer");
+var GL_BitmapImage2D = require("awayjs-stagegl/lib/image/GL_BitmapImage2D");
+var GL_BitmapImageCube = require("awayjs-stagegl/lib/image/GL_BitmapImageCube");
+var GL_RenderImage2D = require("awayjs-stagegl/lib/image/GL_RenderImage2D");
+var GL_RenderImageCube = require("awayjs-stagegl/lib/image/GL_RenderImageCube");
+var GL_SpecularImage2D = require("awayjs-stagegl/lib/image/GL_SpecularImage2D");
+Stage.registerAbstraction(GL_AttributesBuffer, AttributesBuffer);
+Stage.registerAbstraction(GL_RenderImage2D, Image2D);
+Stage.registerAbstraction(GL_RenderImageCube, ImageCube);
+Stage.registerAbstraction(GL_BitmapImage2D, BitmapImage2D);
+Stage.registerAbstraction(GL_BitmapImageCube, BitmapImageCube);
+Stage.registerAbstraction(GL_SpecularImage2D, SpecularImage2D);
+/**
+ *
+ * static shim
+ */
+var stagegl = {
+    Stage: Stage
+};
+window["stagegl"] = stagegl;
+module.exports = stagegl;
+
+},{"awayjs-core/lib/attributes/AttributesBuffer":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/image/BitmapImageCube":undefined,"awayjs-core/lib/image/Image2D":undefined,"awayjs-core/lib/image/ImageCube":undefined,"awayjs-core/lib/image/SpecularImage2D":undefined,"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":"awayjs-stagegl/lib/attributes/GL_AttributesBuffer","awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/image/GL_BitmapImage2D":"awayjs-stagegl/lib/image/GL_BitmapImage2D","awayjs-stagegl/lib/image/GL_BitmapImageCube":"awayjs-stagegl/lib/image/GL_BitmapImageCube","awayjs-stagegl/lib/image/GL_RenderImage2D":"awayjs-stagegl/lib/image/GL_RenderImage2D","awayjs-stagegl/lib/image/GL_RenderImageCube":"awayjs-stagegl/lib/image/GL_RenderImageCube","awayjs-stagegl/lib/image/GL_SpecularImage2D":"awayjs-stagegl/lib/image/GL_SpecularImage2D"}],"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
 var Description = require("awayjs-stagegl/lib/aglsl/Description");
 var Header = require("awayjs-stagegl/lib/aglsl/Header");
 var Mapping = require("awayjs-stagegl/lib/aglsl/Mapping");
@@ -1097,7 +1127,73 @@ var Sampler = (function () {
 })();
 module.exports = Sampler;
 
-},{}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
+},{}],"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+/**
+ *
+ * @class away.pool.GL_AttributesBuffer
+ */
+var GL_AttributesBuffer = (function (_super) {
+    __extends(GL_AttributesBuffer, _super);
+    function GL_AttributesBuffer(attributesBuffer, stage) {
+        _super.call(this, attributesBuffer, stage);
+        this._stage = stage;
+        this._attributesBuffer = attributesBuffer;
+    }
+    /**
+     *
+     */
+    GL_AttributesBuffer.prototype.onClear = function (event) {
+        _super.prototype.onClear.call(this, event);
+        this._attributesBuffer = null;
+        if (this._indexBuffer) {
+            this._indexBuffer.dispose();
+            this._indexBuffer = null;
+        }
+        if (this._vertexBuffer) {
+            this._vertexBuffer.dispose();
+            this._vertexBuffer = null;
+        }
+    };
+    GL_AttributesBuffer.prototype.activate = function (index, size, dimensions, offset) {
+        this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
+    };
+    GL_AttributesBuffer.prototype.draw = function (mode, firstIndex, numIndices) {
+        this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
+    };
+    GL_AttributesBuffer.prototype._getIndexBuffer = function () {
+        if (!this._indexBuffer) {
+            this._invalid = true;
+            this._indexBuffer = this._stage.context.createIndexBuffer(this._attributesBuffer.count * this._attributesBuffer.stride / 2); //hardcoded assuming UintArray
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            this._indexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.length);
+        }
+        return this._indexBuffer;
+    };
+    GL_AttributesBuffer.prototype._getVertexBuffer = function () {
+        if (!this._vertexBuffer) {
+            this._invalid = true;
+            this._vertexBuffer = this._stage.context.createVertexBuffer(this._attributesBuffer.count, this._attributesBuffer.stride);
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            this._vertexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.count);
+        }
+        return this._vertexBuffer;
+    };
+    return GL_AttributesBuffer;
+})(AbstractionBase);
+module.exports = GL_AttributesBuffer;
+
+},{"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
 var ContextGLBlendFactor = (function () {
     function ContextGLBlendFactor() {
     }
@@ -1274,7 +1370,7 @@ var ContextMode = (function () {
 module.exports = ContextMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextSoftware":[function(require,module,exports){
-var BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
+var BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
 var Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
 var Matrix = require("awayjs-core/lib/geom/Matrix");
 var Point = require("awayjs-core/lib/geom/Point");
@@ -1825,7 +1921,7 @@ var VertexBufferProperties = (function () {
 })();
 module.exports = ContextSoftware;
 
-},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
+},{"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
 //import swfobject					= require("awayjs-stagegl/lib/swfobject");
 var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
@@ -4163,9 +4259,8 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var Rectangle = require("awayjs-core/lib/geom/Rectangle");
-var Event = require("awayjs-core/lib/events/Event");
 var EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
+var Rectangle = require("awayjs-core/lib/geom/Rectangle");
 var CSS = require("awayjs-core/lib/utils/CSS");
 var ContextMode = require("awayjs-stagegl/lib/base/ContextMode");
 var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
@@ -4176,9 +4271,7 @@ var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
 var ContextWebGL = require("awayjs-stagegl/lib/base/ContextWebGL");
 var ContextSoftware = require("awayjs-stagegl/lib/base/ContextSoftware");
 var StageEvent = require("awayjs-stagegl/lib/events/StageEvent");
-var ImageObjectPool = require("awayjs-stagegl/lib/pool/ImageObjectPool");
-var ProgramDataPool = require("awayjs-stagegl/lib/pool/ProgramDataPool");
-var AttributesBufferVOPool = require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
+var ProgramDataPool = require("awayjs-stagegl/lib/image/ProgramDataPool");
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
  * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -4194,6 +4287,7 @@ var Stage = (function (_super) {
         if (forceSoftware === void 0) { forceSoftware = false; }
         if (profile === void 0) { profile = "baseline"; }
         _super.call(this);
+        this._abstractionPool = new Object();
         this._programData = new Array();
         this._x = 0;
         this._y = 0;
@@ -4208,8 +4302,6 @@ var Stage = (function (_super) {
         //private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
         this._initialised = false;
         this._bufferFormatDictionary = new Array(5);
-        this._imageObjectPool = new ImageObjectPool(this);
-        this._attributesBufferVOPool = new AttributesBufferVOPool(this);
         this._programDataPool = new ProgramDataPool(this);
         this._container = container;
         if (this._container) {
@@ -4243,18 +4335,29 @@ var Stage = (function (_super) {
         this._renderSurfaceSelector = surfaceSelector;
         this._enableDepthAndStencil = enableDepthAndStencil;
         if (target) {
-            this._context.setRenderToTexture(this.getImageObject(target).getTexture(this._context), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+            this._context.setRenderToTexture(this.getAbstraction(target)._getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector);
         }
         else {
             this._context.setRenderToBackBuffer();
             this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
         }
     };
-    Stage.prototype.getImageObject = function (image) {
-        return this._imageObjectPool.getItem(image);
+    Stage.prototype.getAbstraction = function (asset) {
+        return (this._abstractionPool[asset.id] || (this._abstractionPool[asset.id] = new Stage._abstractionClassPool[asset.assetType](asset, this)));
     };
-    Stage.prototype.getAttributesBufferVO = function (attributesBuffer) {
-        return this._attributesBufferVOPool.getItem(attributesBuffer);
+    /**
+     *
+     * @param image
+     */
+    Stage.prototype.clearAbstraction = function (asset) {
+        this._abstractionPool[asset.id] = null;
+    };
+    /**
+     *
+     * @param imageObjectClass
+     */
+    Stage.registerAbstraction = function (gl_assetClass, assetClass) {
+        Stage._abstractionClassPool[assetClass.assetType] = gl_assetClass;
     };
     /**
      * Requests a Context object to attach to the managed gl canvas.
@@ -4284,10 +4387,10 @@ var Stage = (function (_super) {
                 if (mode == ContextMode.AUTO)
                     new ContextStage3D(this._container, function (context) { return _this._callback(context); });
                 else
-                    this.dispatchEvent(new Event(Event.ERROR));
+                    this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
             }
             catch (e) {
-                this.dispatchEvent(new Event(Event.ERROR));
+                this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
             }
         }
         if (this._context)
@@ -4394,25 +4497,7 @@ var Stage = (function (_super) {
         if (this._viewportDirty)
             return;
         this._viewportDirty = true;
-        //if (!this.hasEventListener(StageEvent.VIEWPORT_UPDATED))
-        //return;
-        //if (!_viewportUpdated)
-        this._viewportUpdated = new StageEvent(StageEvent.VIEWPORT_UPDATED);
-        this.dispatchEvent(this._viewportUpdated);
-    };
-    Stage.prototype.notifyEnterFrame = function () {
-        //if (!hasEventListener(Event.ENTER_FRAME))
-        //return;
-        if (!this._enterFrame)
-            this._enterFrame = new Event(Event.ENTER_FRAME);
-        this.dispatchEvent(this._enterFrame);
-    };
-    Stage.prototype.notifyExitFrame = function () {
-        //if (!hasEventListener(Event.EXIT_FRAME))
-        //return;
-        if (!this._exitFrame)
-            this._exitFrame = new Event(Event.EXIT_FRAME);
-        this.dispatchEvent(this._exitFrame);
+        this.dispatchEvent(new StageEvent(StageEvent.VIEWPORT_UPDATED, this));
     };
     Object.defineProperty(Stage.prototype, "profile", {
         get: function () {
@@ -4425,6 +4510,9 @@ var Stage = (function (_super) {
      * Disposes the Stage object, freeing the Context attached to the Stage.
      */
     Stage.prototype.dispose = function () {
+        for (var id in this._abstractionPool)
+            this._abstractionPool[id].clear();
+        this._abstractionPool = null;
         this._stageManager.iRemoveStage(this);
         this.freeContext();
         this._stageManager = null;
@@ -4485,52 +4573,6 @@ var Stage = (function (_super) {
         }
         this._context.clear((this._color & 0xff000000) >>> 24, (this._color & 0xff0000) >>> 16, (this._color & 0xff00) >>> 8, this._color & 0xff);
         this._bufferClear = true;
-    };
-    /**
-     * Registers an event listener object with an EventDispatcher object so that the listener receives notification of an event. Special case for enterframe and exitframe events - will switch StageProxy into automatic render mode.
-     * You can register event listeners on all nodes in the display list for a specific type of event, phase, and priority.
-     *
-     * @param type The type of event.
-     * @param listener The listener function that processes the event.
-     * @param useCapture Determines whether the listener works in the capture phase or the target and bubbling phases. If useCapture is set to true, the listener processes the event only during the capture phase and not in the target or bubbling phase. If useCapture is false, the listener processes the event only during the target or bubbling phase. To listen for the event in all three phases, call addEventListener twice, once with useCapture set to true, then again with useCapture set to false.
-     * @param priority The priority level of the event listener. The priority is designated by a signed 32-bit integer. The higher the number, the higher the priority. All listeners with priority n are processed before listeners of priority n-1. If two or more listeners share the same priority, they are processed in the order in which they were added. The default priority is 0.
-     * @param useWeakReference Determines whether the reference to the listener is strong or weak. A strong reference (the default) prevents your listener from being garbage-collected. A weak reference does not.
-     */
-    Stage.prototype.addEventListener = function (type, listener) {
-        _super.prototype.addEventListener.call(this, type, listener);
-        //away.Debug.throwPIR( 'StageProxy' , 'addEventListener' ,  'EnterFrame, ExitFrame');
-        //if ((type == Event.ENTER_FRAME || type == Event.EXIT_FRAME) ){//&& ! this._frameEventDriver.hasEventListener(Event.ENTER_FRAME)){
-        //_frameEventDriver.addEventListener(Event.ENTER_FRAME, onEnterFrame, useCapture, priority, useWeakReference);
-        //}
-        /* Original code
-         if ((type == Event.ENTER_FRAME || type == Event.EXIT_FRAME) && ! _frameEventDriver.hasEventListener(Event.ENTER_FRAME)){
-
-         _frameEventDriver.addEventListener(Event.ENTER_FRAME, onEnterFrame, useCapture, priority, useWeakReference);
-
-
-         }
-         */
-    };
-    /**
-     * Removes a listener from the EventDispatcher object. Special case for enterframe and exitframe events - will switch StageProxy out of automatic render mode.
-     * If there is no matching listener registered with the EventDispatcher object, a call to this method has no effect.
-     *
-     * @param type The type of event.
-     * @param listener The listener object to remove.
-     * @param useCapture Specifies whether the listener was registered for the capture phase or the target and bubbling phases. If the listener was registered for both the capture phase and the target and bubbling phases, two calls to removeEventListener() are required to remove both, one call with useCapture() set to true, and another call with useCapture() set to false.
-     */
-    Stage.prototype.removeEventListener = function (type, listener) {
-        _super.prototype.removeEventListener.call(this, type, listener);
-        /*
-         // Remove the main rendering listener if no EnterFrame listeners remain
-         if (    ! this.hasEventListener(Event.ENTER_FRAME , this.onEnterFrame , this )
-         &&  ! this.hasEventListener(Event.EXIT_FRAME , this.onEnterFrame , this) ) //&& _frameEventDriver.hasEventListener(Event.ENTER_FRAME))
-         {
-
-         //_frameEventDriver.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame, this );
-
-         }
-         */
     };
     Object.defineProperty(Stage.prototype, "scissorRect", {
         get: function () {
@@ -4627,56 +4669,16 @@ var Stage = (function (_super) {
         this._programData[programData.id] = null;
         programData.id = -1;
     };
-    /*
-     * Access to fire mouseevents across multiple layered view3D instances
-     */
-    //		public get mouse3DManager():Mouse3DManager
-    //		{
-    //			return this._mouse3DManager;
-    //		}
-    //
-    //		public set mouse3DManager(value:Mouse3DManager)
-    //		{
-    //			this._mouse3DManager = value;
-    //		}
-    /* TODO: implement dependency Touch3DManager
-     public get touch3DManager():Touch3DManager
-     {
-     return _touch3DManager;
-     }
-
-     public set touch3DManager(value:Touch3DManager)
-     {
-     _touch3DManager = value;
-     }
-     */
     /**
      * Frees the Context associated with this StageProxy.
      */
     Stage.prototype.freeContext = function () {
         if (this._context) {
             this._context.dispose();
-            this.dispatchEvent(new StageEvent(StageEvent.CONTEXT_DISPOSED));
+            this.dispatchEvent(new StageEvent(StageEvent.CONTEXT_DISPOSED, this));
         }
         this._context = null;
         this._initialised = false;
-    };
-    /**
-     * The Enter_Frame handler for processing the proxy.ENTER_FRAME and proxy.EXIT_FRAME event handlers.
-     * Typically the proxy.ENTER_FRAME listener would render the layers for this Stage instance.
-     */
-    Stage.prototype.onEnterFrame = function (event) {
-        if (!this._context)
-            return;
-        // Clear the stage instance
-        this.clear();
-        //notify the enterframe listeners
-        this.notifyEnterFrame();
-        // Call the present() to render the frame
-        if (!this._context)
-            this._context.present();
-        //notify the exitframe listeners
-        this.notifyExitFrame();
     };
     Stage.prototype.onContextLost = function (event) {
     };
@@ -4707,7 +4709,7 @@ var Stage = (function (_super) {
             this._context.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
         // Dispatch the appropriate event depending on whether context was
         // created for the first time or recreated after a device loss.
-        this.dispatchEvent(new StageEvent(this._initialised ? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED));
+        this.dispatchEvent(new StageEvent(this._initialised ? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED, this));
         this._initialised = true;
     };
     Stage.prototype.setVertexBuffer = function (index, buffer, size, dimensions, offset) {
@@ -4719,11 +4721,12 @@ var Stage = (function (_super) {
         var mipfilter = mipmap ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
         this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
     };
+    Stage._abstractionClassPool = new Object();
     return Stage;
 })(EventDispatcher);
 module.exports = Stage;
 
-},{"awayjs-core/lib/events/Event":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","awayjs-stagegl/lib/base/ContextSoftware":"awayjs-stagegl/lib/base/ContextSoftware","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","awayjs-stagegl/lib/pool/ImageObjectPool":"awayjs-stagegl/lib/pool/ImageObjectPool","awayjs-stagegl/lib/pool/ProgramDataPool":"awayjs-stagegl/lib/pool/ProgramDataPool","awayjs-stagegl/lib/vos/AttributesBufferVOPool":"awayjs-stagegl/lib/vos/AttributesBufferVOPool"}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
+},{"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","awayjs-stagegl/lib/base/ContextSoftware":"awayjs-stagegl/lib/base/ContextSoftware","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","awayjs-stagegl/lib/image/ProgramDataPool":"awayjs-stagegl/lib/image/ProgramDataPool"}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
 var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
 var TextureBaseWebGL = (function () {
     function TextureBaseWebGL(gl) {
@@ -5096,21 +5099,481 @@ var __extends = this.__extends || function (d, b) {
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var Event = require("awayjs-core/lib/events/Event");
+var EventBase = require("awayjs-core/lib/events/EventBase");
 var StageEvent = (function (_super) {
     __extends(StageEvent, _super);
-    function StageEvent(type) {
+    function StageEvent(type, stage) {
         _super.call(this, type);
+        this._stage = stage;
     }
+    Object.defineProperty(StageEvent.prototype, "stage", {
+        /**
+         *
+         */
+        get: function () {
+            return this._stage;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     *
+     */
+    StageEvent.prototype.clone = function () {
+        return new StageEvent(this.type, this._stage);
+    };
+    /**
+     *
+     */
+    StageEvent.STAGE_ERROR = "stageError";
+    /**
+     *
+     */
     StageEvent.CONTEXT_CREATED = "contextCreated";
+    /**
+     *
+     */
     StageEvent.CONTEXT_DISPOSED = "contextDisposed";
+    /**
+     *
+     */
     StageEvent.CONTEXT_RECREATED = "contextRecreated";
+    /**
+     *
+     */
     StageEvent.VIEWPORT_UPDATED = "viewportUpdated";
     return StageEvent;
-})(Event);
+})(EventBase);
 module.exports = StageEvent;
 
-},{"awayjs-core/lib/events/Event":undefined}],"awayjs-stagegl/lib/managers/StageManager":[function(require,module,exports){
+},{"awayjs-core/lib/events/EventBase":undefined}],"awayjs-stagegl/lib/image/GL_BitmapImage2D":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
+var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+/**
+ *
+ * @class away.pool.ImageObjectBase
+ */
+var GL_BitmapImage2D = (function (_super) {
+    __extends(GL_BitmapImage2D, _super);
+    function GL_BitmapImage2D() {
+        _super.apply(this, arguments);
+    }
+    GL_BitmapImage2D.prototype.activate = function (index, repeat, smooth, mipmap) {
+        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
+        if (!this._mipmap && mipmap) {
+            this._mipmap = true;
+            this._invalid = true;
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            if (mipmap) {
+                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
+                if (this._asset.getCanvas()) {
+                    MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
+                }
+                else {
+                    MipmapGenerator._generateMipMaps(this._asset, mipmapData, true);
+                }
+                var len = mipmapData.length;
+                for (var i = 0; i < len; i++)
+                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
+            }
+            else {
+                this._texture.uploadFromData(this._asset.getImageData(), 0);
+            }
+        }
+    };
+    /**
+     *
+     */
+    GL_BitmapImage2D.prototype.onClear = function (event) {
+        _super.prototype.onClear.call(this, event);
+        if (this._mipmapData) {
+            var len = this._mipmapData.length;
+            for (var i = 0; i < len; i++)
+                MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+        }
+    };
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    GL_BitmapImage2D.prototype._getTexture = function () {
+        if (!this._texture) {
+            this._invalid = true;
+            return _super.prototype._getTexture.call(this);
+        }
+        return this._texture;
+    };
+    return GL_BitmapImage2D;
+})(GL_Image2D);
+module.exports = GL_BitmapImage2D;
+
+},{"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/GL_BitmapImageCube":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
+var GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
+/**
+ *
+ * @class away.pool.ImageObjectBase
+ */
+var GL_BitmapImageCube = (function (_super) {
+    __extends(GL_BitmapImageCube, _super);
+    function GL_BitmapImageCube() {
+        _super.apply(this, arguments);
+        this._mipmapDataArray = new Array(6);
+    }
+    GL_BitmapImageCube.prototype.activate = function (index, repeat, smooth, mipmap) {
+        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
+        if (!this._mipmap && mipmap) {
+            this._mipmap = true;
+            this._invalid = true;
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            for (var i = 0; i < 6; ++i) {
+                if (mipmap) {
+                    var mipmapData = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array());
+                    MipmapGenerator._generateMipMaps(this._asset.getCanvas(i), mipmapData, true);
+                    var len = mipmapData.length;
+                    for (var j = 0; j < len; j++)
+                        this._texture.uploadFromData(mipmapData[j].getImageData(), i, j);
+                }
+                else {
+                    this._texture.uploadFromData(this._asset.getImageData(i), i, 0);
+                }
+            }
+        }
+    };
+    /**
+     *
+     */
+    GL_BitmapImageCube.prototype.onClear = function (event) {
+        _super.prototype.onClear.call(this, event);
+        for (var i = 0; i < 6; i++) {
+            var mipmapData = this._mipmapDataArray[i];
+            if (mipmapData) {
+                var len = mipmapData.length;
+                for (var j = 0; j < len; i++)
+                    MipmapGenerator._freeMipMapHolder(mipmapData[j]);
+            }
+        }
+    };
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    GL_BitmapImageCube.prototype._getTexture = function () {
+        if (!this._texture) {
+            this._invalid = true;
+            return _super.prototype._getTexture.call(this);
+        }
+        return this._texture;
+    };
+    return GL_BitmapImageCube;
+})(GL_ImageCube);
+module.exports = GL_BitmapImageCube;
+
+},{"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_Image2D":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+var GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
+/**
+ *
+ * @class away.pool.GL_ImageBase
+ */
+var GL_Image2D = (function (_super) {
+    __extends(GL_Image2D, _super);
+    function GL_Image2D() {
+        _super.apply(this, arguments);
+    }
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    GL_Image2D.prototype._getTexture = function () {
+        return this._texture || (this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat.BGRA, true));
+    };
+    return GL_Image2D;
+})(GL_ImageBase);
+module.exports = GL_Image2D;
+
+},{"awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase"}],"awayjs-stagegl/lib/image/GL_ImageBase":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
+var AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+/**
+ *
+ * @class away.pool.GL_ImageBase
+ */
+var GL_ImageBase = (function (_super) {
+    __extends(GL_ImageBase, _super);
+    function GL_ImageBase(asset, stage) {
+        _super.call(this, asset, stage);
+        this.usages = 0;
+        this._stage = stage;
+    }
+    /**
+     *
+     */
+    GL_ImageBase.prototype.onClear = function (event) {
+        _super.prototype.onClear.call(this, event);
+        if (this._texture) {
+            this._texture.dispose();
+            this._texture = null;
+        }
+    };
+    GL_ImageBase.prototype.activate = function (index, repeat, smooth, mipmap) {
+        this._stage.setSamplerState(index, repeat, smooth, mipmap);
+        this._stage.context.setTextureAt(index, this._getTexture());
+    };
+    GL_ImageBase.prototype._getTexture = function () {
+        throw new AbstractMethodError();
+    };
+    return GL_ImageBase;
+})(AbstractionBase);
+module.exports = GL_ImageBase;
+
+},{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/image/GL_ImageCube":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+var GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
+/**
+ *
+ * @class away.pool.GL_ImageCubeBase
+ */
+var GL_ImageCube = (function (_super) {
+    __extends(GL_ImageCube, _super);
+    function GL_ImageCube() {
+        _super.apply(this, arguments);
+    }
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    GL_ImageCube.prototype._getTexture = function () {
+        return this._texture || (this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat.BGRA, false));
+    };
+    return GL_ImageCube;
+})(GL_ImageBase);
+module.exports = GL_ImageCube;
+
+},{"awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase"}],"awayjs-stagegl/lib/image/GL_RenderImage2D":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+/**
+ *
+ * @class away.pool.ImageObjectBase
+ */
+var GL_RenderIimage2D = (function (_super) {
+    __extends(GL_RenderIimage2D, _super);
+    function GL_RenderIimage2D() {
+        _super.apply(this, arguments);
+    }
+    GL_RenderIimage2D.prototype.activate = function (index, repeat, smooth, mipmap) {
+        _super.prototype.activate.call(this, index, repeat, smooth, false);
+        //TODO: allow automatic mipmap generation
+    };
+    return GL_RenderIimage2D;
+})(GL_Image2D);
+module.exports = GL_RenderIimage2D;
+
+},{"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/GL_RenderImageCube":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
+/**
+ *
+ * @class away.pool.ImageObjectBase
+ */
+var GL_RenderImageCube = (function (_super) {
+    __extends(GL_RenderImageCube, _super);
+    function GL_RenderImageCube() {
+        _super.apply(this, arguments);
+    }
+    GL_RenderImageCube.prototype.activate = function (index, repeat, smooth, mipmap) {
+        _super.prototype.activate.call(this, index, repeat, smooth, false);
+        //TODO: allow automatic mipmap generation
+    };
+    return GL_RenderImageCube;
+})(GL_ImageCube);
+module.exports = GL_RenderImageCube;
+
+},{"awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_SpecularImage2D":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
+var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+/**
+ *
+ * @class away.pool.ImageObjectBase
+ */
+var GL_SpecularImage2D = (function (_super) {
+    __extends(GL_SpecularImage2D, _super);
+    function GL_SpecularImage2D() {
+        _super.apply(this, arguments);
+    }
+    GL_SpecularImage2D.prototype.activate = function (index, repeat, smooth, mipmap) {
+        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
+        if (!this._mipmap && mipmap) {
+            this._mipmap = true;
+            this._invalid = true;
+        }
+        if (this._invalid) {
+            this._invalid = false;
+            if (mipmap) {
+                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
+                MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData);
+                var len = mipmapData.length;
+                for (var i = 0; i < len; i++)
+                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
+            }
+            else {
+                this._texture.uploadFromData(this._asset.getImageData(), 0);
+            }
+        }
+    };
+    /**
+     *
+     */
+    GL_SpecularImage2D.prototype.onClear = function (event) {
+        _super.prototype.onClear.call(this, event);
+        var len = this._mipmapData.length;
+        for (var i = 0; i < len; i++)
+            MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+    };
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    GL_SpecularImage2D.prototype._getTexture = function () {
+        if (!this._texture) {
+            this._invalid = true;
+            return _super.prototype._getTexture.call(this);
+        }
+        return this._texture;
+    };
+    return GL_SpecularImage2D;
+})(GL_Image2D);
+module.exports = GL_SpecularImage2D;
+
+},{"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/ProgramDataPool":[function(require,module,exports){
+var ProgramData = require("awayjs-stagegl/lib/image/ProgramData");
+/**
+ * @class away.pool.ProgramDataPool
+ */
+var ProgramDataPool = (function () {
+    /**
+     * //TODO
+     *
+     * @param textureDataClass
+     */
+    function ProgramDataPool(stage) {
+        this._pool = new Object();
+        this._stage = stage;
+    }
+    /**
+     * //TODO
+     *
+     * @param materialOwner
+     * @returns ITexture
+     */
+    ProgramDataPool.prototype.getItem = function (vertexString, fragmentString) {
+        var key = vertexString + fragmentString;
+        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
+    };
+    /**
+     * //TODO
+     *
+     * @param materialOwner
+     */
+    ProgramDataPool.prototype.disposeItem = function (key) {
+        this._pool[key] = null;
+    };
+    return ProgramDataPool;
+})();
+module.exports = ProgramDataPool;
+
+},{"awayjs-stagegl/lib/image/ProgramData":"awayjs-stagegl/lib/image/ProgramData"}],"awayjs-stagegl/lib/image/ProgramData":[function(require,module,exports){
+/**
+ *
+ * @class away.pool.ProgramDataBase
+ */
+var ProgramData = (function () {
+    function ProgramData(pool, context, vertexString, fragmentString) {
+        this.usages = 0;
+        this._pool = pool;
+        this.stage = context;
+        this.vertexString = vertexString;
+        this.fragmentString = fragmentString;
+        this.stage.registerProgram(this);
+    }
+    /**
+     *
+     */
+    ProgramData.prototype.dispose = function () {
+        this.usages--;
+        if (!this.usages) {
+            this._pool.disposeItem(this.vertexString + this.fragmentString);
+            this.stage.unRegisterProgram(this);
+            if (this.program) {
+                this.program.dispose();
+                this.program = null;
+            }
+        }
+    };
+    ProgramData.PROGRAMDATA_ID_COUNT = 0;
+    return ProgramData;
+})();
+module.exports = ProgramData;
+
+},{}],"awayjs-stagegl/lib/library/GL_IAssetClass":[function(require,module,exports){
+
+},{}],"awayjs-stagegl/lib/managers/StageManager":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -5258,648 +5721,7 @@ var StageManager = (function (_super) {
 })(EventDispatcher);
 module.exports = StageManager;
 
-},{"awayjs-core/lib/errors/ArgumentError":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent"}],"awayjs-stagegl/lib/pool/BitmapImage2DObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var BitmapImage2D = require("awayjs-core/lib/data/BitmapImage2D");
-var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
-var Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var BitmapImage2DObject = (function (_super) {
-    __extends(BitmapImage2DObject, _super);
-    function BitmapImage2DObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-    }
-    BitmapImage2DObject.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
-        if (!this._mipmap && mipmap) {
-            this._mipmap = true;
-            this._invalid = true;
-        }
-        if (this._invalid) {
-            this._invalid = false;
-            if (mipmap) {
-                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                if (this._image.getCanvas()) {
-                    MipmapGenerator._generateMipMaps(this._image.getCanvas(), mipmapData, true);
-                }
-                else {
-                    MipmapGenerator._generateMipMaps(this._image, mipmapData, true);
-                }
-                var len = mipmapData.length;
-                for (var i = 0; i < len; i++)
-                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
-            }
-            else {
-                this._texture.uploadFromData(this._image.getImageData(), 0);
-            }
-        }
-    };
-    /**
-     *
-     */
-    BitmapImage2DObject.prototype.dispose = function () {
-        _super.prototype.dispose.call(this);
-        if (this._mipmapData) {
-            var len = this._mipmapData.length;
-            for (var i = 0; i < len; i++)
-                MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
-        }
-    };
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    BitmapImage2DObject.prototype.getTexture = function (context) {
-        if (!this._texture) {
-            this._invalid = true;
-            return _super.prototype.getTexture.call(this, context);
-        }
-        return this._texture;
-    };
-    /**
-     *
-     */
-    BitmapImage2DObject.assetClass = BitmapImage2D;
-    return BitmapImage2DObject;
-})(Image2DObject);
-module.exports = BitmapImage2DObject;
-
-},{"awayjs-core/lib/data/BitmapImage2D":undefined,"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/pool/Image2DObject":"awayjs-stagegl/lib/pool/Image2DObject"}],"awayjs-stagegl/lib/pool/BitmapImageCubeObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var BitmapImageCube = require("awayjs-core/lib/data/BitmapImageCube");
-var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
-var ImageCubeObject = require("awayjs-stagegl/lib/pool/ImageCubeObject");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var BitmapImageCubeObject = (function (_super) {
-    __extends(BitmapImageCubeObject, _super);
-    function BitmapImageCubeObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-        this._mipmapDataArray = new Array(6);
-    }
-    BitmapImageCubeObject.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
-        if (!this._mipmap && mipmap) {
-            this._mipmap = true;
-            this._invalid = true;
-        }
-        if (this._invalid) {
-            this._invalid = false;
-            for (var i = 0; i < 6; ++i) {
-                if (mipmap) {
-                    var mipmapData = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array());
-                    MipmapGenerator._generateMipMaps(this._image.getCanvas(i), mipmapData, true);
-                    var len = mipmapData.length;
-                    for (var j = 0; j < len; j++)
-                        this._texture.uploadFromData(mipmapData[j].getImageData(), i, j);
-                }
-                else {
-                    this._texture.uploadFromData(this._image.getImageData(i), i, 0);
-                }
-            }
-        }
-    };
-    /**
-     *
-     */
-    BitmapImageCubeObject.prototype.dispose = function () {
-        _super.prototype.dispose.call(this);
-        for (var i = 0; i < 6; i++) {
-            var mipmapData = this._mipmapDataArray[i];
-            if (mipmapData) {
-                var len = mipmapData.length;
-                for (var j = 0; j < len; i++)
-                    MipmapGenerator._freeMipMapHolder(mipmapData[j]);
-            }
-        }
-    };
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    BitmapImageCubeObject.prototype.getTexture = function (context) {
-        if (!this._texture) {
-            this._invalid = true;
-            return _super.prototype.getTexture.call(this, context);
-        }
-        return this._texture;
-    };
-    /**
-     *
-     */
-    BitmapImageCubeObject.assetClass = BitmapImageCube;
-    return BitmapImageCubeObject;
-})(ImageCubeObject);
-module.exports = BitmapImageCubeObject;
-
-},{"awayjs-core/lib/data/BitmapImageCube":undefined,"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/pool/ImageCubeObject":"awayjs-stagegl/lib/pool/ImageCubeObject"}],"awayjs-stagegl/lib/pool/IImageObjectClass":[function(require,module,exports){
-
-},{}],"awayjs-stagegl/lib/pool/Image2DObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
-var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var Image2DObject = (function (_super) {
-    __extends(Image2DObject, _super);
-    function Image2DObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-    }
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    Image2DObject.prototype.getTexture = function (context) {
-        return this._texture || (this._texture = context.createTexture(this._image.width, this._image.height, ContextGLTextureFormat.BGRA, true));
-    };
-    return Image2DObject;
-})(ImageObjectBase);
-module.exports = Image2DObject;
-
-},{"awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/pool/ImageObjectBase":"awayjs-stagegl/lib/pool/ImageObjectBase"}],"awayjs-stagegl/lib/pool/ImageCubeObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var ImageObjectBase = require("awayjs-stagegl/lib/pool/ImageObjectBase");
-var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-/**
- *
- * @class away.pool.ImageCubeObjectBase
- */
-var ImageCubeObject = (function (_super) {
-    __extends(ImageCubeObject, _super);
-    function ImageCubeObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-    }
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    ImageCubeObject.prototype.getTexture = function (context) {
-        return this._texture || (this._texture = context.createCubeTexture(this._image.size, ContextGLTextureFormat.BGRA, false));
-    };
-    return ImageCubeObject;
-})(ImageObjectBase);
-module.exports = ImageCubeObject;
-
-},{"awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/pool/ImageObjectBase":"awayjs-stagegl/lib/pool/ImageObjectBase"}],"awayjs-stagegl/lib/pool/ImageObjectBase":[function(require,module,exports){
-var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var ImageObjectBase = (function () {
-    function ImageObjectBase(pool, image, stage) {
-        this.usages = 0;
-        this._pool = pool;
-        this._image = image;
-        this._stage = stage;
-        this.invalidate();
-    }
-    /**
-     *
-     */
-    ImageObjectBase.prototype.dispose = function () {
-        this._pool.disposeItem(this._image);
-        this._pool = null;
-        this._image = null;
-        this._stage = null;
-        if (this._texture) {
-            this._texture.dispose();
-            this._texture = null;
-        }
-    };
-    /**
-     *
-     */
-    ImageObjectBase.prototype.invalidate = function () {
-        this._invalid = true;
-    };
-    ImageObjectBase.prototype.activate = function (index, repeat, smooth, mipmap) {
-        this._stage.setSamplerState(index, repeat, smooth, mipmap);
-        this._stage.context.setTextureAt(index, this.getTexture(this._stage.context));
-    };
-    ImageObjectBase.prototype.getTexture = function (context) {
-        throw new AbstractMethodError();
-    };
-    return ImageObjectBase;
-})();
-module.exports = ImageObjectBase;
-
-},{"awayjs-core/lib/errors/AbstractMethodError":undefined}],"awayjs-stagegl/lib/pool/ImageObjectPool":[function(require,module,exports){
-var BitmapImage2DObject = require("awayjs-stagegl/lib/pool/BitmapImage2DObject");
-var BitmapImageCubeObject = require("awayjs-stagegl/lib/pool/BitmapImageCubeObject");
-var RenderImage2DObject = require("awayjs-stagegl/lib/pool/RenderImage2DObject");
-var RenderImageCubeObject = require("awayjs-stagegl/lib/pool/RenderImageCubeObject");
-var SpecularImage2DObject = require("awayjs-stagegl/lib/pool/SpecularImage2DObject");
-/**
- * @class away.pool.ImageObjectPool
- */
-var ImageObjectPool = (function () {
-    /**
-     *
-     */
-    function ImageObjectPool(stage) {
-        this._pool = new Object();
-        this._stage = stage;
-    }
-    /**
-     *
-     * @param image
-     * @returns {ImageObjectBase}
-     */
-    ImageObjectPool.prototype.getItem = function (image) {
-        var imageObject = (this._pool[image.id] || (this._pool[image.id] = image._iAddImageObject(new (ImageObjectPool.getClass(image))(this, image, this._stage))));
-        return imageObject;
-    };
-    /**
-     *
-     * @param image
-     */
-    ImageObjectPool.prototype.disposeItem = function (image) {
-        image._iRemoveImageObject(this._pool[image.id]);
-        this._pool[image.id] = null;
-    };
-    /**
-     *
-     * @param imageObjectClass
-     */
-    ImageObjectPool.registerClass = function (imageObjectClass) {
-        ImageObjectPool.classPool[imageObjectClass.assetClass.assetType] = imageObjectClass;
-    };
-    /**
-     *
-     * @param subGeometry
-     */
-    ImageObjectPool.getClass = function (texture) {
-        return ImageObjectPool.classPool[texture.assetType];
-    };
-    ImageObjectPool.addDefaults = function () {
-        ImageObjectPool.registerClass(RenderImage2DObject);
-        ImageObjectPool.registerClass(RenderImageCubeObject);
-        ImageObjectPool.registerClass(BitmapImage2DObject);
-        ImageObjectPool.registerClass(BitmapImageCubeObject);
-        ImageObjectPool.registerClass(SpecularImage2DObject);
-    };
-    ImageObjectPool.classPool = new Object();
-    ImageObjectPool.main = ImageObjectPool.addDefaults();
-    return ImageObjectPool;
-})();
-module.exports = ImageObjectPool;
-
-},{"awayjs-stagegl/lib/pool/BitmapImage2DObject":"awayjs-stagegl/lib/pool/BitmapImage2DObject","awayjs-stagegl/lib/pool/BitmapImageCubeObject":"awayjs-stagegl/lib/pool/BitmapImageCubeObject","awayjs-stagegl/lib/pool/RenderImage2DObject":"awayjs-stagegl/lib/pool/RenderImage2DObject","awayjs-stagegl/lib/pool/RenderImageCubeObject":"awayjs-stagegl/lib/pool/RenderImageCubeObject","awayjs-stagegl/lib/pool/SpecularImage2DObject":"awayjs-stagegl/lib/pool/SpecularImage2DObject"}],"awayjs-stagegl/lib/pool/ProgramDataPool":[function(require,module,exports){
-var ProgramData = require("awayjs-stagegl/lib/pool/ProgramData");
-/**
- * @class away.pool.ProgramDataPool
- */
-var ProgramDataPool = (function () {
-    /**
-     * //TODO
-     *
-     * @param textureDataClass
-     */
-    function ProgramDataPool(stage) {
-        this._pool = new Object();
-        this._stage = stage;
-    }
-    /**
-     * //TODO
-     *
-     * @param materialOwner
-     * @returns ITexture
-     */
-    ProgramDataPool.prototype.getItem = function (vertexString, fragmentString) {
-        var key = vertexString + fragmentString;
-        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
-    };
-    /**
-     * //TODO
-     *
-     * @param materialOwner
-     */
-    ProgramDataPool.prototype.disposeItem = function (key) {
-        this._pool[key] = null;
-    };
-    return ProgramDataPool;
-})();
-module.exports = ProgramDataPool;
-
-},{"awayjs-stagegl/lib/pool/ProgramData":"awayjs-stagegl/lib/pool/ProgramData"}],"awayjs-stagegl/lib/pool/ProgramData":[function(require,module,exports){
-/**
- *
- * @class away.pool.ProgramDataBase
- */
-var ProgramData = (function () {
-    function ProgramData(pool, context, vertexString, fragmentString) {
-        this.usages = 0;
-        this._pool = pool;
-        this.stage = context;
-        this.vertexString = vertexString;
-        this.fragmentString = fragmentString;
-        this.stage.registerProgram(this);
-    }
-    /**
-     *
-     */
-    ProgramData.prototype.dispose = function () {
-        this.usages--;
-        if (!this.usages) {
-            this._pool.disposeItem(this.vertexString + this.fragmentString);
-            this.stage.unRegisterProgram(this);
-            if (this.program) {
-                this.program.dispose();
-                this.program = null;
-            }
-        }
-    };
-    ProgramData.PROGRAMDATA_ID_COUNT = 0;
-    return ProgramData;
-})();
-module.exports = ProgramData;
-
-},{}],"awayjs-stagegl/lib/pool/RenderImage2DObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var Image2D = require("awayjs-core/lib/data/Image2D");
-var Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var RenderImage2DObject = (function (_super) {
-    __extends(RenderImage2DObject, _super);
-    function RenderImage2DObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-    }
-    RenderImage2DObject.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, false);
-        //TODO: allow automatic mipmap generation
-    };
-    /**
-     *
-     */
-    RenderImage2DObject.assetClass = Image2D;
-    return RenderImage2DObject;
-})(Image2DObject);
-module.exports = RenderImage2DObject;
-
-},{"awayjs-core/lib/data/Image2D":undefined,"awayjs-stagegl/lib/pool/Image2DObject":"awayjs-stagegl/lib/pool/Image2DObject"}],"awayjs-stagegl/lib/pool/RenderImageCubeObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var ImageCube = require("awayjs-core/lib/data/ImageCube");
-var ImageCubeObject = require("awayjs-stagegl/lib/pool/ImageCubeObject");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var RenderImageCubeObject = (function (_super) {
-    __extends(RenderImageCubeObject, _super);
-    function RenderImageCubeObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-    }
-    RenderImageCubeObject.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, false);
-        //TODO: allow automatic mipmap generation
-    };
-    /**
-     *
-     */
-    RenderImageCubeObject.assetClass = ImageCube;
-    return RenderImageCubeObject;
-})(ImageCubeObject);
-module.exports = RenderImageCubeObject;
-
-},{"awayjs-core/lib/data/ImageCube":undefined,"awayjs-stagegl/lib/pool/ImageCubeObject":"awayjs-stagegl/lib/pool/ImageCubeObject"}],"awayjs-stagegl/lib/pool/SpecularImage2DObject":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
-var SpecularImage2D = require("awayjs-core/lib/data/SpecularImage2D");
-var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
-var Image2DObject = require("awayjs-stagegl/lib/pool/Image2DObject");
-/**
- *
- * @class away.pool.ImageObjectBase
- */
-var SpecularImage2DObject = (function (_super) {
-    __extends(SpecularImage2DObject, _super);
-    function SpecularImage2DObject(pool, image, stage) {
-        _super.call(this, pool, image, stage);
-    }
-    SpecularImage2DObject.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
-        if (!this._mipmap && mipmap) {
-            this._mipmap = true;
-            this._invalid = true;
-        }
-        if (this._invalid) {
-            this._invalid = false;
-            if (mipmap) {
-                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                MipmapGenerator._generateMipMaps(this._image.getCanvas(), mipmapData);
-                var len = mipmapData.length;
-                for (var i = 0; i < len; i++)
-                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
-            }
-            else {
-                this._texture.uploadFromData(this._image.getImageData(), 0);
-            }
-        }
-    };
-    /**
-     *
-     */
-    SpecularImage2DObject.prototype.dispose = function () {
-        _super.prototype.dispose.call(this);
-        var len = this._mipmapData.length;
-        for (var i = 0; i < len; i++)
-            MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
-    };
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    SpecularImage2DObject.prototype.getTexture = function (context) {
-        if (!this._texture) {
-            this._invalid = true;
-            return _super.prototype.getTexture.call(this, context);
-        }
-        return this._texture;
-    };
-    /**
-     *
-     */
-    SpecularImage2DObject.assetClass = SpecularImage2D;
-    return SpecularImage2DObject;
-})(Image2DObject);
-module.exports = SpecularImage2DObject;
-
-},{"awayjs-core/lib/data/SpecularImage2D":undefined,"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/pool/Image2DObject":"awayjs-stagegl/lib/pool/Image2DObject"}],"awayjs-stagegl/lib/vos/AttributesBufferVOPool":[function(require,module,exports){
-var AttributesBufferVO = require("awayjs-stagegl/lib/vos/AttributesBufferVO");
-/**
- * @class away.pool.AttributesBufferVOPool
- */
-var AttributesBufferVOPool = (function () {
-    /**
-     *
-     */
-    function AttributesBufferVOPool(stage) {
-        this._pool = new Object();
-        this._stage = stage;
-    }
-    /**
-     *
-     * @param attributesBuffer
-     * @returns {AttributesBufferVO}
-     */
-    AttributesBufferVOPool.prototype.getItem = function (attributesBuffer) {
-        return this._pool[attributesBuffer.id] || (this._pool[attributesBuffer.id] = attributesBuffer._iAddAttributesBufferVO(new (AttributesBufferVOPool.getClass(attributesBuffer))(this, attributesBuffer, this._stage)));
-    };
-    /**
-     *
-     * @param attributesBuffer
-     */
-    AttributesBufferVOPool.prototype.disposeItem = function (attributesBuffer) {
-        attributesBuffer._iRemoveAttributesBufferVO(this._pool[attributesBuffer.id]);
-        delete this._pool[attributesBuffer.id];
-    };
-    /**
-     *
-     * @param attributesBufferClass
-     */
-    AttributesBufferVOPool.registerClass = function (attributesBufferClass) {
-        AttributesBufferVOPool.classPool[attributesBufferClass.assetClass.assetType] = attributesBufferClass;
-    };
-    /**
-     *
-     * @param subGeometry
-     */
-    AttributesBufferVOPool.getClass = function (texture) {
-        return AttributesBufferVOPool.classPool[texture.assetType];
-    };
-    AttributesBufferVOPool.addDefaults = function () {
-        AttributesBufferVOPool.registerClass(AttributesBufferVO);
-    };
-    AttributesBufferVOPool.classPool = new Object();
-    AttributesBufferVOPool.main = AttributesBufferVOPool.addDefaults();
-    return AttributesBufferVOPool;
-})();
-module.exports = AttributesBufferVOPool;
-
-},{"awayjs-stagegl/lib/vos/AttributesBufferVO":"awayjs-stagegl/lib/vos/AttributesBufferVO"}],"awayjs-stagegl/lib/vos/AttributesBufferVO":[function(require,module,exports){
-var AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
-/**
- *
- * @class away.pool.AttributesBufferVO
- */
-var AttributesBufferVO = (function () {
-    function AttributesBufferVO(pool, attributesBuffer, stage) {
-        this._pool = pool;
-        this._attributesBuffer = attributesBuffer;
-        this._stage = stage;
-    }
-    /**
-     *
-     */
-    AttributesBufferVO.prototype.dispose = function () {
-        this._pool.disposeItem(this._attributesBuffer);
-        this._pool = null;
-        this._attributesBuffer = null;
-        this._stage = null;
-        if (this._indexBuffer) {
-            this._indexBuffer.dispose();
-            this._indexBuffer = null;
-        }
-        if (this._vertexBuffer) {
-            this._vertexBuffer.dispose();
-            this._vertexBuffer = null;
-        }
-    };
-    /**
-     *
-     */
-    AttributesBufferVO.prototype.invalidate = function () {
-        this._invalid = true;
-    };
-    AttributesBufferVO.prototype.activate = function (index, size, dimensions, offset) {
-        this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
-    };
-    AttributesBufferVO.prototype.draw = function (mode, firstIndex, numIndices) {
-        this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
-    };
-    AttributesBufferVO.prototype._getIndexBuffer = function () {
-        if (!this._indexBuffer) {
-            this._invalid = true;
-            this._indexBuffer = this._stage.context.createIndexBuffer(this._attributesBuffer.count * this._attributesBuffer.stride / 2); //hardcoded assuming UintArray
-        }
-        if (this._invalid) {
-            this._invalid = false;
-            this._indexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.length);
-        }
-        return this._indexBuffer;
-    };
-    AttributesBufferVO.prototype._getVertexBuffer = function () {
-        if (!this._vertexBuffer) {
-            this._invalid = true;
-            this._vertexBuffer = this._stage.context.createVertexBuffer(this._attributesBuffer.count, this._attributesBuffer.stride);
-        }
-        if (this._invalid) {
-            this._invalid = false;
-            this._vertexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.count);
-        }
-        return this._vertexBuffer;
-    };
-    /**
-     *
-     */
-    AttributesBufferVO.assetClass = AttributesBuffer;
-    return AttributesBufferVO;
-})();
-module.exports = AttributesBufferVO;
-
-},{"awayjs-core/lib/attributes/AttributesBuffer":undefined}],"awayjs-stagegl/lib/vos/IAttributesBufferVOClass":[function(require,module,exports){
-
-},{}]},{},[])
+},{"awayjs-core/lib/errors/ArgumentError":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent"}]},{},["awayjs-stagegl/lib/StageGL"])
 
 
 //# sourceMappingURL=awayjs-stagegl.js.map
