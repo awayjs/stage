@@ -70,6 +70,7 @@ function browserifyShare(callback) {
     var b = browserify({
         debug: true,
         paths: ['../'],
+        entries: './lib/StageGL.ts',
         cache: {},
         packageCache: {},
         fullPaths: true
