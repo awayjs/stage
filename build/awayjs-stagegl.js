@@ -5,19 +5,24 @@ var BitmapImageCube = require("awayjs-core/lib/image/BitmapImageCube");
 var Image2D = require("awayjs-core/lib/image/Image2D");
 var ImageCube = require("awayjs-core/lib/image/ImageCube");
 var SpecularImage2D = require("awayjs-core/lib/image/SpecularImage2D");
+var Sampler2D = require("awayjs-core/lib/image/Sampler2D");
+var SamplerCube = require("awayjs-core/lib/image/SamplerCube");
 var Stage = require("awayjs-stagegl/lib/base/Stage");
 var GL_AttributesBuffer = require("awayjs-stagegl/lib/attributes/GL_AttributesBuffer");
 var GL_BitmapImage2D = require("awayjs-stagegl/lib/image/GL_BitmapImage2D");
 var GL_BitmapImageCube = require("awayjs-stagegl/lib/image/GL_BitmapImageCube");
 var GL_RenderImage2D = require("awayjs-stagegl/lib/image/GL_RenderImage2D");
 var GL_RenderImageCube = require("awayjs-stagegl/lib/image/GL_RenderImageCube");
-var GL_SpecularImage2D = require("awayjs-stagegl/lib/image/GL_SpecularImage2D");
+var GL_Sampler2D = require("awayjs-stagegl/lib/image/GL_Sampler2D");
+var GL_SamplerCube = require("awayjs-stagegl/lib/image/GL_SamplerCube");
 Stage.registerAbstraction(GL_AttributesBuffer, AttributesBuffer);
 Stage.registerAbstraction(GL_RenderImage2D, Image2D);
 Stage.registerAbstraction(GL_RenderImageCube, ImageCube);
 Stage.registerAbstraction(GL_BitmapImage2D, BitmapImage2D);
 Stage.registerAbstraction(GL_BitmapImageCube, BitmapImageCube);
-Stage.registerAbstraction(GL_SpecularImage2D, SpecularImage2D);
+Stage.registerAbstraction(GL_BitmapImage2D, SpecularImage2D);
+Stage.registerAbstraction(GL_Sampler2D, Sampler2D);
+Stage.registerAbstraction(GL_SamplerCube, SamplerCube);
 /**
  *
  * static shim
@@ -28,7 +33,7 @@ var stagegl = {
 window["stagegl"] = stagegl;
 module.exports = stagegl;
 
-},{"awayjs-core/lib/attributes/AttributesBuffer":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/image/BitmapImageCube":undefined,"awayjs-core/lib/image/Image2D":undefined,"awayjs-core/lib/image/ImageCube":undefined,"awayjs-core/lib/image/SpecularImage2D":undefined,"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":"awayjs-stagegl/lib/attributes/GL_AttributesBuffer","awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/image/GL_BitmapImage2D":"awayjs-stagegl/lib/image/GL_BitmapImage2D","awayjs-stagegl/lib/image/GL_BitmapImageCube":"awayjs-stagegl/lib/image/GL_BitmapImageCube","awayjs-stagegl/lib/image/GL_RenderImage2D":"awayjs-stagegl/lib/image/GL_RenderImage2D","awayjs-stagegl/lib/image/GL_RenderImageCube":"awayjs-stagegl/lib/image/GL_RenderImageCube","awayjs-stagegl/lib/image/GL_SpecularImage2D":"awayjs-stagegl/lib/image/GL_SpecularImage2D"}],"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
+},{"awayjs-core/lib/attributes/AttributesBuffer":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/image/BitmapImageCube":undefined,"awayjs-core/lib/image/Image2D":undefined,"awayjs-core/lib/image/ImageCube":undefined,"awayjs-core/lib/image/Sampler2D":undefined,"awayjs-core/lib/image/SamplerCube":undefined,"awayjs-core/lib/image/SpecularImage2D":undefined,"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":"awayjs-stagegl/lib/attributes/GL_AttributesBuffer","awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/image/GL_BitmapImage2D":"awayjs-stagegl/lib/image/GL_BitmapImage2D","awayjs-stagegl/lib/image/GL_BitmapImageCube":"awayjs-stagegl/lib/image/GL_BitmapImageCube","awayjs-stagegl/lib/image/GL_RenderImage2D":"awayjs-stagegl/lib/image/GL_RenderImage2D","awayjs-stagegl/lib/image/GL_RenderImageCube":"awayjs-stagegl/lib/image/GL_RenderImageCube","awayjs-stagegl/lib/image/GL_Sampler2D":"awayjs-stagegl/lib/image/GL_Sampler2D","awayjs-stagegl/lib/image/GL_SamplerCube":"awayjs-stagegl/lib/image/GL_SamplerCube"}],"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
 var Description = require("awayjs-stagegl/lib/aglsl/Description");
 var Header = require("awayjs-stagegl/lib/aglsl/Header");
 var Mapping = require("awayjs-stagegl/lib/aglsl/Mapping");
@@ -5164,8 +5169,8 @@ var GL_BitmapImage2D = (function (_super) {
     function GL_BitmapImage2D() {
         _super.apply(this, arguments);
     }
-    GL_BitmapImage2D.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
+    GL_BitmapImage2D.prototype.activate = function (index, mipmap) {
+        _super.prototype.activate.call(this, index, mipmap);
         if (!this._mipmap && mipmap) {
             this._mipmap = true;
             this._invalid = true;
@@ -5174,12 +5179,7 @@ var GL_BitmapImage2D = (function (_super) {
             this._invalid = false;
             if (mipmap) {
                 var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                if (this._asset.getCanvas()) {
-                    MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
-                }
-                else {
-                    MipmapGenerator._generateMipMaps(this._asset, mipmapData, true);
-                }
+                MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
                 var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
                     this._texture.uploadFromData(mipmapData[i].getImageData(), i);
@@ -5235,8 +5235,8 @@ var GL_BitmapImageCube = (function (_super) {
         _super.apply(this, arguments);
         this._mipmapDataArray = new Array(6);
     }
-    GL_BitmapImageCube.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
+    GL_BitmapImageCube.prototype.activate = function (index, mipmap) {
+        _super.prototype.activate.call(this, index, mipmap);
         if (!this._mipmap && mipmap) {
             this._mipmap = true;
             this._invalid = true;
@@ -5347,8 +5347,7 @@ var GL_ImageBase = (function (_super) {
             this._texture = null;
         }
     };
-    GL_ImageBase.prototype.activate = function (index, repeat, smooth, mipmap) {
-        this._stage.setSamplerState(index, repeat, smooth, mipmap);
+    GL_ImageBase.prototype.activate = function (index, mipmap) {
         this._stage.context.setTextureAt(index, this._getTexture());
     };
     GL_ImageBase.prototype._getTexture = function () {
@@ -5400,18 +5399,18 @@ var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
  *
  * @class away.pool.ImageObjectBase
  */
-var GL_RenderIimage2D = (function (_super) {
-    __extends(GL_RenderIimage2D, _super);
-    function GL_RenderIimage2D() {
+var GL_RenderImage2D = (function (_super) {
+    __extends(GL_RenderImage2D, _super);
+    function GL_RenderImage2D() {
         _super.apply(this, arguments);
     }
-    GL_RenderIimage2D.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, false);
+    GL_RenderImage2D.prototype.activate = function (index, mipmap) {
+        _super.prototype.activate.call(this, index, false);
         //TODO: allow automatic mipmap generation
     };
-    return GL_RenderIimage2D;
+    return GL_RenderImage2D;
 })(GL_Image2D);
-module.exports = GL_RenderIimage2D;
+module.exports = GL_RenderImage2D;
 
 },{"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/GL_RenderImageCube":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
@@ -5430,78 +5429,91 @@ var GL_RenderImageCube = (function (_super) {
     function GL_RenderImageCube() {
         _super.apply(this, arguments);
     }
-    GL_RenderImageCube.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, false);
+    GL_RenderImageCube.prototype.activate = function (index, mipmap) {
+        _super.prototype.activate.call(this, index, false);
         //TODO: allow automatic mipmap generation
     };
     return GL_RenderImageCube;
 })(GL_ImageCube);
 module.exports = GL_RenderImageCube;
 
-},{"awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_SpecularImage2D":[function(require,module,exports){
+},{"awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_Sampler2D":[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
-var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
-var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+var GL_SamplerBase = require("awayjs-stagegl/lib/image/GL_SamplerBase");
 /**
  *
- * @class away.pool.ImageObjectBase
+ * @class away.pool.GL_SamplerBase
  */
-var GL_SpecularImage2D = (function (_super) {
-    __extends(GL_SpecularImage2D, _super);
-    function GL_SpecularImage2D() {
-        _super.apply(this, arguments);
+var GL_Sampler2D = (function (_super) {
+    __extends(GL_Sampler2D, _super);
+    function GL_Sampler2D(sampler, stage) {
+        _super.call(this, sampler, stage);
+        this._sampler = sampler;
     }
-    GL_SpecularImage2D.prototype.activate = function (index, repeat, smooth, mipmap) {
-        _super.prototype.activate.call(this, index, repeat, smooth, mipmap);
-        if (!this._mipmap && mipmap) {
-            this._mipmap = true;
-            this._invalid = true;
-        }
-        if (this._invalid) {
-            this._invalid = false;
-            if (mipmap) {
-                var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData);
-                var len = mipmapData.length;
-                for (var i = 0; i < len; i++)
-                    this._texture.uploadFromData(mipmapData[i].getImageData(), i);
-            }
-            else {
-                this._texture.uploadFromData(this._asset.getImageData(), 0);
-            }
-        }
+    GL_Sampler2D.prototype.activate = function (index) {
+        this._stage.setSamplerState(index, this._sampler.repeat, this._sampler.smooth, this._sampler.mipmap);
     };
-    /**
-     *
-     */
-    GL_SpecularImage2D.prototype.onClear = function (event) {
-        _super.prototype.onClear.call(this, event);
-        var len = this._mipmapData.length;
-        for (var i = 0; i < len; i++)
-            MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
-    };
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    GL_SpecularImage2D.prototype._getTexture = function () {
-        if (!this._texture) {
-            this._invalid = true;
-            return _super.prototype._getTexture.call(this);
-        }
-        return this._texture;
-    };
-    return GL_SpecularImage2D;
-})(GL_Image2D);
-module.exports = GL_SpecularImage2D;
+    return GL_Sampler2D;
+})(GL_SamplerBase);
+module.exports = GL_Sampler2D;
 
-},{"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/ProgramDataPool":[function(require,module,exports){
+},{"awayjs-stagegl/lib/image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase"}],"awayjs-stagegl/lib/image/GL_SamplerBase":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
+var AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+/**
+ *
+ * @class away.pool.GL_SamplerBase
+ */
+var GL_SamplerBase = (function (_super) {
+    __extends(GL_SamplerBase, _super);
+    function GL_SamplerBase(asset, stage) {
+        _super.call(this, asset, stage);
+        this._stage = stage;
+    }
+    GL_SamplerBase.prototype.activate = function (index) {
+        throw new AbstractMethodError();
+    };
+    return GL_SamplerBase;
+})(AbstractionBase);
+module.exports = GL_SamplerBase;
+
+},{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/image/GL_SamplerCube":[function(require,module,exports){
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+var GL_SamplerBase = require("awayjs-stagegl/lib/image/GL_SamplerBase");
+/**
+ *
+ * @class away.pool.GL_SamplerBase
+ */
+var GL_SamplerCube = (function (_super) {
+    __extends(GL_SamplerCube, _super);
+    function GL_SamplerCube(sampler, stage) {
+        _super.call(this, sampler, stage);
+        this._sampler = sampler;
+    }
+    GL_SamplerCube.prototype.activate = function (index) {
+        this._stage.setSamplerState(index, false, this._sampler.smooth, this._sampler.mipmap);
+    };
+    return GL_SamplerCube;
+})(GL_SamplerBase);
+module.exports = GL_SamplerCube;
+
+},{"awayjs-stagegl/lib/image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase"}],"awayjs-stagegl/lib/image/ProgramDataPool":[function(require,module,exports){
 var ProgramData = require("awayjs-stagegl/lib/image/ProgramData");
 /**
  * @class away.pool.ProgramDataPool

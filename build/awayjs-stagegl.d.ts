@@ -823,14 +823,6 @@ declare module "awayjs-stagegl/lib/base/ITexture" {
 	
 }
 
-declare module "awayjs-stagegl/lib/base/ITextureBase" {
-	interface ITextureBase {
-	    dispose(): any;
-	}
-	export = ITextureBase;
-	
-}
-
 declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
 	interface IVertexBuffer {
 	    numVertices: number;
@@ -840,6 +832,14 @@ declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
 	    dispose(): any;
 	}
 	export = IVertexBuffer;
+	
+}
+
+declare module "awayjs-stagegl/lib/base/ITextureBase" {
+	interface ITextureBase {
+	    dispose(): any;
+	}
+	export = ITextureBase;
 	
 }
 
@@ -1439,7 +1439,7 @@ declare module "awayjs-stagegl/lib/image/GL_BitmapImage2D" {
 	 */
 	class GL_BitmapImage2D extends GL_Image2D {
 	    private _mipmapData;
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    activate(index: number, mipmap: boolean): void;
 	    /**
 	     *
 	     */
@@ -1466,7 +1466,7 @@ declare module "awayjs-stagegl/lib/image/GL_BitmapImageCube" {
 	 */
 	class GL_BitmapImageCube extends GL_ImageCube {
 	    _mipmapDataArray: Array<Array<BitmapImage2D>>;
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    activate(index: number, mipmap: boolean): void;
 	    /**
 	     *
 	     */
@@ -1521,7 +1521,7 @@ declare module "awayjs-stagegl/lib/image/GL_ImageBase" {
 	     *
 	     */
 	    onClear(event: AssetEvent): void;
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    activate(index: number, mipmap: boolean): void;
 	    _getTexture(): ITextureBase;
 	}
 	export = GL_ImageBase;
@@ -1553,10 +1553,10 @@ declare module "awayjs-stagegl/lib/image/GL_RenderImage2D" {
 	 *
 	 * @class away.pool.ImageObjectBase
 	 */
-	class GL_RenderIimage2D extends GL_Image2D {
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	class GL_RenderImage2D extends GL_Image2D {
+	    activate(index: number, mipmap: boolean): void;
 	}
-	export = GL_RenderIimage2D;
+	export = GL_RenderImage2D;
 	
 }
 
@@ -1567,35 +1567,60 @@ declare module "awayjs-stagegl/lib/image/GL_RenderImageCube" {
 	 * @class away.pool.ImageObjectBase
 	 */
 	class GL_RenderImageCube extends GL_ImageCube {
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
+	    activate(index: number, mipmap: boolean): void;
 	}
 	export = GL_RenderImageCube;
 	
 }
 
-declare module "awayjs-stagegl/lib/image/GL_SpecularImage2D" {
-	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
-	import GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+declare module "awayjs-stagegl/lib/image/GL_Sampler2D" {
+	import Sampler2D = require("awayjs-core/lib/image/Sampler2D");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import GL_SamplerBase = require("awayjs-stagegl/lib/image/GL_SamplerBase");
 	/**
 	 *
-	 * @class away.pool.ImageObjectBase
+	 * @class away.pool.GL_SamplerBase
 	 */
-	class GL_SpecularImage2D extends GL_Image2D {
-	    private _mipmapData;
-	    activate(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
-	    /**
-	     *
-	     */
-	    onClear(event: AssetEvent): void;
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    _getTexture(): ITextureBase;
+	class GL_Sampler2D extends GL_SamplerBase {
+	    _sampler: Sampler2D;
+	    constructor(sampler: Sampler2D, stage: Stage);
+	    activate(index: number): void;
 	}
-	export = GL_SpecularImage2D;
+	export = GL_Sampler2D;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_SamplerBase" {
+	import IAsset = require("awayjs-core/lib/library/IAsset");
+	import AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	/**
+	 *
+	 * @class away.pool.GL_SamplerBase
+	 */
+	class GL_SamplerBase extends AbstractionBase {
+	    _stage: Stage;
+	    constructor(asset: IAsset, stage: Stage);
+	    activate(index: number): void;
+	}
+	export = GL_SamplerBase;
+	
+}
+
+declare module "awayjs-stagegl/lib/image/GL_SamplerCube" {
+	import SamplerCube = require("awayjs-core/lib/image/SamplerCube");
+	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import GL_SamplerBase = require("awayjs-stagegl/lib/image/GL_SamplerBase");
+	/**
+	 *
+	 * @class away.pool.GL_SamplerBase
+	 */
+	class GL_SamplerCube extends GL_SamplerBase {
+	    _sampler: SamplerCube;
+	    constructor(sampler: SamplerCube, stage: Stage);
+	    activate(index: number): void;
+	}
+	export = GL_SamplerCube;
 	
 }
 
