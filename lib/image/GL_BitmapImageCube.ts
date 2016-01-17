@@ -17,9 +17,9 @@ class GL_BitmapImageCube extends GL_ImageCube
 {
 	public _mipmapDataArray:Array<Array<BitmapImage2D>> = new Array<Array<BitmapImage2D>>(6);
 
-	public activate(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	public activate(index:number, mipmap:boolean)
 	{
-		super.activate(index, repeat, smooth, mipmap);
+		super.activate(index, mipmap);
 
 		if (!this._mipmap && mipmap) {
 			this._mipmap = true;

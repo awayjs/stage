@@ -15,9 +15,9 @@ class GL_BitmapImage2D extends GL_Image2D
 {
 	private _mipmapData:Array<BitmapImage2D>;
 
-	public activate(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	public activate(index:number, mipmap:boolean)
 	{
-		super.activate(index, repeat, smooth, mipmap);
+		super.activate(index, mipmap);
 
 		if (!this._mipmap && mipmap) {
 			this._mipmap = true;
@@ -29,12 +29,7 @@ class GL_BitmapImage2D extends GL_Image2D
 			if (mipmap) {
 				var mipmapData:Array<BitmapImage2D> = this._mipmapData || (this._mipmapData = new Array<BitmapImage2D>());
 
-				if((<BitmapImage2D> this._asset).getCanvas()) {
-					MipmapGenerator._generateMipMaps((<BitmapImage2D> this._asset).getCanvas(), mipmapData, true);
-				}else{
-					MipmapGenerator._generateMipMaps((<BitmapImage2D> this._asset), mipmapData, true);
-				}
-
+				MipmapGenerator._generateMipMaps((<BitmapImage2D> this._asset).getCanvas(), mipmapData, true);
 				var len:number = mipmapData.length;
 				for (var i:number = 0; i < len; i++)
 					(<ITexture> this._texture).uploadFromData(mipmapData[i].getImageData(), i);

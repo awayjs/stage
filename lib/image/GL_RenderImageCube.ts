@@ -6,9 +6,9 @@ import GL_ImageCube					= require("awayjs-stagegl/lib/image/GL_ImageCube");
  */
 class GL_RenderImageCube extends GL_ImageCube
 {
-	public activate(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	public activate(index:number, mipmap:boolean)
 	{
-		super.activate(index, repeat, smooth, false);
+		super.activate(index, false);
 
 		//TODO: allow automatic mipmap generation
 
