@@ -131,7 +131,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		this._renderSurfaceSelector = surfaceSelector;
 		this._enableDepthAndStencil = enableDepthAndStencil;
 		if (target) {
-			this._context.setRenderToTexture((<GL_ImageBase> this.getAbstraction(target))._getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+			this._context.setRenderToTexture((<GL_ImageBase> this.getAbstraction(target)).texture, enableDepthAndStencil, this._antiAlias, surfaceSelector);
 		} else {
 			this._context.setRenderToBackBuffer();
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);

@@ -21,6 +21,16 @@ class GL_ImageBase extends AbstractionBase
 
 	public _stage:Stage;
 
+	public get texture():ITextureBase
+	{
+		if (!this._texture) {
+			this._createTexture();
+			this._invalid = true;
+		}
+
+		return this._texture;
+	}
+
 	constructor(asset:IAsset, stage:Stage)
 	{
 		super(asset, stage);
@@ -43,10 +53,10 @@ class GL_ImageBase extends AbstractionBase
 
 	public activate(index:number, mipmap:boolean)
 	{
-		this._stage.context.setTextureAt(index, this._getTexture());
+		this._stage.context.setTextureAt(index, this._texture);
 	}
 
-	public _getTexture():ITextureBase
+	public _createTexture()
 	{
 		throw new AbstractMethodError();
 	}

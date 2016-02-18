@@ -15,9 +15,9 @@ class GL_Image2D extends GL_ImageBase
 	 * @param context
 	 * @returns {ITexture}
 	 */
-	public _getTexture():ITextureBase
+	public _createTexture()
 	{
-		return this._texture || (this._texture = this._stage.context.createTexture((<Image2D> this._asset).width, (<Image2D> this._asset).height, ContextGLTextureFormat.BGRA, true));
+		this._texture = this._stage.context.createTexture((<Image2D> this._asset).width, (<Image2D> this._asset).height, ContextGLTextureFormat.BGRA, true);
 	}
 }
 

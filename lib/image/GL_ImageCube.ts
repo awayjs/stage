@@ -15,9 +15,9 @@ class GL_ImageCube extends GL_ImageBase
 	 * @param context
 	 * @returns {ITexture}
 	 */
-	public _getTexture():ITextureBase
+	public _createTexture()
 	{
-		return this._texture || (this._texture = this._stage.context.createCubeTexture((<ImageCube> this._asset).size, ContextGLTextureFormat.BGRA, false));
+		this._texture = this._stage.context.createCubeTexture((<ImageCube> this._asset).size, ContextGLTextureFormat.BGRA, false);
 	}
 }
 

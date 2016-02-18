@@ -17,7 +17,10 @@ class GL_BitmapImage2D extends GL_Image2D
 
 	public activate(index:number, mipmap:boolean)
 	{
-		super.activate(index, mipmap);
+		if (!this._texture) {
+			this._createTexture();
+			this._invalid = true;
+		}
 
 		if (!this._mipmap && mipmap) {
 			this._mipmap = true;
@@ -37,6 +40,8 @@ class GL_BitmapImage2D extends GL_Image2D
 				(<ITexture> this._texture).uploadFromData((<BitmapImage2D> this._asset).getImageData(), 0);
 			}
 		}
+
+		super.activate(index, mipmap);
 	}
 
 	/**
@@ -51,21 +56,6 @@ class GL_BitmapImage2D extends GL_Image2D
 			for (var i:number = 0; i < len; i++)
 				MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
 		}
-	}
-
-	/**
-	 *
-	 * @param context
-	 * @returns {ITexture}
-	 */
-	public _getTexture():ITextureBase
-	{
-		if (!this._texture) {
-			this._invalid = true;
-			return super._getTexture();
-		}
-
-		return this._texture;
 	}
 }
 

@@ -19,7 +19,10 @@ class GL_BitmapImageCube extends GL_ImageCube
 
 	public activate(index:number, mipmap:boolean)
 	{
-		super.activate(index, mipmap);
+		if (!this._texture) {
+			this._createTexture();
+			this._invalid = true;
+		}
 
 		if (!this._mipmap && mipmap) {
 			this._mipmap = true;
@@ -41,6 +44,8 @@ class GL_BitmapImageCube extends GL_ImageCube
 				}
 			}
 		}
+
+		super.activate(index, mipmap);
 	}
 
 	/**
@@ -60,21 +65,6 @@ class GL_BitmapImageCube extends GL_ImageCube
 					MipmapGenerator._freeMipMapHolder(mipmapData[j]);
 			}
 		}
-	}
-
-	/**
-	 *
-	 * @param context
-	 * @returns {ITexture}
-	 */
-	public _getTexture():ITextureBase
-	{
-		if (!this._texture) {
-			this._invalid = true;
-			return super._getTexture();
-		}
-
-		return this._texture;
 	}
 }
 
