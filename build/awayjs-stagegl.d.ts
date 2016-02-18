@@ -1301,6 +1301,7 @@ declare module "awayjs-stagegl/lib/base/TextureSoftware" {
 	    uploadFromData(image: HTMLImageElement, miplevel?: number): any;
 	    uploadFromData(imageData: ImageData, miplevel?: number): any;
 	    getData(miplevel: number): number[];
+	    getMipLevelsCount(): number;
 	}
 	export = TextureSoftware;
 	

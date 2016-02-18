@@ -3280,7 +3280,7 @@ var ProgramSoftware = (function () {
         }
         var repeat = state.wrap == ContextGLWrapMode.REPEAT;
         var mipmap = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
-        if (mipmap) {
+        if (mipmap && texture.getMipLevelsCount() > 1) {
             dux = Math.abs(dux);
             dvx = Math.abs(dvx);
             duy = Math.abs(duy);
@@ -4849,6 +4849,9 @@ var TextureSoftware = (function () {
     };
     TextureSoftware.prototype.getData = function (miplevel) {
         return this._mipLevels[miplevel];
+    };
+    TextureSoftware.prototype.getMipLevelsCount = function () {
+        return this._mipLevels.length;
     };
     return TextureSoftware;
 })();
