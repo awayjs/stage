@@ -823,6 +823,14 @@ declare module "awayjs-stagegl/lib/base/ITexture" {
 	
 }
 
+declare module "awayjs-stagegl/lib/base/ITextureBase" {
+	interface ITextureBase {
+	    dispose(): any;
+	}
+	export = ITextureBase;
+	
+}
+
 declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
 	interface IVertexBuffer {
 	    numVertices: number;
@@ -832,14 +840,6 @@ declare module "awayjs-stagegl/lib/base/IVertexBuffer" {
 	    dispose(): any;
 	}
 	export = IVertexBuffer;
-	
-}
-
-declare module "awayjs-stagegl/lib/base/ITextureBase" {
-	interface ITextureBase {
-	    dispose(): any;
-	}
-	export = ITextureBase;
 	
 }
 
@@ -1432,7 +1432,6 @@ declare module "awayjs-stagegl/lib/events/StageEvent" {
 declare module "awayjs-stagegl/lib/image/GL_BitmapImage2D" {
 	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
 	import GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	/**
 	 *
 	 * @class away.pool.ImageObjectBase
@@ -1444,12 +1443,6 @@ declare module "awayjs-stagegl/lib/image/GL_BitmapImage2D" {
 	     *
 	     */
 	    onClear(event: AssetEvent): void;
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    _getTexture(): ITextureBase;
 	}
 	export = GL_BitmapImage2D;
 	
@@ -1459,7 +1452,6 @@ declare module "awayjs-stagegl/lib/image/GL_BitmapImageCube" {
 	import BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
 	import AssetEvent = require("awayjs-core/lib/events/AssetEvent");
 	import GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	/**
 	 *
 	 * @class away.pool.ImageObjectBase
@@ -1471,19 +1463,12 @@ declare module "awayjs-stagegl/lib/image/GL_BitmapImageCube" {
 	     *
 	     */
 	    onClear(event: AssetEvent): void;
-	    /**
-	     *
-	     * @param context
-	     * @returns {ITexture}
-	     */
-	    _getTexture(): ITextureBase;
 	}
 	export = GL_BitmapImageCube;
 	
 }
 
 declare module "awayjs-stagegl/lib/image/GL_Image2D" {
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	import GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
 	/**
 	 *
@@ -1495,7 +1480,7 @@ declare module "awayjs-stagegl/lib/image/GL_Image2D" {
 	     * @param context
 	     * @returns {ITexture}
 	     */
-	    _getTexture(): ITextureBase;
+	    _createTexture(): void;
 	}
 	export = GL_Image2D;
 	
@@ -1516,20 +1501,20 @@ declare module "awayjs-stagegl/lib/image/GL_ImageBase" {
 	    _texture: ITextureBase;
 	    _mipmap: boolean;
 	    _stage: Stage;
+	    texture: ITextureBase;
 	    constructor(asset: IAsset, stage: Stage);
 	    /**
 	     *
 	     */
 	    onClear(event: AssetEvent): void;
 	    activate(index: number, mipmap: boolean): void;
-	    _getTexture(): ITextureBase;
+	    _createTexture(): void;
 	}
 	export = GL_ImageBase;
 	
 }
 
 declare module "awayjs-stagegl/lib/image/GL_ImageCube" {
-	import ITextureBase = require("awayjs-stagegl/lib/base/ITextureBase");
 	import GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
 	/**
 	 *
@@ -1541,7 +1526,7 @@ declare module "awayjs-stagegl/lib/image/GL_ImageCube" {
 	     * @param context
 	     * @returns {ITexture}
 	     */
-	    _getTexture(): ITextureBase;
+	    _createTexture(): void;
 	}
 	export = GL_ImageCube;
 	
@@ -1687,7 +1672,7 @@ declare module "awayjs-stagegl/lib/image/ProgramDataPool" {
 declare module "awayjs-stagegl/lib/library/GL_IAssetClass" {
 	import IAsset = require("awayjs-core/lib/library/IAsset");
 	import AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
-	import Stage = require("awayjs-stagegl/lib/base/Stage");
+	import IAbstractionPool = require("awayjs-core/lib/library/IAbstractionPool");
 	/**
 	 * IImageObjectClass is an interface for the constructable class definition ITextureObject that is used to
 	 * create renderable objects in the rendering pipeline to render the contents of a partition
@@ -1698,7 +1683,7 @@ declare module "awayjs-stagegl/lib/library/GL_IAssetClass" {
 	    /**
 	     *
 	     */
-	    new (asset: IAsset, stage: Stage): AbstractionBase;
+	    new (asset: IAsset, pool: IAbstractionPool): AbstractionBase;
 	}
 	export = GL_IAssetClass;
 	

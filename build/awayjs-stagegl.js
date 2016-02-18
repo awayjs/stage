@@ -4340,7 +4340,7 @@ var Stage = (function (_super) {
         this._renderSurfaceSelector = surfaceSelector;
         this._enableDepthAndStencil = enableDepthAndStencil;
         if (target) {
-            this._context.setRenderToTexture(this.getAbstraction(target)._getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+            this._context.setRenderToTexture(this.getAbstraction(target).texture, enableDepthAndStencil, this._antiAlias, surfaceSelector);
         }
         else {
             this._context.setRenderToBackBuffer();
@@ -5170,7 +5170,10 @@ var GL_BitmapImage2D = (function (_super) {
         _super.apply(this, arguments);
     }
     GL_BitmapImage2D.prototype.activate = function (index, mipmap) {
-        _super.prototype.activate.call(this, index, mipmap);
+        if (!this._texture) {
+            this._createTexture();
+            this._invalid = true;
+        }
         if (!this._mipmap && mipmap) {
             this._mipmap = true;
             this._invalid = true;
@@ -5188,6 +5191,7 @@ var GL_BitmapImage2D = (function (_super) {
                 this._texture.uploadFromData(this._asset.getImageData(), 0);
             }
         }
+        _super.prototype.activate.call(this, index, mipmap);
     };
     /**
      *
@@ -5199,18 +5203,6 @@ var GL_BitmapImage2D = (function (_super) {
             for (var i = 0; i < len; i++)
                 MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
         }
-    };
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    GL_BitmapImage2D.prototype._getTexture = function () {
-        if (!this._texture) {
-            this._invalid = true;
-            return _super.prototype._getTexture.call(this);
-        }
-        return this._texture;
     };
     return GL_BitmapImage2D;
 })(GL_Image2D);
@@ -5236,7 +5228,10 @@ var GL_BitmapImageCube = (function (_super) {
         this._mipmapDataArray = new Array(6);
     }
     GL_BitmapImageCube.prototype.activate = function (index, mipmap) {
-        _super.prototype.activate.call(this, index, mipmap);
+        if (!this._texture) {
+            this._createTexture();
+            this._invalid = true;
+        }
         if (!this._mipmap && mipmap) {
             this._mipmap = true;
             this._invalid = true;
@@ -5256,6 +5251,7 @@ var GL_BitmapImageCube = (function (_super) {
                 }
             }
         }
+        _super.prototype.activate.call(this, index, mipmap);
     };
     /**
      *
@@ -5270,18 +5266,6 @@ var GL_BitmapImageCube = (function (_super) {
                     MipmapGenerator._freeMipMapHolder(mipmapData[j]);
             }
         }
-    };
-    /**
-     *
-     * @param context
-     * @returns {ITexture}
-     */
-    GL_BitmapImageCube.prototype._getTexture = function () {
-        if (!this._texture) {
-            this._invalid = true;
-            return _super.prototype._getTexture.call(this);
-        }
-        return this._texture;
     };
     return GL_BitmapImageCube;
 })(GL_ImageCube);
@@ -5310,8 +5294,8 @@ var GL_Image2D = (function (_super) {
      * @param context
      * @returns {ITexture}
      */
-    GL_Image2D.prototype._getTexture = function () {
-        return this._texture || (this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat.BGRA, true));
+    GL_Image2D.prototype._createTexture = function () {
+        this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat.BGRA, true);
     };
     return GL_Image2D;
 })(GL_ImageBase);
@@ -5337,6 +5321,17 @@ var GL_ImageBase = (function (_super) {
         this.usages = 0;
         this._stage = stage;
     }
+    Object.defineProperty(GL_ImageBase.prototype, "texture", {
+        get: function () {
+            if (!this._texture) {
+                this._createTexture();
+                this._invalid = true;
+            }
+            return this._texture;
+        },
+        enumerable: true,
+        configurable: true
+    });
     /**
      *
      */
@@ -5348,9 +5343,9 @@ var GL_ImageBase = (function (_super) {
         }
     };
     GL_ImageBase.prototype.activate = function (index, mipmap) {
-        this._stage.context.setTextureAt(index, this._getTexture());
+        this._stage.context.setTextureAt(index, this._texture);
     };
-    GL_ImageBase.prototype._getTexture = function () {
+    GL_ImageBase.prototype._createTexture = function () {
         throw new AbstractMethodError();
     };
     return GL_ImageBase;
@@ -5380,8 +5375,8 @@ var GL_ImageCube = (function (_super) {
      * @param context
      * @returns {ITexture}
      */
-    GL_ImageCube.prototype._getTexture = function () {
-        return this._texture || (this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat.BGRA, false));
+    GL_ImageCube.prototype._createTexture = function () {
+        this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat.BGRA, false);
     };
     return GL_ImageCube;
 })(GL_ImageBase);
