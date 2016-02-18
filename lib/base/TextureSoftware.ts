@@ -37,6 +37,10 @@ class TextureSoftware implements ITexture {
     public getData(miplevel:number):number[] {
         return this._mipLevels[miplevel];
     }
+
+    public getMipLevelsCount():number{
+        return this._mipLevels.length;
+    }
 }
 
 export = TextureSoftware;

@@ -320,8 +320,7 @@ class ProgramSoftware implements IProgram {
         }
         var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
         var mipmap:boolean = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
-
-        if (mipmap) {
+        if (mipmap && texture.getMipLevelsCount() > 1) {
             dux = Math.abs(dux);
             dvx = Math.abs(dvx);
             duy = Math.abs(duy);
