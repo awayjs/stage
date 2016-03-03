@@ -1166,8 +1166,9 @@ var GL_AttributesBuffer = (function (_super) {
             this._vertexBuffer = null;
         }
     };
-    GL_AttributesBuffer.prototype.activate = function (index, size, dimensions, offset) {
-        this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
+    GL_AttributesBuffer.prototype.activate = function (index, size, dimensions, offset, unsigned) {
+        if (unsigned === void 0) { unsigned = false; }
+        this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset, unsigned);
     };
     GL_AttributesBuffer.prototype.draw = function (mode, firstIndex, numIndices) {
         this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
@@ -1342,11 +1343,26 @@ module.exports = ContextGLTriangleFace;
 var ContextGLVertexBufferFormat = (function () {
     function ContextGLVertexBufferFormat() {
     }
-    ContextGLVertexBufferFormat.BYTES_4 = 0;
-    ContextGLVertexBufferFormat.FLOAT_1 = 1;
-    ContextGLVertexBufferFormat.FLOAT_2 = 2;
-    ContextGLVertexBufferFormat.FLOAT_3 = 3;
-    ContextGLVertexBufferFormat.FLOAT_4 = 4;
+    ContextGLVertexBufferFormat.FLOAT_1 = 0;
+    ContextGLVertexBufferFormat.FLOAT_2 = 1;
+    ContextGLVertexBufferFormat.FLOAT_3 = 2;
+    ContextGLVertexBufferFormat.FLOAT_4 = 3;
+    ContextGLVertexBufferFormat.BYTE_1 = 4;
+    ContextGLVertexBufferFormat.BYTE_2 = 5;
+    ContextGLVertexBufferFormat.BYTE_3 = 6;
+    ContextGLVertexBufferFormat.BYTE_4 = 7;
+    ContextGLVertexBufferFormat.UNSIGNED_BYTE_1 = 8;
+    ContextGLVertexBufferFormat.UNSIGNED_BYTE_2 = 9;
+    ContextGLVertexBufferFormat.UNSIGNED_BYTE_3 = 10;
+    ContextGLVertexBufferFormat.UNSIGNED_BYTE_4 = 11;
+    ContextGLVertexBufferFormat.SHORT_1 = 12;
+    ContextGLVertexBufferFormat.SHORT_2 = 13;
+    ContextGLVertexBufferFormat.SHORT_3 = 14;
+    ContextGLVertexBufferFormat.SHORT_4 = 15;
+    ContextGLVertexBufferFormat.UNSIGNED_SHORT_1 = 16;
+    ContextGLVertexBufferFormat.UNSIGNED_SHORT_2 = 17;
+    ContextGLVertexBufferFormat.UNSIGNED_SHORT_3 = 18;
+    ContextGLVertexBufferFormat.UNSIGNED_SHORT_4 = 19;
     return ContextGLVertexBufferFormat;
 })();
 module.exports = ContextGLVertexBufferFormat;
@@ -2379,7 +2395,22 @@ var ContextWebGL = (function () {
             this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
             this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
             this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTES_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_1] = new VertexBufferProperties(1, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_2] = new VertexBufferProperties(2, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_3] = new VertexBufferProperties(3, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_4] = new VertexBufferProperties(4, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_1] = new VertexBufferProperties(1, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_2] = new VertexBufferProperties(2, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_3] = new VertexBufferProperties(3, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_4] = new VertexBufferProperties(4, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_SHORT, true);
             this._stencilCompareMode = this._gl.ALWAYS;
             this._stencilCompareModeBack = this._gl.ALWAYS;
             this._stencilCompareModeFront = this._gl.ALWAYS;
@@ -3084,7 +3115,7 @@ var ProgramSoftware = (function () {
                 continue;
             var attribute = new Vector3D(0, 0, 0, 1);
             var index = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.BYTES_4) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.UNSIGNED_BYTE_4) {
                 attribute.x = buffer.uintData[index * 4];
                 attribute.y = buffer.uintData[index * 4 + 1];
                 attribute.z = buffer.uintData[index * 4 + 2];
@@ -4320,12 +4351,30 @@ var Stage = (function (_super) {
         CSS.setElementX(this._container, 0);
         CSS.setElementY(this._container, 0);
         this._bufferFormatDictionary[1] = new Array(5);
-        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTES_4;
+        this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat.BYTE_1;
+        this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat.BYTE_2;
+        this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat.BYTE_3;
+        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTE_4;
+        this._bufferFormatDictionary[2] = new Array(5);
+        this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat.SHORT_1;
+        this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat.SHORT_2;
+        this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat.SHORT_3;
+        this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat.SHORT_4;
         this._bufferFormatDictionary[4] = new Array(5);
         this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
         this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
         this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
         this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
+        this._bufferFormatDictionary[5] = new Array(5);
+        this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_1;
+        this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_2;
+        this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_3;
+        this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_4;
+        this._bufferFormatDictionary[6] = new Array(5);
+        this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_1;
+        this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_2;
+        this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_3;
+        this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
         this.visible = true;
     }
     Stage.prototype.getProgramData = function (vertexString, fragmentString) {
@@ -4717,8 +4766,9 @@ var Stage = (function (_super) {
         this.dispatchEvent(new StageEvent(this._initialised ? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED, this));
         this._initialised = true;
     };
-    Stage.prototype.setVertexBuffer = function (index, buffer, size, dimensions, offset) {
-        this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[size][dimensions]);
+    Stage.prototype.setVertexBuffer = function (index, buffer, size, dimensions, offset, unsigned) {
+        if (unsigned === void 0) { unsigned = false; }
+        this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned ? size + 4 : size][dimensions]);
     };
     Stage.prototype.setSamplerState = function (index, repeat, smooth, mipmap) {
         var wrap = repeat ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP;

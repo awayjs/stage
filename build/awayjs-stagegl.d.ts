@@ -279,7 +279,7 @@ declare module "awayjs-stagegl/lib/attributes/GL_AttributesBuffer" {
 	     *
 	     */
 	    onClear(event: AssetEvent): void;
-	    activate(index: number, size: number, dimensions: number, offset: number): void;
+	    activate(index: number, size: number, dimensions: number, offset: number, unsigned?: boolean): void;
 	    draw(mode: string, firstIndex: number, numIndices: number): void;
 	    _getIndexBuffer(): IIndexBuffer;
 	    _getVertexBuffer(): IVertexBuffer;
@@ -419,11 +419,26 @@ declare module "awayjs-stagegl/lib/base/ContextGLTriangleFace" {
 
 declare module "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat" {
 	class ContextGLVertexBufferFormat {
-	    static BYTES_4: number;
 	    static FLOAT_1: number;
 	    static FLOAT_2: number;
 	    static FLOAT_3: number;
 	    static FLOAT_4: number;
+	    static BYTE_1: number;
+	    static BYTE_2: number;
+	    static BYTE_3: number;
+	    static BYTE_4: number;
+	    static UNSIGNED_BYTE_1: number;
+	    static UNSIGNED_BYTE_2: number;
+	    static UNSIGNED_BYTE_3: number;
+	    static UNSIGNED_BYTE_4: number;
+	    static SHORT_1: number;
+	    static SHORT_2: number;
+	    static SHORT_3: number;
+	    static SHORT_4: number;
+	    static UNSIGNED_SHORT_1: number;
+	    static UNSIGNED_SHORT_2: number;
+	    static UNSIGNED_SHORT_3: number;
+	    static UNSIGNED_SHORT_4: number;
 	}
 	export = ContextGLVertexBufferFormat;
 	
@@ -1249,7 +1264,7 @@ declare module "awayjs-stagegl/lib/base/Stage" {
 	    private onContextRestored(event);
 	    recoverFromDisposal(): boolean;
 	    private _callback(context);
-	    setVertexBuffer(index: number, buffer: IVertexBuffer, size: number, dimensions: number, offset: number): void;
+	    setVertexBuffer(index: number, buffer: IVertexBuffer, size: number, dimensions: number, offset: number, unsigned?: boolean): void;
 	    setSamplerState(index: number, repeat: boolean, smooth: boolean, mipmap: boolean): void;
 	}
 	export = Stage;
