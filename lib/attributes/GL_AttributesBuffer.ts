@@ -54,9 +54,9 @@ class GL_AttributesBuffer extends AbstractionBase
 		}
 	}
 
-	public activate(index:number, size:number, dimensions:number, offset:number)
+	public activate(index:number, size:number, dimensions:number, offset:number, unsigned:boolean = false)
 	{
-		this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset);
+		this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset, unsigned);
 	}
 
 	public draw(mode:string, firstIndex:number, numIndices:number)

@@ -105,7 +105,7 @@ class ProgramSoftware implements IProgram {
             var attribute:Vector3D = new Vector3D(0, 0, 0, 1);
 
             var index:number = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.BYTES_4) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.UNSIGNED_BYTE_4) {
                 attribute.x = buffer.uintData[index*4];
                 attribute.y = buffer.uintData[index*4+1];
                 attribute.z = buffer.uintData[index*4+2];

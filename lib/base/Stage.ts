@@ -107,12 +107,32 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		CSS.setElementY(this._container, 0);
 
 		this._bufferFormatDictionary[1] = new Array<number>(5);
-		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTES_4;
+		this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat.BYTE_1;
+		this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat.BYTE_2;
+		this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat.BYTE_3;
+		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTE_4;
+		this._bufferFormatDictionary[2] = new Array<number>(5);
+		this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat.SHORT_1;
+		this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat.SHORT_2;
+		this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat.SHORT_3;
+		this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat.SHORT_4;
 		this._bufferFormatDictionary[4] = new Array<number>(5);
 		this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
 		this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
 		this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
 		this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
+		this._bufferFormatDictionary[5] = new Array<number>(5);
+		this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_1;
+		this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_2;
+		this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_3;
+		this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_4;
+		this._bufferFormatDictionary[6] = new Array<number>(5);
+		this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_1;
+		this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_2;
+		this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_3;
+		this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
+
+
 
 		this.visible = true;
 	}
@@ -564,9 +584,9 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		this._initialised = true;
 	}
 
-	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number)
+	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number, unsigned:boolean = false)
 	{
-		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[size][dimensions]);
+		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned? size + 4 : size][dimensions]);
 	}
 
 	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
