@@ -1,48 +1,47 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"awayjs-stagegl/lib/StageGL":[function(require,module,exports){
-var AttributesBuffer = require("awayjs-core/lib/attributes/AttributesBuffer");
-var BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
-var BitmapImageCube = require("awayjs-core/lib/image/BitmapImageCube");
-var Image2D = require("awayjs-core/lib/image/Image2D");
-var ImageCube = require("awayjs-core/lib/image/ImageCube");
-var SpecularImage2D = require("awayjs-core/lib/image/SpecularImage2D");
-var Sampler2D = require("awayjs-core/lib/image/Sampler2D");
-var SamplerCube = require("awayjs-core/lib/image/SamplerCube");
-var Stage = require("awayjs-stagegl/lib/base/Stage");
-var GL_AttributesBuffer = require("awayjs-stagegl/lib/attributes/GL_AttributesBuffer");
-var GL_BitmapImage2D = require("awayjs-stagegl/lib/image/GL_BitmapImage2D");
-var GL_BitmapImageCube = require("awayjs-stagegl/lib/image/GL_BitmapImageCube");
-var GL_RenderImage2D = require("awayjs-stagegl/lib/image/GL_RenderImage2D");
-var GL_RenderImageCube = require("awayjs-stagegl/lib/image/GL_RenderImageCube");
-var GL_Sampler2D = require("awayjs-stagegl/lib/image/GL_Sampler2D");
-var GL_SamplerCube = require("awayjs-stagegl/lib/image/GL_SamplerCube");
-Stage.registerAbstraction(GL_AttributesBuffer, AttributesBuffer);
-Stage.registerAbstraction(GL_RenderImage2D, Image2D);
-Stage.registerAbstraction(GL_RenderImageCube, ImageCube);
-Stage.registerAbstraction(GL_BitmapImage2D, BitmapImage2D);
-Stage.registerAbstraction(GL_BitmapImageCube, BitmapImageCube);
-Stage.registerAbstraction(GL_BitmapImage2D, SpecularImage2D);
-Stage.registerAbstraction(GL_Sampler2D, Sampler2D);
-Stage.registerAbstraction(GL_SamplerCube, SamplerCube);
-/**
- *
- * static shim
- */
-var stagegl = {
-    Stage: Stage
-};
-window["stagegl"] = stagegl;
-module.exports = stagegl;
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+var aglsl = require("awayjs-stagegl/lib/aglsl");
+exports.aglsl = aglsl;
+var attributes = require("awayjs-stagegl/lib/attributes");
+exports.attributes = attributes;
+var base = require("awayjs-stagegl/lib/base");
+exports.base = base;
+var events = require("awayjs-stagegl/lib/events");
+exports.events = events;
+var image = require("awayjs-stagegl/lib/image");
+exports.image = image;
+var library = require("awayjs-stagegl/lib/library");
+exports.library = library;
+var managers = require("awayjs-stagegl/lib/managers");
+exports.managers = managers;
+var AttributesBuffer_1 = require("awayjs-core/lib/attributes/AttributesBuffer");
+var BitmapImage2D_1 = require("awayjs-core/lib/image/BitmapImage2D");
+var BitmapImageCube_1 = require("awayjs-core/lib/image/BitmapImageCube");
+var Image2D_1 = require("awayjs-core/lib/image/Image2D");
+var ImageCube_1 = require("awayjs-core/lib/image/ImageCube");
+var SpecularImage2D_1 = require("awayjs-core/lib/image/SpecularImage2D");
+var Sampler2D_1 = require("awayjs-core/lib/image/Sampler2D");
+var SamplerCube_1 = require("awayjs-core/lib/image/SamplerCube");
+base.Stage.registerAbstraction(attributes.GL_AttributesBuffer, AttributesBuffer_1.default);
+base.Stage.registerAbstraction(image.GL_RenderImage2D, Image2D_1.default);
+base.Stage.registerAbstraction(image.GL_RenderImageCube, ImageCube_1.default);
+base.Stage.registerAbstraction(image.GL_BitmapImage2D, BitmapImage2D_1.default);
+base.Stage.registerAbstraction(image.GL_BitmapImageCube, BitmapImageCube_1.default);
+base.Stage.registerAbstraction(image.GL_BitmapImage2D, SpecularImage2D_1.default);
+base.Stage.registerAbstraction(image.GL_Sampler2D, Sampler2D_1.default);
+base.Stage.registerAbstraction(image.GL_SamplerCube, SamplerCube_1.default);
 
-},{"awayjs-core/lib/attributes/AttributesBuffer":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/image/BitmapImageCube":undefined,"awayjs-core/lib/image/Image2D":undefined,"awayjs-core/lib/image/ImageCube":undefined,"awayjs-core/lib/image/Sampler2D":undefined,"awayjs-core/lib/image/SamplerCube":undefined,"awayjs-core/lib/image/SpecularImage2D":undefined,"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":"awayjs-stagegl/lib/attributes/GL_AttributesBuffer","awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/image/GL_BitmapImage2D":"awayjs-stagegl/lib/image/GL_BitmapImage2D","awayjs-stagegl/lib/image/GL_BitmapImageCube":"awayjs-stagegl/lib/image/GL_BitmapImageCube","awayjs-stagegl/lib/image/GL_RenderImage2D":"awayjs-stagegl/lib/image/GL_RenderImage2D","awayjs-stagegl/lib/image/GL_RenderImageCube":"awayjs-stagegl/lib/image/GL_RenderImageCube","awayjs-stagegl/lib/image/GL_Sampler2D":"awayjs-stagegl/lib/image/GL_Sampler2D","awayjs-stagegl/lib/image/GL_SamplerCube":"awayjs-stagegl/lib/image/GL_SamplerCube"}],"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
-var Description = require("awayjs-stagegl/lib/aglsl/Description");
-var Header = require("awayjs-stagegl/lib/aglsl/Header");
-var Mapping = require("awayjs-stagegl/lib/aglsl/Mapping");
-var Token = require("awayjs-stagegl/lib/aglsl/Token");
+},{"awayjs-core/lib/attributes/AttributesBuffer":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/image/BitmapImageCube":undefined,"awayjs-core/lib/image/Image2D":undefined,"awayjs-core/lib/image/ImageCube":undefined,"awayjs-core/lib/image/Sampler2D":undefined,"awayjs-core/lib/image/SamplerCube":undefined,"awayjs-core/lib/image/SpecularImage2D":undefined,"awayjs-stagegl/lib/aglsl":"awayjs-stagegl/lib/aglsl","awayjs-stagegl/lib/attributes":"awayjs-stagegl/lib/attributes","awayjs-stagegl/lib/base":"awayjs-stagegl/lib/base","awayjs-stagegl/lib/events":"awayjs-stagegl/lib/events","awayjs-stagegl/lib/image":"awayjs-stagegl/lib/image","awayjs-stagegl/lib/library":"awayjs-stagegl/lib/library","awayjs-stagegl/lib/managers":"awayjs-stagegl/lib/managers"}],"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
+"use strict";
+var Description_1 = require("awayjs-stagegl/lib/aglsl/Description");
+var Header_1 = require("awayjs-stagegl/lib/aglsl/Header");
+var Mapping_1 = require("awayjs-stagegl/lib/aglsl/Mapping");
+var Token_1 = require("awayjs-stagegl/lib/aglsl/Token");
 var AGALTokenizer = (function () {
     function AGALTokenizer() {
     }
     AGALTokenizer.prototype.decribeAGALByteArray = function (bytes) {
-        var header = new Header();
+        var header = new Header_1.default();
         if (bytes.readUnsignedByte() != 0xa0) {
             throw "Bad AGAL: Missing 0xa0 magic byte.";
         }
@@ -69,12 +68,12 @@ var AGALTokenizer = (function () {
                 header.type = "";
                 break;
         }
-        var desc = new Description();
+        var desc = new Description_1.default();
         var tokens = [];
         while (bytes.position < bytes.length) {
-            var token = new Token();
+            var token = new Token_1.default();
             token.opcode = bytes.readUnsignedInt();
-            var lutentry = Mapping.agal2glsllut[token.opcode];
+            var lutentry = Mapping_1.default.agal2glsllut[token.opcode];
             if (!lutentry) {
                 throw "Opcode not valid or not implemented yet: " + token.opcode;
             }
@@ -151,12 +150,13 @@ var AGALTokenizer = (function () {
         }
     };
     return AGALTokenizer;
-})();
-module.exports = AGALTokenizer;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = AGALTokenizer;
 
 },{"awayjs-stagegl/lib/aglsl/Description":"awayjs-stagegl/lib/aglsl/Description","awayjs-stagegl/lib/aglsl/Header":"awayjs-stagegl/lib/aglsl/Header","awayjs-stagegl/lib/aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping","awayjs-stagegl/lib/aglsl/Token":"awayjs-stagegl/lib/aglsl/Token"}],"awayjs-stagegl/lib/aglsl/AGLSLParser":[function(require,module,exports){
-var Mapping = require("awayjs-stagegl/lib/aglsl/Mapping");
-var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
+"use strict";
+var Mapping_1 = require("awayjs-stagegl/lib/aglsl/Mapping");
 var AGLSLParser = (function () {
     function AGLSLParser() {
     }
@@ -177,18 +177,21 @@ var AGLSLParser = (function () {
             }
         }
         else {
-            header += "uniform vec4 " + tag + "carrr[" + ContextStage3D.maxvertexconstants + "];\n"; // use max const count instead
+            header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n"; // use max const count instead
         }
+        // declare temps
         for (var i = 0; i < desc.regread[0x2].length || i < desc.regwrite[0x2].length; i++) {
             if (desc.regread[0x2][i] || desc.regwrite[0x2][i]) {
                 header += "vec4 " + tag + "t" + i + ";\n";
             }
         }
+        // declare streams
         for (var i = 0; i < desc.regread[0x0].length; i++) {
             if (desc.regread[0x0][i]) {
                 header += "attribute vec4 va" + i + ";\n";
             }
         }
+        // declare interpolated
         for (var i = 0; i < desc.regread[0x4].length || i < desc.regwrite[0x4].length; i++) {
             if (desc.regread[0x4][i] || desc.regwrite[0x4][i]) {
                 header += "varying vec4 vi" + i + ";\n";
@@ -214,7 +217,7 @@ var AGLSLParser = (function () {
         // start body of code
         body += "void main() {\n";
         for (var i = 0; i < desc.tokens.length; i++) {
-            var lutentry = Mapping.agal2glsllut[desc.tokens[i].opcode];
+            var lutentry = Mapping_1.default.agal2glsllut[desc.tokens[i].opcode];
             if (lutentry.s.indexOf("dFdx") != -1 || lutentry.s.indexOf("dFdy") != -1)
                 derivatives = true;
             if (!lutentry) {
@@ -382,12 +385,19 @@ var AGLSLParser = (function () {
             r += swiz[(s.swizzle >> 6) & 3];
         return r;
     };
+    AGLSLParser.maxvertexconstants = 128;
+    AGLSLParser.maxfragconstants = 28;
+    AGLSLParser.maxtemp = 8;
+    AGLSLParser.maxstreams = 8;
+    AGLSLParser.maxtextures = 8;
     return AGLSLParser;
-})();
-module.exports = AGLSLParser;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = AGLSLParser;
 
-},{"awayjs-stagegl/lib/aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D"}],"awayjs-stagegl/lib/aglsl/Description":[function(require,module,exports){
-var Header = require("awayjs-stagegl/lib/aglsl/Header");
+},{"awayjs-stagegl/lib/aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping"}],"awayjs-stagegl/lib/aglsl/Description":[function(require,module,exports){
+"use strict";
+var Header_1 = require("awayjs-stagegl/lib/aglsl/Header");
 var Description = (function () {
     function Description() {
         this.regread = [
@@ -414,13 +424,15 @@ var Description = (function () {
         this.samplers = [];
         // added due to dynamic assignment 3*0xFFFFFFuuuu
         this.tokens = [];
-        this.header = new Header();
+        this.header = new Header_1.default();
     }
     return Description;
-})();
-module.exports = Description;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Description;
 
 },{"awayjs-stagegl/lib/aglsl/Header":"awayjs-stagegl/lib/aglsl/Header"}],"awayjs-stagegl/lib/aglsl/Destination":[function(require,module,exports){
+"use strict";
 var Destination = (function () {
     function Destination() {
         this.mask = 0;
@@ -439,10 +451,12 @@ var Destination = (function () {
         this.indirectflag = 0;
     }
     return Destination;
-})();
-module.exports = Destination;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Destination;
 
 },{}],"awayjs-stagegl/lib/aglsl/Header":[function(require,module,exports){
+"use strict";
 var Header = (function () {
     function Header() {
         this.progid = 0;
@@ -450,68 +464,60 @@ var Header = (function () {
         this.type = "";
     }
     return Header;
-})();
-module.exports = Header;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Header;
 
 },{}],"awayjs-stagegl/lib/aglsl/Mapping":[function(require,module,exports){
-var OpLUT = require("awayjs-stagegl/lib/aglsl/OpLUT");
+"use strict";
+var OpLUT_1 = require("awayjs-stagegl/lib/aglsl/OpLUT");
 var Mapping = (function () {
     //TODO: get rid of hack that fixes including definition file
     function Mapping(include) {
     }
     Mapping.agal2glsllut = [
-        new OpLUT("%dest = %cast(%a);\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(%a + %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(%a - %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(%a * %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(%a / %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(1.0) / %a;\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(min(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(max(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(fract(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(sqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(inversesqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(pow(abs(%a),%b));\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(log2(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(exp2(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(normalize(vec3( %a ) ));\n", 0, true, true, false, null, null, true, null, null, null),
-        new OpLUT("%dest = %cast(sin(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(cos(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(cross(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
-        new OpLUT("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
-        new OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
-        new OpLUT("%dest = %cast(abs(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(%a * -1.0);\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(clamp(%a,0.0,1.0));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", null, true, true, true, 3, 3, true, null, null, null),
-        new OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 4, true, null, null, null),
-        new OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 3, true, null, null, null),
-        new OpLUT("%dest = %cast(dFdx(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(dFdy(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("if (float(%a)==float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null),
-        new OpLUT("if (float(%a)!=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null),
-        new OpLUT("if (float(%a)>=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null),
-        new OpLUT("if (float(%a)<float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null),
-        new OpLUT("} else {;\n", 0, false, false, false, null, null, null, null, null, null),
-        new OpLUT("};\n", 0, false, false, false, null, null, null, null, null, null),
-        new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
-        new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
-        new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
-        new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(texture%texdimLod(%b,%texsize(%a)).%dm);\n", null, true, true, true, null, null, null, null, true, null),
-        new OpLUT("if ( float(%a)<0.0 ) discard;\n", null, false, true, false, null, null, null, true, null, null),
-        new OpLUT("%dest = %cast(texture%texdim(%b,%texsize(%a)%lod).%dm);\n", null, true, true, true, null, null, true, null, true, true),
-        new OpLUT("%dest = %cast(greaterThanEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null),
-        new OpLUT("%dest = %cast(lessThan(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null),
-        new OpLUT("%dest = %cast(sign(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT("%dest = %cast(equal(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null),
-        new OpLUT("%dest = %cast(notEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null)
+        //         s 												flags   dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
+        new OpLUT_1.default("%dest = %cast(%a);\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(%a + %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(%a - %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(%a * %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(%a / %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(1.0) / %a;\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(min(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(max(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(fract(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(sqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(inversesqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(pow(abs(%a),%b));\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(log2(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(exp2(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        //         s 												flags  	dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
+        new OpLUT_1.default("%dest = %cast(normalize(vec3( %a ) ));\n", 0, true, true, false, null, null, true, null, null, null),
+        new OpLUT_1.default("%dest = %cast(sin(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(cos(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(cross(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
+        new OpLUT_1.default("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
+        new OpLUT_1.default("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
+        new OpLUT_1.default("%dest = %cast(abs(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(%a * -1.0);\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(clamp(%a,0.0,1.0));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", null, true, true, true, 3, 3, true, null, null, null),
+        new OpLUT_1.default("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 4, true, null, null, null),
+        new OpLUT_1.default("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 3, true, null, null, null),
+        //s:string, flags:number, dest:boolean, a:boolean, b:boolean, matrixwidth:number, matrixheight:number, ndwm:boolean, scaler:boolean, dm:boolean, lod:boolean
+        new OpLUT_1.default("%dest = %cast(dFdx(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("%dest = %cast(dFdy(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.default("if (float(%a)==float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("if (float(%a)!=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("if (float(%a)>=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("if (float(%a)<float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("} else {;\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT_1.default("};\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null),
+        //         s 															flags  	dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
+        new OpLUT_1.default("%dest = %cast(texture%texdimLod(%b,%texsize(%a)).%dm);\n", null, true, true, true, null, null, null, null, true, null), new OpLUT_1.default("if ( float(%a)<0.0 ) discard;\n", null, false, true, false, null, null, null, true, null, null), new OpLUT_1.default("%dest = %cast(texture%texdim(%b,%texsize(%a)%lod).%dm);\n", null, true, true, true, null, null, true, null, true, true), new OpLUT_1.default("%dest = %cast(greaterThanEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.default("%dest = %cast(lessThan(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.default("%dest = %cast(sign(%a));\n", 0, true, true, false, null, null, null, null, null, null), new OpLUT_1.default("%dest = %cast(equal(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.default("%dest = %cast(notEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null)
     ];
     return Mapping;
-})();
-module.exports = Mapping;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Mapping;
 
 },{"awayjs-stagegl/lib/aglsl/OpLUT":"awayjs-stagegl/lib/aglsl/OpLUT"}],"awayjs-stagegl/lib/aglsl/OpLUT":[function(require,module,exports){
+"use strict";
 var OpLUT = (function () {
     function OpLUT(s, flags, dest, a, b, matrixwidth, matrixheight, ndwm, scaler, dm, lod) {
         this.s = s;
@@ -527,46 +533,35 @@ var OpLUT = (function () {
         this.lod = lod;
     }
     return OpLUT;
-})();
-module.exports = OpLUT;
-
-},{}],"awayjs-stagegl/lib/aglsl/Sampler":[function(require,module,exports){
-var Sampler = (function () {
-    function Sampler() {
-        this.lodbias = 0;
-        this.dim = 0;
-        this.readmode = 0;
-        this.special = 0;
-        this.wrap = 0;
-        this.mipmap = 0;
-        this.filter = 0;
-    }
-    return Sampler;
-})();
-module.exports = Sampler;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = OpLUT;
 
 },{}],"awayjs-stagegl/lib/aglsl/Token":[function(require,module,exports){
-var Destination = require("awayjs-stagegl/lib/aglsl/Destination");
+"use strict";
+var Destination_1 = require("awayjs-stagegl/lib/aglsl/Destination");
 var Token = (function () {
     function Token() {
-        this.dest = new Destination();
+        this.dest = new Destination_1.default();
         this.opcode = 0;
-        this.a = new Destination();
-        this.b = new Destination();
+        this.a = new Destination_1.default();
+        this.b = new Destination_1.default();
     }
     return Token;
-})();
-module.exports = Token;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Token;
 
 },{"awayjs-stagegl/lib/aglsl/Destination":"awayjs-stagegl/lib/aglsl/Destination"}],"awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler":[function(require,module,exports){
-var OpcodeMap = require("awayjs-stagegl/lib/aglsl/assembler/OpcodeMap");
-var Part = require("awayjs-stagegl/lib/aglsl/assembler/Part");
-var RegMap = require("awayjs-stagegl/lib/aglsl/assembler/RegMap");
-var SamplerMap = require("awayjs-stagegl/lib/aglsl/assembler/SamplerMap");
+"use strict";
+var OpcodeMap_1 = require("awayjs-stagegl/lib/aglsl/assembler/OpcodeMap");
+var Part_1 = require("awayjs-stagegl/lib/aglsl/assembler/Part");
+var RegMap_1 = require("awayjs-stagegl/lib/aglsl/assembler/RegMap");
+var SamplerMap_1 = require("awayjs-stagegl/lib/aglsl/assembler/SamplerMap");
 var AGALMiniAssembler = (function () {
     function AGALMiniAssembler() {
         this.r = {};
-        this.cur = new Part();
+        this.cur = new Part_1.default();
     }
     AGALMiniAssembler.prototype.assemble = function (source, ext_part, ext_version) {
         if (ext_part === void 0) { ext_part = null; }
@@ -606,6 +601,7 @@ var AGALMiniAssembler = (function () {
             }
             return;
         }
+        //console.log ( linenr, line, cur, tokens ); 
         switch (tokens[0]) {
             case "part":
                 this.addHeader(tokens[1], Number(tokens[2]));
@@ -625,7 +621,7 @@ var AGALMiniAssembler = (function () {
                 if (this.cur.name == "comment") {
                     return;
                 }
-                var op = OpcodeMap.map[tokens[0]];
+                var op = OpcodeMap_1.default.map[tokens[0]];
                 if (!op) {
                     throw "Bad opcode " + tokens[0] + " " + linenr + ": " + line;
                 }
@@ -684,7 +680,7 @@ var AGALMiniAssembler = (function () {
                 break;
             default:
                 pr.data.writeUnsignedByte(0xff);
-                break;
+                break; // unknown/comment
         }
     };
     AGALMiniAssembler.prototype.emitOpcode = function (pr, opcode) {
@@ -703,9 +699,9 @@ var AGALMiniAssembler = (function () {
         var reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:mask
         // console.log( 'AGALMiniAssembler' , 'emitDest' , 'reg' , reg , reg[1] , RegMap.map[reg[1]] );
         // console.log( 'AGALMiniAssembler' , 'emitDest' , 'RegMap.map[reg[1]]' , RegMap.map[reg[1]] , 'bool' , !RegMap.map[reg[1]] ) ;
-        if (!RegMap.map[reg[1]])
+        if (!RegMap_1.default.map[reg[1]])
             return false;
-        var em = { num: reg[2] ? reg[2] : 0, code: RegMap.map[reg[1]].code, mask: this.stringToMask(reg[3]) };
+        var em = { num: reg[2] ? reg[2] : 0, code: RegMap_1.default.map[reg[1]].code, mask: this.stringToMask(reg[3]) };
         pr.data.writeUnsignedShort(em.num);
         pr.data.writeUnsignedByte(em.mask);
         pr.data.writeUnsignedByte(em.code);
@@ -775,7 +771,7 @@ var AGALMiniAssembler = (function () {
         var samplerbits = 0x5;
         var sampleroptset = 0;
         for (var i = 0; i < opts.length; i++) {
-            var o = SamplerMap.map[opts[i].toLowerCase()];
+            var o = SamplerMap_1.default.map[opts[i].toLowerCase()];
             //console.log( 'AGALMiniAssembler' , 'emitSampler' , 'SampleMap opt:' , o , '<-------- WATCH FOR THIS');
             if (o) {
                 if (((sampleroptset >> o.shift) & o.mask) != 0) {
@@ -796,11 +792,11 @@ var AGALMiniAssembler = (function () {
         var indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([\+\-]\d+)?\](\.[xyzw]{1,4})?/i); // g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
         var reg;
         if (indexed) {
-            if (!RegMap.map[indexed[1]]) {
+            if (!RegMap_1.default.map[indexed[1]]) {
                 return false;
             }
             var selindex = { x: 0, y: 1, z: 2, w: 3 };
-            var em = { num: indexed[2] | 0, code: RegMap.map[indexed[1]].code, swizzle: this.stringToSwizzle(indexed[5]), select: selindex[indexed[3]], offset: indexed[4] | 0 };
+            var em = { num: indexed[2] | 0, code: RegMap_1.default.map[indexed[1]].code, swizzle: this.stringToSwizzle(indexed[5]), select: selindex[indexed[3]], offset: indexed[4] | 0 };
             pr.data.writeUnsignedShort(em.num);
             pr.data.writeByte(em.offset);
             pr.data.writeUnsignedByte(em.swizzle);
@@ -811,10 +807,10 @@ var AGALMiniAssembler = (function () {
         }
         else {
             reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:swizzle
-            if (!RegMap.map[reg[1]]) {
+            if (!RegMap_1.default.map[reg[1]]) {
                 return false;
             }
-            var em = { num: reg[2] | 0, code: RegMap.map[reg[1]].code, swizzle: this.stringToSwizzle(reg[3]) };
+            var em = { num: reg[2] | 0, code: RegMap_1.default.map[reg[1]].code, swizzle: this.stringToSwizzle(reg[3]) };
             pr.data.writeUnsignedShort(em.num);
             pr.data.writeUnsignedByte(0);
             pr.data.writeUnsignedByte(em.swizzle);
@@ -830,7 +826,7 @@ var AGALMiniAssembler = (function () {
             version = 1;
         }
         if (this.r[partname] == undefined) {
-            this.r[partname] = new Part(partname, version);
+            this.r[partname] = new Part_1.default(partname, version);
             this.emitHeader(this.r[partname]);
         }
         else if (this.r[partname].version != version) {
@@ -839,27 +835,33 @@ var AGALMiniAssembler = (function () {
         this.cur = this.r[partname];
     };
     return AGALMiniAssembler;
-})();
-module.exports = AGALMiniAssembler;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = AGALMiniAssembler;
 
 },{"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap":"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap","awayjs-stagegl/lib/aglsl/assembler/Part":"awayjs-stagegl/lib/aglsl/assembler/Part","awayjs-stagegl/lib/aglsl/assembler/RegMap":"awayjs-stagegl/lib/aglsl/assembler/RegMap","awayjs-stagegl/lib/aglsl/assembler/SamplerMap":"awayjs-stagegl/lib/aglsl/assembler/SamplerMap"}],"awayjs-stagegl/lib/aglsl/assembler/FS":[function(require,module,exports){
+"use strict";
 var FS = (function () {
     function FS() {
     }
     return FS;
-})();
-module.exports = FS;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = FS;
 
 },{}],"awayjs-stagegl/lib/aglsl/assembler/Flags":[function(require,module,exports){
+"use strict";
 var Flags = (function () {
     function Flags() {
     }
     return Flags;
-})();
-module.exports = Flags;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Flags;
 
 },{}],"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap":[function(require,module,exports){
-var Opcode = require("awayjs-stagegl/lib/aglsl/assembler/Opcode");
+"use strict";
+var Opcode_1 = require("awayjs-stagegl/lib/aglsl/assembler/Opcode");
 var OpcodeMap = (function () {
     function OpcodeMap() {
     }
@@ -867,42 +869,42 @@ var OpcodeMap = (function () {
         get: function () {
             if (!OpcodeMap._map) {
                 OpcodeMap._map = new Array();
-                OpcodeMap._map['mov'] = new Opcode("vector", "vector", 4, "none", 0, 0x00, true, null, null, null); //0
-                OpcodeMap._map['add'] = new Opcode("vector", "vector", 4, "vector", 4, 0x01, true, null, null, null); //1
-                OpcodeMap._map['sub'] = new Opcode("vector", "vector", 4, "vector", 4, 0x02, true, null, null, null); //2
-                OpcodeMap._map['mul'] = new Opcode("vector", "vector", 4, "vector", 4, 0x03, true, null, null, null); //3
-                OpcodeMap._map['div'] = new Opcode("vector", "vector", 4, "vector", 4, 0x04, true, null, null, null); //4
-                OpcodeMap._map['rcp'] = new Opcode("vector", "vector", 4, "none", 0, 0x05, true, null, null, null); //5
-                OpcodeMap._map['min'] = new Opcode("vector", "vector", 4, "vector", 4, 0x06, true, null, null, null); //6
-                OpcodeMap._map['max'] = new Opcode("vector", "vector", 4, "vector", 4, 0x07, true, null, null, null); //7
-                OpcodeMap._map['frc'] = new Opcode("vector", "vector", 4, "none", 0, 0x08, true, null, null, null); //8
-                OpcodeMap._map['sqt'] = new Opcode("vector", "vector", 4, "none", 0, 0x09, true, null, null, null); //9
-                OpcodeMap._map['rsq'] = new Opcode("vector", "vector", 4, "none", 0, 0x0a, true, null, null, null); //10
-                OpcodeMap._map['pow'] = new Opcode("vector", "vector", 4, "vector", 4, 0x0b, true, null, null, null); //11
-                OpcodeMap._map['log'] = new Opcode("vector", "vector", 4, "none", 0, 0x0c, true, null, null, null); //12
-                OpcodeMap._map['exp'] = new Opcode("vector", "vector", 4, "none", 0, 0x0d, true, null, null, null); //13
-                OpcodeMap._map['nrm'] = new Opcode("vector", "vector", 4, "none", 0, 0x0e, true, null, null, null); //14
-                OpcodeMap._map['sin'] = new Opcode("vector", "vector", 4, "none", 0, 0x0f, true, null, null, null); //15
-                OpcodeMap._map['cos'] = new Opcode("vector", "vector", 4, "none", 0, 0x10, true, null, null, null); //16
-                OpcodeMap._map['crs'] = new Opcode("vector", "vector", 4, "vector", 4, 0x11, true, true, null, null); //17
-                OpcodeMap._map['dp3'] = new Opcode("vector", "vector", 4, "vector", 4, 0x12, true, true, null, null); //18
-                OpcodeMap._map['dp4'] = new Opcode("vector", "vector", 4, "vector", 4, 0x13, true, true, null, null); //19
-                OpcodeMap._map['abs'] = new Opcode("vector", "vector", 4, "none", 0, 0x14, true, null, null, null); //20
-                OpcodeMap._map['neg'] = new Opcode("vector", "vector", 4, "none", 0, 0x15, true, null, null, null); //21
-                OpcodeMap._map['sat'] = new Opcode("vector", "vector", 4, "none", 0, 0x16, true, null, null, null); //22
-                OpcodeMap._map['ted'] = new Opcode("vector", "vector", 4, "sampler", 1, 0x26, true, null, true, null); //38
-                OpcodeMap._map['kil'] = new Opcode("none", "scalar", 1, "none", 0, 0x27, true, null, true, null); //39
-                OpcodeMap._map['tex'] = new Opcode("vector", "vector", 4, "sampler", 1, 0x28, true, null, true, null); //40
-                OpcodeMap._map['m33'] = new Opcode("vector", "matrix", 3, "vector", 3, 0x17, true, null, null, true); //23
-                OpcodeMap._map['m44'] = new Opcode("vector", "matrix", 4, "vector", 4, 0x18, true, null, null, true); //24
-                OpcodeMap._map['m43'] = new Opcode("vector", "matrix", 3, "vector", 4, 0x19, true, null, null, true); //25
-                OpcodeMap._map['ddx'] = new Opcode("vector", "vector", 4, "none", 0, 0x1a, true, null, true, null); //26
-                OpcodeMap._map['ddy'] = new Opcode("vector", "vector", 4, "none", 0, 0x1b, true, null, true, null); //27
-                OpcodeMap._map['sge'] = new Opcode("vector", "vector", 4, "vector", 4, 0x29, true, null, null, null); //41
-                OpcodeMap._map['slt'] = new Opcode("vector", "vector", 4, "vector", 4, 0x2a, true, null, null, null); //42
-                OpcodeMap._map['sgn'] = new Opcode("vector", "vector", 4, "vector", 4, 0x2b, true, null, null, null); //43
-                OpcodeMap._map['seq'] = new Opcode("vector", "vector", 4, "vector", 4, 0x2c, true, null, null, null); //44
-                OpcodeMap._map['sne'] = new Opcode("vector", "vector", 4, "vector", 4, 0x2d, true, null, null, null); //45
+                OpcodeMap._map['mov'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x00, true, null, null, null); //0
+                OpcodeMap._map['add'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x01, true, null, null, null); //1
+                OpcodeMap._map['sub'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x02, true, null, null, null); //2
+                OpcodeMap._map['mul'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x03, true, null, null, null); //3
+                OpcodeMap._map['div'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x04, true, null, null, null); //4
+                OpcodeMap._map['rcp'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x05, true, null, null, null); //5
+                OpcodeMap._map['min'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x06, true, null, null, null); //6
+                OpcodeMap._map['max'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x07, true, null, null, null); //7
+                OpcodeMap._map['frc'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x08, true, null, null, null); //8
+                OpcodeMap._map['sqt'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x09, true, null, null, null); //9
+                OpcodeMap._map['rsq'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0a, true, null, null, null); //10
+                OpcodeMap._map['pow'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x0b, true, null, null, null); //11
+                OpcodeMap._map['log'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0c, true, null, null, null); //12
+                OpcodeMap._map['exp'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0d, true, null, null, null); //13
+                OpcodeMap._map['nrm'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0e, true, null, null, null); //14
+                OpcodeMap._map['sin'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0f, true, null, null, null); //15
+                OpcodeMap._map['cos'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x10, true, null, null, null); //16
+                OpcodeMap._map['crs'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x11, true, true, null, null); //17
+                OpcodeMap._map['dp3'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x12, true, true, null, null); //18
+                OpcodeMap._map['dp4'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x13, true, true, null, null); //19
+                OpcodeMap._map['abs'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x14, true, null, null, null); //20
+                OpcodeMap._map['neg'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x15, true, null, null, null); //21
+                OpcodeMap._map['sat'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x16, true, null, null, null); //22
+                OpcodeMap._map['ted'] = new Opcode_1.default("vector", "vector", 4, "sampler", 1, 0x26, true, null, true, null); //38
+                OpcodeMap._map['kil'] = new Opcode_1.default("none", "scalar", 1, "none", 0, 0x27, true, null, true, null); //39
+                OpcodeMap._map['tex'] = new Opcode_1.default("vector", "vector", 4, "sampler", 1, 0x28, true, null, true, null); //40
+                OpcodeMap._map['m33'] = new Opcode_1.default("vector", "matrix", 3, "vector", 3, 0x17, true, null, null, true); //23
+                OpcodeMap._map['m44'] = new Opcode_1.default("vector", "matrix", 4, "vector", 4, 0x18, true, null, null, true); //24
+                OpcodeMap._map['m43'] = new Opcode_1.default("vector", "matrix", 3, "vector", 4, 0x19, true, null, null, true); //25
+                OpcodeMap._map['ddx'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x1a, true, null, true, null); //26
+                OpcodeMap._map['ddy'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x1b, true, null, true, null); //27
+                OpcodeMap._map['sge'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x29, true, null, null, null); //41
+                OpcodeMap._map['slt'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2a, true, null, null, null); //42
+                OpcodeMap._map['sgn'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2b, true, null, null, null); //43
+                OpcodeMap._map['seq'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2c, true, null, null, null); //44
+                OpcodeMap._map['sne'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2d, true, null, null, null); //45
             }
             return OpcodeMap._map;
         },
@@ -910,20 +912,22 @@ var OpcodeMap = (function () {
         configurable: true
     });
     return OpcodeMap;
-})();
-module.exports = OpcodeMap;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = OpcodeMap;
 
 },{"awayjs-stagegl/lib/aglsl/assembler/Opcode":"awayjs-stagegl/lib/aglsl/assembler/Opcode"}],"awayjs-stagegl/lib/aglsl/assembler/Opcode":[function(require,module,exports){
-var Flags = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
-var FS = require("awayjs-stagegl/lib/aglsl/assembler/FS");
+"use strict";
+var Flags_1 = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
+var FS_1 = require("awayjs-stagegl/lib/aglsl/assembler/FS");
 /**
  *
  */
 var Opcode = (function () {
     function Opcode(dest, aformat, asize, bformat, bsize, opcode, simple, horizontal, fragonly, matrix) {
-        this.a = new FS();
-        this.b = new FS();
-        this.flags = new Flags();
+        this.a = new FS_1.default();
+        this.b = new FS_1.default();
+        this.flags = new Flags_1.default();
         this.dest = dest;
         this.a.format = aformat;
         this.a.size = asize;
@@ -936,11 +940,13 @@ var Opcode = (function () {
         this.flags.matrix = matrix;
     }
     return Opcode;
-})();
-module.exports = Opcode;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Opcode;
 
 },{"awayjs-stagegl/lib/aglsl/assembler/FS":"awayjs-stagegl/lib/aglsl/assembler/FS","awayjs-stagegl/lib/aglsl/assembler/Flags":"awayjs-stagegl/lib/aglsl/assembler/Flags"}],"awayjs-stagegl/lib/aglsl/assembler/Part":[function(require,module,exports){
-var ByteArray = require("awayjs-core/lib/utils/ByteArray");
+"use strict";
+var ByteArray_1 = require("awayjs-core/lib/utils/ByteArray");
 var Part = (function () {
     function Part(name, version) {
         if (name === void 0) { name = null; }
@@ -949,20 +955,22 @@ var Part = (function () {
         this.version = 0;
         this.name = name;
         this.version = version;
-        this.data = new ByteArray();
+        this.data = new ByteArray_1.default();
     }
     return Part;
-})();
-module.exports = Part;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Part;
 
 },{"awayjs-core/lib/utils/ByteArray":undefined}],"awayjs-stagegl/lib/aglsl/assembler/RegMap":[function(require,module,exports){
+"use strict";
 var Reg = (function () {
     function Reg(code, desc) {
         this.code = code;
         this.desc = desc;
     }
     return Reg;
-})();
+}());
 var RegMap = (function () {
     /*
      public static va:Reg = new Reg( 0x00, "vertex attribute" );
@@ -1007,11 +1015,13 @@ var RegMap = (function () {
         configurable: true
     });
     return RegMap;
-})();
-module.exports = RegMap;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = RegMap;
 
 },{}],"awayjs-stagegl/lib/aglsl/assembler/SamplerMap":[function(require,module,exports){
-var Sampler = require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
+"use strict";
+var Sampler_1 = require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
 var SamplerMap = (function () {
     /*
      public static map =     [ new Sampler( 8, 0xf, 0 ),
@@ -1085,32 +1095,32 @@ var SamplerMap = (function () {
         get: function () {
             if (!SamplerMap._map) {
                 SamplerMap._map = new Array();
-                SamplerMap._map['rgba'] = new Sampler(8, 0xf, 0);
-                SamplerMap._map['rg'] = new Sampler(8, 0xf, 5);
-                SamplerMap._map['r'] = new Sampler(8, 0xf, 4);
-                SamplerMap._map['compressed'] = new Sampler(8, 0xf, 1);
-                SamplerMap._map['compressed_alpha'] = new Sampler(8, 0xf, 2);
-                SamplerMap._map['dxt1'] = new Sampler(8, 0xf, 1);
-                SamplerMap._map['dxt5'] = new Sampler(8, 0xf, 2);
+                SamplerMap._map['rgba'] = new Sampler_1.default(8, 0xf, 0);
+                SamplerMap._map['rg'] = new Sampler_1.default(8, 0xf, 5);
+                SamplerMap._map['r'] = new Sampler_1.default(8, 0xf, 4);
+                SamplerMap._map['compressed'] = new Sampler_1.default(8, 0xf, 1);
+                SamplerMap._map['compressed_alpha'] = new Sampler_1.default(8, 0xf, 2);
+                SamplerMap._map['dxt1'] = new Sampler_1.default(8, 0xf, 1);
+                SamplerMap._map['dxt5'] = new Sampler_1.default(8, 0xf, 2);
                 // dimension
-                SamplerMap._map['2d'] = new Sampler(12, 0xf, 0);
-                SamplerMap._map['cube'] = new Sampler(12, 0xf, 1);
-                SamplerMap._map['3d'] = new Sampler(12, 0xf, 2);
+                SamplerMap._map['2d'] = new Sampler_1.default(12, 0xf, 0);
+                SamplerMap._map['cube'] = new Sampler_1.default(12, 0xf, 1);
+                SamplerMap._map['3d'] = new Sampler_1.default(12, 0xf, 2);
                 // special
-                SamplerMap._map['centroid'] = new Sampler(16, 1, 1);
-                SamplerMap._map['ignoresampler'] = new Sampler(16, 4, 4);
+                SamplerMap._map['centroid'] = new Sampler_1.default(16, 1, 1);
+                SamplerMap._map['ignoresampler'] = new Sampler_1.default(16, 4, 4);
                 // repeat
-                SamplerMap._map['clamp'] = new Sampler(20, 0xf, 0);
-                SamplerMap._map['repeat'] = new Sampler(20, 0xf, 1);
-                SamplerMap._map['wrap'] = new Sampler(20, 0xf, 1);
+                SamplerMap._map['clamp'] = new Sampler_1.default(20, 0xf, 0);
+                SamplerMap._map['repeat'] = new Sampler_1.default(20, 0xf, 1);
+                SamplerMap._map['wrap'] = new Sampler_1.default(20, 0xf, 1);
                 // mip
-                SamplerMap._map['nomip'] = new Sampler(24, 0xf, 0);
-                SamplerMap._map['mipnone'] = new Sampler(24, 0xf, 0);
-                SamplerMap._map['mipnearest'] = new Sampler(24, 0xf, 1);
-                SamplerMap._map['miplinear'] = new Sampler(24, 0xf, 2);
+                SamplerMap._map['nomip'] = new Sampler_1.default(24, 0xf, 0);
+                SamplerMap._map['mipnone'] = new Sampler_1.default(24, 0xf, 0);
+                SamplerMap._map['mipnearest'] = new Sampler_1.default(24, 0xf, 1);
+                SamplerMap._map['miplinear'] = new Sampler_1.default(24, 0xf, 2);
                 // filter
-                SamplerMap._map['nearest'] = new Sampler(28, 0xf, 0);
-                SamplerMap._map['linear'] = new Sampler(28, 0xf, 1);
+                SamplerMap._map['nearest'] = new Sampler_1.default(28, 0xf, 0);
+                SamplerMap._map['linear'] = new Sampler_1.default(28, 0xf, 1);
             }
             return SamplerMap._map;
         },
@@ -1118,10 +1128,12 @@ var SamplerMap = (function () {
         configurable: true
     });
     return SamplerMap;
-})();
-module.exports = SamplerMap;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = SamplerMap;
 
 },{"awayjs-stagegl/lib/aglsl/assembler/Sampler":"awayjs-stagegl/lib/aglsl/assembler/Sampler"}],"awayjs-stagegl/lib/aglsl/assembler/Sampler":[function(require,module,exports){
+"use strict";
 var Sampler = (function () {
     function Sampler(shift, mask, value) {
         this.shift = shift;
@@ -1129,17 +1141,55 @@ var Sampler = (function () {
         this.value = value;
     }
     return Sampler;
-})();
-module.exports = Sampler;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Sampler;
 
-},{}],"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+},{}],"awayjs-stagegl/lib/aglsl":[function(require,module,exports){
+"use strict";
+var AGALMiniAssembler_1 = require("awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler");
+exports.AGALMiniAssembler = AGALMiniAssembler_1.default;
+var Flags_1 = require("awayjs-stagegl/lib/aglsl/assembler/Flags");
+exports.Flags = Flags_1.default;
+var FS_1 = require("awayjs-stagegl/lib/aglsl/assembler/FS");
+exports.FS = FS_1.default;
+var Opcode_1 = require("awayjs-stagegl/lib/aglsl/assembler/Opcode");
+exports.Opcode = Opcode_1.default;
+var OpcodeMap_1 = require("awayjs-stagegl/lib/aglsl/assembler/OpcodeMap");
+exports.OpcodeMap = OpcodeMap_1.default;
+var Part_1 = require("awayjs-stagegl/lib/aglsl/assembler/Part");
+exports.Part = Part_1.default;
+var RegMap_1 = require("awayjs-stagegl/lib/aglsl/assembler/RegMap");
+exports.RegMap = RegMap_1.default;
+var Sampler_1 = require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
+exports.Sampler = Sampler_1.default;
+var SamplerMap_1 = require("awayjs-stagegl/lib/aglsl/assembler/SamplerMap");
+exports.SamplerMap = SamplerMap_1.default;
+var AGALTokenizer_1 = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
+exports.AGALTokenizer = AGALTokenizer_1.default;
+var AGLSLParser_1 = require("awayjs-stagegl/lib/aglsl/AGLSLParser");
+exports.AGLSLParser = AGLSLParser_1.default;
+var Description_1 = require("awayjs-stagegl/lib/aglsl/Description");
+exports.Description = Description_1.default;
+var Destination_1 = require("awayjs-stagegl/lib/aglsl/Destination");
+exports.Destination = Destination_1.default;
+var Header_1 = require("awayjs-stagegl/lib/aglsl/Header");
+exports.Header = Header_1.default;
+var Mapping_1 = require("awayjs-stagegl/lib/aglsl/Mapping");
+exports.Mapping = Mapping_1.default;
+var OpLUT_1 = require("awayjs-stagegl/lib/aglsl/OpLUT");
+exports.OpLUT = OpLUT_1.default;
+var Token_1 = require("awayjs-stagegl/lib/aglsl/Token");
+exports.Token = Token_1.default;
+
+},{"awayjs-stagegl/lib/aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","awayjs-stagegl/lib/aglsl/AGLSLParser":"awayjs-stagegl/lib/aglsl/AGLSLParser","awayjs-stagegl/lib/aglsl/Description":"awayjs-stagegl/lib/aglsl/Description","awayjs-stagegl/lib/aglsl/Destination":"awayjs-stagegl/lib/aglsl/Destination","awayjs-stagegl/lib/aglsl/Header":"awayjs-stagegl/lib/aglsl/Header","awayjs-stagegl/lib/aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping","awayjs-stagegl/lib/aglsl/OpLUT":"awayjs-stagegl/lib/aglsl/OpLUT","awayjs-stagegl/lib/aglsl/Token":"awayjs-stagegl/lib/aglsl/Token","awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler":"awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler","awayjs-stagegl/lib/aglsl/assembler/FS":"awayjs-stagegl/lib/aglsl/assembler/FS","awayjs-stagegl/lib/aglsl/assembler/Flags":"awayjs-stagegl/lib/aglsl/assembler/Flags","awayjs-stagegl/lib/aglsl/assembler/Opcode":"awayjs-stagegl/lib/aglsl/assembler/Opcode","awayjs-stagegl/lib/aglsl/assembler/OpcodeMap":"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap","awayjs-stagegl/lib/aglsl/assembler/Part":"awayjs-stagegl/lib/aglsl/assembler/Part","awayjs-stagegl/lib/aglsl/assembler/RegMap":"awayjs-stagegl/lib/aglsl/assembler/RegMap","awayjs-stagegl/lib/aglsl/assembler/Sampler":"awayjs-stagegl/lib/aglsl/assembler/Sampler","awayjs-stagegl/lib/aglsl/assembler/SamplerMap":"awayjs-stagegl/lib/aglsl/assembler/SamplerMap"}],"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+var AbstractionBase_1 = require("awayjs-core/lib/library/AbstractionBase");
 /**
  *
  * @class away.pool.GL_AttributesBuffer
@@ -1196,10 +1246,17 @@ var GL_AttributesBuffer = (function (_super) {
         return this._vertexBuffer;
     };
     return GL_AttributesBuffer;
-})(AbstractionBase);
-module.exports = GL_AttributesBuffer;
+}(AbstractionBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_AttributesBuffer;
 
-},{"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
+},{"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/attributes":[function(require,module,exports){
+"use strict";
+var GL_AttributesBuffer_1 = require("awayjs-stagegl/lib/attributes/GL_AttributesBuffer");
+exports.GL_AttributesBuffer = GL_AttributesBuffer_1.default;
+
+},{"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":"awayjs-stagegl/lib/attributes/GL_AttributesBuffer"}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
+"use strict";
 var ContextGLBlendFactor = (function () {
     function ContextGLBlendFactor() {
     }
@@ -1214,10 +1271,12 @@ var ContextGLBlendFactor = (function () {
     ContextGLBlendFactor.SOURCE_COLOR = "sourceColor";
     ContextGLBlendFactor.ZERO = "zero";
     return ContextGLBlendFactor;
-})();
-module.exports = ContextGLBlendFactor;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLBlendFactor;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLClearMask":[function(require,module,exports){
+"use strict";
 var ContextGLClearMask = (function () {
     function ContextGLClearMask() {
     }
@@ -1226,10 +1285,12 @@ var ContextGLClearMask = (function () {
     ContextGLClearMask.STENCIL = 4;
     ContextGLClearMask.ALL = ContextGLClearMask.COLOR | ContextGLClearMask.DEPTH | ContextGLClearMask.STENCIL;
     return ContextGLClearMask;
-})();
-module.exports = ContextGLClearMask;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLClearMask;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLCompareMode":[function(require,module,exports){
+"use strict";
 var ContextGLCompareMode = (function () {
     function ContextGLCompareMode() {
     }
@@ -1242,20 +1303,24 @@ var ContextGLCompareMode = (function () {
     ContextGLCompareMode.NEVER = "never";
     ContextGLCompareMode.NOT_EQUAL = "notEqual";
     return ContextGLCompareMode;
-})();
-module.exports = ContextGLCompareMode;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLCompareMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLDrawMode":[function(require,module,exports){
+"use strict";
 var ContextGLDrawMode = (function () {
     function ContextGLDrawMode() {
     }
     ContextGLDrawMode.TRIANGLES = "triangles";
     ContextGLDrawMode.LINES = "lines";
     return ContextGLDrawMode;
-})();
-module.exports = ContextGLDrawMode;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLDrawMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLMipFilter":[function(require,module,exports){
+"use strict";
 var ContextGLMipFilter = (function () {
     function ContextGLMipFilter() {
     }
@@ -1263,10 +1328,12 @@ var ContextGLMipFilter = (function () {
     ContextGLMipFilter.MIPNEAREST = "mipnearest";
     ContextGLMipFilter.MIPNONE = "mipnone";
     return ContextGLMipFilter;
-})();
-module.exports = ContextGLMipFilter;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLMipFilter;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLProfile":[function(require,module,exports){
+"use strict";
 var ContextGLProfile = (function () {
     function ContextGLProfile() {
     }
@@ -1274,10 +1341,12 @@ var ContextGLProfile = (function () {
     ContextGLProfile.BASELINE_CONSTRAINED = "baselineConstrained";
     ContextGLProfile.BASELINE_EXTENDED = "baselineExtended";
     return ContextGLProfile;
-})();
-module.exports = ContextGLProfile;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLProfile;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLProgramType":[function(require,module,exports){
+"use strict";
 var ContextGLProgramType = (function () {
     function ContextGLProgramType() {
     }
@@ -1285,10 +1354,12 @@ var ContextGLProgramType = (function () {
     ContextGLProgramType.SAMPLER = 1;
     ContextGLProgramType.VERTEX = 2;
     return ContextGLProgramType;
-})();
-module.exports = ContextGLProgramType;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLProgramType;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLStencilAction":[function(require,module,exports){
+"use strict";
 var ContextGLStencilAction = (function () {
     function ContextGLStencilAction() {
     }
@@ -1301,20 +1372,24 @@ var ContextGLStencilAction = (function () {
     ContextGLStencilAction.SET = "set";
     ContextGLStencilAction.ZERO = "zero";
     return ContextGLStencilAction;
-})();
-module.exports = ContextGLStencilAction;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLStencilAction;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLTextureFilter":[function(require,module,exports){
+"use strict";
 var ContextGLTextureFilter = (function () {
     function ContextGLTextureFilter() {
     }
     ContextGLTextureFilter.LINEAR = "linear";
     ContextGLTextureFilter.NEAREST = "nearest";
     return ContextGLTextureFilter;
-})();
-module.exports = ContextGLTextureFilter;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLTextureFilter;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLTextureFormat":[function(require,module,exports){
+"use strict";
 var ContextGLTextureFormat = (function () {
     function ContextGLTextureFormat() {
     }
@@ -1324,10 +1399,12 @@ var ContextGLTextureFormat = (function () {
     ContextGLTextureFormat.COMPRESSED = "compressed";
     ContextGLTextureFormat.COMPRESSED_ALPHA = "compressedAlpha";
     return ContextGLTextureFormat;
-})();
-module.exports = ContextGLTextureFormat;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLTextureFormat;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLTriangleFace":[function(require,module,exports){
+"use strict";
 var ContextGLTriangleFace = (function () {
     function ContextGLTriangleFace() {
     }
@@ -1336,10 +1413,12 @@ var ContextGLTriangleFace = (function () {
     ContextGLTriangleFace.FRONT_AND_BACK = "frontAndBack";
     ContextGLTriangleFace.NONE = "none";
     return ContextGLTriangleFace;
-})();
-module.exports = ContextGLTriangleFace;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLTriangleFace;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":[function(require,module,exports){
+"use strict";
 var ContextGLVertexBufferFormat = (function () {
     function ContextGLVertexBufferFormat() {
     }
@@ -1364,20 +1443,24 @@ var ContextGLVertexBufferFormat = (function () {
     ContextGLVertexBufferFormat.UNSIGNED_SHORT_3 = 18;
     ContextGLVertexBufferFormat.UNSIGNED_SHORT_4 = 19;
     return ContextGLVertexBufferFormat;
-})();
-module.exports = ContextGLVertexBufferFormat;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLVertexBufferFormat;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLWrapMode":[function(require,module,exports){
+"use strict";
 var ContextGLWrapMode = (function () {
     function ContextGLWrapMode() {
     }
     ContextGLWrapMode.CLAMP = "clamp";
     ContextGLWrapMode.REPEAT = "repeat";
     return ContextGLWrapMode;
-})();
-module.exports = ContextGLWrapMode;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextGLWrapMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextMode":[function(require,module,exports){
+"use strict";
 var ContextMode = (function () {
     function ContextMode() {
     }
@@ -1387,48 +1470,50 @@ var ContextMode = (function () {
     ContextMode.NATIVE = "native";
     ContextMode.SOFTWARE = "software";
     return ContextMode;
-})();
-module.exports = ContextMode;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextSoftware":[function(require,module,exports){
-var BitmapImage2D = require("awayjs-core/lib/image/BitmapImage2D");
-var Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
-var Matrix = require("awayjs-core/lib/geom/Matrix");
-var Point = require("awayjs-core/lib/geom/Point");
-var Vector3D = require("awayjs-core/lib/geom/Vector3D");
-var Rectangle = require("awayjs-core/lib/geom/Rectangle");
-var ColorUtils = require("awayjs-core/lib/utils/ColorUtils");
-var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
-var ContextGLBlendFactor = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
-var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
-var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
-var ContextGLProgramType = require("awayjs-stagegl/lib/base/ContextGLProgramType");
-var ContextGLTriangleFace = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
-var IndexBufferSoftware = require("awayjs-stagegl/lib/base/IndexBufferSoftware");
-var VertexBufferSoftware = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
-var TextureSoftware = require("awayjs-stagegl/lib/base/TextureSoftware");
-var ProgramSoftware = require("awayjs-stagegl/lib/base/ProgramSoftware");
-var SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+"use strict";
+var BitmapImage2D_1 = require("awayjs-core/lib/image/BitmapImage2D");
+var Matrix3D_1 = require("awayjs-core/lib/geom/Matrix3D");
+var Matrix_1 = require("awayjs-core/lib/geom/Matrix");
+var Point_1 = require("awayjs-core/lib/geom/Point");
+var Vector3D_1 = require("awayjs-core/lib/geom/Vector3D");
+var Rectangle_1 = require("awayjs-core/lib/geom/Rectangle");
+var ColorUtils_1 = require("awayjs-core/lib/utils/ColorUtils");
+var Matrix3DUtils_1 = require("awayjs-core/lib/geom/Matrix3DUtils");
+var ContextGLBlendFactor_1 = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
+var ContextGLClearMask_1 = require("awayjs-stagegl/lib/base/ContextGLClearMask");
+var ContextGLCompareMode_1 = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
+var ContextGLProgramType_1 = require("awayjs-stagegl/lib/base/ContextGLProgramType");
+var ContextGLTriangleFace_1 = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
+var IndexBufferSoftware_1 = require("awayjs-stagegl/lib/base/IndexBufferSoftware");
+var VertexBufferSoftware_1 = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
+var TextureSoftware_1 = require("awayjs-stagegl/lib/base/TextureSoftware");
+var ProgramSoftware_1 = require("awayjs-stagegl/lib/base/ProgramSoftware");
+var SoftwareSamplerState_1 = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
 var ContextSoftware = (function () {
     function ContextSoftware(canvas) {
-        this._backBufferRect = new Rectangle();
+        this._backBufferRect = new Rectangle_1.default();
         this._backBufferWidth = 100;
         this._backBufferHeight = 100;
         this._zbuffer = [];
-        this._cullingMode = ContextGLTriangleFace.BACK;
-        this._blendSource = ContextGLBlendFactor.ONE;
-        this._blendDestination = ContextGLBlendFactor.ZERO;
+        this._cullingMode = ContextGLTriangleFace_1.default.BACK;
+        this._blendSource = ContextGLBlendFactor_1.default.ONE;
+        this._blendDestination = ContextGLBlendFactor_1.default.ZERO;
         this._colorMaskR = true;
         this._colorMaskG = true;
         this._colorMaskB = true;
         this._colorMaskA = true;
         this._writeDepth = true;
-        this._depthCompareMode = ContextGLCompareMode.LESS;
-        this._screenMatrix = new Matrix3D();
-        this._frontBufferMatrix = new Matrix();
-        this._bboxMin = new Point();
-        this._bboxMax = new Point();
-        this._clamp = new Point();
+        this._depthCompareMode = ContextGLCompareMode_1.default.LESS;
+        this._screenMatrix = new Matrix3D_1.default();
+        this._frontBufferMatrix = new Matrix_1.default();
+        this._bboxMin = new Point_1.default();
+        this._bboxMax = new Point_1.default();
+        this._clamp = new Point_1.default();
         this._samplerStates = [];
         this._textures = [];
         this._vertexBuffers = [];
@@ -1439,8 +1524,8 @@ var ContextSoftware = (function () {
         //public static _drawCallback:Function = null;
         this._antialias = 0;
         this._canvas = canvas;
-        this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
+        this._backBufferColor = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._frontBuffer = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, true, 0, false);
         if (document && document.body) {
             document.body.appendChild(this._frontBuffer.getCanvas());
         }
@@ -1466,13 +1551,13 @@ var ContextSoftware = (function () {
         if (alpha === void 0) { alpha = 1; }
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask.ALL; }
+        if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
         console.log("clear: " + red + ", " + green + ", " + blue + ", alpha: " + alpha);
-        if (mask & ContextGLClearMask.COLOR) {
-            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
+        if (mask & ContextGLClearMask_1.default.COLOR) {
+            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils_1.default.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
         }
         //TODO: mask & ContextGLClearMask.STENCIL
-        if (mask & ContextGLClearMask.DEPTH) {
+        if (mask & ContextGLClearMask_1.default.DEPTH) {
             this._zbuffer.length = 0;
             var len = this._backBufferWidth * this._backBufferHeight;
             for (var i = 0; i < len; i++) {
@@ -1513,7 +1598,7 @@ var ContextSoftware = (function () {
         raw[14] = 0;
         raw[15] = 0;
         this._screenMatrix.transpose();
-        this._frontBufferMatrix = new Matrix();
+        this._frontBufferMatrix = new Matrix_1.default();
         this._frontBufferMatrix.scale(1 / this._antialias, 1 / this._antialias);
     };
     ContextSoftware.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
@@ -1521,16 +1606,16 @@ var ContextSoftware = (function () {
         return undefined;
     };
     ContextSoftware.prototype.createIndexBuffer = function (numIndices) {
-        return new IndexBufferSoftware(numIndices);
+        return new IndexBufferSoftware_1.default(numIndices);
     };
     ContextSoftware.prototype.createProgram = function () {
-        return new ProgramSoftware();
+        return new ProgramSoftware_1.default();
     };
     ContextSoftware.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
-        return new TextureSoftware(width, height);
+        return new TextureSoftware_1.default(width, height);
     };
     ContextSoftware.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
-        return new VertexBufferSoftware(numVertices, dataPerVertex);
+        return new VertexBufferSoftware_1.default(numVertices, dataPerVertex);
     };
     ContextSoftware.prototype.dispose = function () {
     };
@@ -1567,7 +1652,7 @@ var ContextSoftware = (function () {
         console.log("setProgramConstantsFromMatrix: programType" + programType + " firstRegister: " + firstRegister + " matrix: " + matrix + " transposedMatrix: " + transposedMatrix);
         var d = matrix.rawData;
         if (transposedMatrix) {
-            var raw = Matrix3DUtils.RAW_DATA_CONTAINER;
+            var raw = Matrix3DUtils_1.default.RAW_DATA_CONTAINER;
             raw[0] = d[0];
             raw[1] = d[4];
             raw[2] = d[8];
@@ -1593,15 +1678,15 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
         console.log("setProgramConstantsFromArray: programType" + programType + " firstRegister: " + firstRegister + " data: " + data + " numRegisters: " + numRegisters);
         var target;
-        if (programType == ContextGLProgramType.VERTEX) {
+        if (programType == ContextGLProgramType_1.default.VERTEX) {
             target = this._vertexConstants;
         }
-        else if (programType == ContextGLProgramType.FRAGMENT) {
+        else if (programType == ContextGLProgramType_1.default.FRAGMENT) {
             target = this._fragmentConstants;
         }
         var k = 0;
         for (var i = firstRegister; i < firstRegister + numRegisters; i++) {
-            target[i] = new Vector3D(data[k++], data[k++], data[k++], data[k++]);
+            target[i] = new Vector3D_1.default(data[k++], data[k++], data[k++], data[k++]);
         }
     };
     ContextSoftware.prototype.setTextureAt = function (sampler, texture) {
@@ -1616,7 +1701,7 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.present = function () {
         console.log("present()");
-        this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
+        this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils_1.default.ARGBtoFloat32(0, 0, 0, 0));
         this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
@@ -1633,7 +1718,7 @@ var ContextSoftware = (function () {
         var vo0;
         var vo1;
         var vo2;
-        if (this._cullingMode == ContextGLTriangleFace.BACK) {
+        if (this._cullingMode == ContextGLTriangleFace_1.default.BACK) {
             for (var i = firstIndex; i < numIndices; i += 3) {
                 index0 = indexBuffer.data[indexBuffer.startOffset + i];
                 index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
@@ -1644,7 +1729,7 @@ var ContextSoftware = (function () {
                 this.triangle(vo0, vo1, vo2);
             }
         }
-        else if (this._cullingMode == ContextGLTriangleFace.FRONT) {
+        else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT) {
             for (var i = firstIndex; i < numIndices; i += 3) {
                 index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
                 index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
@@ -1655,7 +1740,7 @@ var ContextSoftware = (function () {
                 this.triangle(vo0, vo1, vo2);
             }
         }
-        else if (this._cullingMode == ContextGLTriangleFace.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace.NONE) {
+        else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace_1.default.NONE) {
             for (var i = firstIndex; i < numIndices; i += 3) {
                 index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
                 index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
@@ -1688,7 +1773,7 @@ var ContextSoftware = (function () {
         //console.log("setSamplerStateAt: "+sampler+" wrap: "+wrap+" filter: "+filter+" mipfilter: "+mipfilter);
         var state = this._samplerStates[sampler];
         if (!state) {
-            state = this._samplerStates[sampler] = new SoftwareSamplerState();
+            state = this._samplerStates[sampler] = new SoftwareSamplerState_1.default();
         }
         state.wrap = wrap;
         state.filter = filter;
@@ -1701,12 +1786,12 @@ var ContextSoftware = (function () {
         //TODO:
     };
     ContextSoftware.prototype.putPixel = function (x, y, color) {
-        var dest = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
+        var dest = ColorUtils_1.default.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
         dest[0] /= 255;
         dest[1] /= 255;
         dest[2] /= 255;
         dest[3] /= 255;
-        var source = ColorUtils.float32ColorToARGB(color);
+        var source = ColorUtils_1.default.float32ColorToARGB(color);
         source[0] /= 255;
         source[1] /= 255;
         source[2] /= 255;
@@ -1726,7 +1811,7 @@ var ContextSoftware = (function () {
         //g*=a/255;
         //b*=a/255;
         //a = 255;
-        this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
+        this._backBufferColor.setPixel32(x, y, ColorUtils_1.default.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
     };
     ContextSoftware.prototype.applyBlendMode = function (argb, blend, dest, source) {
         var result = [];
@@ -1734,55 +1819,55 @@ var ContextSoftware = (function () {
         result[1] = argb[1];
         result[2] = argb[2];
         result[3] = argb[3];
-        if (blend == ContextGLBlendFactor.DESTINATION_ALPHA) {
+        if (blend == ContextGLBlendFactor_1.default.DESTINATION_ALPHA) {
             result[0] *= dest[0];
             result[1] *= dest[0];
             result[2] *= dest[0];
             result[3] *= dest[0];
         }
-        else if (blend == ContextGLBlendFactor.DESTINATION_COLOR) {
+        else if (blend == ContextGLBlendFactor_1.default.DESTINATION_COLOR) {
             result[0] *= dest[0];
             result[1] *= dest[1];
             result[2] *= dest[2];
             result[3] *= dest[3];
         }
-        else if (blend == ContextGLBlendFactor.ZERO) {
+        else if (blend == ContextGLBlendFactor_1.default.ZERO) {
             result[0] = 0;
             result[1] = 0;
             result[2] = 0;
             result[3] = 0;
         }
-        else if (blend == ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA) {
+        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_ALPHA) {
             result[0] *= 1 - dest[0];
             result[1] *= 1 - dest[0];
             result[2] *= 1 - dest[0];
             result[3] *= 1 - dest[0];
         }
-        else if (blend == ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR) {
+        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_COLOR) {
             result[0] *= 1 - dest[0];
             result[1] *= 1 - dest[1];
             result[2] *= 1 - dest[2];
             result[3] *= 1 - dest[3];
         }
-        else if (blend == ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA) {
+        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_ALPHA) {
             result[0] *= 1 - source[0];
             result[1] *= 1 - source[0];
             result[2] *= 1 - source[0];
             result[3] *= 1 - source[0];
         }
-        else if (blend == ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR) {
+        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_COLOR) {
             result[0] *= 1 - source[0];
             result[1] *= 1 - source[1];
             result[2] *= 1 - source[2];
             result[3] *= 1 - source[3];
         }
-        else if (blend == ContextGLBlendFactor.SOURCE_ALPHA) {
+        else if (blend == ContextGLBlendFactor_1.default.SOURCE_ALPHA) {
             result[0] *= source[0];
             result[1] *= source[0];
             result[2] *= source[0];
             result[3] *= source[0];
         }
-        else if (blend == ContextGLBlendFactor.SOURCE_COLOR) {
+        else if (blend == ContextGLBlendFactor_1.default.SOURCE_COLOR) {
             result[0] *= source[0];
             result[1] *= source[1];
             result[2] *= source[2];
@@ -1812,11 +1897,11 @@ var ContextSoftware = (function () {
         p0.scaleBy(1 / p0.w);
         p1.scaleBy(1 / p1.w);
         p2.scaleBy(1 / p2.w);
-        var project = new Vector3D(p0.w, p1.w, p2.w);
+        var project = new Vector3D_1.default(p0.w, p1.w, p2.w);
         p0 = this._screenMatrix.transformVector(p0);
         p1 = this._screenMatrix.transformVector(p1);
         p2 = this._screenMatrix.transformVector(p2);
-        var depth = new Vector3D(p0.z, p1.z, p2.z);
+        var depth = new Vector3D_1.default(p0.z, p1.z, p2.z);
         this._bboxMin.x = 1000000;
         this._bboxMin.y = 1000000;
         this._bboxMax.x = -1000000;
@@ -1843,7 +1928,7 @@ var ContextSoftware = (function () {
             for (var y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
                 var color = this.calcPixel(x, y, p0, p1, p2, project, depth, vo0, vo1, vo2);
                 if (color) {
-                    this.putPixel(x, y, ColorUtils.ARGBtoFloat32(color.w, color.x, color.y, color.z));
+                    this.putPixel(x, y, ColorUtils_1.default.ARGBtoFloat32(color.w, color.x, color.y, color.z));
                 }
             }
         }
@@ -1852,11 +1937,11 @@ var ContextSoftware = (function () {
         var screen = this.barycentric(p0, p1, p2, x, y);
         var screenRight = this.barycentric(p0, p1, p2, x + 1, y);
         var screenBottom = this.barycentric(p0, p1, p2, x, y + 1);
-        var clip = new Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+        var clip = new Vector3D_1.default(screen.x / project.x, screen.y / project.y, screen.z / project.z);
         clip.scaleBy(1 / (clip.x + clip.y + clip.z));
-        var clipRight = new Vector3D(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
+        var clipRight = new Vector3D_1.default(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
         clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
-        var clipBottom = new Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
+        var clipBottom = new Vector3D_1.default(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
         clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
         var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
         var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
@@ -1867,28 +1952,28 @@ var ContextSoftware = (function () {
         //< fragDepth
         var passDepthTest = false;
         switch (this._depthCompareMode) {
-            case ContextGLCompareMode.ALWAYS:
+            case ContextGLCompareMode_1.default.ALWAYS:
                 passDepthTest = true;
                 break;
-            case ContextGLCompareMode.EQUAL:
+            case ContextGLCompareMode_1.default.EQUAL:
                 passDepthTest = fragDepth == currentDepth;
                 break;
-            case ContextGLCompareMode.GREATER:
+            case ContextGLCompareMode_1.default.GREATER:
                 passDepthTest = fragDepth > currentDepth;
                 break;
-            case ContextGLCompareMode.GREATER_EQUAL:
+            case ContextGLCompareMode_1.default.GREATER_EQUAL:
                 passDepthTest = fragDepth >= currentDepth;
                 break;
-            case ContextGLCompareMode.LESS:
+            case ContextGLCompareMode_1.default.LESS:
                 passDepthTest = fragDepth < currentDepth;
                 break;
-            case ContextGLCompareMode.LESS_EQUAL:
+            case ContextGLCompareMode_1.default.LESS_EQUAL:
                 passDepthTest = fragDepth <= currentDepth;
                 break;
-            case ContextGLCompareMode.NEVER:
+            case ContextGLCompareMode_1.default.NEVER:
                 passDepthTest = false;
                 break;
-            case ContextGLCompareMode.NOT_EQUAL:
+            case ContextGLCompareMode_1.default.NOT_EQUAL:
                 passDepthTest = fragDepth != currentDepth;
                 break;
             default:
@@ -1915,23 +2000,25 @@ var ContextSoftware = (function () {
         return color;
     };
     ContextSoftware.prototype.barycentric = function (a, b, c, x, y) {
-        var sx = new Vector3D();
+        var sx = new Vector3D_1.default();
         sx.x = c.x - a.x;
         sx.y = b.x - a.x;
         sx.z = a.x - x;
-        var sy = new Vector3D();
+        var sy = new Vector3D_1.default();
         sy.x = c.y - a.y;
         sy.y = b.y - a.y;
         sy.z = a.y - y;
         var u = sx.crossProduct(sy);
         if (u.z < 0.01) {
-            return new Vector3D(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+            return new Vector3D_1.default(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
         }
-        return new Vector3D(-1, 1, 1);
+        return new Vector3D_1.default(-1, 1, 1);
     };
     ContextSoftware.MAX_SAMPLERS = 8;
     return ContextSoftware;
-})();
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextSoftware;
 var VertexBufferProperties = (function () {
     function VertexBufferProperties(size, type, normalized) {
         this.size = size;
@@ -1939,24 +2026,23 @@ var VertexBufferProperties = (function () {
         this.normalized = normalized;
     }
     return VertexBufferProperties;
-})();
-module.exports = ContextSoftware;
+}());
 
 },{"awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware"}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
-var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
-//import swfobject					= require("awayjs-stagegl/lib/swfobject");
-var Sampler = require("awayjs-stagegl/lib/aglsl/Sampler");
-var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
-var ContextGLProgramType = require("awayjs-stagegl/lib/base/ContextGLProgramType");
-var CubeTextureFlash = require("awayjs-stagegl/lib/base/CubeTextureFlash");
-var IndexBufferFlash = require("awayjs-stagegl/lib/base/IndexBufferFlash");
-var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
-var ProgramFlash = require("awayjs-stagegl/lib/base/ProgramFlash");
-var TextureFlash = require("awayjs-stagegl/lib/base/TextureFlash");
-var VertexBufferFlash = require("awayjs-stagegl/lib/base/VertexBufferFlash");
+"use strict";
+var Matrix3DUtils_1 = require("awayjs-core/lib/geom/Matrix3DUtils");
+//import swfobject					from "awayjs-stagegl/lib/swfobject";
+var ContextGLClearMask_1 = require("awayjs-stagegl/lib/base/ContextGLClearMask");
+var ContextGLProgramType_1 = require("awayjs-stagegl/lib/base/ContextGLProgramType");
+var CubeTextureFlash_1 = require("awayjs-stagegl/lib/base/CubeTextureFlash");
+var IndexBufferFlash_1 = require("awayjs-stagegl/lib/base/IndexBufferFlash");
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+var ProgramFlash_1 = require("awayjs-stagegl/lib/base/ProgramFlash");
+var TextureFlash_1 = require("awayjs-stagegl/lib/base/TextureFlash");
+var VertexBufferFlash_1 = require("awayjs-stagegl/lib/base/VertexBufferFlash");
 var ContextStage3D = (function () {
     //TODO: get rid of hack that fixes including definition file
-    function ContextStage3D(container, callback, include) {
+    function ContextStage3D(container, callback) {
         this._cmdStream = "";
         this._resources = new Array();
         var swfVersionStr = "11.0.0";
@@ -2012,7 +2098,7 @@ var ContextStage3D = (function () {
             if (this._errorCheckingEnabled == value)
                 return;
             this._errorCheckingEnabled = value;
-            this.addStream(String.fromCharCode(OpCodes.enableErrorChecking, value ? OpCodes.trueValue : OpCodes.falseValue));
+            this.addStream(String.fromCharCode(OpCodes_1.default.enableErrorChecking, value ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue));
             this.execute();
         },
         enumerable: true,
@@ -2027,19 +2113,19 @@ var ContextStage3D = (function () {
     ContextStage3D.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO:streaming
-        return new TextureFlash(this, width, height, format, optimizeForRenderToTexture);
+        return new TextureFlash_1.default(this, width, height, format, optimizeForRenderToTexture);
     };
     ContextStage3D.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO:streaming
-        return new CubeTextureFlash(this, size, format, optimizeForRenderToTexture);
+        return new CubeTextureFlash_1.default(this, size, format, optimizeForRenderToTexture);
     };
     ContextStage3D.prototype.setTextureAt = function (sampler, texture) {
         if (texture) {
-            this.addStream(String.fromCharCode(OpCodes.setTextureAt) + sampler + "," + texture.id + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.default.setTextureAt) + sampler + "," + texture.id + ",");
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes.clearTextureAt) + sampler.toString() + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.default.clearTextureAt) + sampler.toString() + ",");
         }
         if (ContextStage3D.debug)
             this.execute();
@@ -2054,21 +2140,21 @@ var ContextStage3D = (function () {
         if (actionOnDepthFail === void 0) { actionOnDepthFail = "keep"; }
         if (actionOnDepthPassStencilFail === void 0) { actionOnDepthPassStencilFail = "keep"; }
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
-        this.addStream(String.fromCharCode(OpCodes.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.default.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setStencilReferenceValue = function (referenceValue, readMask, writeMask) {
         if (readMask === void 0) { readMask = 255; }
         if (writeMask === void 0) { writeMask = 255; }
-        this.addStream(String.fromCharCode(OpCodes.setStencilReferenceValue, referenceValue + OpCodes.intMask, readMask + OpCodes.intMask, writeMask + OpCodes.intMask));
+        this.addStream(String.fromCharCode(OpCodes_1.default.setStencilReferenceValue, referenceValue + OpCodes_1.default.intMask, readMask + OpCodes_1.default.intMask, writeMask + OpCodes_1.default.intMask));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setCulling = function (triangleFaceToCull, coordinateSystem) {
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
         //TODO implement coordinateSystem option
-        this.addStream(String.fromCharCode(OpCodes.setCulling) + triangleFaceToCull + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.default.setCulling) + triangleFaceToCull + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2079,7 +2165,7 @@ var ContextStage3D = (function () {
         if (!numIndices || numIndices < 0)
             numIndices = indexBuffer.numIndices;
         //assume triangles
-        this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numIndices + ",");
+        this.addStream(String.fromCharCode(OpCodes_1.default.drawTriangles, indexBuffer.id + OpCodes_1.default.intMask) + firstIndex + "," + numIndices + ",");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2094,7 +2180,7 @@ var ContextStage3D = (function () {
         //TODO remove special case for WebGL matrix calls?
         var d = matrix.rawData;
         if (transposedMatrix) {
-            var raw = Matrix3DUtils.RAW_DATA_CONTAINER;
+            var raw = Matrix3DUtils_1.default.RAW_DATA_CONTAINER;
             raw[0] = d[0];
             raw[1] = d[4];
             raw[2] = d[8];
@@ -2120,21 +2206,21 @@ var ContextStage3D = (function () {
     ContextStage3D.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
         if (numRegisters === void 0) { numRegisters = -1; }
         var startIndex;
-        var target = (programType == ContextGLProgramType.VERTEX) ? OpCodes.trueValue : OpCodes.falseValue;
+        var target = (programType == ContextGLProgramType_1.default.VERTEX) ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue;
         for (var i = 0; i < numRegisters; i++) {
             startIndex = i * 4;
-            this.addStream(String.fromCharCode(OpCodes.setProgramConstant, target, (firstRegister + i) + OpCodes.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.default.setProgramConstant, target, (firstRegister + i) + OpCodes_1.default.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
             if (ContextStage3D.debug)
                 this.execute();
         }
     };
     ContextStage3D.prototype.setProgram = function (program) {
-        this.addStream(String.fromCharCode(OpCodes.setProgram, program.id + OpCodes.intMask));
+        this.addStream(String.fromCharCode(OpCodes_1.default.setProgram, program.id + OpCodes_1.default.intMask));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.present = function () {
-        this.addStream(String.fromCharCode(OpCodes.present));
+        this.addStream(String.fromCharCode(OpCodes_1.default.present));
         this.execute();
     };
     ContextStage3D.prototype.clear = function (red, green, blue, alpha, depth, stencil, mask) {
@@ -2144,26 +2230,26 @@ var ContextStage3D = (function () {
         if (alpha === void 0) { alpha = 1; }
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask.ALL; }
-        this.addStream(String.fromCharCode(OpCodes.clear) + red + "," + green + "," + blue + "," + alpha + "," + depth + "," + stencil + "," + mask + ",");
+        if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
+        this.addStream(String.fromCharCode(OpCodes_1.default.clear) + red + "," + green + "," + blue + "," + alpha + "," + depth + "," + stencil + "," + mask + ",");
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.createProgram = function () {
-        return new ProgramFlash(this);
+        return new ProgramFlash_1.default(this);
     };
     ContextStage3D.prototype.createVertexBuffer = function (numVertices, data32PerVertex) {
-        return new VertexBufferFlash(this, numVertices, data32PerVertex);
+        return new VertexBufferFlash_1.default(this, numVertices, data32PerVertex);
     };
     ContextStage3D.prototype.createIndexBuffer = function (numIndices) {
-        return new IndexBufferFlash(this, numIndices);
+        return new IndexBufferFlash_1.default(this, numIndices);
     };
     ContextStage3D.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         if (enableDepthAndStencil === void 0) { enableDepthAndStencil = true; }
         this._width = width;
         this._height = height;
         //TODO: add Anitalias setting
-        this.addStream(String.fromCharCode(OpCodes.configureBackBuffer) + width + "," + height + ",");
+        this.addStream(String.fromCharCode(OpCodes_1.default.configureBackBuffer) + width + "," + height + ",");
     };
     ContextStage3D.prototype.drawToBitmapImage2D = function (destination) {
         //TODO
@@ -2172,21 +2258,21 @@ var ContextStage3D = (function () {
         if (bufferOffset === void 0) { bufferOffset = 0; }
         if (format === void 0) { format = null; }
         if (buffer) {
-            this.addStream(String.fromCharCode(OpCodes.setVertexBufferAt, index + OpCodes.intMask) + buffer.id + "," + bufferOffset + "," + format + "$");
+            this.addStream(String.fromCharCode(OpCodes_1.default.setVertexBufferAt, index + OpCodes_1.default.intMask) + buffer.id + "," + bufferOffset + "," + format + "$");
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes.clearVertexBufferAt, index + OpCodes.intMask));
+            this.addStream(String.fromCharCode(OpCodes_1.default.clearVertexBufferAt, index + OpCodes_1.default.intMask));
         }
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setColorMask = function (red, green, blue, alpha) {
-        this.addStream(String.fromCharCode(OpCodes.setColorMask, red ? OpCodes.trueValue : OpCodes.falseValue, green ? OpCodes.trueValue : OpCodes.falseValue, blue ? OpCodes.trueValue : OpCodes.falseValue, alpha ? OpCodes.trueValue : OpCodes.falseValue));
+        this.addStream(String.fromCharCode(OpCodes_1.default.setColorMask, red ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue, green ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue, blue ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue, alpha ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setBlendFactors = function (sourceFactor, destinationFactor) {
-        this.addStream(String.fromCharCode(OpCodes.setBlendFactors) + sourceFactor + "$" + destinationFactor + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.default.setBlendFactors) + sourceFactor + "$" + destinationFactor + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2195,31 +2281,31 @@ var ContextStage3D = (function () {
         if (antiAlias === void 0) { antiAlias = 0; }
         if (surfaceSelector === void 0) { surfaceSelector = 0; }
         if (target === null || target === undefined) {
-            this.addStream(String.fromCharCode(OpCodes.clearRenderToTexture));
+            this.addStream(String.fromCharCode(OpCodes_1.default.clearRenderToTexture));
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes.setRenderToTexture, enableDepthAndStencil ? OpCodes.trueValue : OpCodes.falseValue) + target.id + "," + (antiAlias || 0) + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.default.setRenderToTexture, enableDepthAndStencil ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue) + target.id + "," + (antiAlias || 0) + ",");
         }
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setRenderToBackBuffer = function () {
-        this.addStream(String.fromCharCode(OpCodes.clearRenderToTexture));
+        this.addStream(String.fromCharCode(OpCodes_1.default.clearRenderToTexture));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setScissorRectangle = function (rectangle) {
         if (rectangle) {
-            this.addStream(String.fromCharCode(OpCodes.setScissorRect) + rectangle.x + "," + rectangle.y + "," + rectangle.width + "," + rectangle.height + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.default.setScissorRect) + rectangle.x + "," + rectangle.y + "," + rectangle.width + "," + rectangle.height + ",");
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes.clearScissorRect));
+            this.addStream(String.fromCharCode(OpCodes_1.default.clearScissorRect));
         }
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setDepthTest = function (depthMask, passCompareMode) {
-        this.addStream(String.fromCharCode(OpCodes.setDepthTest, depthMask ? OpCodes.trueValue : OpCodes.falseValue) + passCompareMode + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.default.setDepthTest, depthMask ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue) + passCompareMode + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2231,7 +2317,7 @@ var ContextStage3D = (function () {
             this._resources[0].dispose();
         if (this._container) {
             // encode command
-            this.addStream(String.fromCharCode(OpCodes.disposeContext));
+            this.addStream(String.fromCharCode(OpCodes_1.default.disposeContext));
             this.execute();
             //swfobject.removeSWF(this._oldCanvas.id);
             if (this._oldCanvas && this._oldParent) {
@@ -2255,16 +2341,12 @@ var ContextStage3D = (function () {
         return Number(result);
     };
     ContextStage3D.contexts = new Object();
-    ContextStage3D.maxvertexconstants = 128;
-    ContextStage3D.maxfragconstants = 28;
-    ContextStage3D.maxtemp = 8;
-    ContextStage3D.maxstreams = 8;
-    ContextStage3D.maxtextures = 8;
-    ContextStage3D.defaultsampler = new Sampler();
     ContextStage3D.debug = false;
     ContextStage3D.logStream = false;
     return ContextStage3D;
-})();
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextStage3D;
 /**
 * global function for flash callback
 */
@@ -2284,29 +2366,29 @@ function mountain_js_context_available(id, driverInfo) {
         }, 1);
     }
 }
-module.exports = ContextStage3D;
 
-},{"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-stagegl/lib/aglsl/Sampler":"awayjs-stagegl/lib/aglsl/Sampler","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","awayjs-stagegl/lib/base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","awayjs-stagegl/lib/base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","awayjs-stagegl/lib/base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash"}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
-var Matrix3DUtils = require("awayjs-core/lib/geom/Matrix3DUtils");
-var Rectangle = require("awayjs-core/lib/geom/Rectangle");
-var ByteArray = require("awayjs-core/lib/utils/ByteArray");
-var ContextGLBlendFactor = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
-var ContextGLDrawMode = require("awayjs-stagegl/lib/base/ContextGLDrawMode");
-var ContextGLClearMask = require("awayjs-stagegl/lib/base/ContextGLClearMask");
-var ContextGLCompareMode = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
-var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-var ContextGLProgramType = require("awayjs-stagegl/lib/base/ContextGLProgramType");
-var ContextGLStencilAction = require("awayjs-stagegl/lib/base/ContextGLStencilAction");
-var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-var ContextGLTriangleFace = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
-var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
-var CubeTextureWebGL = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
-var IndexBufferWebGL = require("awayjs-stagegl/lib/base/IndexBufferWebGL");
-var ProgramWebGL = require("awayjs-stagegl/lib/base/ProgramWebGL");
-var TextureWebGL = require("awayjs-stagegl/lib/base/TextureWebGL");
-var SamplerState = require("awayjs-stagegl/lib/base/SamplerState");
-var VertexBufferWebGL = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
+},{"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","awayjs-stagegl/lib/base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","awayjs-stagegl/lib/base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","awayjs-stagegl/lib/base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash"}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
+"use strict";
+var Matrix3DUtils_1 = require("awayjs-core/lib/geom/Matrix3DUtils");
+var Rectangle_1 = require("awayjs-core/lib/geom/Rectangle");
+var ByteArray_1 = require("awayjs-core/lib/utils/ByteArray");
+var ContextGLBlendFactor_1 = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
+var ContextGLDrawMode_1 = require("awayjs-stagegl/lib/base/ContextGLDrawMode");
+var ContextGLClearMask_1 = require("awayjs-stagegl/lib/base/ContextGLClearMask");
+var ContextGLCompareMode_1 = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
+var ContextGLMipFilter_1 = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLProgramType_1 = require("awayjs-stagegl/lib/base/ContextGLProgramType");
+var ContextGLStencilAction_1 = require("awayjs-stagegl/lib/base/ContextGLStencilAction");
+var ContextGLTextureFilter_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLTriangleFace_1 = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
+var ContextGLVertexBufferFormat_1 = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
+var ContextGLWrapMode_1 = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+var CubeTextureWebGL_1 = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
+var IndexBufferWebGL_1 = require("awayjs-stagegl/lib/base/IndexBufferWebGL");
+var ProgramWebGL_1 = require("awayjs-stagegl/lib/base/ProgramWebGL");
+var TextureWebGL_1 = require("awayjs-stagegl/lib/base/TextureWebGL");
+var SamplerState_1 = require("awayjs-stagegl/lib/base/SamplerState");
+var VertexBufferWebGL_1 = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
 var ContextWebGL = (function () {
     function ContextWebGL(canvas) {
         this._blendFactorDictionary = new Object();
@@ -2340,35 +2422,35 @@ var ContextWebGL = (function () {
                 this._standardDerivatives = false;
             }
             //setup shortcut dictionaries
-            this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
-            this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_COLOR] = this._gl.DST_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
-            this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA] = this._gl.ONE_MINUS_DST_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR] = this._gl.ONE_MINUS_DST_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA] = this._gl.ONE_MINUS_SRC_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR] = this._gl.ONE_MINUS_SRC_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
-            this._drawModeDictionary[ContextGLDrawMode.LINES] = this._gl.LINES;
-            this._drawModeDictionary[ContextGLDrawMode.TRIANGLES] = this._gl.TRIANGLES;
-            this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
-            this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
-            this._compareModeDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
-            this._compareModeDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
-            this._compareModeDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
-            this._compareModeDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
-            this._compareModeDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
-            this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
-            this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = this._gl.DECR;
-            this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = this._gl.DECR_WRAP;
-            this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_SATURATE] = this._gl.INCR;
-            this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_WRAP] = this._gl.INCR_WRAP;
-            this._stencilActionDictionary[ContextGLStencilAction.INVERT] = this._gl.INVERT;
-            this._stencilActionDictionary[ContextGLStencilAction.KEEP] = this._gl.KEEP;
-            this._stencilActionDictionary[ContextGLStencilAction.SET] = this._gl.REPLACE;
-            this._stencilActionDictionary[ContextGLStencilAction.ZERO] = this._gl.ZERO;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE] = this._gl.ONE;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.DESTINATION_COLOR] = this._gl.DST_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE] = this._gl.ONE;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_ALPHA] = this._gl.ONE_MINUS_DST_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_COLOR] = this._gl.ONE_MINUS_DST_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_ALPHA] = this._gl.ONE_MINUS_SRC_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_COLOR] = this._gl.ONE_MINUS_SRC_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.SOURCE_COLOR] = this._gl.SRC_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ZERO] = this._gl.ZERO;
+            this._drawModeDictionary[ContextGLDrawMode_1.default.LINES] = this._gl.LINES;
+            this._drawModeDictionary[ContextGLDrawMode_1.default.TRIANGLES] = this._gl.TRIANGLES;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.ALWAYS] = this._gl.ALWAYS;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.EQUAL] = this._gl.EQUAL;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.GREATER] = this._gl.GREATER;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.GREATER_EQUAL] = this._gl.GEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.LESS] = this._gl.LESS;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.LESS_EQUAL] = this._gl.LEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.NEVER] = this._gl.NEVER;
+            this._compareModeDictionary[ContextGLCompareMode_1.default.NOT_EQUAL] = this._gl.NOTEQUAL;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.DECREMENT_SATURATE] = this._gl.DECR;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.DECREMENT_WRAP] = this._gl.DECR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.INCREMENT_SATURATE] = this._gl.INCR;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.INCREMENT_WRAP] = this._gl.INCR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.INVERT] = this._gl.INVERT;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.KEEP] = this._gl.KEEP;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.SET] = this._gl.REPLACE;
+            this._stencilActionDictionary[ContextGLStencilAction_1.default.ZERO] = this._gl.ZERO;
             this._textureIndexDictionary[0] = this._gl.TEXTURE0;
             this._textureIndexDictionary[1] = this._gl.TEXTURE1;
             this._textureIndexDictionary[2] = this._gl.TEXTURE2;
@@ -2379,38 +2461,38 @@ var ContextWebGL = (function () {
             this._textureIndexDictionary[7] = this._gl.TEXTURE7;
             this._textureTypeDictionary["texture2d"] = this._gl.TEXTURE_2D;
             this._textureTypeDictionary["textureCube"] = this._gl.TEXTURE_CUBE_MAP;
-            this._wrapDictionary[ContextGLWrapMode.REPEAT] = this._gl.REPEAT;
-            this._wrapDictionary[ContextGLWrapMode.CLAMP] = this._gl.CLAMP_TO_EDGE;
-            this._filterDictionary[ContextGLTextureFilter.LINEAR] = this._gl.LINEAR;
-            this._filterDictionary[ContextGLTextureFilter.NEAREST] = this._gl.NEAREST;
-            this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR] = new Object();
-            this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPNEAREST] = this._gl.LINEAR_MIPMAP_NEAREST;
-            this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPLINEAR] = this._gl.LINEAR_MIPMAP_LINEAR;
-            this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPNONE] = this._gl.LINEAR;
-            this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST] = new Object();
-            this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
-            this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
-            this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNONE] = this._gl.NEAREST;
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_1] = new VertexBufferProperties(1, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_2] = new VertexBufferProperties(2, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_3] = new VertexBufferProperties(3, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_4] = new VertexBufferProperties(4, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_1] = new VertexBufferProperties(1, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_2] = new VertexBufferProperties(2, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_3] = new VertexBufferProperties(3, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_4] = new VertexBufferProperties(4, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_SHORT, true);
+            this._wrapDictionary[ContextGLWrapMode_1.default.REPEAT] = this._gl.REPEAT;
+            this._wrapDictionary[ContextGLWrapMode_1.default.CLAMP] = this._gl.CLAMP_TO_EDGE;
+            this._filterDictionary[ContextGLTextureFilter_1.default.LINEAR] = this._gl.LINEAR;
+            this._filterDictionary[ContextGLTextureFilter_1.default.NEAREST] = this._gl.NEAREST;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR] = new Object();
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR][ContextGLMipFilter_1.default.MIPNEAREST] = this._gl.LINEAR_MIPMAP_NEAREST;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR][ContextGLMipFilter_1.default.MIPLINEAR] = this._gl.LINEAR_MIPMAP_LINEAR;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR][ContextGLMipFilter_1.default.MIPNONE] = this._gl.LINEAR;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST] = new Object();
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST][ContextGLMipFilter_1.default.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST][ContextGLMipFilter_1.default.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST][ContextGLMipFilter_1.default.MIPNONE] = this._gl.NEAREST;
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_1] = new VertexBufferProperties(1, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_2] = new VertexBufferProperties(2, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_3] = new VertexBufferProperties(3, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_4] = new VertexBufferProperties(4, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_1] = new VertexBufferProperties(1, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_2] = new VertexBufferProperties(2, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_3] = new VertexBufferProperties(3, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_4] = new VertexBufferProperties(4, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_SHORT, true);
             this._stencilCompareMode = this._gl.ALWAYS;
             this._stencilCompareModeBack = this._gl.ALWAYS;
             this._stencilCompareModeFront = this._gl.ALWAYS;
@@ -2419,8 +2501,9 @@ var ContextWebGL = (function () {
             //this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
             alert("WebGL is not available.");
         }
+        //defaults
         for (var i = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
-            this._samplerStates[i] = new SamplerState();
+            this._samplerStates[i] = new SamplerState_1.default();
             this._samplerStates[i].wrap = this._gl.REPEAT;
             this._samplerStates[i].filter = this._gl.LINEAR;
             this._samplerStates[i].mipfilter = this._gl.LINEAR;
@@ -2450,17 +2533,17 @@ var ContextWebGL = (function () {
         if (alpha === void 0) { alpha = 1; }
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask.ALL; }
+        if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
         if (!this._drawing) {
             this.updateBlendStatus();
             this._drawing = true;
         }
         var glmask = 0;
-        if (mask & ContextGLClearMask.COLOR)
+        if (mask & ContextGLClearMask_1.default.COLOR)
             glmask |= this._gl.COLOR_BUFFER_BIT;
-        if (mask & ContextGLClearMask.STENCIL)
+        if (mask & ContextGLClearMask_1.default.STENCIL)
             glmask |= this._gl.STENCIL_BUFFER_BIT;
-        if (mask & ContextGLClearMask.DEPTH)
+        if (mask & ContextGLClearMask_1.default.DEPTH)
             glmask |= this._gl.DEPTH_BUFFER_BIT;
         this._gl.clearColor(red, green, blue, alpha);
         this._gl.clearDepth(depth);
@@ -2481,21 +2564,21 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
-        return new CubeTextureWebGL(this._gl, size);
+        return new CubeTextureWebGL_1.default(this._gl, size);
     };
     ContextWebGL.prototype.createIndexBuffer = function (numIndices) {
-        return new IndexBufferWebGL(this._gl, numIndices);
+        return new IndexBufferWebGL_1.default(this._gl, numIndices);
     };
     ContextWebGL.prototype.createProgram = function () {
-        return new ProgramWebGL(this._gl);
+        return new ProgramWebGL_1.default(this._gl);
     };
     ContextWebGL.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO streaming
-        return new TextureWebGL(this._gl, width, height);
+        return new TextureWebGL_1.default(this._gl, width, height);
     };
     ContextWebGL.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
-        return new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
+        return new VertexBufferWebGL_1.default(this._gl, numVertices, dataPerVertex);
     };
     ContextWebGL.prototype.dispose = function () {
         for (var i = 0; i < this._samplerStates.length; ++i)
@@ -2504,9 +2587,9 @@ var ContextWebGL = (function () {
     ContextWebGL.prototype.drawToBitmapImage2D = function (destination) {
         var arrayBuffer = new ArrayBuffer(destination.width * destination.height * 4);
         this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, new Uint8Array(arrayBuffer));
-        var byteArray = new ByteArray();
+        var byteArray = new ByteArray_1.default();
         byteArray.setArrayBuffer(arrayBuffer);
-        destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), byteArray);
+        destination.setPixels(new Rectangle_1.default(0, 0, destination.width, destination.height), byteArray);
     };
     ContextWebGL.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
         if (firstIndex === void 0) { firstIndex = 0; }
@@ -2537,7 +2620,7 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.setCulling = function (triangleFaceToCull, coordinateSystem) {
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
-        if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
+        if (triangleFaceToCull == ContextGLTriangleFace_1.default.NONE) {
             this._gl.disable(this._gl.CULL_FACE);
         }
         else {
@@ -2601,7 +2684,7 @@ var ContextWebGL = (function () {
         //TODO remove special case for WebGL matrix calls?
         var d = matrix.rawData;
         if (transposedMatrix) {
-            var raw = Matrix3DUtils.RAW_DATA_CONTAINER;
+            var raw = Matrix3DUtils_1.default.RAW_DATA_CONTAINER;
             raw[0] = d[0];
             raw[1] = d[4];
             raw[2] = d[8];
@@ -2656,7 +2739,7 @@ var ContextWebGL = (function () {
         var textureType = this._textureTypeDictionary[texture.textureType];
         samplerState.type = textureType;
         this._gl.bindTexture(textureType, texture.glTexture);
-        this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
+        this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType_1.default.SAMPLER, sampler), sampler);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
@@ -2718,24 +2801,23 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.translateTriangleFace = function (triangleFace, coordinateSystem) {
         switch (triangleFace) {
-            case ContextGLTriangleFace.BACK:
+            case ContextGLTriangleFace_1.default.BACK:
                 return (coordinateSystem == "leftHanded") ? this._gl.FRONT : this._gl.BACK;
-                break;
-            case ContextGLTriangleFace.FRONT:
+            case ContextGLTriangleFace_1.default.FRONT:
                 return (coordinateSystem == "leftHanded") ? this._gl.BACK : this._gl.FRONT;
-                break;
-            case ContextGLTriangleFace.FRONT_AND_BACK:
+            case ContextGLTriangleFace_1.default.FRONT_AND_BACK:
                 return this._gl.FRONT_AND_BACK;
-                break;
             default:
-                throw "Unknown ContextGLTriangleFace type.";
+                throw "Unknown ContextGLTriangleFace type."; // TODO error
         }
     };
     ContextWebGL.MAX_SAMPLERS = 8;
     ContextWebGL._float4 = new Float32Array(4);
     ContextWebGL.modulo = 0;
     return ContextWebGL;
-})();
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ContextWebGL;
 var VertexBufferProperties = (function () {
     function VertexBufferProperties(size, type, normalized) {
         this.size = size;
@@ -2743,19 +2825,18 @@ var VertexBufferProperties = (function () {
         this.normalized = normalized;
     }
     return VertexBufferProperties;
-})();
-module.exports = ContextWebGL;
+}());
 
 },{"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined,"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","awayjs-stagegl/lib/base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","awayjs-stagegl/lib/base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","awayjs-stagegl/lib/base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","awayjs-stagegl/lib/base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","awayjs-stagegl/lib/base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var ByteArrayBase = require("awayjs-core/lib/utils/ByteArrayBase");
-var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
-var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+var ByteArrayBase_1 = require("awayjs-core/lib/utils/ByteArrayBase");
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+var ResourceBaseFlash_1 = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var CubeTextureFlash = (function (_super) {
     __extends(CubeTextureFlash, _super);
     function CubeTextureFlash(context, size, format, forRTT, streaming) {
@@ -2763,7 +2844,7 @@ var CubeTextureFlash = (function (_super) {
         _super.call(this);
         this._context = context;
         this._size = size;
-        this._context.addStream(String.fromCharCode(OpCodes.initCubeTexture, (forRTT ? OpCodes.trueValue : OpCodes.falseValue)) + size + "," + streaming + "," + format + "$");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.initCubeTexture, (forRTT ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue)) + size + "," + streaming + "," + format + "$");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
@@ -2775,7 +2856,7 @@ var CubeTextureFlash = (function (_super) {
         configurable: true
     });
     CubeTextureFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes.disposeCubeTexture) + this._pId.toString() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeCubeTexture) + this._pId.toString() + ",");
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
@@ -2793,27 +2874,28 @@ var CubeTextureFlash = (function (_super) {
             data = ctx.getImageData(0, 0, w, h).data;
         }
         var pos = 0;
-        var bytes = ByteArrayBase.internalGetBase64String(data.length, function () {
+        var bytes = ByteArrayBase_1.default.internalGetBase64String(data.length, function () {
             return data[pos++];
         }, null);
-        this._context.addStream(String.fromCharCode(OpCodes.uploadBytesCubeTexture) + this._pId + "," + miplevel + "," + side + "," + (this.size >> miplevel) + "," + bytes + "%");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadBytesCubeTexture) + this._pId + "," + miplevel + "," + side + "," + (this.size >> miplevel) + "," + bytes + "%");
         this._context.execute();
     };
     CubeTextureFlash.prototype.uploadCompressedTextureFromByteArray = function (data, byteArrayOffset /*uint*/, async) {
         if (async === void 0) { async = false; }
     };
     return CubeTextureFlash;
-})(ResourceBaseFlash);
-module.exports = CubeTextureFlash;
+}(ResourceBaseFlash_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = CubeTextureFlash;
 
 },{"awayjs-core/lib/utils/ByteArrayBase":undefined,"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/CubeTextureWebGL":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var TextureBaseWebGL = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
+var TextureBaseWebGL_1 = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
 var CubeTextureWebGL = (function (_super) {
     __extends(CubeTextureWebGL, _super);
     function CubeTextureWebGL(gl, size) {
@@ -2856,50 +2938,58 @@ var CubeTextureWebGL = (function (_super) {
         configurable: true
     });
     return CubeTextureWebGL;
-})(TextureBaseWebGL);
-module.exports = CubeTextureWebGL;
+}(TextureBaseWebGL_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = CubeTextureWebGL;
 
 },{"awayjs-stagegl/lib/base/TextureBaseWebGL":"awayjs-stagegl/lib/base/TextureBaseWebGL"}],"awayjs-stagegl/lib/base/IContextGL":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/ICubeTexture":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/IIndexBuffer":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/IProgram":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/ITextureBase":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/ITexture":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/IVertexBuffer":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/base/IndexBufferFlash":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
-var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+var ResourceBaseFlash_1 = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var IndexBufferFlash = (function (_super) {
     __extends(IndexBufferFlash, _super);
     function IndexBufferFlash(context, numIndices) {
         _super.call(this);
         this._context = context;
         this._numIndices = numIndices;
-        this._context.addStream(String.fromCharCode(OpCodes.initIndexBuffer, numIndices + OpCodes.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.initIndexBuffer, numIndices + OpCodes_1.default.intMask));
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     IndexBufferFlash.prototype.uploadFromArray = function (data, startOffset, count) {
-        this._context.addStream(String.fromCharCode(OpCodes.uploadArrayIndexBuffer, this._pId + OpCodes.intMask) + data.join() + "#" + startOffset + "," + count + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadArrayIndexBuffer, this._pId + OpCodes_1.default.intMask) + data.join() + "#" + startOffset + "," + count + ",");
         this._context.execute();
     };
     IndexBufferFlash.prototype.uploadFromByteArray = function (data, startOffset, count) {
     };
     IndexBufferFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes.disposeIndexBuffer, this._pId + OpCodes.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeIndexBuffer, this._pId + OpCodes_1.default.intMask));
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
@@ -2912,10 +3002,12 @@ var IndexBufferFlash = (function (_super) {
         configurable: true
     });
     return IndexBufferFlash;
-})(ResourceBaseFlash);
-module.exports = IndexBufferFlash;
+}(ResourceBaseFlash_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = IndexBufferFlash;
 
 },{"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/IndexBufferSoftware":[function(require,module,exports){
+"use strict";
 var IndexBufferSoftware = (function () {
     function IndexBufferSoftware(numIndices) {
         this._numIndices = numIndices;
@@ -2929,7 +3021,7 @@ var IndexBufferSoftware = (function () {
         this._data = new Uint16Array(data);
     };
     IndexBufferSoftware.prototype.dispose = function () {
-        this._data.length = 0;
+        this._data = null;
     };
     Object.defineProperty(IndexBufferSoftware.prototype, "numIndices", {
         get: function () {
@@ -2953,10 +3045,12 @@ var IndexBufferSoftware = (function () {
         configurable: true
     });
     return IndexBufferSoftware;
-})();
-module.exports = IndexBufferSoftware;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = IndexBufferSoftware;
 
 },{}],"awayjs-stagegl/lib/base/IndexBufferWebGL":[function(require,module,exports){
+"use strict";
 var IndexBufferWebGL = (function () {
     function IndexBufferWebGL(gl, numIndices) {
         this._gl = gl;
@@ -2995,10 +3089,12 @@ var IndexBufferWebGL = (function () {
         configurable: true
     });
     return IndexBufferWebGL;
-})();
-module.exports = IndexBufferWebGL;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = IndexBufferWebGL;
 
 },{}],"awayjs-stagegl/lib/base/OpCodes":[function(require,module,exports){
+"use strict";
 var OpCodes = (function () {
     function OpCodes() {
     }
@@ -3047,53 +3143,56 @@ var OpCodes = (function () {
     OpCodes.clearRenderToTexture = 80;
     OpCodes.enableErrorChecking = 81;
     return OpCodes;
-})();
-module.exports = OpCodes;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = OpCodes;
 
 },{}],"awayjs-stagegl/lib/base/ProgramFlash":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
-var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
-var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+var ContextStage3D_1 = require("awayjs-stagegl/lib/base/ContextStage3D");
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+var ResourceBaseFlash_1 = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var ProgramFlash = (function (_super) {
     __extends(ProgramFlash, _super);
     function ProgramFlash(context) {
         _super.call(this);
         this._context = context;
-        this._context.addStream(String.fromCharCode(OpCodes.initProgram));
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.initProgram));
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     ProgramFlash.prototype.upload = function (vertexProgram, fragmentProgram) {
-        this._context.addStream(String.fromCharCode(OpCodes.uploadAGALBytesProgram, this._pId + OpCodes.intMask) + vertexProgram.readBase64String(vertexProgram.length) + "%" + fragmentProgram.readBase64String(fragmentProgram.length) + "%");
-        if (ContextStage3D.debug)
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadAGALBytesProgram, this._pId + OpCodes_1.default.intMask) + vertexProgram.readBase64String(vertexProgram.length) + "%" + fragmentProgram.readBase64String(fragmentProgram.length) + "%");
+        if (ContextStage3D_1.default.debug)
             this._context.execute();
     };
     ProgramFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes.disposeProgram, this._pId + OpCodes.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeProgram, this._pId + OpCodes_1.default.intMask));
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
     };
     return ProgramFlash;
-})(ResourceBaseFlash);
-module.exports = ProgramFlash;
+}(ResourceBaseFlash_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ProgramFlash;
 
 },{"awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/ProgramSoftware":[function(require,module,exports){
-var AGALTokenizer = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
-var ProgramVOSoftware = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
-var Matrix3D = require("awayjs-core/lib/geom/Matrix3D");
-var Vector3D = require("awayjs-core/lib/geom/Vector3D");
-var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-var SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
-var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+"use strict";
+var AGALTokenizer_1 = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
+var ProgramVOSoftware_1 = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
+var Matrix3D_1 = require("awayjs-core/lib/geom/Matrix3D");
+var Vector3D_1 = require("awayjs-core/lib/geom/Vector3D");
+var ContextGLVertexBufferFormat_1 = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
+var SoftwareSamplerState_1 = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+var ContextGLTextureFilter_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLMipFilter_1 = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLWrapMode_1 = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 var ProgramSoftware = (function () {
     function ProgramSoftware() {
     }
@@ -3106,34 +3205,34 @@ var ProgramSoftware = (function () {
         this._fragmentDescr = null;
     };
     ProgramSoftware.prototype.vertex = function (contextSoftware, vertexIndex) {
-        var vo = new ProgramVOSoftware();
+        var vo = new ProgramVOSoftware_1.default();
         //parse attributes
         var i;
         for (i = 0; i < contextSoftware._vertexBuffers.length; i++) {
             var buffer = contextSoftware._vertexBuffers[i];
             if (!buffer)
                 continue;
-            var attribute = new Vector3D(0, 0, 0, 1);
+            var attribute = new Vector3D_1.default(0, 0, 0, 1);
             var index = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.UNSIGNED_BYTE_4) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4) {
                 attribute.x = buffer.uintData[index * 4];
                 attribute.y = buffer.uintData[index * 4 + 1];
                 attribute.z = buffer.uintData[index * 4 + 2];
                 attribute.w = buffer.uintData[index * 4 + 3];
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_1) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_1) {
                 attribute.x = buffer.data[index];
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_2) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_2) {
                 attribute.x = buffer.data[index];
                 attribute.y = buffer.data[index + 1];
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_3) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_3) {
                 attribute.x = buffer.data[index];
                 attribute.y = buffer.data[index + 1];
                 attribute.z = buffer.data[index + 2];
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat.FLOAT_4) {
+            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_4) {
                 attribute.x = buffer.data[index];
                 attribute.y = buffer.data[index + 1];
                 attribute.z = buffer.data[index + 2];
@@ -3149,7 +3248,7 @@ var ProgramSoftware = (function () {
         return vo;
     };
     ProgramSoftware.prototype.fragment = function (context, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth) {
-        var vo = new ProgramVOSoftware();
+        var vo = new ProgramVOSoftware_1.default();
         vo.outputDepth = fragDepth;
         for (var i = 0; i < vo0.varying.length; i++) {
             var varying0 = vo0.varying[i];
@@ -3157,12 +3256,12 @@ var ProgramSoftware = (function () {
             var varying2 = vo2.varying[i];
             if (!varying0 || !varying1 || !varying2)
                 continue;
-            var result = vo.varying[i] = new Vector3D(0, 0, 0, 1);
+            var result = vo.varying[i] = new Vector3D_1.default(0, 0, 0, 1);
             result.x = clip.x * varying0.x + clip.y * varying1.x + clip.z * varying2.x;
             result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
             result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
             result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
-            var derivativeX = vo.derivativeX[i] = new Vector3D();
+            var derivativeX = vo.derivativeX[i] = new Vector3D_1.default();
             derivativeX.x = clipRight.x * varying0.x + clipRight.y * varying1.x + clipRight.z * varying2.x;
             derivativeX.y = clipRight.x * varying0.y + clipRight.y * varying1.y + clipRight.z * varying2.y;
             derivativeX.z = clipRight.x * varying0.z + clipRight.y * varying1.z + clipRight.z * varying2.z;
@@ -3171,7 +3270,7 @@ var ProgramSoftware = (function () {
             derivativeX.y -= result.y;
             derivativeX.z -= result.z;
             derivativeX.w -= result.w;
-            var derivativeY = vo.derivativeY[i] = new Vector3D();
+            var derivativeY = vo.derivativeY[i] = new Vector3D_1.default();
             derivativeY.x = clipBottom.x * varying0.x + clipBottom.y * varying1.x + clipBottom.z * varying2.x;
             derivativeY.y = clipBottom.x * varying0.y + clipBottom.y * varying1.y + clipBottom.z * varying2.y;
             derivativeY.z = clipBottom.x * varying0.z + clipBottom.y * varying1.z + clipBottom.z * varying2.z;
@@ -3207,7 +3306,7 @@ var ProgramSoftware = (function () {
         var targetIndex = dest.regnum;
         var target = targetType[targetIndex];
         if (!target) {
-            target = targetType[targetIndex] = new Vector3D(0, 0, 0, 1);
+            target = targetType[targetIndex] = new Vector3D_1.default(0, 0, 0, 1);
         }
         return target;
     };
@@ -3235,7 +3334,7 @@ var ProgramSoftware = (function () {
     ProgramSoftware.getSourceTargetByIndex = function (targetType, targetIndex) {
         var target = targetType[targetIndex];
         if (!target) {
-            target = targetType[targetIndex] = new Vector3D(0, 0, 0, 1);
+            target = targetType[targetIndex] = new Vector3D_1.default(0, 0, 0, 1);
         }
         return target;
     };
@@ -3268,23 +3367,11 @@ var ProgramSoftware = (function () {
         var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
         var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
         var source2Target3 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 3);
-        var matrix = new Matrix3D(new Float32Array([
-            source2Target0.x,
-            source2Target1.x,
-            source2Target2.x,
-            source2Target3.x,
-            source2Target0.y,
-            source2Target1.y,
-            source2Target2.y,
-            source2Target3.y,
-            source2Target0.z,
-            source2Target1.z,
-            source2Target2.z,
-            source2Target3.z,
-            source2Target0.w,
-            source2Target1.w,
-            source2Target2.w,
-            source2Target3.w
+        var matrix = new Matrix3D_1.default(new Float32Array([
+            source2Target0.x, source2Target1.x, source2Target2.x, source2Target3.x,
+            source2Target0.y, source2Target1.y, source2Target2.y, source2Target3.y,
+            source2Target0.z, source2Target1.z, source2Target2.z, source2Target3.z,
+            source2Target0.w, source2Target1.w, source2Target2.w, source2Target3.w
         ]));
         var result = matrix.transformVector(source1Target);
         if (dest.mask & 1) {
@@ -3309,8 +3396,8 @@ var ProgramSoftware = (function () {
         if (!state) {
             state = this._defaultSamplerState;
         }
-        var repeat = state.wrap == ContextGLWrapMode.REPEAT;
-        var mipmap = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
+        var repeat = state.wrap == ContextGLWrapMode_1.default.REPEAT;
+        var mipmap = state.mipfilter == ContextGLMipFilter_1.default.MIPLINEAR;
         if (mipmap && texture.getMipLevelsCount() > 1) {
             dux = Math.abs(dux);
             dvx = Math.abs(dvx);
@@ -3336,7 +3423,7 @@ var ProgramSoftware = (function () {
                 var dataHigh = texture.getData(miplevelHigh);
                 var dataHighWidth = texture.width / Math.pow(2, miplevelHigh);
                 var dataHighHeight = texture.height / Math.pow(2, miplevelHigh);
-                if (state.filter == ContextGLTextureFilter.LINEAR) {
+                if (state.filter == ContextGLTextureFilter_1.default.LINEAR) {
                     resultLow = ProgramSoftware.sampleBilinear(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
                     resultHigh = ProgramSoftware.sampleBilinear(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
                 }
@@ -3349,7 +3436,7 @@ var ProgramSoftware = (function () {
         }
         var result;
         var data = texture.getData(0);
-        if (state.filter == ContextGLTextureFilter.LINEAR) {
+        if (state.filter == ContextGLTextureFilter_1.default.LINEAR) {
             result = ProgramSoftware.sampleBilinear(u, v, data, texture.width, texture.height, repeat);
         }
         else {
@@ -3848,23 +3935,11 @@ var ProgramSoftware = (function () {
         var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
         var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
         var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
-        var matrix = new Matrix3D(new Float32Array([
-            source2Target0.x,
-            source2Target1.x,
-            source2Target2.x,
-            0,
-            source2Target0.y,
-            source2Target1.y,
-            source2Target2.y,
-            0,
-            source2Target0.z,
-            source2Target1.z,
-            source2Target2.z,
-            0,
-            0,
-            0,
-            0,
-            0
+        var matrix = new Matrix3D_1.default(new Float32Array([
+            source2Target0.x, source2Target1.x, source2Target2.x, 0,
+            source2Target0.y, source2Target1.y, source2Target2.y, 0,
+            source2Target0.z, source2Target1.z, source2Target2.z, 0,
+            0, 0, 0, 0
         ]));
         var result = matrix.transformVector(source1Target);
         if (dest.mask & 1) {
@@ -3884,23 +3959,11 @@ var ProgramSoftware = (function () {
         var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
         var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
         var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
-        var matrix = new Matrix3D(new Float32Array([
-            source2Target0.x,
-            source2Target1.x,
-            source2Target2.x,
-            0,
-            source2Target0.y,
-            source2Target1.y,
-            source2Target2.y,
-            0,
-            source2Target0.z,
-            source2Target1.z,
-            source2Target2.z,
-            0,
-            source2Target0.w,
-            source2Target1.w,
-            source2Target2.w,
-            1
+        var matrix = new Matrix3D_1.default(new Float32Array([
+            source2Target0.x, source2Target1.x, source2Target2.x, 0,
+            source2Target0.y, source2Target1.y, source2Target2.y, 0,
+            source2Target0.z, source2Target1.z, source2Target2.z, 0,
+            source2Target0.w, source2Target1.w, source2Target2.w, 1
         ]));
         var result = matrix.transformVector(source1Target);
         if (dest.mask & 1) {
@@ -4107,8 +4170,8 @@ var ProgramSoftware = (function () {
             vo.discard = true;
         }
     };
-    ProgramSoftware._defaultSamplerState = new SoftwareSamplerState();
-    ProgramSoftware._tokenizer = new AGALTokenizer();
+    ProgramSoftware._defaultSamplerState = new SoftwareSamplerState_1.default();
+    ProgramSoftware._tokenizer = new AGALTokenizer_1.default();
     ProgramSoftware._opCodeFunc = [
         ProgramSoftware.mov,
         ProgramSoftware.add,
@@ -4158,10 +4221,12 @@ var ProgramSoftware = (function () {
         ProgramSoftware.sne
     ];
     return ProgramSoftware;
-})();
-module.exports = ProgramSoftware;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ProgramSoftware;
 
 },{"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-stagegl/lib/aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState"}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
+"use strict";
 var ProgramVOSoftware = (function () {
     function ProgramVOSoftware() {
         this.outputPosition = [];
@@ -4174,12 +4239,14 @@ var ProgramVOSoftware = (function () {
         this.discard = false;
     }
     return ProgramVOSoftware;
-})();
-module.exports = ProgramVOSoftware;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ProgramVOSoftware;
 
 },{}],"awayjs-stagegl/lib/base/ProgramWebGL":[function(require,module,exports){
-var AGALTokenizer = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
-var AGLSLParser = require("awayjs-stagegl/lib/aglsl/AGLSLParser");
+"use strict";
+var AGALTokenizer_1 = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
+var AGLSLParser_1 = require("awayjs-stagegl/lib/aglsl/AGLSLParser");
 var ProgramWebGL = (function () {
     function ProgramWebGL(gl) {
         this._uniforms = [[], [], []];
@@ -4194,22 +4261,17 @@ var ProgramWebGL = (function () {
         this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
         this._gl.shaderSource(this._vertexShader, vertexString);
         this._gl.compileShader(this._vertexShader);
-        if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS)) {
+        if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS))
             throw new Error(this._gl.getShaderInfoLog(this._vertexShader));
-            return;
-        }
         this._gl.shaderSource(this._fragmentShader, fragmentString);
         this._gl.compileShader(this._fragmentShader);
-        if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS)) {
+        if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS))
             throw new Error(this._gl.getShaderInfoLog(this._fragmentShader));
-            return;
-        }
         this._gl.attachShader(this._program, this._vertexShader);
         this._gl.attachShader(this._program, this._fragmentShader);
         this._gl.linkProgram(this._program);
-        if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
+        if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS))
             throw new Error(this._gl.getProgramInfoLog(this._program));
-        }
         this._uniforms[0].length = 0;
         this._uniforms[1].length = 0;
         this._uniforms[2].length = 0;
@@ -4238,14 +4300,16 @@ var ProgramWebGL = (function () {
         enumerable: true,
         configurable: true
     });
-    ProgramWebGL._tokenizer = new AGALTokenizer();
-    ProgramWebGL._aglslParser = new AGLSLParser();
+    ProgramWebGL._tokenizer = new AGALTokenizer_1.default();
+    ProgramWebGL._aglslParser = new AGLSLParser_1.default();
     ProgramWebGL._uniformLocationNameDictionary = ["fc", "fs", "vc"];
     return ProgramWebGL;
-})();
-module.exports = ProgramWebGL;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ProgramWebGL;
 
 },{"awayjs-stagegl/lib/aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","awayjs-stagegl/lib/aglsl/AGLSLParser":"awayjs-stagegl/lib/aglsl/AGLSLParser"}],"awayjs-stagegl/lib/base/ResourceBaseFlash":[function(require,module,exports){
+"use strict";
 var ResourceBaseFlash = (function () {
     function ResourceBaseFlash() {
     }
@@ -4259,55 +4323,60 @@ var ResourceBaseFlash = (function () {
     ResourceBaseFlash.prototype.dispose = function () {
     };
     return ResourceBaseFlash;
-})();
-module.exports = ResourceBaseFlash;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ResourceBaseFlash;
 
 },{}],"awayjs-stagegl/lib/base/SamplerState":[function(require,module,exports){
+"use strict";
 var SamplerState = (function () {
     function SamplerState() {
     }
     return SamplerState;
-})();
-module.exports = SamplerState;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = SamplerState;
 
 },{}],"awayjs-stagegl/lib/base/SoftwareSamplerState":[function(require,module,exports){
-var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+"use strict";
+var ContextGLTextureFilter_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLMipFilter_1 = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLWrapMode_1 = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
 /**
  * The same as SamplerState, but with strings
  * TODO: replace two similar classes with one
  */
 var SoftwareSamplerState = (function () {
     function SoftwareSamplerState() {
-        this.wrap = ContextGLWrapMode.REPEAT;
-        this.filter = ContextGLTextureFilter.LINEAR;
-        this.mipfilter = ContextGLMipFilter.MIPLINEAR;
+        this.wrap = ContextGLWrapMode_1.default.REPEAT;
+        this.filter = ContextGLTextureFilter_1.default.LINEAR;
+        this.mipfilter = ContextGLMipFilter_1.default.MIPLINEAR;
     }
     return SoftwareSamplerState;
-})();
-module.exports = SoftwareSamplerState;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = SoftwareSamplerState;
 
 },{"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode"}],"awayjs-stagegl/lib/base/Stage":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
-var Rectangle = require("awayjs-core/lib/geom/Rectangle");
-var CSS = require("awayjs-core/lib/utils/CSS");
-var ContextMode = require("awayjs-stagegl/lib/base/ContextMode");
-var ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-var ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-var ContextGLVertexBufferFormat = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-var ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
-var ContextStage3D = require("awayjs-stagegl/lib/base/ContextStage3D");
-var ContextWebGL = require("awayjs-stagegl/lib/base/ContextWebGL");
-var ContextSoftware = require("awayjs-stagegl/lib/base/ContextSoftware");
-var StageEvent = require("awayjs-stagegl/lib/events/StageEvent");
-var ProgramDataPool = require("awayjs-stagegl/lib/image/ProgramDataPool");
+var EventDispatcher_1 = require("awayjs-core/lib/events/EventDispatcher");
+var Rectangle_1 = require("awayjs-core/lib/geom/Rectangle");
+var CSS_1 = require("awayjs-core/lib/utils/CSS");
+var ContextMode_1 = require("awayjs-stagegl/lib/base/ContextMode");
+var ContextGLMipFilter_1 = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+var ContextGLTextureFilter_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+var ContextGLVertexBufferFormat_1 = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
+var ContextGLWrapMode_1 = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+var ContextWebGL_1 = require("awayjs-stagegl/lib/base/ContextWebGL");
+var ContextStage3D_1 = require("awayjs-stagegl/lib/base/ContextStage3D");
+var ContextSoftware_1 = require("awayjs-stagegl/lib/base/ContextSoftware");
+var StageEvent_1 = require("awayjs-stagegl/lib/events/StageEvent");
+var ProgramDataPool_1 = require("awayjs-stagegl/lib/image/ProgramDataPool");
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
  * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -4338,7 +4407,7 @@ var Stage = (function (_super) {
         //private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
         this._initialised = false;
         this._bufferFormatDictionary = new Array(5);
-        this._programDataPool = new ProgramDataPool(this);
+        this._programDataPool = new ProgramDataPool_1.default(this);
         this._container = container;
         if (this._container) {
             this._container.addEventListener("webglcontextlost", function (event) { return _this.onContextLost(event); });
@@ -4346,35 +4415,35 @@ var Stage = (function (_super) {
         }
         this._stageIndex = stageIndex;
         this._stageManager = stageManager;
-        this._viewPort = new Rectangle();
+        this._viewPort = new Rectangle_1.default();
         this._enableDepthAndStencil = true;
-        CSS.setElementX(this._container, 0);
-        CSS.setElementY(this._container, 0);
+        CSS_1.default.setElementX(this._container, 0);
+        CSS_1.default.setElementY(this._container, 0);
         this._bufferFormatDictionary[1] = new Array(5);
-        this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat.BYTE_1;
-        this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat.BYTE_2;
-        this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat.BYTE_3;
-        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTE_4;
+        this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat_1.default.BYTE_1;
+        this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat_1.default.BYTE_2;
+        this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat_1.default.BYTE_3;
+        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat_1.default.BYTE_4;
         this._bufferFormatDictionary[2] = new Array(5);
-        this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat.SHORT_1;
-        this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat.SHORT_2;
-        this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat.SHORT_3;
-        this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat.SHORT_4;
+        this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat_1.default.SHORT_1;
+        this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat_1.default.SHORT_2;
+        this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat_1.default.SHORT_3;
+        this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat_1.default.SHORT_4;
         this._bufferFormatDictionary[4] = new Array(5);
-        this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
-        this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
-        this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
-        this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
+        this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat_1.default.FLOAT_1;
+        this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat_1.default.FLOAT_2;
+        this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat_1.default.FLOAT_3;
+        this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat_1.default.FLOAT_4;
         this._bufferFormatDictionary[5] = new Array(5);
-        this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_1;
-        this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_2;
-        this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_3;
-        this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_4;
+        this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_1;
+        this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_2;
+        this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_3;
+        this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4;
         this._bufferFormatDictionary[6] = new Array(5);
-        this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_1;
-        this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_2;
-        this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_3;
-        this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
+        this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_1;
+        this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_2;
+        this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_3;
+        this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_4;
         this.visible = true;
     }
     Stage.prototype.getProgramData = function (vertexString, fragmentString) {
@@ -4429,22 +4498,22 @@ var Stage = (function (_super) {
             this._usesSoftwareRendering = forceSoftware;
         this._profile = profile;
         try {
-            if (mode == ContextMode.FLASH)
-                new ContextStage3D(this._container, function (context) { return _this._callback(context); });
-            else if (mode == ContextMode.SOFTWARE)
-                this._context = new ContextSoftware(this._container);
+            if (mode == ContextMode_1.default.FLASH)
+                new ContextStage3D_1.default(this._container, function (context) { return _this._callback(context); });
+            else if (mode == ContextMode_1.default.SOFTWARE)
+                this._context = new ContextSoftware_1.default(this._container);
             else
-                this._context = new ContextWebGL(this._container);
+                this._context = new ContextWebGL_1.default(this._container);
         }
         catch (e) {
             try {
-                if (mode == ContextMode.AUTO)
-                    new ContextStage3D(this._container, function (context) { return _this._callback(context); });
+                if (mode == ContextMode_1.default.AUTO)
+                    new ContextStage3D_1.default(this._container, function (context) { return _this._callback(context); });
                 else
-                    this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
+                    this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.STAGE_ERROR, this));
             }
             catch (e) {
-                this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
+                this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.STAGE_ERROR, this));
             }
         }
         if (this._context)
@@ -4460,7 +4529,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._width == val)
                 return;
-            CSS.setElementWidth(this._container, val);
+            CSS_1.default.setElementWidth(this._container, val);
             this._width = this._viewPort.width = val;
             this._backBufferDirty = true;
             this.notifyViewportUpdated();
@@ -4478,7 +4547,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._height == val)
                 return;
-            CSS.setElementHeight(this._container, val);
+            CSS_1.default.setElementHeight(this._container, val);
             this._height = this._viewPort.height = val;
             this._backBufferDirty = true;
             this.notifyViewportUpdated();
@@ -4496,7 +4565,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._x == val)
                 return;
-            CSS.setElementX(this._container, val);
+            CSS_1.default.setElementX(this._container, val);
             this._x = this._viewPort.x = val;
             this.notifyViewportUpdated();
         },
@@ -4513,7 +4582,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._y == val)
                 return;
-            CSS.setElementY(this._container, val);
+            CSS_1.default.setElementY(this._container, val);
             this._y = this._viewPort.y = val;
             this.notifyViewportUpdated();
         },
@@ -4522,10 +4591,10 @@ var Stage = (function (_super) {
     });
     Object.defineProperty(Stage.prototype, "visible", {
         get: function () {
-            return CSS.getElementVisibility(this._container);
+            return CSS_1.default.getElementVisibility(this._container);
         },
         set: function (val) {
-            CSS.setElementVisibility(this._container, val);
+            CSS_1.default.setElementVisibility(this._container, val);
         },
         enumerable: true,
         configurable: true
@@ -4551,7 +4620,7 @@ var Stage = (function (_super) {
         if (this._viewportDirty)
             return;
         this._viewportDirty = true;
-        this.dispatchEvent(new StageEvent(StageEvent.VIEWPORT_UPDATED, this));
+        this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.VIEWPORT_UPDATED, this));
     };
     Object.defineProperty(Stage.prototype, "profile", {
         get: function () {
@@ -4625,7 +4694,10 @@ var Stage = (function (_super) {
             this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
             this._backBufferDirty = false;
         }
-        this._context.clear((this._color & 0xff000000) >>> 24, (this._color & 0xff0000) >>> 16, (this._color & 0xff00) >>> 8, this._color & 0xff);
+        this._context.clear((this._color & 0xff000000) >>> 24, // <--------- Zero-fill right shift
+        (this._color & 0xff0000) >>> 16, // <-------------|
+        (this._color & 0xff00) >>> 8, // <----------------|
+        this._color & 0xff);
         this._bufferClear = true;
     };
     Object.defineProperty(Stage.prototype, "scissorRect", {
@@ -4729,7 +4801,7 @@ var Stage = (function (_super) {
     Stage.prototype.freeContext = function () {
         if (this._context) {
             this._context.dispose();
-            this.dispatchEvent(new StageEvent(StageEvent.CONTEXT_DISPOSED, this));
+            this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.CONTEXT_DISPOSED, this));
         }
         this._context = null;
         this._initialised = false;
@@ -4763,7 +4835,7 @@ var Stage = (function (_super) {
             this._context.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
         // Dispatch the appropriate event depending on whether context was
         // created for the first time or recreated after a device loss.
-        this.dispatchEvent(new StageEvent(this._initialised ? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED, this));
+        this.dispatchEvent(new StageEvent_1.default(this._initialised ? StageEvent_1.default.CONTEXT_RECREATED : StageEvent_1.default.CONTEXT_CREATED, this));
         this._initialised = true;
     };
     Stage.prototype.setVertexBuffer = function (index, buffer, size, dimensions, offset, unsigned) {
@@ -4771,18 +4843,20 @@ var Stage = (function (_super) {
         this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned ? size + 4 : size][dimensions]);
     };
     Stage.prototype.setSamplerState = function (index, repeat, smooth, mipmap) {
-        var wrap = repeat ? ContextGLWrapMode.REPEAT : ContextGLWrapMode.CLAMP;
-        var filter = smooth ? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
-        var mipfilter = mipmap ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+        var wrap = repeat ? ContextGLWrapMode_1.default.REPEAT : ContextGLWrapMode_1.default.CLAMP;
+        var filter = smooth ? ContextGLTextureFilter_1.default.LINEAR : ContextGLTextureFilter_1.default.NEAREST;
+        var mipfilter = mipmap ? ContextGLMipFilter_1.default.MIPLINEAR : ContextGLMipFilter_1.default.MIPNONE;
         this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
     };
     Stage._abstractionClassPool = new Object();
     return Stage;
-})(EventDispatcher);
-module.exports = Stage;
+}(EventDispatcher_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Stage;
 
 },{"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined,"awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","awayjs-stagegl/lib/base/ContextSoftware":"awayjs-stagegl/lib/base/ContextSoftware","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","awayjs-stagegl/lib/image/ProgramDataPool":"awayjs-stagegl/lib/image/ProgramDataPool"}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
-var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
+"use strict";
+var AbstractMethodError_1 = require("awayjs-core/lib/errors/AbstractMethodError");
 var TextureBaseWebGL = (function () {
     function TextureBaseWebGL(gl) {
         this.textureType = "";
@@ -4793,25 +4867,26 @@ var TextureBaseWebGL = (function () {
     };
     Object.defineProperty(TextureBaseWebGL.prototype, "glTexture", {
         get: function () {
-            throw new AbstractMethodError();
+            throw new AbstractMethodError_1.default();
         },
         enumerable: true,
         configurable: true
     });
     return TextureBaseWebGL;
-})();
-module.exports = TextureBaseWebGL;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TextureBaseWebGL;
 
 },{"awayjs-core/lib/errors/AbstractMethodError":undefined}],"awayjs-stagegl/lib/base/TextureFlash":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var ByteArrayBase = require("awayjs-core/lib/utils/ByteArrayBase");
-var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
-var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+var ByteArrayBase_1 = require("awayjs-core/lib/utils/ByteArrayBase");
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+var ResourceBaseFlash_1 = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var TextureFlash = (function (_super) {
     __extends(TextureFlash, _super);
     function TextureFlash(context, width, height, format, forRTT, streaming) {
@@ -4820,7 +4895,7 @@ var TextureFlash = (function (_super) {
         this._context = context;
         this._width = width;
         this._height = height;
-        this._context.addStream(String.fromCharCode(OpCodes.initTexture, (forRTT ? OpCodes.trueValue : OpCodes.falseValue)) + width + "," + height + "," + streaming + "," + format + "$");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.initTexture, (forRTT ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue)) + width + "," + height + "," + streaming + "," + format + "$");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
@@ -4839,7 +4914,7 @@ var TextureFlash = (function (_super) {
         configurable: true
     });
     TextureFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes.disposeTexture) + this._pId.toString() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeTexture) + this._pId.toString() + ",");
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
@@ -4857,17 +4932,19 @@ var TextureFlash = (function (_super) {
             data = ctx.getImageData(0, 0, w, h).data;
         }
         var pos = 0;
-        var bytes = ByteArrayBase.internalGetBase64String(data.length, function () {
+        var bytes = ByteArrayBase_1.default.internalGetBase64String(data.length, function () {
             return data[pos++];
         }, null);
-        this._context.addStream(String.fromCharCode(OpCodes.uploadBytesTexture) + this._pId + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," + bytes + "%");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadBytesTexture) + this._pId + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," + bytes + "%");
         this._context.execute();
     };
     return TextureFlash;
-})(ResourceBaseFlash);
-module.exports = TextureFlash;
+}(ResourceBaseFlash_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TextureFlash;
 
 },{"awayjs-core/lib/utils/ByteArrayBase":undefined,"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/TextureSoftware":[function(require,module,exports){
+"use strict";
 var TextureSoftware = (function () {
     function TextureSoftware(width, height) {
         this.textureType = "texture2d";
@@ -4904,17 +4981,18 @@ var TextureSoftware = (function () {
         return this._mipLevels.length;
     };
     return TextureSoftware;
-})();
-module.exports = TextureSoftware;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TextureSoftware;
 
 },{}],"awayjs-stagegl/lib/base/TextureWebGL":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var TextureBaseWebGL = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
+var TextureBaseWebGL_1 = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
 var TextureWebGL = (function (_super) {
     __extends(TextureWebGL, _super);
     function TextureWebGL(gl, width, height) {
@@ -4987,18 +5065,19 @@ var TextureWebGL = (function (_super) {
         //this._gl.bindTexture( this._gl.TEXTURE_2D, null );
     };
     return TextureWebGL;
-})(TextureBaseWebGL);
-module.exports = TextureWebGL;
+}(TextureBaseWebGL_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = TextureWebGL;
 
 },{"awayjs-stagegl/lib/base/TextureBaseWebGL":"awayjs-stagegl/lib/base/TextureBaseWebGL"}],"awayjs-stagegl/lib/base/VertexBufferFlash":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var OpCodes = require("awayjs-stagegl/lib/base/OpCodes");
-var ResourceBaseFlash = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+var ResourceBaseFlash_1 = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
 var VertexBufferFlash = (function (_super) {
     __extends(VertexBufferFlash, _super);
     function VertexBufferFlash(context, numVertices, dataPerVertex) {
@@ -5006,12 +5085,12 @@ var VertexBufferFlash = (function (_super) {
         this._context = context;
         this._numVertices = numVertices;
         this._dataPerVertex = dataPerVertex;
-        this._context.addStream(String.fromCharCode(OpCodes.initVertexBuffer, dataPerVertex + OpCodes.intMask) + numVertices.toString() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.initVertexBuffer, dataPerVertex + OpCodes_1.default.intMask) + numVertices.toString() + ",");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     VertexBufferFlash.prototype.uploadFromArray = function (data, startVertex, numVertices) {
-        this._context.addStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer, this._pId + OpCodes.intMask) + data.join() + "#" + [startVertex, numVertices].join() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadArrayVertexBuffer, this._pId + OpCodes_1.default.intMask) + data.join() + "#" + [startVertex, numVertices].join() + ",");
         this._context.execute();
     };
     VertexBufferFlash.prototype.uploadFromByteArray = function (data, startVertex, numVertices) {
@@ -5031,16 +5110,18 @@ var VertexBufferFlash = (function (_super) {
         configurable: true
     });
     VertexBufferFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes.disposeVertexBuffer, this._pId + OpCodes.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeVertexBuffer, this._pId + OpCodes_1.default.intMask));
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
     };
     return VertexBufferFlash;
-})(ResourceBaseFlash);
-module.exports = VertexBufferFlash;
+}(ResourceBaseFlash_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = VertexBufferFlash;
 
 },{"awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/VertexBufferSoftware":[function(require,module,exports){
+"use strict";
 var VertexBufferSoftware = (function () {
     //private _dataOffset:number;
     function VertexBufferSoftware(numVertices, dataPerVertex) {
@@ -5080,7 +5161,7 @@ var VertexBufferSoftware = (function () {
         configurable: true
     });
     VertexBufferSoftware.prototype.dispose = function () {
-        this._floatData.length = 0;
+        this._floatData = null;
     };
     Object.defineProperty(VertexBufferSoftware.prototype, "data", {
         get: function () {
@@ -5097,10 +5178,12 @@ var VertexBufferSoftware = (function () {
         configurable: true
     });
     return VertexBufferSoftware;
-})();
-module.exports = VertexBufferSoftware;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = VertexBufferSoftware;
 
 },{}],"awayjs-stagegl/lib/base/VertexBufferWebGL":[function(require,module,exports){
+"use strict";
 var VertexBufferWebGL = (function () {
     function VertexBufferWebGL(gl, numVertices, dataPerVertex) {
         this._gl = gl;
@@ -5147,17 +5230,97 @@ var VertexBufferWebGL = (function () {
         this._gl.deleteBuffer(this._buffer);
     };
     return VertexBufferWebGL;
-})();
-module.exports = VertexBufferWebGL;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = VertexBufferWebGL;
 
-},{}],"awayjs-stagegl/lib/events/StageEvent":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+},{}],"awayjs-stagegl/lib/base":[function(require,module,exports){
+"use strict";
+var ContextGLBlendFactor_1 = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
+exports.ContextGLBlendFactor = ContextGLBlendFactor_1.default;
+var ContextGLClearMask_1 = require("awayjs-stagegl/lib/base/ContextGLClearMask");
+exports.ContextGLClearMask = ContextGLClearMask_1.default;
+var ContextGLCompareMode_1 = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
+exports.ContextGLCompareMode = ContextGLCompareMode_1.default;
+var ContextGLDrawMode_1 = require("awayjs-stagegl/lib/base/ContextGLDrawMode");
+exports.ContextGLDrawMode = ContextGLDrawMode_1.default;
+var ContextGLMipFilter_1 = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
+exports.ContextGLMipFilter = ContextGLMipFilter_1.default;
+var ContextGLProfile_1 = require("awayjs-stagegl/lib/base/ContextGLProfile");
+exports.ContextGLProfile = ContextGLProfile_1.default;
+var ContextGLProgramType_1 = require("awayjs-stagegl/lib/base/ContextGLProgramType");
+exports.ContextGLProgramType = ContextGLProgramType_1.default;
+var ContextGLStencilAction_1 = require("awayjs-stagegl/lib/base/ContextGLStencilAction");
+exports.ContextGLStencilAction = ContextGLStencilAction_1.default;
+var ContextGLTextureFilter_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
+exports.ContextGLTextureFilter = ContextGLTextureFilter_1.default;
+var ContextGLTextureFormat_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+exports.ContextGLTextureFormat = ContextGLTextureFormat_1.default;
+var ContextGLTriangleFace_1 = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
+exports.ContextGLTriangleFace = ContextGLTriangleFace_1.default;
+var ContextGLVertexBufferFormat_1 = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
+exports.ContextGLVertexBufferFormat = ContextGLVertexBufferFormat_1.default;
+var ContextGLWrapMode_1 = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+exports.ContextGLWrapMode = ContextGLWrapMode_1.default;
+var ContextMode_1 = require("awayjs-stagegl/lib/base/ContextMode");
+exports.ContextMode = ContextMode_1.default;
+var ContextSoftware_1 = require("awayjs-stagegl/lib/base/ContextSoftware");
+exports.ContextSoftware = ContextSoftware_1.default;
+var ContextStage3D_1 = require("awayjs-stagegl/lib/base/ContextStage3D");
+exports.ContextStage3D = ContextStage3D_1.default;
+var ContextWebGL_1 = require("awayjs-stagegl/lib/base/ContextWebGL");
+exports.ContextWebGL = ContextWebGL_1.default;
+var CubeTextureFlash_1 = require("awayjs-stagegl/lib/base/CubeTextureFlash");
+exports.CubeTextureFlash = CubeTextureFlash_1.default;
+var CubeTextureWebGL_1 = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
+exports.CubeTextureWebGL = CubeTextureWebGL_1.default;
+var IndexBufferFlash_1 = require("awayjs-stagegl/lib/base/IndexBufferFlash");
+exports.IndexBufferFlash = IndexBufferFlash_1.default;
+var IndexBufferSoftware_1 = require("awayjs-stagegl/lib/base/IndexBufferSoftware");
+exports.IndexBufferSoftware = IndexBufferSoftware_1.default;
+var IndexBufferWebGL_1 = require("awayjs-stagegl/lib/base/IndexBufferWebGL");
+exports.IndexBufferWebGL = IndexBufferWebGL_1.default;
+var OpCodes_1 = require("awayjs-stagegl/lib/base/OpCodes");
+exports.OpCodes = OpCodes_1.default;
+var ProgramFlash_1 = require("awayjs-stagegl/lib/base/ProgramFlash");
+exports.ProgramFlash = ProgramFlash_1.default;
+var ProgramSoftware_1 = require("awayjs-stagegl/lib/base/ProgramSoftware");
+exports.ProgramSoftware = ProgramSoftware_1.default;
+var ProgramVOSoftware_1 = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
+exports.ProgramVOSoftware = ProgramVOSoftware_1.default;
+var ProgramWebGL_1 = require("awayjs-stagegl/lib/base/ProgramWebGL");
+exports.ProgramWebGL = ProgramWebGL_1.default;
+var ResourceBaseFlash_1 = require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+exports.ResourceBaseFlash = ResourceBaseFlash_1.default;
+var SamplerState_1 = require("awayjs-stagegl/lib/base/SamplerState");
+exports.SamplerState = SamplerState_1.default;
+var SoftwareSamplerState_1 = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+exports.SoftwareSamplerState = SoftwareSamplerState_1.default;
+var Stage_1 = require("awayjs-stagegl/lib/base/Stage");
+exports.Stage = Stage_1.default;
+var TextureBaseWebGL_1 = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
+exports.TextureBaseWebGL = TextureBaseWebGL_1.default;
+var TextureFlash_1 = require("awayjs-stagegl/lib/base/TextureFlash");
+exports.TextureFlash = TextureFlash_1.default;
+var TextureSoftware_1 = require("awayjs-stagegl/lib/base/TextureSoftware");
+exports.TextureSoftware = TextureSoftware_1.default;
+var TextureWebGL_1 = require("awayjs-stagegl/lib/base/TextureWebGL");
+exports.TextureWebGL = TextureWebGL_1.default;
+var VertexBufferFlash_1 = require("awayjs-stagegl/lib/base/VertexBufferFlash");
+exports.VertexBufferFlash = VertexBufferFlash_1.default;
+var VertexBufferSoftware_1 = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
+exports.VertexBufferSoftware = VertexBufferSoftware_1.default;
+var VertexBufferWebGL_1 = require("awayjs-stagegl/lib/base/VertexBufferWebGL");
+exports.VertexBufferWebGL = VertexBufferWebGL_1.default;
+
+},{"awayjs-stagegl/lib/base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","awayjs-stagegl/lib/base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","awayjs-stagegl/lib/base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","awayjs-stagegl/lib/base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","awayjs-stagegl/lib/base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","awayjs-stagegl/lib/base/ContextGLProfile":"awayjs-stagegl/lib/base/ContextGLProfile","awayjs-stagegl/lib/base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","awayjs-stagegl/lib/base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","awayjs-stagegl/lib/base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","awayjs-stagegl/lib/base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","awayjs-stagegl/lib/base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","awayjs-stagegl/lib/base/ContextSoftware":"awayjs-stagegl/lib/base/ContextSoftware","awayjs-stagegl/lib/base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","awayjs-stagegl/lib/base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","awayjs-stagegl/lib/base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","awayjs-stagegl/lib/base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","awayjs-stagegl/lib/base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","awayjs-stagegl/lib/base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","awayjs-stagegl/lib/base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","awayjs-stagegl/lib/base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","awayjs-stagegl/lib/base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","awayjs-stagegl/lib/base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","awayjs-stagegl/lib/base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","awayjs-stagegl/lib/base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","awayjs-stagegl/lib/base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash","awayjs-stagegl/lib/base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","awayjs-stagegl/lib/base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/base/TextureBaseWebGL":"awayjs-stagegl/lib/base/TextureBaseWebGL","awayjs-stagegl/lib/base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","awayjs-stagegl/lib/base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","awayjs-stagegl/lib/base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","awayjs-stagegl/lib/base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash","awayjs-stagegl/lib/base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware","awayjs-stagegl/lib/base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/events/StageEvent":[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var EventBase = require("awayjs-core/lib/events/EventBase");
+var EventBase_1 = require("awayjs-core/lib/events/EventBase");
 var StageEvent = (function (_super) {
     __extends(StageEvent, _super);
     function StageEvent(type, stage) {
@@ -5201,18 +5364,24 @@ var StageEvent = (function (_super) {
      */
     StageEvent.VIEWPORT_UPDATED = "viewportUpdated";
     return StageEvent;
-})(EventBase);
-module.exports = StageEvent;
+}(EventBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = StageEvent;
 
-},{"awayjs-core/lib/events/EventBase":undefined}],"awayjs-stagegl/lib/image/GL_BitmapImage2D":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+},{"awayjs-core/lib/events/EventBase":undefined}],"awayjs-stagegl/lib/events":[function(require,module,exports){
+"use strict";
+var StageEvent_1 = require("awayjs-stagegl/lib/events/StageEvent");
+exports.StageEvent = StageEvent_1.default;
+
+},{"awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent"}],"awayjs-stagegl/lib/image/GL_BitmapImage2D":[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
-var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+var MipmapGenerator_1 = require("awayjs-core/lib/utils/MipmapGenerator");
+var GL_Image2D_1 = require("awayjs-stagegl/lib/image/GL_Image2D");
 /**
  *
  * @class away.pool.ImageObjectBase
@@ -5235,7 +5404,7 @@ var GL_BitmapImage2D = (function (_super) {
             this._invalid = false;
             if (mipmap) {
                 var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
+                MipmapGenerator_1.default._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
                 var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
                     this._texture.uploadFromData(mipmapData[i].getImageData(), i);
@@ -5254,22 +5423,23 @@ var GL_BitmapImage2D = (function (_super) {
         if (this._mipmapData) {
             var len = this._mipmapData.length;
             for (var i = 0; i < len; i++)
-                MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
+                MipmapGenerator_1.default._freeMipMapHolder(this._mipmapData[i]);
         }
     };
     return GL_BitmapImage2D;
-})(GL_Image2D);
-module.exports = GL_BitmapImage2D;
+}(GL_Image2D_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_BitmapImage2D;
 
 },{"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/GL_BitmapImageCube":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var MipmapGenerator = require("awayjs-core/lib/utils/MipmapGenerator");
-var GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
+var MipmapGenerator_1 = require("awayjs-core/lib/utils/MipmapGenerator");
+var GL_ImageCube_1 = require("awayjs-stagegl/lib/image/GL_ImageCube");
 /**
  *
  * @class away.pool.ImageObjectBase
@@ -5294,7 +5464,7 @@ var GL_BitmapImageCube = (function (_super) {
             for (var i = 0; i < 6; ++i) {
                 if (mipmap) {
                     var mipmapData = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array());
-                    MipmapGenerator._generateMipMaps(this._asset.getCanvas(i), mipmapData, true);
+                    MipmapGenerator_1.default._generateMipMaps(this._asset.getCanvas(i), mipmapData, true);
                     var len = mipmapData.length;
                     for (var j = 0; j < len; j++)
                         this._texture.uploadFromData(mipmapData[j].getImageData(), i, j);
@@ -5316,23 +5486,24 @@ var GL_BitmapImageCube = (function (_super) {
             if (mipmapData) {
                 var len = mipmapData.length;
                 for (var j = 0; j < len; i++)
-                    MipmapGenerator._freeMipMapHolder(mipmapData[j]);
+                    MipmapGenerator_1.default._freeMipMapHolder(mipmapData[j]);
             }
         }
     };
     return GL_BitmapImageCube;
-})(GL_ImageCube);
-module.exports = GL_BitmapImageCube;
+}(GL_ImageCube_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_BitmapImageCube;
 
 },{"awayjs-core/lib/utils/MipmapGenerator":undefined,"awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_Image2D":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-var GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
+var ContextGLTextureFormat_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+var GL_ImageBase_1 = require("awayjs-stagegl/lib/image/GL_ImageBase");
 /**
  *
  * @class away.pool.GL_ImageBase
@@ -5348,21 +5519,22 @@ var GL_Image2D = (function (_super) {
      * @returns {ITexture}
      */
     GL_Image2D.prototype._createTexture = function () {
-        this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat.BGRA, true);
+        this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat_1.default.BGRA, true);
     };
     return GL_Image2D;
-})(GL_ImageBase);
-module.exports = GL_Image2D;
+}(GL_ImageBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_Image2D;
 
 },{"awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase"}],"awayjs-stagegl/lib/image/GL_ImageBase":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
-var AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+var AbstractMethodError_1 = require("awayjs-core/lib/errors/AbstractMethodError");
+var AbstractionBase_1 = require("awayjs-core/lib/library/AbstractionBase");
 /**
  *
  * @class away.pool.GL_ImageBase
@@ -5399,21 +5571,22 @@ var GL_ImageBase = (function (_super) {
         this._stage.context.setTextureAt(index, this._texture);
     };
     GL_ImageBase.prototype._createTexture = function () {
-        throw new AbstractMethodError();
+        throw new AbstractMethodError_1.default();
     };
     return GL_ImageBase;
-})(AbstractionBase);
-module.exports = GL_ImageBase;
+}(AbstractionBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_ImageBase;
 
 },{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/image/GL_ImageCube":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var ContextGLTextureFormat = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-var GL_ImageBase = require("awayjs-stagegl/lib/image/GL_ImageBase");
+var ContextGLTextureFormat_1 = require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
+var GL_ImageBase_1 = require("awayjs-stagegl/lib/image/GL_ImageBase");
 /**
  *
  * @class away.pool.GL_ImageCubeBase
@@ -5429,20 +5602,21 @@ var GL_ImageCube = (function (_super) {
      * @returns {ITexture}
      */
     GL_ImageCube.prototype._createTexture = function () {
-        this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat.BGRA, false);
+        this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat_1.default.BGRA, false);
     };
     return GL_ImageCube;
-})(GL_ImageBase);
-module.exports = GL_ImageCube;
+}(GL_ImageBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_ImageCube;
 
 },{"awayjs-stagegl/lib/base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","awayjs-stagegl/lib/image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase"}],"awayjs-stagegl/lib/image/GL_RenderImage2D":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var GL_Image2D = require("awayjs-stagegl/lib/image/GL_Image2D");
+var GL_Image2D_1 = require("awayjs-stagegl/lib/image/GL_Image2D");
 /**
  *
  * @class away.pool.ImageObjectBase
@@ -5457,17 +5631,18 @@ var GL_RenderImage2D = (function (_super) {
         //TODO: allow automatic mipmap generation
     };
     return GL_RenderImage2D;
-})(GL_Image2D);
-module.exports = GL_RenderImage2D;
+}(GL_Image2D_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_RenderImage2D;
 
 },{"awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/GL_RenderImageCube":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var GL_ImageCube = require("awayjs-stagegl/lib/image/GL_ImageCube");
+var GL_ImageCube_1 = require("awayjs-stagegl/lib/image/GL_ImageCube");
 /**
  *
  * @class away.pool.ImageObjectBase
@@ -5482,17 +5657,18 @@ var GL_RenderImageCube = (function (_super) {
         //TODO: allow automatic mipmap generation
     };
     return GL_RenderImageCube;
-})(GL_ImageCube);
-module.exports = GL_RenderImageCube;
+}(GL_ImageCube_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_RenderImageCube;
 
 },{"awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_Sampler2D":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var GL_SamplerBase = require("awayjs-stagegl/lib/image/GL_SamplerBase");
+var GL_SamplerBase_1 = require("awayjs-stagegl/lib/image/GL_SamplerBase");
 /**
  *
  * @class away.pool.GL_SamplerBase
@@ -5507,18 +5683,19 @@ var GL_Sampler2D = (function (_super) {
         this._stage.setSamplerState(index, this._sampler.repeat, this._sampler.smooth, this._sampler.mipmap);
     };
     return GL_Sampler2D;
-})(GL_SamplerBase);
-module.exports = GL_Sampler2D;
+}(GL_SamplerBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_Sampler2D;
 
 },{"awayjs-stagegl/lib/image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase"}],"awayjs-stagegl/lib/image/GL_SamplerBase":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var AbstractMethodError = require("awayjs-core/lib/errors/AbstractMethodError");
-var AbstractionBase = require("awayjs-core/lib/library/AbstractionBase");
+var AbstractMethodError_1 = require("awayjs-core/lib/errors/AbstractMethodError");
+var AbstractionBase_1 = require("awayjs-core/lib/library/AbstractionBase");
 /**
  *
  * @class away.pool.GL_SamplerBase
@@ -5530,20 +5707,21 @@ var GL_SamplerBase = (function (_super) {
         this._stage = stage;
     }
     GL_SamplerBase.prototype.activate = function (index) {
-        throw new AbstractMethodError();
+        throw new AbstractMethodError_1.default();
     };
     return GL_SamplerBase;
-})(AbstractionBase);
-module.exports = GL_SamplerBase;
+}(AbstractionBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_SamplerBase;
 
 },{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/image/GL_SamplerCube":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var GL_SamplerBase = require("awayjs-stagegl/lib/image/GL_SamplerBase");
+var GL_SamplerBase_1 = require("awayjs-stagegl/lib/image/GL_SamplerBase");
 /**
  *
  * @class away.pool.GL_SamplerBase
@@ -5558,11 +5736,13 @@ var GL_SamplerCube = (function (_super) {
         this._stage.setSamplerState(index, false, this._sampler.smooth, this._sampler.mipmap);
     };
     return GL_SamplerCube;
-})(GL_SamplerBase);
-module.exports = GL_SamplerCube;
+}(GL_SamplerBase_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = GL_SamplerCube;
 
 },{"awayjs-stagegl/lib/image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase"}],"awayjs-stagegl/lib/image/ProgramDataPool":[function(require,module,exports){
-var ProgramData = require("awayjs-stagegl/lib/image/ProgramData");
+"use strict";
+var ProgramData_1 = require("awayjs-stagegl/lib/image/ProgramData");
 /**
  * @class away.pool.ProgramDataPool
  */
@@ -5584,7 +5764,7 @@ var ProgramDataPool = (function () {
      */
     ProgramDataPool.prototype.getItem = function (vertexString, fragmentString) {
         var key = vertexString + fragmentString;
-        return this._pool[key] || (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
+        return this._pool[key] || (this._pool[key] = new ProgramData_1.default(this, this._stage, vertexString, fragmentString));
     };
     /**
      * //TODO
@@ -5595,10 +5775,12 @@ var ProgramDataPool = (function () {
         this._pool[key] = null;
     };
     return ProgramDataPool;
-})();
-module.exports = ProgramDataPool;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ProgramDataPool;
 
 },{"awayjs-stagegl/lib/image/ProgramData":"awayjs-stagegl/lib/image/ProgramData"}],"awayjs-stagegl/lib/image/ProgramData":[function(require,module,exports){
+"use strict";
 /**
  *
  * @class away.pool.ProgramDataBase
@@ -5628,22 +5810,54 @@ var ProgramData = (function () {
     };
     ProgramData.PROGRAMDATA_ID_COUNT = 0;
     return ProgramData;
-})();
-module.exports = ProgramData;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = ProgramData;
 
-},{}],"awayjs-stagegl/lib/library/GL_IAssetClass":[function(require,module,exports){
+},{}],"awayjs-stagegl/lib/image":[function(require,module,exports){
+"use strict";
+var GL_BitmapImage2D_1 = require("awayjs-stagegl/lib/image/GL_BitmapImage2D");
+exports.GL_BitmapImage2D = GL_BitmapImage2D_1.default;
+var GL_BitmapImageCube_1 = require("awayjs-stagegl/lib/image/GL_BitmapImageCube");
+exports.GL_BitmapImageCube = GL_BitmapImageCube_1.default;
+var GL_Image2D_1 = require("awayjs-stagegl/lib/image/GL_Image2D");
+exports.GL_Image2D = GL_Image2D_1.default;
+var GL_ImageBase_1 = require("awayjs-stagegl/lib/image/GL_ImageBase");
+exports.GL_ImageBase = GL_ImageBase_1.default;
+var GL_ImageCube_1 = require("awayjs-stagegl/lib/image/GL_ImageCube");
+exports.GL_ImageCube = GL_ImageCube_1.default;
+var GL_RenderImage2D_1 = require("awayjs-stagegl/lib/image/GL_RenderImage2D");
+exports.GL_RenderImage2D = GL_RenderImage2D_1.default;
+var GL_RenderImageCube_1 = require("awayjs-stagegl/lib/image/GL_RenderImageCube");
+exports.GL_RenderImageCube = GL_RenderImageCube_1.default;
+var GL_Sampler2D_1 = require("awayjs-stagegl/lib/image/GL_Sampler2D");
+exports.GL_Sampler2D = GL_Sampler2D_1.default;
+var GL_SamplerBase_1 = require("awayjs-stagegl/lib/image/GL_SamplerBase");
+exports.GL_SamplerBase = GL_SamplerBase_1.default;
+var GL_SamplerCube_1 = require("awayjs-stagegl/lib/image/GL_SamplerCube");
+exports.GL_SamplerCube = GL_SamplerCube_1.default;
+var ProgramData_1 = require("awayjs-stagegl/lib/image/ProgramData");
+exports.ProgramData = ProgramData_1.default;
+var ProgramDataPool_1 = require("awayjs-stagegl/lib/image/ProgramDataPool");
+exports.ProgramDataPool = ProgramDataPool_1.default;
+
+},{"awayjs-stagegl/lib/image/GL_BitmapImage2D":"awayjs-stagegl/lib/image/GL_BitmapImage2D","awayjs-stagegl/lib/image/GL_BitmapImageCube":"awayjs-stagegl/lib/image/GL_BitmapImageCube","awayjs-stagegl/lib/image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D","awayjs-stagegl/lib/image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase","awayjs-stagegl/lib/image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube","awayjs-stagegl/lib/image/GL_RenderImage2D":"awayjs-stagegl/lib/image/GL_RenderImage2D","awayjs-stagegl/lib/image/GL_RenderImageCube":"awayjs-stagegl/lib/image/GL_RenderImageCube","awayjs-stagegl/lib/image/GL_Sampler2D":"awayjs-stagegl/lib/image/GL_Sampler2D","awayjs-stagegl/lib/image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase","awayjs-stagegl/lib/image/GL_SamplerCube":"awayjs-stagegl/lib/image/GL_SamplerCube","awayjs-stagegl/lib/image/ProgramData":"awayjs-stagegl/lib/image/ProgramData","awayjs-stagegl/lib/image/ProgramDataPool":"awayjs-stagegl/lib/image/ProgramDataPool"}],"awayjs-stagegl/lib/library/GL_IAssetClass":[function(require,module,exports){
+"use strict";
+
+},{}],"awayjs-stagegl/lib/library":[function(require,module,exports){
+"use strict";
 
 },{}],"awayjs-stagegl/lib/managers/StageManager":[function(require,module,exports){
-var __extends = this.__extends || function (d, b) {
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var EventDispatcher = require("awayjs-core/lib/events/EventDispatcher");
-var ArgumentError = require("awayjs-core/lib/errors/ArgumentError");
-var Stage = require("awayjs-stagegl/lib/base/Stage");
-var StageEvent = require("awayjs-stagegl/lib/events/StageEvent");
+var EventDispatcher_1 = require("awayjs-core/lib/events/EventDispatcher");
+var ArgumentError_1 = require("awayjs-core/lib/errors/ArgumentError");
+var Stage_1 = require("awayjs-stagegl/lib/base/Stage");
+var StageEvent_1 = require("awayjs-stagegl/lib/events/StageEvent");
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.
  *
@@ -5685,7 +5899,7 @@ var StageManager = (function (_super) {
         if (profile === void 0) { profile = "baseline"; }
         if (mode === void 0) { mode = "auto"; }
         if (index < 0 || index >= StageManager.STAGE_MAX_QUANTITY)
-            throw new ArgumentError("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
+            throw new ArgumentError_1.default("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
         if (!this._stages[index]) {
             StageManager._numStages++;
             if (document) {
@@ -5693,8 +5907,8 @@ var StageManager = (function (_super) {
                 canvas.id = "stage" + index;
                 document.body.appendChild(canvas);
             }
-            var stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
-            stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
+            var stage = this._stages[index] = new Stage_1.default(canvas, index, this, forceSoftware, profile);
+            stage.addEventListener(StageEvent_1.default.CONTEXT_CREATED, this._onContextCreatedDelegate);
             stage.requestContext(forceSoftware, profile, mode);
         }
         return stage;
@@ -5706,7 +5920,7 @@ var StageManager = (function (_super) {
      */
     StageManager.prototype.iRemoveStage = function (stage) {
         StageManager._numStages--;
-        stage.removeEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
+        stage.removeEventListener(StageEvent_1.default.CONTEXT_CREATED, this._onContextCreatedDelegate);
         this._stages[stage.stageIndex] = null;
     };
     /**
@@ -5778,10 +5992,14 @@ var StageManager = (function (_super) {
     StageManager.STAGE_MAX_QUANTITY = 8;
     StageManager._numStages = 0;
     return StageManager;
-})(EventDispatcher);
-module.exports = StageManager;
+}(EventDispatcher_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = StageManager;
 
-},{"awayjs-core/lib/errors/ArgumentError":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent"}]},{},["awayjs-stagegl/lib/StageGL"])
+},{"awayjs-core/lib/errors/ArgumentError":undefined,"awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-stagegl/lib/base/Stage":"awayjs-stagegl/lib/base/Stage","awayjs-stagegl/lib/events/StageEvent":"awayjs-stagegl/lib/events/StageEvent"}],"awayjs-stagegl/lib/managers":[function(require,module,exports){
+"use strict";
+var StageManager_1 = require("awayjs-stagegl/lib/managers/StageManager");
+exports.StageManager = StageManager_1.default;
 
-
+},{"awayjs-stagegl/lib/managers/StageManager":"awayjs-stagegl/lib/managers/StageManager"}]},{},[1])
 //# sourceMappingURL=awayjs-stagegl.js.map
