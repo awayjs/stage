@@ -1,7 +1,7 @@
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
-import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
-import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
+import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
+import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
+import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
 
 class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 {
@@ -52,4 +52,4 @@ class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 	}
 }
 
-export = VertexBufferFlash;
+export default VertexBufferFlash;

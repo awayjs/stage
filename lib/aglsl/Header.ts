@@ -9,4 +9,4 @@ class Header
 	}
 }
 
-export = Header;
+export default Header;

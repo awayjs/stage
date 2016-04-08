@@ -1,9 +1,9 @@
-import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
+import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
-import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
-import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
+import IProgram						from "awayjs-stagegl/lib/base/IProgram";
+import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
+import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
 
 class ProgramFlash extends ResourceBaseFlash implements IProgram
 {
@@ -37,4 +37,4 @@ class ProgramFlash extends ResourceBaseFlash implements IProgram
 	}
 }
 
-export = ProgramFlash;
+export default ProgramFlash;

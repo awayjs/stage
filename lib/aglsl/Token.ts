@@ -1,4 +1,4 @@
-import Destination				= require("awayjs-stagegl/lib/aglsl/Destination");
+import Destination				from "awayjs-stagegl/lib/aglsl/Destination";
 
 class Token
 {
@@ -12,4 +12,4 @@ class Token
 	}
 }
 
-export = Token;
+export default Token;

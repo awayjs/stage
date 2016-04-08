@@ -10,4 +10,4 @@ class ContextGLStencilAction
 	public static ZERO:string = "zero";
 }
 
-export = ContextGLStencilAction;
+export default ContextGLStencilAction;

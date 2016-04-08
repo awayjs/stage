@@ -1,4 +1,4 @@
-import Sampler				= require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
+import Sampler				from "awayjs-stagegl/lib/aglsl/assembler/Sampler";
 
 class SamplerMap
 {
@@ -120,4 +120,4 @@ class SamplerMap
 	}
 }
 
-export = SamplerMap;
+export default SamplerMap;

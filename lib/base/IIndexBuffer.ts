@@ -9,4 +9,4 @@ interface IIndexBuffer
 	dispose();
 }
 
-export = IIndexBuffer;
+export default IIndexBuffer;

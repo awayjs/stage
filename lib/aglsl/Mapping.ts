@@ -1,4 +1,4 @@
-import OpLUT					= require("awayjs-stagegl/lib/aglsl/OpLUT");
+import OpLUT					from "awayjs-stagegl/lib/aglsl/OpLUT";
 
 class Mapping
 {
@@ -50,4 +50,4 @@ class Mapping
 	}
 }
 
-export = Mapping;
+export default Mapping;

@@ -46,4 +46,4 @@ class OpCodes
 	public static enableErrorChecking:number = 81;
 }
 
-export = OpCodes;
+export default OpCodes;

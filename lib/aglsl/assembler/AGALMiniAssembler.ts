@@ -1,9 +1,9 @@
-import Sampler					= require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
-import Opcode					= require("awayjs-stagegl/lib/aglsl/assembler/Opcode");
-import OpcodeMap				= require("awayjs-stagegl/lib/aglsl/assembler/OpcodeMap");
-import Part						= require("awayjs-stagegl/lib/aglsl/assembler/Part");
-import RegMap					= require("awayjs-stagegl/lib/aglsl/assembler/RegMap");
-import SamplerMap				= require("awayjs-stagegl/lib/aglsl/assembler/SamplerMap");
+import Sampler					from "awayjs-stagegl/lib/aglsl/assembler/Sampler";
+import Opcode					from "awayjs-stagegl/lib/aglsl/assembler/Opcode";
+import OpcodeMap				from "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap";
+import Part						from "awayjs-stagegl/lib/aglsl/assembler/Part";
+import RegMap					from "awayjs-stagegl/lib/aglsl/assembler/RegMap";
+import SamplerMap				from "awayjs-stagegl/lib/aglsl/assembler/SamplerMap";
 
 
 class AGALMiniAssembler
@@ -316,4 +316,4 @@ class AGALMiniAssembler
 	}
 }
 
-export = AGALMiniAssembler;
+export default AGALMiniAssembler;

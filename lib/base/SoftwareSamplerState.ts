@@ -1,6 +1,6 @@
-import ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-import ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-import ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+import ContextGLTextureFilter from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
+import ContextGLMipFilter from "awayjs-stagegl/lib/base/ContextGLMipFilter";
+import ContextGLWrapMode from "awayjs-stagegl/lib/base/ContextGLWrapMode";
 /**
  * The same as SamplerState, but with strings
  * TODO: replace two similar classes with one
@@ -11,4 +11,4 @@ class SoftwareSamplerState{
     public filter:string = ContextGLTextureFilter.LINEAR;
     public mipfilter:string = ContextGLMipFilter.MIPLINEAR;
 }
-export = SoftwareSamplerState;
+export default SoftwareSamplerState;

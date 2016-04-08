@@ -1,9 +1,7 @@
-import Sampler2D					= require("awayjs-core/lib/image/Sampler2D");
+import Sampler2D					from "awayjs-core/lib/image/Sampler2D";
 
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import GL_SamplerBase				= require("awayjs-stagegl/lib/image/GL_SamplerBase");
+import Stage						from "awayjs-stagegl/lib/base/Stage";
+import GL_SamplerBase				from "awayjs-stagegl/lib/image/GL_SamplerBase";
 
 /**
  *
@@ -26,4 +24,4 @@ class GL_Sampler2D extends GL_SamplerBase
 	}
 }
 
-export = GL_Sampler2D;
+export default GL_Sampler2D;

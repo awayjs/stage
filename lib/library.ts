@@ -1,0 +1,1 @@
+export {default as GL_IAssetClass}					from "awayjs-stagegl/lib/library/GL_IAssetClass";

@@ -22,4 +22,4 @@ class ContextGLVertexBufferFormat
 	static UNSIGNED_SHORT_4:number = 19;
 }
 
-export = ContextGLVertexBufferFormat;
+export default ContextGLVertexBufferFormat;

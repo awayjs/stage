@@ -13,4 +13,4 @@ class ResourceBaseFlash
 	}
 }
 
-export = ResourceBaseFlash;
+export default ResourceBaseFlash;

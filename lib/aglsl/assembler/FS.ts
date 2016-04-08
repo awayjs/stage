@@ -4,4 +4,4 @@ class FS
 	public size:number;
 }
 
-export = FS;
+export default FS;

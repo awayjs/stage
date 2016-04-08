@@ -1,7 +1,7 @@
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
-import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
-import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
+import IIndexBuffer					from "awayjs-stagegl/lib/base/IIndexBuffer";
+import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
+import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
 
 class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 {
@@ -44,4 +44,4 @@ class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 	}
 }
 
-export = IndexBufferFlash;
+export default IndexBufferFlash;

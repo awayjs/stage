@@ -1,7 +1,7 @@
-import ByteArray                    = require("awayjs-core/lib/utils/ByteArray");
+import ByteArray                    from "awayjs-core/lib/utils/ByteArray";
 
-import ITexture                        = require("awayjs-stagegl/lib/base/ITexture");
-import TextureBaseWebGL                = require("awayjs-stagegl/lib/base/TextureBaseWebGL");
+import ITexture                        from "awayjs-stagegl/lib/base/ITexture";
+import TextureBaseWebGL                from "awayjs-stagegl/lib/base/TextureBaseWebGL";
 
 class TextureSoftware implements ITexture {
     public textureType:string = "texture2d";
@@ -43,4 +43,4 @@ class TextureSoftware implements ITexture {
     }
 }
 
-export = TextureSoftware;
+export default TextureSoftware;

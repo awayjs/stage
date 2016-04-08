@@ -1,5 +1,5 @@
-import Flags				= require("awayjs-stagegl/lib/aglsl/assembler/Flags");
-import FS					= require("awayjs-stagegl/lib/aglsl/assembler/FS");
+import Flags				from "awayjs-stagegl/lib/aglsl/assembler/Flags";
+import FS					from "awayjs-stagegl/lib/aglsl/assembler/FS";
 
 /**
  *
@@ -31,4 +31,4 @@ class Opcode
 	}
 }
 
-export = Opcode;
+export default Opcode;

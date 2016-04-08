@@ -1,9 +1,9 @@
-import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
+import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import AGALTokenizer				= require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
-import AGLSLParser					= require("awayjs-stagegl/lib/aglsl/AGLSLParser");
-import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
-import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL");
+import AGALTokenizer				from "awayjs-stagegl/lib/aglsl/AGALTokenizer";
+import AGLSLParser					from "awayjs-stagegl/lib/aglsl/AGLSLParser";
+import IProgram						from "awayjs-stagegl/lib/base/IProgram";
+import VertexBufferWebGL			from "awayjs-stagegl/lib/base/VertexBufferWebGL";
 
 class ProgramWebGL implements IProgram
 {
@@ -35,26 +35,21 @@ class ProgramWebGL implements IProgram
 		this._gl.shaderSource(this._vertexShader, vertexString);
 		this._gl.compileShader(this._vertexShader);
 
-		if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS)) {
+		if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS))
 			throw new Error(this._gl.getShaderInfoLog(this._vertexShader));
-			return;
-		}
 
 		this._gl.shaderSource(this._fragmentShader, fragmentString);
 		this._gl.compileShader(this._fragmentShader);
 
-		if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS)) {
+		if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS))
 			throw new Error(this._gl.getShaderInfoLog(this._fragmentShader));
-			return;
-		}
 
 		this._gl.attachShader(this._program, this._vertexShader);
 		this._gl.attachShader(this._program, this._fragmentShader);
 		this._gl.linkProgram(this._program);
 
-		if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS)) {
+		if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS))
 			throw new Error(this._gl.getProgramInfoLog(this._program));
-		}
 
 		this._uniforms[0].length = 0;
 		this._uniforms[1].length = 0;
@@ -96,4 +91,4 @@ class ProgramWebGL implements IProgram
 	}
 }
 
-export = ProgramWebGL;
+export default ProgramWebGL;

@@ -4,4 +4,4 @@ class ContextGLDrawMode
 	public static LINES:string = "lines";
 }
 
-export = ContextGLDrawMode;
+export default ContextGLDrawMode;

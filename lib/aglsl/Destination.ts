@@ -22,4 +22,4 @@ class Destination
 	}
 }
 
-export = Destination;
+export default Destination;

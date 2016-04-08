@@ -1,11 +1,10 @@
-import AttributesBuffer				= require("awayjs-core/lib/attributes/AttributesBuffer");
-import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
-import AbstractionBase				= require("awayjs-core/lib/library/AbstractionBase");
+import AttributesBuffer				from "awayjs-core/lib/attributes/AttributesBuffer";
+import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
+import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
+import Stage						from "awayjs-stagegl/lib/base/Stage";
+import IIndexBuffer					from "awayjs-stagegl/lib/base/IIndexBuffer";
+import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
 
 /**
  *
@@ -95,4 +94,4 @@ class GL_AttributesBuffer extends AbstractionBase
 	}
 }
 
-export = GL_AttributesBuffer;
+export default GL_AttributesBuffer;

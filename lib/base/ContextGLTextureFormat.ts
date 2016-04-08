@@ -7,4 +7,4 @@ class ContextGLTextureFormat
 	static COMPRESSED_ALPHA:string = "compressedAlpha";
 }
 
-export = ContextGLTextureFormat;
+export default ContextGLTextureFormat;

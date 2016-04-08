@@ -6,4 +6,4 @@ class ContextGLTriangleFace
 	static NONE:string = "none";
 }
 
-export = ContextGLTriangleFace;
+export default ContextGLTriangleFace;

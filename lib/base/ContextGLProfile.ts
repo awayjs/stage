@@ -4,4 +4,4 @@ class ContextGLProfile
 	public static BASELINE_CONSTRAINED:string = "baselineConstrained";
 	public static BASELINE_EXTENDED:string = "baselineExtended";
 }
-export = ContextGLProfile;
+export default ContextGLProfile;

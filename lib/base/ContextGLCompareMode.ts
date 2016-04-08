@@ -10,4 +10,4 @@ class ContextGLCompareMode
 	public static NOT_EQUAL:string = "notEqual";
 }
 
-export = ContextGLCompareMode;
+export default ContextGLCompareMode;

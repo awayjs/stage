@@ -4,4 +4,4 @@ class ContextGLWrapMode
 	public static REPEAT:string = "repeat";
 }
 
-export = ContextGLWrapMode;
+export default ContextGLWrapMode;

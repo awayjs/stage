@@ -1,4 +1,4 @@
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
+import IIndexBuffer					from "awayjs-stagegl/lib/base/IIndexBuffer";
 
 class IndexBufferWebGL implements IIndexBuffer
 {
@@ -50,4 +50,4 @@ class IndexBufferWebGL implements IIndexBuffer
 	}
 }
 
-export = IndexBufferWebGL;
+export default IndexBufferWebGL;

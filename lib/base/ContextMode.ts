@@ -7,4 +7,4 @@ class ContextMode
 	static SOFTWARE:string = "software";
 }
 
-export = ContextMode;
+export default ContextMode;

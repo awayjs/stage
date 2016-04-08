@@ -1,38 +1,38 @@
-import BitmapImage2D                = require("awayjs-core/lib/image/BitmapImage2D");
-import Matrix3D                        = require("awayjs-core/lib/geom/Matrix3D");
-import Matrix                        = require("awayjs-core/lib/geom/Matrix");
-import Point                        = require("awayjs-core/lib/geom/Point");
-import Vector3D                        = require("awayjs-core/lib/geom/Vector3D");
-import Rectangle                    = require("awayjs-core/lib/geom/Rectangle");
-import ByteArray                    = require("awayjs-core/lib/utils/ByteArray");
-import ColorUtils                    = require("awayjs-core/lib/utils/ColorUtils");
+import BitmapImage2D                from "awayjs-core/lib/image/BitmapImage2D";
+import Matrix3D                        from "awayjs-core/lib/geom/Matrix3D";
+import Matrix                        from "awayjs-core/lib/geom/Matrix";
+import Point                        from "awayjs-core/lib/geom/Point";
+import Vector3D                        from "awayjs-core/lib/geom/Vector3D";
+import Rectangle                    from "awayjs-core/lib/geom/Rectangle";
+import ByteArray                    from "awayjs-core/lib/utils/ByteArray";
+import ColorUtils                    from "awayjs-core/lib/utils/ColorUtils";
 
-import Matrix3DUtils                = require("awayjs-core/lib/geom/Matrix3DUtils");
-import ContextGLBlendFactor            = require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
-import ContextGLDrawMode            = require("awayjs-stagegl/lib/base/ContextGLDrawMode");
-import ContextGLClearMask            = require("awayjs-stagegl/lib/base/ContextGLClearMask");
-import ContextGLCompareMode            = require("awayjs-stagegl/lib/base/ContextGLCompareMode");
-import ContextGLMipFilter            = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-import ContextGLProgramType            = require("awayjs-stagegl/lib/base/ContextGLProgramType");
-import ContextGLStencilAction        = require("awayjs-stagegl/lib/base/ContextGLStencilAction");
-import ContextGLTextureFilter        = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-import ContextGLTriangleFace        = require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
-import ContextGLVertexBufferFormat    = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-import ContextGLWrapMode            = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
-import CubeTextureWebGL                = require("awayjs-stagegl/lib/base/CubeTextureWebGL");
-import IContextGL                    = require("awayjs-stagegl/lib/base/IContextGL");
-import IIndexBuffer                    = require("awayjs-stagegl/lib/base/IIndexBuffer");
-import ICubeTexture                    = require("awayjs-stagegl/lib/base/ICubeTexture");
-import ITexture                        = require("awayjs-stagegl/lib/base/ITexture");
-import IVertexBuffer                = require("awayjs-stagegl/lib/base/IVertexBuffer");
-import IProgram                        = require("awayjs-stagegl/lib/base/IProgram");
-import ITextureBase                    = require("awayjs-stagegl/lib/base/ITextureBase");
-import IndexBufferSoftware                    = require("awayjs-stagegl/lib/base/IndexBufferSoftware");
-import VertexBufferSoftware                    = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
-import TextureSoftware                    = require("awayjs-stagegl/lib/base/TextureSoftware");
-import ProgramSoftware                    = require("awayjs-stagegl/lib/base/ProgramSoftware");
-import ProgramVOSoftware                        = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
-import SoftwareSamplerState                     = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
+import Matrix3DUtils                from "awayjs-core/lib/geom/Matrix3DUtils";
+import ContextGLBlendFactor            from "awayjs-stagegl/lib/base/ContextGLBlendFactor";
+import ContextGLDrawMode            from "awayjs-stagegl/lib/base/ContextGLDrawMode";
+import ContextGLClearMask            from "awayjs-stagegl/lib/base/ContextGLClearMask";
+import ContextGLCompareMode            from "awayjs-stagegl/lib/base/ContextGLCompareMode";
+import ContextGLMipFilter            from "awayjs-stagegl/lib/base/ContextGLMipFilter";
+import ContextGLProgramType            from "awayjs-stagegl/lib/base/ContextGLProgramType";
+import ContextGLStencilAction        from "awayjs-stagegl/lib/base/ContextGLStencilAction";
+import ContextGLTextureFilter        from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
+import ContextGLTriangleFace        from "awayjs-stagegl/lib/base/ContextGLTriangleFace";
+import ContextGLVertexBufferFormat    from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
+import ContextGLWrapMode            from "awayjs-stagegl/lib/base/ContextGLWrapMode";
+import CubeTextureWebGL                from "awayjs-stagegl/lib/base/CubeTextureWebGL";
+import IContextGL                    from "awayjs-stagegl/lib/base/IContextGL";
+import IIndexBuffer                    from "awayjs-stagegl/lib/base/IIndexBuffer";
+import ICubeTexture                    from "awayjs-stagegl/lib/base/ICubeTexture";
+import ITexture                        from "awayjs-stagegl/lib/base/ITexture";
+import IVertexBuffer                from "awayjs-stagegl/lib/base/IVertexBuffer";
+import IProgram                        from "awayjs-stagegl/lib/base/IProgram";
+import ITextureBase                    from "awayjs-stagegl/lib/base/ITextureBase";
+import IndexBufferSoftware                    from "awayjs-stagegl/lib/base/IndexBufferSoftware";
+import VertexBufferSoftware                    from "awayjs-stagegl/lib/base/VertexBufferSoftware";
+import TextureSoftware                    from "awayjs-stagegl/lib/base/TextureSoftware";
+import ProgramSoftware                    from "awayjs-stagegl/lib/base/ProgramSoftware";
+import ProgramVOSoftware                        from "awayjs-stagegl/lib/base/ProgramVOSoftware";
+import SoftwareSamplerState                     from "awayjs-stagegl/lib/base/SoftwareSamplerState";
 
 class ContextSoftware implements IContextGL {
 
@@ -650,7 +650,7 @@ class ContextSoftware implements IContextGL {
     }
 }
 
-export = ContextSoftware;
+export default ContextSoftware;
 
 class VertexBufferProperties {
     public size:number;

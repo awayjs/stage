@@ -1,33 +1,28 @@
-import AttributesBuffer				= require("awayjs-core/lib/attributes/AttributesBuffer");
-import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
-import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
-import ImageBase					= require("awayjs-core/lib/image/ImageBase");
-import AbstractionBase				= require("awayjs-core/lib/library/AbstractionBase");
-import IAsset						= require("awayjs-core/lib/library/IAsset");
-import IAssetClass					= require("awayjs-core/lib/library/IAssetClass");
-import IAbstractionPool				= require("awayjs-core/lib/library/IAbstractionPool");
-import CSS							= require("awayjs-core/lib/utils/CSS");
+import EventDispatcher				from "awayjs-core/lib/events/EventDispatcher";
+import Rectangle					from "awayjs-core/lib/geom/Rectangle";
+import ImageBase					from "awayjs-core/lib/image/ImageBase";
+import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
+import IAsset						from "awayjs-core/lib/library/IAsset";
+import IAssetClass					from "awayjs-core/lib/library/IAssetClass";
+import IAbstractionPool				from "awayjs-core/lib/library/IAbstractionPool";
+import CSS							from "awayjs-core/lib/utils/CSS";
 
-import ContextMode					= require("awayjs-stagegl/lib/base/ContextMode");
-import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
-import ContextSoftware				= require("awayjs-stagegl/lib/base/ContextSoftware");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
-import GL_ImageBase					= require("awayjs-stagegl/lib/image/GL_ImageBase");
-import GL_IAssetClass				= require("awayjs-stagegl/lib/library/GL_IAssetClass");
-import ProgramData					= require("awayjs-stagegl/lib/image/ProgramData");
-import ProgramDataPool				= require("awayjs-stagegl/lib/image/ProgramDataPool");
-import StageManager					= require("awayjs-stagegl/lib/managers/StageManager");
+import ContextMode					from "awayjs-stagegl/lib/base/ContextMode";
+import ContextGLMipFilter			from "awayjs-stagegl/lib/base/ContextGLMipFilter";
+import ContextGLTextureFilter		from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
+import ContextGLVertexBufferFormat	from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
+import ContextGLWrapMode			from "awayjs-stagegl/lib/base/ContextGLWrapMode";
+import ContextWebGL					from "awayjs-stagegl/lib/base/ContextWebGL";
+import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
+import ContextSoftware				from "awayjs-stagegl/lib/base/ContextSoftware";
+import IContextGL					from "awayjs-stagegl/lib/base/IContextGL";
+import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
+import StageEvent					from "awayjs-stagegl/lib/events/StageEvent";
+import GL_ImageBase					from "awayjs-stagegl/lib/image/GL_ImageBase";
+import GL_IAssetClass				from "awayjs-stagegl/lib/library/GL_IAssetClass";
+import ProgramData					from "awayjs-stagegl/lib/image/ProgramData";
+import ProgramDataPool				from "awayjs-stagegl/lib/image/ProgramDataPool";
+import StageManager					from "awayjs-stagegl/lib/managers/StageManager";
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -599,4 +594,4 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	}
 }
 
-export = Stage;
+export default Stage;

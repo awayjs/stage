@@ -1,4 +1,4 @@
-import IIndexBuffer                    = require("awayjs-stagegl/lib/base/IIndexBuffer");
+import IIndexBuffer                    from "awayjs-stagegl/lib/base/IIndexBuffer";
 
 class IndexBufferSoftware implements IIndexBuffer {
     private _numIndices:number;
@@ -20,7 +20,7 @@ class IndexBufferSoftware implements IIndexBuffer {
     }
 
     public dispose():void {
-        this._data.length = 0;
+        this._data = null;
     }
 
     public get numIndices():number {
@@ -37,4 +37,4 @@ class IndexBufferSoftware implements IIndexBuffer {
 
 }
 
-export = IndexBufferSoftware;
+export default IndexBufferSoftware;

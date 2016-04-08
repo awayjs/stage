@@ -1,10 +1,10 @@
-import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
-import ByteArrayBase				= require("awayjs-core/lib/utils/ByteArrayBase");
+import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import ByteArrayBase				from "awayjs-core/lib/utils/ByteArrayBase";
 
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
-import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
-import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
+import ICubeTexture					from "awayjs-stagegl/lib/base/ICubeTexture";
+import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
+import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
 
 class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 {
@@ -67,4 +67,4 @@ class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 	}
 }
 
-export = CubeTextureFlash;
+export default CubeTextureFlash;

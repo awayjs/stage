@@ -1,5 +1,5 @@
-import Header					= require("awayjs-stagegl/lib/aglsl/Header");
-import Token					= require("awayjs-stagegl/lib/aglsl/Token");
+import Header					from "awayjs-stagegl/lib/aglsl/Header";
+import Token					from "awayjs-stagegl/lib/aglsl/Token";
 
 class Description
 {
@@ -35,4 +35,4 @@ class Description
 	}
 }
 
-export = Description;
+export default Description;

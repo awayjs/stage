@@ -1,0 +1,12 @@
+export {default as GL_BitmapImage2D}				from "awayjs-stagegl/lib/image/GL_BitmapImage2D";
+export {default as GL_BitmapImageCube}				from "awayjs-stagegl/lib/image/GL_BitmapImageCube";
+export {default as GL_Image2D}						from "awayjs-stagegl/lib/image/GL_Image2D";
+export {default as GL_ImageBase}					from "awayjs-stagegl/lib/image/GL_ImageBase";
+export {default as GL_ImageCube}					from "awayjs-stagegl/lib/image/GL_ImageCube";
+export {default as GL_RenderImage2D}				from "awayjs-stagegl/lib/image/GL_RenderImage2D";
+export {default as GL_RenderImageCube}				from "awayjs-stagegl/lib/image/GL_RenderImageCube";
+export {default as GL_Sampler2D}					from "awayjs-stagegl/lib/image/GL_Sampler2D";
+export {default as GL_SamplerBase}					from "awayjs-stagegl/lib/image/GL_SamplerBase";
+export {default as GL_SamplerCube}					from "awayjs-stagegl/lib/image/GL_SamplerCube";
+export {default as ProgramData}						from "awayjs-stagegl/lib/image/ProgramData";
+export {default as ProgramDataPool}					from "awayjs-stagegl/lib/image/ProgramDataPool";

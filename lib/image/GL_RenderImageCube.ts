@@ -1,4 +1,4 @@
-import GL_ImageCube					= require("awayjs-stagegl/lib/image/GL_ImageCube");
+import GL_ImageCube					from "awayjs-stagegl/lib/image/GL_ImageCube";
 
 /**
  *
@@ -15,4 +15,4 @@ class GL_RenderImageCube extends GL_ImageCube
 	}
 }
 
-export = GL_RenderImageCube;
+export default GL_RenderImageCube;

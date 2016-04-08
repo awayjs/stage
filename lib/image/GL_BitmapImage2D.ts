@@ -1,11 +1,9 @@
-import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
-import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
-import MipmapGenerator				= require("awayjs-core/lib/utils/MipmapGenerator");
+import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
+import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
+import MipmapGenerator				from "awayjs-core/lib/utils/MipmapGenerator";
 
-import GL_Image2D					= require("awayjs-stagegl/lib/image/GL_Image2D");
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
+import GL_Image2D					from "awayjs-stagegl/lib/image/GL_Image2D";
+import ITexture						from "awayjs-stagegl/lib/base/ITexture";
 
 /**
  *
@@ -59,4 +57,4 @@ class GL_BitmapImage2D extends GL_Image2D
 	}
 }
 
-export = GL_BitmapImage2D;
+export default GL_BitmapImage2D;

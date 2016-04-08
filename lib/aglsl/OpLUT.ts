@@ -29,4 +29,4 @@ class OpLUT
 	}
 }
 
-export = OpLUT;
+export default OpLUT;

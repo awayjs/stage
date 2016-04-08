@@ -6,4 +6,4 @@ class Flags
 	public matrix:boolean;
 }
 
-export = Flags;
+export default Flags;

@@ -1,9 +1,14 @@
-import Description				= require("awayjs-stagegl/lib/aglsl/Description");
-import Mapping					= require("awayjs-stagegl/lib/aglsl/Mapping");
-import ContextStage3D			= require("awayjs-stagegl/lib/base/ContextStage3D");
+import Description				from "awayjs-stagegl/lib/aglsl/Description";
+import Mapping					from "awayjs-stagegl/lib/aglsl/Mapping";
 
 class AGLSLParser
 {
+	public static maxvertexconstants:number = 128;
+	public static maxfragconstants:number = 28;
+	public static maxtemp:number = 8;
+	public static maxstreams:number = 8;
+	public static maxtextures:number = 8;
+	
 	public parse(desc:Description)
 	{
 		var header:string = "";
@@ -23,7 +28,7 @@ class AGLSLParser
 				}
 			}
 		} else {
-			header += "uniform vec4 " + tag + "carrr[" + ContextStage3D.maxvertexconstants + "];\n";                // use max const count instead
+			header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n";                // use max const count instead
 		}
 
 		// declare temps
@@ -249,4 +254,4 @@ class AGLSLParser
 	}
 }
 
-export = AGLSLParser;
+export default AGLSLParser;

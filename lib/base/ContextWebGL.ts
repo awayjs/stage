@@ -1,28 +1,28 @@
-import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
-import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
-import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
-import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
-import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
+import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
+import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
+import Matrix3DUtils				from "awayjs-core/lib/geom/Matrix3DUtils";
+import Rectangle					from "awayjs-core/lib/geom/Rectangle";
+import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import ContextGLBlendFactor			= require("awayjs-stagegl/lib/base/ContextGLBlendFactor");
-import ContextGLDrawMode			= require("awayjs-stagegl/lib/base/ContextGLDrawMode");
-import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
-import ContextGLCompareMode			= require("awayjs-stagegl/lib/base/ContextGLCompareMode");
-import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
-import ContextGLStencilAction		= require("awayjs-stagegl/lib/base/ContextGLStencilAction");
-import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-import ContextGLTriangleFace		= require("awayjs-stagegl/lib/base/ContextGLTriangleFace");
-import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
-import CubeTextureWebGL				= require("awayjs-stagegl/lib/base/CubeTextureWebGL");
-import IContextGL				    = require("awayjs-stagegl/lib/base/IContextGL");
-import IndexBufferWebGL				= require("awayjs-stagegl/lib/base/IndexBufferWebGL");
-import ProgramWebGL					= require("awayjs-stagegl/lib/base/ProgramWebGL");
-import TextureBaseWebGL				= require("awayjs-stagegl/lib/base/TextureBaseWebGL");
-import TextureWebGL					= require("awayjs-stagegl/lib/base/TextureWebGL");
-import SamplerState					= require("awayjs-stagegl/lib/base/SamplerState");
-import VertexBufferWebGL			= require("awayjs-stagegl/lib/base/VertexBufferWebGL");
+import ContextGLBlendFactor			from "awayjs-stagegl/lib/base/ContextGLBlendFactor";
+import ContextGLDrawMode			from "awayjs-stagegl/lib/base/ContextGLDrawMode";
+import ContextGLClearMask			from "awayjs-stagegl/lib/base/ContextGLClearMask";
+import ContextGLCompareMode			from "awayjs-stagegl/lib/base/ContextGLCompareMode";
+import ContextGLMipFilter			from "awayjs-stagegl/lib/base/ContextGLMipFilter";
+import ContextGLProgramType			from "awayjs-stagegl/lib/base/ContextGLProgramType";
+import ContextGLStencilAction		from "awayjs-stagegl/lib/base/ContextGLStencilAction";
+import ContextGLTextureFilter		from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
+import ContextGLTriangleFace		from "awayjs-stagegl/lib/base/ContextGLTriangleFace";
+import ContextGLVertexBufferFormat	from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
+import ContextGLWrapMode			from "awayjs-stagegl/lib/base/ContextGLWrapMode";
+import CubeTextureWebGL				from "awayjs-stagegl/lib/base/CubeTextureWebGL";
+import IContextGL				    from "awayjs-stagegl/lib/base/IContextGL";
+import IndexBufferWebGL				from "awayjs-stagegl/lib/base/IndexBufferWebGL";
+import ProgramWebGL					from "awayjs-stagegl/lib/base/ProgramWebGL";
+import TextureBaseWebGL				from "awayjs-stagegl/lib/base/TextureBaseWebGL";
+import TextureWebGL					from "awayjs-stagegl/lib/base/TextureWebGL";
+import SamplerState					from "awayjs-stagegl/lib/base/SamplerState";
+import VertexBufferWebGL			from "awayjs-stagegl/lib/base/VertexBufferWebGL";
 
 class ContextWebGL implements IContextGL
 {
@@ -543,20 +543,17 @@ class ContextWebGL implements IContextGL
         switch (triangleFace) {
             case ContextGLTriangleFace.BACK:
                 return (coordinateSystem == "leftHanded")? this._gl.FRONT : this._gl.BACK;
-                break
             case ContextGLTriangleFace.FRONT:
                 return (coordinateSystem == "leftHanded")? this._gl.BACK : this._gl.FRONT;
-                break;
             case ContextGLTriangleFace.FRONT_AND_BACK:
                 return this._gl.FRONT_AND_BACK;
-                break;
             default:
                 throw "Unknown ContextGLTriangleFace type."; // TODO error
         }
     }
 }
 
-export = ContextWebGL;
+export default ContextWebGL;
 
 
 class VertexBufferProperties

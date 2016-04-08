@@ -1,4 +1,4 @@
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
+import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
 
 class VertexBufferWebGL implements IVertexBuffer
 {
@@ -58,4 +58,4 @@ class VertexBufferWebGL implements IVertexBuffer
 	}
 }
 
-export = VertexBufferWebGL;
+export default VertexBufferWebGL;

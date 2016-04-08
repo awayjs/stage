@@ -1,4 +1,4 @@
-import IVertexBuffer                = require("awayjs-stagegl/lib/base/IVertexBuffer");
+import IVertexBuffer                from "awayjs-stagegl/lib/base/IVertexBuffer";
 
 class VertexBufferSoftware implements IVertexBuffer {
     private _numVertices:number;
@@ -38,7 +38,7 @@ class VertexBufferSoftware implements IVertexBuffer {
     }
 
     public dispose() {
-        this._floatData.length = 0;
+        this._floatData = null;
     }
 
     public get data():Float32Array {
@@ -50,4 +50,4 @@ class VertexBufferSoftware implements IVertexBuffer {
     }
 }
 
-export = VertexBufferSoftware;
+export default VertexBufferSoftware;

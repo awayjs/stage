@@ -5,4 +5,4 @@ class ContextGLMipFilter
 	public static MIPNONE:string = "mipnone";
 }
 
-export = ContextGLMipFilter;
+export default ContextGLMipFilter;

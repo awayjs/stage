@@ -1,4 +1,4 @@
-import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
+import AbstractMethodError			from "awayjs-core/lib/errors/AbstractMethodError";
 
 class TextureBaseWebGL
 {
@@ -21,4 +21,4 @@ class TextureBaseWebGL
 	}
 }
 
-export = TextureBaseWebGL;
+export default TextureBaseWebGL;

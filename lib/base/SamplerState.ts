@@ -6,4 +6,4 @@ class SamplerState
 	public mipfilter:number;
 }
 
-export = SamplerState;
+export default SamplerState;

@@ -5,4 +5,4 @@ class ContextGLProgramType
 	static VERTEX:number = 2;
 }
 
-export = ContextGLProgramType;
+export default ContextGLProgramType;

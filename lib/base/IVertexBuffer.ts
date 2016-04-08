@@ -11,4 +11,4 @@ interface IVertexBuffer
 	dispose();
 }
 
-export = IVertexBuffer;
+export default IVertexBuffer;

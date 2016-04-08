@@ -1,8 +1,7 @@
-import ImageCube					= require("awayjs-core/lib/image/ImageCube");
+import ImageCube					from "awayjs-core/lib/image/ImageCube";
 
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import GL_ImageBase					= require("awayjs-stagegl/lib/image/GL_ImageBase");
+import ContextGLTextureFormat		from "awayjs-stagegl/lib/base/ContextGLTextureFormat";
+import GL_ImageBase					from "awayjs-stagegl/lib/image/GL_ImageBase";
 
 /**
  *
@@ -21,4 +20,4 @@ class GL_ImageCube extends GL_ImageBase
 	}
 }
 
-export = GL_ImageCube;
+export default GL_ImageCube;

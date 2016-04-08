@@ -1,0 +1,1 @@
+export {default as StageEvent}						from "awayjs-stagegl/lib/events/StageEvent";

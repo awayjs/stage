@@ -1,29 +1,29 @@
-import ByteArray                    = require("awayjs-core/lib/utils/ByteArray");
+import ByteArray                    from "awayjs-core/lib/utils/ByteArray";
 
-import AGALTokenizer                = require("awayjs-stagegl/lib/aglsl/AGALTokenizer");
-import AGLSLParser                    = require("awayjs-stagegl/lib/aglsl/AGLSLParser");
-import IProgram                        = require("awayjs-stagegl/lib/base/IProgram");
-import ProgramVOSoftware                        = require("awayjs-stagegl/lib/base/ProgramVOSoftware");
-import ContextSoftware                        = require("awayjs-stagegl/lib/base/ContextSoftware");
-import Description                = require("awayjs-stagegl/lib/aglsl/Description");
-import Header                    = require("awayjs-stagegl/lib/aglsl/Header");
-import Mapping                    = require("awayjs-stagegl/lib/aglsl/Mapping");
-import Token                    = require("awayjs-stagegl/lib/aglsl/Token");
-import Matrix3D                        = require("awayjs-core/lib/geom/Matrix3D");
-import Point                        = require("awayjs-core/lib/geom/Point");
-import Vector3D                        = require("awayjs-core/lib/geom/Vector3D");
-import Destination                = require("awayjs-stagegl/lib/aglsl/Destination");
-import AGALMiniAssembler            = require("awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler");
-import VertexBufferSoftware                    = require("awayjs-stagegl/lib/base/VertexBufferSoftware");
-import ContextGLVertexBufferFormat    = require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-import TextureSoftware                    = require("awayjs-stagegl/lib/base/TextureSoftware");
-import SoftwareSamplerState = require("awayjs-stagegl/lib/base/SoftwareSamplerState");
-import SamplerBase = require("awayjs-core/lib/image/SamplerBase");
-import Sampler2D = require("awayjs-core/lib/image/Sampler2D");
-import SamplerCube = require("awayjs-core/lib/image/SamplerCube");
-import ContextGLTextureFilter = require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-import ContextGLMipFilter = require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-import ContextGLWrapMode = require("awayjs-stagegl/lib/base/ContextGLWrapMode");
+import AGALTokenizer                from "awayjs-stagegl/lib/aglsl/AGALTokenizer";
+import AGLSLParser                    from "awayjs-stagegl/lib/aglsl/AGLSLParser";
+import IProgram                        from "awayjs-stagegl/lib/base/IProgram";
+import ProgramVOSoftware                        from "awayjs-stagegl/lib/base/ProgramVOSoftware";
+import ContextSoftware                        from "awayjs-stagegl/lib/base/ContextSoftware";
+import Description                from "awayjs-stagegl/lib/aglsl/Description";
+import Header                    from "awayjs-stagegl/lib/aglsl/Header";
+import Mapping                    from "awayjs-stagegl/lib/aglsl/Mapping";
+import Token                    from "awayjs-stagegl/lib/aglsl/Token";
+import Matrix3D                        from "awayjs-core/lib/geom/Matrix3D";
+import Point                        from "awayjs-core/lib/geom/Point";
+import Vector3D                        from "awayjs-core/lib/geom/Vector3D";
+import Destination                from "awayjs-stagegl/lib/aglsl/Destination";
+import AGALMiniAssembler            from "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler";
+import VertexBufferSoftware                    from "awayjs-stagegl/lib/base/VertexBufferSoftware";
+import ContextGLVertexBufferFormat    from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
+import TextureSoftware                    from "awayjs-stagegl/lib/base/TextureSoftware";
+import SoftwareSamplerState from "awayjs-stagegl/lib/base/SoftwareSamplerState";
+import SamplerBase from "awayjs-core/lib/image/SamplerBase";
+import Sampler2D from "awayjs-core/lib/image/Sampler2D";
+import SamplerCube from "awayjs-core/lib/image/SamplerCube";
+import ContextGLTextureFilter from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
+import ContextGLMipFilter from "awayjs-stagegl/lib/base/ContextGLMipFilter";
+import ContextGLWrapMode from "awayjs-stagegl/lib/base/ContextGLWrapMode";
 
 class ProgramSoftware implements IProgram {
     private static _defaultSamplerState:SoftwareSamplerState = new SoftwareSamplerState();
@@ -1353,4 +1353,4 @@ class ProgramSoftware implements IProgram {
     }
 }
 
-export = ProgramSoftware;
+export default ProgramSoftware;

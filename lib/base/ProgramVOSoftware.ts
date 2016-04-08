@@ -1,4 +1,4 @@
-import Vector3D                        = require("awayjs-core/lib/geom/Vector3D");
+import Vector3D                        from "awayjs-core/lib/geom/Vector3D";
 
 class ProgramVOSoftware {
     public outputPosition:Vector3D[] = [];
@@ -12,4 +12,4 @@ class ProgramVOSoftware {
     public discard:boolean = false;
 }
 
-export = ProgramVOSoftware;
+export default ProgramVOSoftware;

@@ -1,6 +1,6 @@
-import ProgramDataPool				= require("awayjs-stagegl/lib/image/ProgramDataPool");
-import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
+import ProgramDataPool				from "awayjs-stagegl/lib/image/ProgramDataPool";
+import IProgram						from "awayjs-stagegl/lib/base/IProgram";
+import Stage						from "awayjs-stagegl/lib/base/Stage";
 
 /**
  *
@@ -53,4 +53,4 @@ class ProgramData
 	}
 }
 
-export = ProgramData;
+export default ProgramData;

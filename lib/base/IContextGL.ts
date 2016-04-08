@@ -1,13 +1,13 @@
-import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
-import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
-import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
+import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
+import Rectangle					from "awayjs-core/lib/geom/Rectangle";
+import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
 
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
-import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
+import ICubeTexture					from "awayjs-stagegl/lib/base/ICubeTexture";
+import IIndexBuffer					from "awayjs-stagegl/lib/base/IIndexBuffer";
+import IProgram						from "awayjs-stagegl/lib/base/IProgram";
+import ITexture						from "awayjs-stagegl/lib/base/ITexture";
+import ITextureBase					from "awayjs-stagegl/lib/base/ITextureBase";
+import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
 
 interface IContextGL
 {
@@ -68,4 +68,4 @@ interface IContextGL
 	setRenderToBackBuffer();
 }
 
-export = IContextGL;
+export default IContextGL;

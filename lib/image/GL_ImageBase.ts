@@ -1,11 +1,10 @@
-import AbstractMethodError			= require("awayjs-core/lib/errors/AbstractMethodError");
-import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
-import IAsset						= require("awayjs-core/lib/library/IAsset");
-import AbstractionBase				= require("awayjs-core/lib/library/AbstractionBase");
+import AbstractMethodError			from "awayjs-core/lib/errors/AbstractMethodError";
+import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
+import IAsset						from "awayjs-core/lib/library/IAsset";
+import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
+import Stage						from "awayjs-stagegl/lib/base/Stage";
+import ITextureBase					from "awayjs-stagegl/lib/base/ITextureBase";
 
 /**
  *
@@ -62,4 +61,4 @@ class GL_ImageBase extends AbstractionBase
 	}
 }
 
-export = GL_ImageBase;
+export default GL_ImageBase;

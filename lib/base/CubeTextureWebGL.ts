@@ -1,7 +1,7 @@
-import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
+import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
-import TextureBaseWebGL				= require("awayjs-stagegl/lib/base/TextureBaseWebGL");
+import ICubeTexture					from "awayjs-stagegl/lib/base/ICubeTexture";
+import TextureBaseWebGL				from "awayjs-stagegl/lib/base/TextureBaseWebGL";
 
 class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 {
@@ -56,4 +56,4 @@ class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 	}
 }
 
-export = CubeTextureWebGL;
+export default CubeTextureWebGL;

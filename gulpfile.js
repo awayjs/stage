@@ -70,13 +70,13 @@ function browserifyShare(callback) {
     var b = browserify({
         debug: true,
         paths: ['../'],
-        entries: './lib/StageGL.ts',
+        entries: './index.ts',
         cache: {},
         packageCache: {},
-        fullPaths: true
+        fullPaths: false
     });
 
-    b.plugin('tsify', {target:'ES5', sourceRoot:'../', noExternalResolve: true, declarationFiles: './node_modules/awayjs-**/build/*.d.ts', declarationOutput: './build/awayjs-stagegl.d.ts'});
+    b.plugin('tsify', {target:'ES5', sourceRoot:'../', noExternalResolve: true});
 
     glob('./node_modules/awayjs-**/lib/**/*.ts', {}, function (error, files) {
         files.forEach(function (file) {

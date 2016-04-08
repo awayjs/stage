@@ -1,0 +1,1 @@
+export {default as GL_AttributesBuffer}				from "awayjs-stagegl/lib/attributes/GL_AttributesBuffer";

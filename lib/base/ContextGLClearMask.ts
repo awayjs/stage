@@ -6,4 +6,4 @@ class ContextGLClearMask
 	static ALL:number = ContextGLClearMask.COLOR | ContextGLClearMask.DEPTH | ContextGLClearMask.STENCIL;
 }
 
-export = ContextGLClearMask;
+export default ContextGLClearMask;

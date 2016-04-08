@@ -1,13 +1,11 @@
-import IAssetClass					= require("awayjs-core/lib/library/IAssetClass");
-import BitmapImageCube				= require("awayjs-core/lib/image/BitmapImageCube");
-import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
-import AssetEvent					= require("awayjs-core/lib/events/AssetEvent");
-import MipmapGenerator				= require("awayjs-core/lib/utils/MipmapGenerator");
+import IAssetClass					from "awayjs-core/lib/library/IAssetClass";
+import BitmapImageCube				from "awayjs-core/lib/image/BitmapImageCube";
+import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
+import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
+import MipmapGenerator				from "awayjs-core/lib/utils/MipmapGenerator";
 
-import GL_ImageCube					= require("awayjs-stagegl/lib/image/GL_ImageCube");
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
+import GL_ImageCube					from "awayjs-stagegl/lib/image/GL_ImageCube";
+import ICubeTexture					from "awayjs-stagegl/lib/base/ICubeTexture";
 
 /**
  *
@@ -68,4 +66,4 @@ class GL_BitmapImageCube extends GL_ImageCube
 	}
 }
 
-export = GL_BitmapImageCube;
+export default GL_BitmapImageCube;

@@ -1,9 +1,9 @@
-import ByteArray				= require("awayjs-core/lib/utils/ByteArray");
+import ByteArray				from "awayjs-core/lib/utils/ByteArray";
 
-import Description				= require("awayjs-stagegl/lib/aglsl/Description");
-import Header					= require("awayjs-stagegl/lib/aglsl/Header");
-import Mapping					= require("awayjs-stagegl/lib/aglsl/Mapping");
-import Token					= require("awayjs-stagegl/lib/aglsl/Token");
+import Description				from "awayjs-stagegl/lib/aglsl/Description";
+import Header					from "awayjs-stagegl/lib/aglsl/Header";
+import Mapping					from "awayjs-stagegl/lib/aglsl/Mapping";
+import Token					from "awayjs-stagegl/lib/aglsl/Token";
 
 class AGALTokenizer
 {
@@ -129,4 +129,4 @@ class AGALTokenizer
 	}
 }
 
-export = AGALTokenizer;
+export default AGALTokenizer;

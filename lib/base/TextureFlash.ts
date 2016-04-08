@@ -1,9 +1,9 @@
-import ByteArrayBase				= require("awayjs-core/lib/utils/ByteArrayBase");
+import ByteArrayBase				from "awayjs-core/lib/utils/ByteArrayBase";
 
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
-import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
-import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
+import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
+import ITexture						from "awayjs-stagegl/lib/base/ITexture";
+import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
+import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
 
 class TextureFlash extends ResourceBaseFlash implements ITexture
 {
@@ -68,4 +68,4 @@ class TextureFlash extends ResourceBaseFlash implements ITexture
 	}
 }
 
-export = TextureFlash;
+export default TextureFlash;

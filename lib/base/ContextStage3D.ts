@@ -1,30 +1,23 @@
-import BitmapImage2D				= require("awayjs-core/lib/image/BitmapImage2D");
-import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
-import Matrix3DUtils				= require("awayjs-core/lib/geom/Matrix3DUtils");
-import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
+import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
+import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
+import Matrix3DUtils				from "awayjs-core/lib/geom/Matrix3DUtils";
+import Rectangle					from "awayjs-core/lib/geom/Rectangle";
 
-//import swfobject					= require("awayjs-stagegl/lib/swfobject");
-import Sampler						= require("awayjs-stagegl/lib/aglsl/Sampler");
-import ContextGLClearMask			= require("awayjs-stagegl/lib/base/ContextGLClearMask");
-import ContextGLProgramType			= require("awayjs-stagegl/lib/base/ContextGLProgramType");
-import CubeTextureFlash				= require("awayjs-stagegl/lib/base/CubeTextureFlash");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
-import IndexBufferFlash				= require("awayjs-stagegl/lib/base/IndexBufferFlash");
-import OpCodes						= require("awayjs-stagegl/lib/base/OpCodes");
-import ProgramFlash					= require("awayjs-stagegl/lib/base/ProgramFlash");
-import TextureFlash					= require("awayjs-stagegl/lib/base/TextureFlash");
-import ResourceBaseFlash			= require("awayjs-stagegl/lib/base/ResourceBaseFlash");
-import VertexBufferFlash			= require("awayjs-stagegl/lib/base/VertexBufferFlash");
+//import swfobject					from "awayjs-stagegl/lib/swfobject";
+import ContextGLClearMask			from "awayjs-stagegl/lib/base/ContextGLClearMask";
+import ContextGLProgramType			from "awayjs-stagegl/lib/base/ContextGLProgramType";
+import CubeTextureFlash				from "awayjs-stagegl/lib/base/CubeTextureFlash";
+import IContextGL					from "awayjs-stagegl/lib/base/IContextGL";
+import IndexBufferFlash				from "awayjs-stagegl/lib/base/IndexBufferFlash";
+import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
+import ProgramFlash					from "awayjs-stagegl/lib/base/ProgramFlash";
+import TextureFlash					from "awayjs-stagegl/lib/base/TextureFlash";
+import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
+import VertexBufferFlash			from "awayjs-stagegl/lib/base/VertexBufferFlash";
 
 class ContextStage3D implements IContextGL
 {
 	public static contexts:Object = new Object();
-	public static maxvertexconstants:number = 128;
-	public static maxfragconstants:number = 28;
-	public static maxtemp:number = 8;
-	public static maxstreams:number = 8;
-	public static maxtextures:number = 8;
-	public static defaultsampler = new Sampler();
 
 	public _iDriverInfo;
 
@@ -70,7 +63,7 @@ class ContextStage3D implements IContextGL
 	}
 
 	//TODO: get rid of hack that fixes including definition file
-	constructor(container:HTMLCanvasElement, callback:(context:IContextGL) => void, include?:Sampler)
+	constructor(container:HTMLCanvasElement, callback:(context:IContextGL) => void)
 	{
 		this._resources = new Array<ResourceBaseFlash>();
 
@@ -410,7 +403,7 @@ class ContextStage3D implements IContextGL
 	}
 }
 
-export = ContextStage3D;
+export default ContextStage3D;
 
 /**
 * global function for flash callback

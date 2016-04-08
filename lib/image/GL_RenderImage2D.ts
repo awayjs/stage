@@ -1,4 +1,4 @@
-import GL_Image2D					= require("awayjs-stagegl/lib/image/GL_Image2D");
+import GL_Image2D					from "awayjs-stagegl/lib/image/GL_Image2D";
 
 /**
  *
@@ -15,4 +15,4 @@ class GL_RenderImage2D extends GL_Image2D
 	}
 }
 
-export = GL_RenderImage2D;
+export default GL_RenderImage2D;

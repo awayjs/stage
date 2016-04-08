@@ -1,6 +1,6 @@
-import ByteArray					= require("awayjs-core/lib/utils/ByteArray");
+import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
+import ITextureBase					from "awayjs-stagegl/lib/base/ITextureBase";
 
 interface ICubeTexture extends ITextureBase
 {
@@ -12,4 +12,4 @@ interface ICubeTexture extends ITextureBase
 	uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number, async:boolean);
 }
 
-export = ICubeTexture;
+export default ICubeTexture;

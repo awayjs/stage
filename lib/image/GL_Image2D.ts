@@ -1,8 +1,7 @@
-import Image2D						= require("awayjs-core/lib/image/Image2D");
+import Image2D						from "awayjs-core/lib/image/Image2D";
 
-import ContextGLTextureFormat		= require("awayjs-stagegl/lib/base/ContextGLTextureFormat");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import GL_ImageBase					= require("awayjs-stagegl/lib/image/GL_ImageBase");
+import ContextGLTextureFormat		from "awayjs-stagegl/lib/base/ContextGLTextureFormat";
+import GL_ImageBase					from "awayjs-stagegl/lib/image/GL_ImageBase";
 
 /**
  *
@@ -21,4 +20,4 @@ class GL_Image2D extends GL_ImageBase
 	}
 }
 
-export = GL_Image2D;
+export default GL_Image2D;

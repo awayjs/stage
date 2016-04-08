@@ -12,4 +12,4 @@ class ContextGLBlendFactor
 	public static ZERO:string = "zero";
 }
 
-export = ContextGLBlendFactor;
+export default ContextGLBlendFactor;

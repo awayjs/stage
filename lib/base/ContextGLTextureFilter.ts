@@ -4,4 +4,4 @@ class ContextGLTextureFilter
 	public static NEAREST:string = "nearest";
 }
 
-export = ContextGLTextureFilter;
+export default ContextGLTextureFilter;
