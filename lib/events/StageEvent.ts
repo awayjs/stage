@@ -1,6 +1,6 @@
 import EventBase				from "awayjs-core/lib/events/EventBase";
 
-import Stage					from "awayjs-stagegl/lib/base/Stage";
+import Stage					from "../base/Stage";
 
 class StageEvent extends EventBase
 {

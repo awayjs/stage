@@ -2,9 +2,9 @@ import AttributesBuffer				from "awayjs-core/lib/attributes/AttributesBuffer";
 import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
 import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						from "awayjs-stagegl/lib/base/Stage";
-import IIndexBuffer					from "awayjs-stagegl/lib/base/IIndexBuffer";
-import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
+import Stage						from "../base/Stage";
+import IIndexBuffer					from "../base/IIndexBuffer";
+import IVertexBuffer				from "../base/IVertexBuffer";
 
 /**
  *

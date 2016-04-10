@@ -3,8 +3,8 @@ import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
 import IAsset						from "awayjs-core/lib/library/IAsset";
 import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						from "awayjs-stagegl/lib/base/Stage";
-import ITextureBase					from "awayjs-stagegl/lib/base/ITextureBase";
+import Stage						from "../base/Stage";
+import ITextureBase					from "../base/ITextureBase";
 
 /**
  *

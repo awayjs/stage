@@ -1,6 +1,6 @@
-import ProgramDataPool				from "awayjs-stagegl/lib/image/ProgramDataPool";
-import IProgram						from "awayjs-stagegl/lib/base/IProgram";
-import Stage						from "awayjs-stagegl/lib/base/Stage";
+import ProgramDataPool				from "../image/ProgramDataPool";
+import IProgram						from "../base/IProgram";
+import Stage						from "../base/Stage";
 
 /**
  *

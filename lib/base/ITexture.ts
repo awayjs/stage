@@ -1,4 +1,4 @@
-import ITextureBase					from "awayjs-stagegl/lib/base/ITextureBase";
+import ITextureBase					from "../base/ITextureBase";
 
 interface ITexture extends ITextureBase
 {

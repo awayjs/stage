@@ -1,9 +1,9 @@
 import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import AGALTokenizer				from "awayjs-stagegl/lib/aglsl/AGALTokenizer";
-import AGLSLParser					from "awayjs-stagegl/lib/aglsl/AGLSLParser";
-import IProgram						from "awayjs-stagegl/lib/base/IProgram";
-import VertexBufferWebGL			from "awayjs-stagegl/lib/base/VertexBufferWebGL";
+import AGALTokenizer				from "../aglsl/AGALTokenizer";
+import AGLSLParser					from "../aglsl/AGLSLParser";
+import IProgram						from "../base/IProgram";
+import VertexBufferWebGL			from "../base/VertexBufferWebGL";
 
 class ProgramWebGL implements IProgram
 {

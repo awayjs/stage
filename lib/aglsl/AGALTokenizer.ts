@@ -1,9 +1,9 @@
 import ByteArray				from "awayjs-core/lib/utils/ByteArray";
 
-import Description				from "awayjs-stagegl/lib/aglsl/Description";
-import Header					from "awayjs-stagegl/lib/aglsl/Header";
-import Mapping					from "awayjs-stagegl/lib/aglsl/Mapping";
-import Token					from "awayjs-stagegl/lib/aglsl/Token";
+import Description				from "../aglsl/Description";
+import Header					from "../aglsl/Header";
+import Mapping					from "../aglsl/Mapping";
+import Token					from "../aglsl/Token";
 
 class AGALTokenizer
 {

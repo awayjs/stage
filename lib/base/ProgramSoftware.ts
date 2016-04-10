@@ -1,29 +1,29 @@
 import ByteArray                    from "awayjs-core/lib/utils/ByteArray";
 
-import AGALTokenizer                from "awayjs-stagegl/lib/aglsl/AGALTokenizer";
-import AGLSLParser                    from "awayjs-stagegl/lib/aglsl/AGLSLParser";
-import IProgram                        from "awayjs-stagegl/lib/base/IProgram";
-import ProgramVOSoftware                        from "awayjs-stagegl/lib/base/ProgramVOSoftware";
-import ContextSoftware                        from "awayjs-stagegl/lib/base/ContextSoftware";
-import Description                from "awayjs-stagegl/lib/aglsl/Description";
-import Header                    from "awayjs-stagegl/lib/aglsl/Header";
-import Mapping                    from "awayjs-stagegl/lib/aglsl/Mapping";
-import Token                    from "awayjs-stagegl/lib/aglsl/Token";
+import AGALTokenizer                from "../aglsl/AGALTokenizer";
+import AGLSLParser                    from "../aglsl/AGLSLParser";
+import IProgram                        from "../base/IProgram";
+import ProgramVOSoftware                        from "../base/ProgramVOSoftware";
+import ContextSoftware                        from "../base/ContextSoftware";
+import Description                from "../aglsl/Description";
+import Header                    from "../aglsl/Header";
+import Mapping                    from "../aglsl/Mapping";
+import Token                    from "../aglsl/Token";
 import Matrix3D                        from "awayjs-core/lib/geom/Matrix3D";
 import Point                        from "awayjs-core/lib/geom/Point";
 import Vector3D                        from "awayjs-core/lib/geom/Vector3D";
-import Destination                from "awayjs-stagegl/lib/aglsl/Destination";
-import AGALMiniAssembler            from "awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler";
-import VertexBufferSoftware                    from "awayjs-stagegl/lib/base/VertexBufferSoftware";
-import ContextGLVertexBufferFormat    from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
-import TextureSoftware                    from "awayjs-stagegl/lib/base/TextureSoftware";
-import SoftwareSamplerState from "awayjs-stagegl/lib/base/SoftwareSamplerState";
+import Destination                from "../aglsl/Destination";
+import AGALMiniAssembler            from "../aglsl/assembler/AGALMiniAssembler";
+import VertexBufferSoftware                    from "../base/VertexBufferSoftware";
+import ContextGLVertexBufferFormat    from "../base/ContextGLVertexBufferFormat";
+import TextureSoftware                    from "../base/TextureSoftware";
+import SoftwareSamplerState from "../base/SoftwareSamplerState";
 import SamplerBase from "awayjs-core/lib/image/SamplerBase";
 import Sampler2D from "awayjs-core/lib/image/Sampler2D";
 import SamplerCube from "awayjs-core/lib/image/SamplerCube";
-import ContextGLTextureFilter from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
-import ContextGLMipFilter from "awayjs-stagegl/lib/base/ContextGLMipFilter";
-import ContextGLWrapMode from "awayjs-stagegl/lib/base/ContextGLWrapMode";
+import ContextGLTextureFilter from "../base/ContextGLTextureFilter";
+import ContextGLMipFilter from "../base/ContextGLMipFilter";
+import ContextGLWrapMode from "../base/ContextGLWrapMode";
 
 class ProgramSoftware implements IProgram {
     private static _defaultSamplerState:SoftwareSamplerState = new SoftwareSamplerState();

@@ -4,25 +4,25 @@ import Matrix3DUtils				from "awayjs-core/lib/geom/Matrix3DUtils";
 import Rectangle					from "awayjs-core/lib/geom/Rectangle";
 import ByteArray					from "awayjs-core/lib/utils/ByteArray";
 
-import ContextGLBlendFactor			from "awayjs-stagegl/lib/base/ContextGLBlendFactor";
-import ContextGLDrawMode			from "awayjs-stagegl/lib/base/ContextGLDrawMode";
-import ContextGLClearMask			from "awayjs-stagegl/lib/base/ContextGLClearMask";
-import ContextGLCompareMode			from "awayjs-stagegl/lib/base/ContextGLCompareMode";
-import ContextGLMipFilter			from "awayjs-stagegl/lib/base/ContextGLMipFilter";
-import ContextGLProgramType			from "awayjs-stagegl/lib/base/ContextGLProgramType";
-import ContextGLStencilAction		from "awayjs-stagegl/lib/base/ContextGLStencilAction";
-import ContextGLTextureFilter		from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
-import ContextGLTriangleFace		from "awayjs-stagegl/lib/base/ContextGLTriangleFace";
-import ContextGLVertexBufferFormat	from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
-import ContextGLWrapMode			from "awayjs-stagegl/lib/base/ContextGLWrapMode";
-import CubeTextureWebGL				from "awayjs-stagegl/lib/base/CubeTextureWebGL";
-import IContextGL				    from "awayjs-stagegl/lib/base/IContextGL";
-import IndexBufferWebGL				from "awayjs-stagegl/lib/base/IndexBufferWebGL";
-import ProgramWebGL					from "awayjs-stagegl/lib/base/ProgramWebGL";
-import TextureBaseWebGL				from "awayjs-stagegl/lib/base/TextureBaseWebGL";
-import TextureWebGL					from "awayjs-stagegl/lib/base/TextureWebGL";
-import SamplerState					from "awayjs-stagegl/lib/base/SamplerState";
-import VertexBufferWebGL			from "awayjs-stagegl/lib/base/VertexBufferWebGL";
+import ContextGLBlendFactor			from "../base/ContextGLBlendFactor";
+import ContextGLDrawMode			from "../base/ContextGLDrawMode";
+import ContextGLClearMask			from "../base/ContextGLClearMask";
+import ContextGLCompareMode			from "../base/ContextGLCompareMode";
+import ContextGLMipFilter			from "../base/ContextGLMipFilter";
+import ContextGLProgramType			from "../base/ContextGLProgramType";
+import ContextGLStencilAction		from "../base/ContextGLStencilAction";
+import ContextGLTextureFilter		from "../base/ContextGLTextureFilter";
+import ContextGLTriangleFace		from "../base/ContextGLTriangleFace";
+import ContextGLVertexBufferFormat	from "../base/ContextGLVertexBufferFormat";
+import ContextGLWrapMode			from "../base/ContextGLWrapMode";
+import CubeTextureWebGL				from "../base/CubeTextureWebGL";
+import IContextGL				    from "../base/IContextGL";
+import IndexBufferWebGL				from "../base/IndexBufferWebGL";
+import ProgramWebGL					from "../base/ProgramWebGL";
+import TextureBaseWebGL				from "../base/TextureBaseWebGL";
+import TextureWebGL					from "../base/TextureWebGL";
+import SamplerState					from "../base/SamplerState";
+import VertexBufferWebGL			from "../base/VertexBufferWebGL";
 
 class ContextWebGL implements IContextGL
 {

@@ -1,5 +1,5 @@
-import Stage						from "awayjs-stagegl/lib/base/Stage";
-import ProgramData					from "awayjs-stagegl/lib/image/ProgramData";
+import Stage						from "../base/Stage";
+import ProgramData					from "../image/ProgramData";
 
 /**
  * @class away.pool.ProgramDataPool

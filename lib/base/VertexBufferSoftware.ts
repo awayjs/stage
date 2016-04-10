@@ -1,4 +1,4 @@
-import IVertexBuffer                from "awayjs-stagegl/lib/base/IVertexBuffer";
+import IVertexBuffer                from "../base/IVertexBuffer";
 
 class VertexBufferSoftware implements IVertexBuffer {
     private _numVertices:number;

@@ -1,4 +1,4 @@
-import GL_ImageCube					from "awayjs-stagegl/lib/image/GL_ImageCube";
+import GL_ImageCube					from "../image/GL_ImageCube";
 
 /**
  *

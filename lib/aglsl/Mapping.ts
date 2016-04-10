@@ -1,4 +1,4 @@
-import OpLUT					from "awayjs-stagegl/lib/aglsl/OpLUT";
+import OpLUT					from "../aglsl/OpLUT";
 
 class Mapping
 {

@@ -1,7 +1,7 @@
 import ImageCube					from "awayjs-core/lib/image/ImageCube";
 
-import ContextGLTextureFormat		from "awayjs-stagegl/lib/base/ContextGLTextureFormat";
-import GL_ImageBase					from "awayjs-stagegl/lib/image/GL_ImageBase";
+import ContextGLTextureFormat		from "../base/ContextGLTextureFormat";
+import GL_ImageBase					from "../image/GL_ImageBase";
 
 /**
  *

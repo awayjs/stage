@@ -3,17 +3,17 @@ import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
 import Matrix3DUtils				from "awayjs-core/lib/geom/Matrix3DUtils";
 import Rectangle					from "awayjs-core/lib/geom/Rectangle";
 
-//import swfobject					from "awayjs-stagegl/lib/swfobject";
-import ContextGLClearMask			from "awayjs-stagegl/lib/base/ContextGLClearMask";
-import ContextGLProgramType			from "awayjs-stagegl/lib/base/ContextGLProgramType";
-import CubeTextureFlash				from "awayjs-stagegl/lib/base/CubeTextureFlash";
-import IContextGL					from "awayjs-stagegl/lib/base/IContextGL";
-import IndexBufferFlash				from "awayjs-stagegl/lib/base/IndexBufferFlash";
-import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
-import ProgramFlash					from "awayjs-stagegl/lib/base/ProgramFlash";
-import TextureFlash					from "awayjs-stagegl/lib/base/TextureFlash";
-import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
-import VertexBufferFlash			from "awayjs-stagegl/lib/base/VertexBufferFlash";
+//import swfobject					from "../swfobject";
+import ContextGLClearMask			from "../base/ContextGLClearMask";
+import ContextGLProgramType			from "../base/ContextGLProgramType";
+import CubeTextureFlash				from "../base/CubeTextureFlash";
+import IContextGL					from "../base/IContextGL";
+import IndexBufferFlash				from "../base/IndexBufferFlash";
+import OpCodes						from "../base/OpCodes";
+import ProgramFlash					from "../base/ProgramFlash";
+import TextureFlash					from "../base/TextureFlash";
+import ResourceBaseFlash			from "../base/ResourceBaseFlash";
+import VertexBufferFlash			from "../base/VertexBufferFlash";
 
 class ContextStage3D implements IContextGL
 {

@@ -1,6 +1,6 @@
-import ContextGLTextureFilter from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
-import ContextGLMipFilter from "awayjs-stagegl/lib/base/ContextGLMipFilter";
-import ContextGLWrapMode from "awayjs-stagegl/lib/base/ContextGLWrapMode";
+import ContextGLTextureFilter from "../base/ContextGLTextureFilter";
+import ContextGLMipFilter from "../base/ContextGLMipFilter";
+import ContextGLWrapMode from "../base/ContextGLWrapMode";
 /**
  * The same as SamplerState, but with strings
  * TODO: replace two similar classes with one

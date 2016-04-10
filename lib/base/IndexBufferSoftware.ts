@@ -1,4 +1,4 @@
-import IIndexBuffer                    from "awayjs-stagegl/lib/base/IIndexBuffer";
+import IIndexBuffer                    from "../base/IIndexBuffer";
 
 class IndexBufferSoftware implements IIndexBuffer {
     private _numIndices:number;

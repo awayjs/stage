@@ -4,8 +4,8 @@ import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
 import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
 import MipmapGenerator				from "awayjs-core/lib/utils/MipmapGenerator";
 
-import GL_ImageCube					from "awayjs-stagegl/lib/image/GL_ImageCube";
-import ICubeTexture					from "awayjs-stagegl/lib/base/ICubeTexture";
+import GL_ImageCube					from "../image/GL_ImageCube";
+import ICubeTexture					from "../base/ICubeTexture";
 
 /**
  *

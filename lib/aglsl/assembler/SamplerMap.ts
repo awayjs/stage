@@ -1,4 +1,4 @@
-import Sampler				from "awayjs-stagegl/lib/aglsl/assembler/Sampler";
+import Sampler				from "../../aglsl/assembler/Sampler";
 
 class SamplerMap
 {

@@ -7,22 +7,22 @@ import IAssetClass					from "awayjs-core/lib/library/IAssetClass";
 import IAbstractionPool				from "awayjs-core/lib/library/IAbstractionPool";
 import CSS							from "awayjs-core/lib/utils/CSS";
 
-import ContextMode					from "awayjs-stagegl/lib/base/ContextMode";
-import ContextGLMipFilter			from "awayjs-stagegl/lib/base/ContextGLMipFilter";
-import ContextGLTextureFilter		from "awayjs-stagegl/lib/base/ContextGLTextureFilter";
-import ContextGLVertexBufferFormat	from "awayjs-stagegl/lib/base/ContextGLVertexBufferFormat";
-import ContextGLWrapMode			from "awayjs-stagegl/lib/base/ContextGLWrapMode";
-import ContextWebGL					from "awayjs-stagegl/lib/base/ContextWebGL";
-import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
-import ContextSoftware				from "awayjs-stagegl/lib/base/ContextSoftware";
-import IContextGL					from "awayjs-stagegl/lib/base/IContextGL";
-import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
-import StageEvent					from "awayjs-stagegl/lib/events/StageEvent";
-import GL_ImageBase					from "awayjs-stagegl/lib/image/GL_ImageBase";
-import GL_IAssetClass				from "awayjs-stagegl/lib/library/GL_IAssetClass";
-import ProgramData					from "awayjs-stagegl/lib/image/ProgramData";
-import ProgramDataPool				from "awayjs-stagegl/lib/image/ProgramDataPool";
-import StageManager					from "awayjs-stagegl/lib/managers/StageManager";
+import ContextMode					from "../base/ContextMode";
+import ContextGLMipFilter			from "../base/ContextGLMipFilter";
+import ContextGLTextureFilter		from "../base/ContextGLTextureFilter";
+import ContextGLVertexBufferFormat	from "../base/ContextGLVertexBufferFormat";
+import ContextGLWrapMode			from "../base/ContextGLWrapMode";
+import ContextWebGL					from "../base/ContextWebGL";
+import ContextStage3D				from "../base/ContextStage3D";
+import ContextSoftware				from "../base/ContextSoftware";
+import IContextGL					from "../base/IContextGL";
+import IVertexBuffer				from "../base/IVertexBuffer";
+import StageEvent					from "../events/StageEvent";
+import GL_ImageBase					from "../image/GL_ImageBase";
+import GL_IAssetClass				from "../library/GL_IAssetClass";
+import ProgramData					from "../image/ProgramData";
+import ProgramDataPool				from "../image/ProgramDataPool";
+import StageManager					from "../managers/StageManager";
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context

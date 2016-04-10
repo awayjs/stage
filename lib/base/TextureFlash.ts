@@ -1,9 +1,9 @@
 import ByteArrayBase				from "awayjs-core/lib/utils/ByteArrayBase";
 
-import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
-import ITexture						from "awayjs-stagegl/lib/base/ITexture";
-import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
-import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
+import ContextStage3D				from "../base/ContextStage3D";
+import ITexture						from "../base/ITexture";
+import OpCodes						from "../base/OpCodes";
+import ResourceBaseFlash			from "../base/ResourceBaseFlash";
 
 class TextureFlash extends ResourceBaseFlash implements ITexture
 {

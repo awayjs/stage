@@ -1,4 +1,4 @@
-import Destination				from "awayjs-stagegl/lib/aglsl/Destination";
+import Destination				from "../aglsl/Destination";
 
 class Token
 {

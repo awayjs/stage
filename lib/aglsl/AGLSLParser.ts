@@ -1,5 +1,5 @@
-import Description				from "awayjs-stagegl/lib/aglsl/Description";
-import Mapping					from "awayjs-stagegl/lib/aglsl/Mapping";
+import Description				from "../aglsl/Description";
+import Mapping					from "../aglsl/Mapping";
 
 class AGLSLParser
 {

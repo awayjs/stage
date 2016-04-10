@@ -2,12 +2,12 @@ import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
 import Rectangle					from "awayjs-core/lib/geom/Rectangle";
 import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
 
-import ICubeTexture					from "awayjs-stagegl/lib/base/ICubeTexture";
-import IIndexBuffer					from "awayjs-stagegl/lib/base/IIndexBuffer";
-import IProgram						from "awayjs-stagegl/lib/base/IProgram";
-import ITexture						from "awayjs-stagegl/lib/base/ITexture";
-import ITextureBase					from "awayjs-stagegl/lib/base/ITextureBase";
-import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
+import ICubeTexture					from "../base/ICubeTexture";
+import IIndexBuffer					from "../base/IIndexBuffer";
+import IProgram						from "../base/IProgram";
+import ITexture						from "../base/ITexture";
+import ITextureBase					from "../base/ITextureBase";
+import IVertexBuffer				from "../base/IVertexBuffer";
 
 interface IContextGL
 {

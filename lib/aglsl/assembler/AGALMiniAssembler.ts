@@ -1,9 +1,9 @@
-import Sampler					from "awayjs-stagegl/lib/aglsl/assembler/Sampler";
-import Opcode					from "awayjs-stagegl/lib/aglsl/assembler/Opcode";
-import OpcodeMap				from "awayjs-stagegl/lib/aglsl/assembler/OpcodeMap";
-import Part						from "awayjs-stagegl/lib/aglsl/assembler/Part";
-import RegMap					from "awayjs-stagegl/lib/aglsl/assembler/RegMap";
-import SamplerMap				from "awayjs-stagegl/lib/aglsl/assembler/SamplerMap";
+import Sampler					from "../../aglsl/assembler/Sampler";
+import Opcode					from "../../aglsl/assembler/Opcode";
+import OpcodeMap				from "../../aglsl/assembler/OpcodeMap";
+import Part						from "../../aglsl/assembler/Part";
+import RegMap					from "../../aglsl/assembler/RegMap";
+import SamplerMap				from "../../aglsl/assembler/SamplerMap";
 
 
 class AGALMiniAssembler

@@ -1,7 +1,7 @@
 import SamplerCube					from "awayjs-core/lib/image/SamplerCube";
 
-import Stage						from "awayjs-stagegl/lib/base/Stage";
-import GL_SamplerBase				from "awayjs-stagegl/lib/image/GL_SamplerBase";
+import Stage						from "../base/Stage";
+import GL_SamplerBase				from "../image/GL_SamplerBase";
 
 /**
  *

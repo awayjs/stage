@@ -1,5 +1,5 @@
-import Header					from "awayjs-stagegl/lib/aglsl/Header";
-import Token					from "awayjs-stagegl/lib/aglsl/Token";
+import Header					from "../aglsl/Header";
+import Token					from "../aglsl/Token";
 
 class Description
 {

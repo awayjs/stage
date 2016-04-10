@@ -1,7 +1,7 @@
-import ContextStage3D				from "awayjs-stagegl/lib/base/ContextStage3D";
-import IVertexBuffer				from "awayjs-stagegl/lib/base/IVertexBuffer";
-import OpCodes						from "awayjs-stagegl/lib/base/OpCodes";
-import ResourceBaseFlash			from "awayjs-stagegl/lib/base/ResourceBaseFlash";
+import ContextStage3D				from "../base/ContextStage3D";
+import IVertexBuffer				from "../base/IVertexBuffer";
+import OpCodes						from "../base/OpCodes";
+import ResourceBaseFlash			from "../base/ResourceBaseFlash";
 
 class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 {

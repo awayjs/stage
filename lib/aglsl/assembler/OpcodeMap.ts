@@ -1,4 +1,4 @@
-import Opcode					from "awayjs-stagegl/lib/aglsl/assembler/Opcode";
+import Opcode					from "../../aglsl/assembler/Opcode";
 
 class OpcodeMap
 {
