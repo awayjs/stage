@@ -10,6 +10,7 @@ class ProgramWebGL implements IProgram
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
 	private static _aglslParser:AGLSLParser = new AGLSLParser();
 	private static _uniformLocationNameDictionary:Array<string> = ["fc", "fs", "vc"];
+	// private static _uniformLocationNameDictionary:Array<string> = ["fcarrr", "fs", "vcarrr"];
 
 	private _gl:WebGLRenderingContext;
 	private _program:WebGLProgram;
@@ -57,13 +58,23 @@ class ProgramWebGL implements IProgram
 		this._attribs.length = 0;
 	}
 
-	public getUniformLocation(programType:number, index:number):WebGLUniformLocation
+	public getUniformLocation(programType:number, index:number = -1):WebGLUniformLocation
 	{
 		if (this._uniforms[programType][index] != null)
 			return this._uniforms[programType][index];
-
-		return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
+	
+		var name:string =  (index == -1)? ProgramWebGL._uniformLocationNameDictionary[programType] : ProgramWebGL._uniformLocationNameDictionary[programType] + index;
+		return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, name));
 	}
+	
+	//
+	// public getUniformLocation(programType:number, index:number):WebGLUniformLocation
+	// {
+	// 	if (this._uniforms[programType][index] != null)
+	// 		return this._uniforms[programType][index];
+	//
+	// 	return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
+	// }
 
 
 	public getAttribLocation(index:number):number

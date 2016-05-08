@@ -225,37 +225,8 @@ class ContextSoftware implements IContextGL {
         this._program = program;
     }
 
-    public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean) {
-        console.log("setProgramConstantsFromMatrix: programType" + programType + " firstRegister: " + firstRegister + " matrix: " + matrix + " transposedMatrix: " + transposedMatrix);
-
-        var d:Float32Array = matrix.rawData;
-        if (transposedMatrix) {
-            var raw:Float32Array = Matrix3DUtils.RAW_DATA_CONTAINER;
-            raw[0] = d[0];
-            raw[1] = d[4];
-            raw[2] = d[8];
-            raw[3] = d[12];
-            raw[4] = d[1];
-            raw[5] = d[5];
-            raw[6] = d[9];
-            raw[7] = d[13];
-            raw[8] = d[2];
-            raw[9] = d[6];
-            raw[10] = d[10];
-            raw[11] = d[14];
-            raw[12] = d[3];
-            raw[13] = d[7];
-            raw[14] = d[11];
-            raw[15] = d[15];
-
-            this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
-        } else {
-            this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
-        }
-    }
-
-    public setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters:number) {
-        console.log("setProgramConstantsFromArray: programType" + programType + " firstRegister: " + firstRegister + " data: " + data + " numRegisters: " + numRegisters);
+    public setProgramConstantsFromArray(programType:number, data:Float32Array) {
+        console.log("setProgramConstantsFromArray: programType" + programType + " data: " + data);
         var target:Array<Vector3D>;
         if (programType == ContextGLProgramType.VERTEX) {
             target = this._vertexConstants;
@@ -264,7 +235,8 @@ class ContextSoftware implements IContextGL {
         }
 
         var k:number = 0;
-        for (var i:number = firstRegister; i < firstRegister + numRegisters; i++) {
+        var len:number = data.length/4;
+        for (var i:number = 0; i < len; i++) {
             target[i] = new Vector3D(data[k++], data[k++], data[k++], data[k++]);
         }
     }

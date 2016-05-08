@@ -21,15 +21,20 @@ class AGLSLParser
 		if (desc.header.type == "vertex") {
 			header += "uniform float yflip;\n";
 		}
-		if (!desc.hasindirect) {
-			for (var i:number = 0; i < desc.regread[0x1].length; i++) {
-				if (desc.regread[0x1][i]) {
-					header += "uniform vec4 " + tag + "c" + i + ";\n";
-				}
-			}
-		} else {
-			header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n";                // use max const count instead
-		}
+		// if (!desc.hasindirect) {
+		// 	for (var i:number = 0; i < desc.regread[0x1].length; i++) {
+		// 		if (desc.regread[0x1][i]) {
+		// 			header += "uniform vec4 " + tag + "c" + i + ";\n";
+		// 		}
+		// 	}
+		// } else {
+		// 	header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n";                // use max const count instead
+		// }
+
+		var constcount:number = desc.regread[0x1].length;
+
+		if (constcount > 0)
+			header += "uniform vec4 " + tag + "c[" + constcount + "];\n";
 
 		// declare temps
 		for (var i = 0; i < desc.regread[0x2].length || i < desc.regwrite[0x2].length; i++) {
@@ -194,11 +199,13 @@ class AGLSLParser
 			case 0x0:
 				return "va" + regnum;
 			case 0x1:
-				if (desc.hasindirect && desc.header.type == "vertex") {
-					return "vcarrr[" + regnum + "]";
-				} else {
-					return tag + "c" + regnum;
-				}
+				return desc.header.type[0] + "c[" + regnum + "]";
+			// case 0x1:
+			// 	if (desc.hasindirect && desc.header.type == "vertex") {
+			// 		return "vcarrr[" + regnum + "]";
+			// 	} else {
+			// 		return tag + "c" + regnum;
+			// 	}
 			case 0x2:
 				return tag + "t" + regnum;
 			case 0x3:

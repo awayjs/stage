@@ -192,45 +192,14 @@ class ContextStage3D implements IContextGL
 		//can't be done in Stage3D
 	}
 
-
-	public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
-	{
-		//this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
-
-		//TODO remove special case for WebGL matrix calls?
-		var d:Float32Array = matrix.rawData;
-		if (transposedMatrix) {
-			var raw:Float32Array = Matrix3DUtils.RAW_DATA_CONTAINER;
-			raw[0] = d[0];
-			raw[1] = d[4];
-			raw[2] = d[8];
-			raw[3] = d[12];
-			raw[4] = d[1];
-			raw[5] = d[5];
-			raw[6] = d[9];
-			raw[7] = d[13];
-			raw[8] = d[2];
-			raw[9] = d[6];
-			raw[10] = d[10];
-			raw[11] = d[14];
-			raw[12] = d[3];
-			raw[13] = d[7];
-			raw[14] = d[11];
-			raw[15] = d[15];
-
-			this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
-		} else {
-			this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
-		}
-	}
-
-	public setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters:number = -1)
+	public setProgramConstantsFromArray(programType:number, data:Float32Array)
 	{
 		var startIndex:number;
+		var numRegisters:number = data.length/4
 		var target:number = (programType == ContextGLProgramType.VERTEX)? OpCodes.trueValue : OpCodes.falseValue;
 		for (var i:number = 0; i < numRegisters; i++) {
 			startIndex = i*4;
-			this.addStream(String.fromCharCode(OpCodes.setProgramConstant, target, (firstRegister + i) + OpCodes.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
+			this.addStream(String.fromCharCode(OpCodes.setProgramConstant, target, i + OpCodes.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
 
 			if (ContextStage3D.debug)
 				this.execute();

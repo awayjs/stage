@@ -387,48 +387,12 @@ class ContextWebGL implements IContextGL
 		program.focusProgram();
 	}
 
-	private static _float4:Float32Array = new Float32Array(4);
-
-	public setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix:boolean = false)
-	{
-		//this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
-
-		//TODO remove special case for WebGL matrix calls?
-		var d:Float32Array = matrix.rawData;
-		if (transposedMatrix) {
-			var raw:Float32Array = Matrix3DUtils.RAW_DATA_CONTAINER;
-			raw[0] = d[0];
-			raw[1] = d[4];
-			raw[2] = d[8];
-			raw[3] = d[12];
-			raw[4] = d[1];
-			raw[5] = d[5];
-			raw[6] = d[9];
-			raw[7] = d[13];
-			raw[8] = d[2];
-			raw[9] = d[6];
-			raw[10] = d[10];
-			raw[11] = d[14];
-			raw[12] = d[3];
-			raw[13] = d[7];
-			raw[14] = d[11];
-			raw[15] = d[15];
-
-			this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
-		} else {
-			this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
-		}
-	}
-
 	public static modulo:number = 0;
 
-	public setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters:number = -1)
+	public setProgramConstantsFromArray(programType:number, data:Float32Array)
 	{
-		var startIndex:number;
-		for (var i:number = 0; i < numRegisters; i++) {
-			startIndex = i*4;
-			this._gl.uniform4f(this._currentProgram.getUniformLocation(programType, (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
-		}
+		if (data.length)
+			this._gl.uniform4fv(this._currentProgram.getUniformLocation(programType), data);
 	}
 
 	public setScissorRectangle(rectangle:Rectangle)

@@ -50,10 +50,8 @@ interface IContextGL
 	setDepthTest(depthMask:boolean, passCompareMode:string);
 
 	setProgram(program:IProgram);
-
-	setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix?:boolean);
-
-	setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters?:number);
+	
+	setProgramConstantsFromArray(programType:number, data:Float32Array);
 
 	setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string);
 
