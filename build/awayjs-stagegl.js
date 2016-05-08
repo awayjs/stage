@@ -169,16 +169,18 @@ var AGLSLParser = (function () {
         if (desc.header.type == "vertex") {
             header += "uniform float yflip;\n";
         }
-        if (!desc.hasindirect) {
-            for (var i = 0; i < desc.regread[0x1].length; i++) {
-                if (desc.regread[0x1][i]) {
-                    header += "uniform vec4 " + tag + "c" + i + ";\n";
-                }
-            }
-        }
-        else {
-            header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n"; // use max const count instead
-        }
+        // if (!desc.hasindirect) {
+        // 	for (var i:number = 0; i < desc.regread[0x1].length; i++) {
+        // 		if (desc.regread[0x1][i]) {
+        // 			header += "uniform vec4 " + tag + "c" + i + ";\n";
+        // 		}
+        // 	}
+        // } else {
+        // 	header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n";                // use max const count instead
+        // }
+        var constcount = desc.regread[0x1].length;
+        if (constcount > 0)
+            header += "uniform vec4 " + tag + "c[" + constcount + "];\n";
         // declare temps
         for (var i = 0; i < desc.regread[0x2].length || i < desc.regwrite[0x2].length; i++) {
             if (desc.regread[0x2][i] || desc.regwrite[0x2][i]) {
@@ -326,12 +328,13 @@ var AGLSLParser = (function () {
             case 0x0:
                 return "va" + regnum;
             case 0x1:
-                if (desc.hasindirect && desc.header.type == "vertex") {
-                    return "vcarrr[" + regnum + "]";
-                }
-                else {
-                    return tag + "c" + regnum;
-                }
+                return desc.header.type[0] + "c[" + regnum + "]";
+            // case 0x1:
+            // 	if (desc.hasindirect && desc.header.type == "vertex") {
+            // 		return "vcarrr[" + regnum + "]";
+            // 	} else {
+            // 		return tag + "c" + regnum;
+            // 	}
             case 0x2:
                 return tag + "t" + regnum;
             case 0x3:
@@ -1483,7 +1486,6 @@ var Point_1 = require("awayjs-core/lib/geom/Point");
 var Vector3D_1 = require("awayjs-core/lib/geom/Vector3D");
 var Rectangle_1 = require("awayjs-core/lib/geom/Rectangle");
 var ColorUtils_1 = require("awayjs-core/lib/utils/ColorUtils");
-var Matrix3DUtils_1 = require("awayjs-core/lib/geom/Matrix3DUtils");
 var ContextGLBlendFactor_1 = require("../base/ContextGLBlendFactor");
 var ContextGLClearMask_1 = require("../base/ContextGLClearMask");
 var ContextGLCompareMode_1 = require("../base/ContextGLCompareMode");
@@ -1648,35 +1650,8 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setProgram = function (program) {
         this._program = program;
     };
-    ContextSoftware.prototype.setProgramConstantsFromMatrix = function (programType, firstRegister, matrix, transposedMatrix) {
-        console.log("setProgramConstantsFromMatrix: programType" + programType + " firstRegister: " + firstRegister + " matrix: " + matrix + " transposedMatrix: " + transposedMatrix);
-        var d = matrix.rawData;
-        if (transposedMatrix) {
-            var raw = Matrix3DUtils_1.default.RAW_DATA_CONTAINER;
-            raw[0] = d[0];
-            raw[1] = d[4];
-            raw[2] = d[8];
-            raw[3] = d[12];
-            raw[4] = d[1];
-            raw[5] = d[5];
-            raw[6] = d[9];
-            raw[7] = d[13];
-            raw[8] = d[2];
-            raw[9] = d[6];
-            raw[10] = d[10];
-            raw[11] = d[14];
-            raw[12] = d[3];
-            raw[13] = d[7];
-            raw[14] = d[11];
-            raw[15] = d[15];
-            this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
-        }
-        else {
-            this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
-        }
-    };
-    ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
-        console.log("setProgramConstantsFromArray: programType" + programType + " firstRegister: " + firstRegister + " data: " + data + " numRegisters: " + numRegisters);
+    ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, data) {
+        console.log("setProgramConstantsFromArray: programType" + programType + " data: " + data);
         var target;
         if (programType == ContextGLProgramType_1.default.VERTEX) {
             target = this._vertexConstants;
@@ -1685,7 +1660,8 @@ var ContextSoftware = (function () {
             target = this._fragmentConstants;
         }
         var k = 0;
-        for (var i = firstRegister; i < firstRegister + numRegisters; i++) {
+        var len = data.length / 4;
+        for (var i = 0; i < len; i++) {
             target[i] = new Vector3D_1.default(data[k++], data[k++], data[k++], data[k++]);
         }
     };
@@ -2028,9 +2004,8 @@ var VertexBufferProperties = (function () {
     return VertexBufferProperties;
 }());
 
-},{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","../base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","../base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","../base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware","awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
+},{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","../base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","../base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","../base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware","awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 "use strict";
-var Matrix3DUtils_1 = require("awayjs-core/lib/geom/Matrix3DUtils");
 //import swfobject					from "../swfobject";
 var ContextGLClearMask_1 = require("../base/ContextGLClearMask");
 var ContextGLProgramType_1 = require("../base/ContextGLProgramType");
@@ -2174,42 +2149,13 @@ var ContextStage3D = (function () {
         if (numVertices === void 0) { numVertices = -1; }
         //can't be done in Stage3D
     };
-    ContextStage3D.prototype.setProgramConstantsFromMatrix = function (programType, firstRegister, matrix, transposedMatrix) {
-        //this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
-        if (transposedMatrix === void 0) { transposedMatrix = false; }
-        //TODO remove special case for WebGL matrix calls?
-        var d = matrix.rawData;
-        if (transposedMatrix) {
-            var raw = Matrix3DUtils_1.default.RAW_DATA_CONTAINER;
-            raw[0] = d[0];
-            raw[1] = d[4];
-            raw[2] = d[8];
-            raw[3] = d[12];
-            raw[4] = d[1];
-            raw[5] = d[5];
-            raw[6] = d[9];
-            raw[7] = d[13];
-            raw[8] = d[2];
-            raw[9] = d[6];
-            raw[10] = d[10];
-            raw[11] = d[14];
-            raw[12] = d[3];
-            raw[13] = d[7];
-            raw[14] = d[11];
-            raw[15] = d[15];
-            this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
-        }
-        else {
-            this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
-        }
-    };
-    ContextStage3D.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
-        if (numRegisters === void 0) { numRegisters = -1; }
+    ContextStage3D.prototype.setProgramConstantsFromArray = function (programType, data) {
         var startIndex;
+        var numRegisters = data.length / 4;
         var target = (programType == ContextGLProgramType_1.default.VERTEX) ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue;
         for (var i = 0; i < numRegisters; i++) {
             startIndex = i * 4;
-            this.addStream(String.fromCharCode(OpCodes_1.default.setProgramConstant, target, (firstRegister + i) + OpCodes_1.default.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.default.setProgramConstant, target, i + OpCodes_1.default.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
             if (ContextStage3D.debug)
                 this.execute();
         }
@@ -2367,9 +2313,8 @@ function mountain_js_context_available(id, driverInfo) {
     }
 }
 
-},{"../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","../base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","../base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","../base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash","awayjs-core/lib/geom/Matrix3DUtils":undefined}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
+},{"../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","../base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","../base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","../base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash"}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
 "use strict";
-var Matrix3DUtils_1 = require("awayjs-core/lib/geom/Matrix3DUtils");
 var Rectangle_1 = require("awayjs-core/lib/geom/Rectangle");
 var ByteArray_1 = require("awayjs-core/lib/utils/ByteArray");
 var ContextGLBlendFactor_1 = require("../base/ContextGLBlendFactor");
@@ -2678,42 +2623,9 @@ var ContextWebGL = (function () {
         this._currentProgram = program;
         program.focusProgram();
     };
-    ContextWebGL.prototype.setProgramConstantsFromMatrix = function (programType, firstRegister, matrix, transposedMatrix) {
-        //this._gl.uniformMatrix4fv(this._gl.getUniformLocation(this._currentProgram.glProgram, this._uniformLocationNameDictionary[programType]), !transposedMatrix, new Float32Array(matrix.rawData));
-        if (transposedMatrix === void 0) { transposedMatrix = false; }
-        //TODO remove special case for WebGL matrix calls?
-        var d = matrix.rawData;
-        if (transposedMatrix) {
-            var raw = Matrix3DUtils_1.default.RAW_DATA_CONTAINER;
-            raw[0] = d[0];
-            raw[1] = d[4];
-            raw[2] = d[8];
-            raw[3] = d[12];
-            raw[4] = d[1];
-            raw[5] = d[5];
-            raw[6] = d[9];
-            raw[7] = d[13];
-            raw[8] = d[2];
-            raw[9] = d[6];
-            raw[10] = d[10];
-            raw[11] = d[14];
-            raw[12] = d[3];
-            raw[13] = d[7];
-            raw[14] = d[11];
-            raw[15] = d[15];
-            this.setProgramConstantsFromArray(programType, firstRegister, raw, 4);
-        }
-        else {
-            this.setProgramConstantsFromArray(programType, firstRegister, d, 4);
-        }
-    };
-    ContextWebGL.prototype.setProgramConstantsFromArray = function (programType, firstRegister, data, numRegisters) {
-        if (numRegisters === void 0) { numRegisters = -1; }
-        var startIndex;
-        for (var i = 0; i < numRegisters; i++) {
-            startIndex = i * 4;
-            this._gl.uniform4f(this._currentProgram.getUniformLocation(programType, (firstRegister + i)), data[startIndex], data[startIndex + 1], data[startIndex + 2], data[startIndex + 3]);
-        }
+    ContextWebGL.prototype.setProgramConstantsFromArray = function (programType, data) {
+        if (data.length)
+            this._gl.uniform4fv(this._currentProgram.getUniformLocation(programType), data);
     };
     ContextWebGL.prototype.setScissorRectangle = function (rectangle) {
         if (!rectangle) {
@@ -2812,7 +2724,6 @@ var ContextWebGL = (function () {
         }
     };
     ContextWebGL.MAX_SAMPLERS = 8;
-    ContextWebGL._float4 = new Float32Array(4);
     ContextWebGL.modulo = 0;
     return ContextWebGL;
 }());
@@ -2827,7 +2738,7 @@ var VertexBufferProperties = (function () {
     return VertexBufferProperties;
 }());
 
-},{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","../base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","../base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","../base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","../base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","../base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL","awayjs-core/lib/geom/Matrix3DUtils":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
+},{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","../base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","../base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","../base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","../base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","../base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL","awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -4278,10 +4189,20 @@ var ProgramWebGL = (function () {
         this._attribs.length = 0;
     };
     ProgramWebGL.prototype.getUniformLocation = function (programType, index) {
+        if (index === void 0) { index = -1; }
         if (this._uniforms[programType][index] != null)
             return this._uniforms[programType][index];
-        return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
+        var name = (index == -1) ? ProgramWebGL._uniformLocationNameDictionary[programType] : ProgramWebGL._uniformLocationNameDictionary[programType] + index;
+        return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, name));
     };
+    //
+    // public getUniformLocation(programType:number, index:number):WebGLUniformLocation
+    // {
+    // 	if (this._uniforms[programType][index] != null)
+    // 		return this._uniforms[programType][index];
+    //
+    // 	return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
+    // }
     ProgramWebGL.prototype.getAttribLocation = function (index) {
         if (this._attribs[index] != null)
             return this._attribs[index];
