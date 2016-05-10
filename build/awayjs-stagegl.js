@@ -4328,6 +4328,8 @@ var Stage = (function (_super) {
         //private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
         this._initialised = false;
         this._bufferFormatDictionary = new Array(5);
+        this.globalDisableMipmap = false;
+        this.globalDisableSmooth = false;
         this._programDataPool = new ProgramDataPool_1.default(this);
         this._container = container;
         if (this._container) {
@@ -4765,8 +4767,8 @@ var Stage = (function (_super) {
     };
     Stage.prototype.setSamplerState = function (index, repeat, smooth, mipmap) {
         var wrap = repeat ? ContextGLWrapMode_1.default.REPEAT : ContextGLWrapMode_1.default.CLAMP;
-        var filter = smooth ? ContextGLTextureFilter_1.default.LINEAR : ContextGLTextureFilter_1.default.NEAREST;
-        var mipfilter = mipmap ? ContextGLMipFilter_1.default.MIPLINEAR : ContextGLMipFilter_1.default.MIPNONE;
+        var filter = (smooth && !this.globalDisableSmooth) ? ContextGLTextureFilter_1.default.LINEAR : ContextGLTextureFilter_1.default.NEAREST;
+        var mipfilter = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter_1.default.MIPLINEAR : ContextGLMipFilter_1.default.MIPNONE;
         this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
     };
     Stage._abstractionClassPool = new Object();
@@ -5313,6 +5315,8 @@ var GL_BitmapImage2D = (function (_super) {
         _super.apply(this, arguments);
     }
     GL_BitmapImage2D.prototype.activate = function (index, mipmap) {
+        if (mipmap && this._stage.globalDisableMipmap)
+            mipmap = false;
         if (!this._texture) {
             this._createTexture();
             this._invalid = true;
@@ -5372,6 +5376,8 @@ var GL_BitmapImageCube = (function (_super) {
         this._mipmapDataArray = new Array(6);
     }
     GL_BitmapImageCube.prototype.activate = function (index, mipmap) {
+        if (mipmap && this._stage.globalDisableMipmap)
+            mipmap = false;
         if (!this._texture) {
             this._createTexture();
             this._invalid = true;
