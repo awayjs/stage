@@ -17,6 +17,9 @@ class GL_BitmapImageCube extends GL_ImageCube
 
 	public activate(index:number, mipmap:boolean)
 	{
+		if (mipmap && this._stage.globalDisableMipmap)
+			mipmap = false;
+		
 		if (!this._texture) {
 			this._createTexture();
 			this._invalid = true;

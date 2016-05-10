@@ -15,6 +15,9 @@ class GL_BitmapImage2D extends GL_Image2D
 
 	public activate(index:number, mipmap:boolean)
 	{
+		if (mipmap && this._stage.globalDisableMipmap)
+			mipmap = false;
+		
 		if (!this._texture) {
 			this._createTexture();
 			this._invalid = true;

@@ -78,6 +78,10 @@ class Stage extends EventDispatcher implements IAbstractionPool
 
 	private _bufferFormatDictionary:Array<Array<number>> = new Array<Array<number>>(5);
 
+	public globalDisableMipmap:boolean = false;
+
+	public globalDisableSmooth:boolean = false;
+	
 	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:string = "baseline")
 	{
 		super();
@@ -587,8 +591,8 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
 	{
 		var wrap:string = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
-		var filter:string = smooth? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
-		var mipfilter:string = mipmap? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+		var filter:string = (smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
+		var mipfilter:string = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
 
 		this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
 	}
