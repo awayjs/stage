@@ -3095,10 +3095,10 @@ exports.default = ProgramFlash;
 
 },{"../base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/ProgramSoftware":[function(require,module,exports){
 "use strict";
-var AGALTokenizer_1 = require("../aglsl/AGALTokenizer");
-var ProgramVOSoftware_1 = require("../base/ProgramVOSoftware");
 var Matrix3D_1 = require("awayjs-core/lib/geom/Matrix3D");
 var Vector3D_1 = require("awayjs-core/lib/geom/Vector3D");
+var AGALTokenizer_1 = require("../aglsl/AGALTokenizer");
+var ProgramVOSoftware_1 = require("../base/ProgramVOSoftware");
 var ContextGLVertexBufferFormat_1 = require("../base/ContextGLVertexBufferFormat");
 var SoftwareSamplerState_1 = require("../base/SoftwareSamplerState");
 var ContextGLTextureFilter_1 = require("../base/ContextGLTextureFilter");
@@ -3161,6 +3161,14 @@ var ProgramSoftware = (function () {
     ProgramSoftware.prototype.fragment = function (context, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth) {
         var vo = new ProgramVOSoftware_1.default();
         vo.outputDepth = fragDepth;
+        //check for requirement of derivatives
+        var varyingDerivatives = [];
+        var len = this._fragmentDescr.tokens.length;
+        for (var i = 0; i < len; i++) {
+            var token = this._fragmentDescr.tokens[i];
+            if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter_1.default.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
+                varyingDerivatives.push(token.a.regnum);
+        }
         for (var i = 0; i < vo0.varying.length; i++) {
             var varying0 = vo0.varying[i];
             var varying1 = vo1.varying[i];
@@ -3172,6 +3180,8 @@ var ProgramSoftware = (function () {
             result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
             result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
             result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
+            if (varyingDerivatives.indexOf(i) == -1)
+                continue;
             var derivativeX = vo.derivativeX[i] = new Vector3D_1.default();
             derivativeX.x = clipRight.x * varying0.x + clipRight.y * varying1.x + clipRight.z * varying2.x;
             derivativeX.y = clipRight.x * varying0.y + clipRight.y * varying1.y + clipRight.z * varying2.y;
@@ -3191,7 +3201,6 @@ var ProgramSoftware = (function () {
             derivativeY.z -= result.z;
             derivativeY.w -= result.w;
         }
-        var len = this._fragmentDescr.tokens.length;
         for (var i = 0; i < len; i++) {
             var token = this._fragmentDescr.tokens[i];
             ProgramSoftware._opCodeFunc[token.opcode](vo, this._fragmentDescr, token.dest, token.a, token.b, context);
@@ -3298,22 +3307,22 @@ var ProgramSoftware = (function () {
             target.w = result.w;
         }
     };
-    ProgramSoftware.sample = function (vo, context, u, v, textureIndex, dux, dvx, duy, dvy) {
-        if (textureIndex >= context._textures.length || context._textures[textureIndex] == null) {
+    ProgramSoftware.sample = function (vo, desc, context, source1, textureIndex) {
+        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+        var swiz = ["x", "y", "z", "w"];
+        var u = source1Target[swiz[(source1.swizzle >> 0) & 3]];
+        var v = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
             return [1, u, v, 0];
-        }
         var texture = context._textures[textureIndex];
-        var state = context._samplerStates[textureIndex];
-        if (!state) {
-            state = this._defaultSamplerState;
-        }
+        var state = context._samplerStates[textureIndex] || this._defaultSamplerState;
         var repeat = state.wrap == ContextGLWrapMode_1.default.REPEAT;
         var mipmap = state.mipfilter == ContextGLMipFilter_1.default.MIPLINEAR;
         if (mipmap && texture.getMipLevelsCount() > 1) {
-            dux = Math.abs(dux);
-            dvx = Math.abs(dvx);
-            duy = Math.abs(duy);
-            dvy = Math.abs(dvy);
+            var dux = Math.abs(vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 0) & 3]]);
+            var dvx = Math.abs(vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 2) & 3]]);
+            var duy = Math.abs(vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 0) & 3]]);
+            var dvy = Math.abs(vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 2) & 3]]);
             var lambda = Math.log(Math.max(texture.width * Math.sqrt(dux * dux + dvx * dvx), texture.height * Math.sqrt(duy * duy + dvy * dvy))) / Math.LN2;
             if (lambda > 0) {
                 var miplevelLow = Math.floor(lambda);
@@ -3412,15 +3421,7 @@ var ProgramSoftware = (function () {
     };
     ProgramSoftware.tex = function (vo, desc, dest, source1, source2, context) {
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        var u = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var v = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var dux = vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
-        var dvx = vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
-        var duy = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 0) & 3]];
-        var dvy = vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 2) & 3]];
-        var color = ProgramSoftware.sample(vo, context, u, v, source2.regnum, dux, dvx, duy, dvy);
+        var color = ProgramSoftware.sample(vo, desc, context, source1, source2.regnum);
         if (dest.mask & 1) {
             target.x = color[1];
         }
@@ -4260,9 +4261,9 @@ exports.default = SamplerState;
 
 },{}],"awayjs-stagegl/lib/base/SoftwareSamplerState":[function(require,module,exports){
 "use strict";
-var ContextGLTextureFilter_1 = require("../base/ContextGLTextureFilter");
-var ContextGLMipFilter_1 = require("../base/ContextGLMipFilter");
-var ContextGLWrapMode_1 = require("../base/ContextGLWrapMode");
+var ContextGLTextureFilter_1 = require("./ContextGLTextureFilter");
+var ContextGLMipFilter_1 = require("./ContextGLMipFilter");
+var ContextGLWrapMode_1 = require("./ContextGLWrapMode");
 /**
  * The same as SamplerState, but with strings
  * TODO: replace two similar classes with one
@@ -4278,7 +4279,7 @@ var SoftwareSamplerState = (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SoftwareSamplerState;
 
-},{"../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode"}],"awayjs-stagegl/lib/base/Stage":[function(require,module,exports){
+},{"./ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","./ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","./ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode"}],"awayjs-stagegl/lib/base/Stage":[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
