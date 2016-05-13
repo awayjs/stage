@@ -16,14 +16,12 @@ class VertexBufferSoftware implements IVertexBuffer
 
 	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number)
 	{
-		console.log("VertexBufferSoftware.uploadFromArray");
 		//this._dataOffset = startVertex * this._dataPerVertex;
 		this._floatData = new Float32Array(vertices);
 	}
 
 	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number)
 	{
-		console.log("VertexBufferSoftware.uploadFromByteArray");
 		//this._dataOffset = startVertex * this._dataPerVertex;
 		this._floatData = new Float32Array(data, startVertex*this._dataPerVertex, numVertices*this._dataPerVertex/4);
 		this._uintData = new Uint8Array(data);

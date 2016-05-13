@@ -71,12 +71,32 @@ class ProgramSoftware implements IProgram
 	];
 
 	private _vertexDescr:Description;
+	private _vertexVO:ProgramVOSoftware;
+	private _numVarying:number = 0;
+
 	private _fragmentDescr:Description;
+	private _fragmentVO:ProgramVOSoftware;
+
+	public get numVarying():number
+	{
+		return this._numVarying;
+	}
 
 	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray)
 	{
 		this._vertexDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(vertexProgram);
+		this._vertexVO = new ProgramVOSoftware();
+
+		this._vertexVO.temp = new Float32Array(this._vertexDescr.regwrite[0x2].length*4);
+		this._vertexVO.attributes = new Float32Array(this._vertexDescr.regread[0x0].length*4);
+		this._numVarying = this._vertexDescr.regwrite[0x4].length;
+
 		this._fragmentDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(fragmentProgram);
+		this._fragmentVO = new ProgramVOSoftware();
+		this._fragmentVO.temp = new Float32Array(this._fragmentDescr.regwrite[0x2].length*4);
+		this._fragmentVO.varying = new Float32Array(this._fragmentDescr.regread[0x4].length*4);
+		this._fragmentVO.derivativeX = new Float32Array(this._fragmentVO.varying.length);
+		this._fragmentVO.derivativeY = new Float32Array(this._fragmentVO.varying.length);
 	}
 
 	public dispose()
@@ -85,14 +105,13 @@ class ProgramSoftware implements IProgram
 		this._fragmentDescr = null;
 	}
 
-	public vertex(context:ContextSoftware, vertexIndex:number):ProgramVOSoftware
+	public vertex(context:ContextSoftware, vertexIndex:number, position:Float32Array, varying:Float32Array)
 	{
-		var vo:ProgramVOSoftware = new ProgramVOSoftware();
-		//parse attributes
+		//set attributes
 		var i:number;
 		var j:number = 0;
 		var numAttributes:number = this._vertexDescr.regread[0x0].length;
-		var attributes:Float32Array = vo.attributes = new Float32Array(numAttributes*4);
+		var attributes:Float32Array = this._vertexVO.attributes;
 		for (i = 0; i < numAttributes; i++) {
 			var buffer:VertexBufferSoftware = context._vertexBuffers[i];
 
@@ -128,34 +147,40 @@ class ProgramSoftware implements IProgram
 			}
 		}
 
-		var numTemp:number = this._vertexDescr.regwrite[0x2].length*4;
-		vo.temp = new Float32Array(numTemp);
+		//clear temps
+		var temp:Float32Array = this._vertexVO.temp;
+		var numTemp:number = temp.length;
+		for (var i:number = 0; i < numTemp; i+=4) {
+			temp[i] = 0;
+			temp[i + 1] = 0;
+			temp[i + 2] = 0;
+			temp[i + 3] = 1;
+		}
 
-		for (var i:number = 0; i < numTemp; i+=4)
-			vo.temp[i + 3] = 1;
-
-		var numVarying:number = this._vertexDescr.regwrite[0x4].length*4;
-		vo.varying = new Float32Array(numVarying);
+		this._vertexVO.outputPosition = position;
 		
+		this._vertexVO.varying = varying;
+
 		var len:number = this._vertexDescr.tokens.length;
 		for (var i:number = 0; i < len; i++) {
 			var token:Token = this._vertexDescr.tokens[i];
-			ProgramSoftware._opCodeFunc[token.opcode](vo, this._vertexDescr, token.dest, token.a, token.b, context);
+			ProgramSoftware._opCodeFunc[token.opcode](this._vertexVO, this._vertexDescr, token.dest, token.a, token.b, context);
 		}
-
-		return vo;
 	}
 
-	public fragment(context:ContextSoftware, clip:Vector3D, clipRight:Vector3D, clipBottom:Vector3D, vo0:ProgramVOSoftware, vo1:ProgramVOSoftware, vo2:ProgramVOSoftware, fragDepth:number):ProgramVOSoftware
+	public fragment(context:ContextSoftware, clip:Vector3D, clipRight:Vector3D, clipBottom:Vector3D, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array, fragDepth:number):ProgramVOSoftware
 	{
-		var vo:ProgramVOSoftware = new ProgramVOSoftware();
-		vo.outputDepth = fragDepth;
+		this._fragmentVO.outputDepth = fragDepth;
 
-		var numTemp:number = this._fragmentDescr.regwrite[0x2].length*4;
-		vo.temp = new Float32Array(numTemp);
-
-		for (var i:number = 0; i < numTemp; i+=4)
-			vo.temp[i + 3] = 1;
+		//clear temps
+		var temp:Float32Array = this._fragmentVO.temp;
+		var numTemp:number = temp.length;
+		for (var i:number = 0; i < numTemp; i+=4) {
+			temp[i] = 0;
+			temp[i + 1] = 0;
+			temp[i + 2] = 0;
+			temp[i + 3] = 1;
+		}
 
 		//check for requirement of derivatives
 		var varyingDerivatives:number[] = [];
@@ -165,18 +190,15 @@ class ProgramSoftware implements IProgram
 			if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
 				varyingDerivatives.push(token.a.regnum);
 		}
-		
-		var numVarying:number = this._fragmentDescr.regread[0x4].length*4;
-		var varying:Float32Array = vo.varying = new Float32Array(numVarying);
-		var varying0:Float32Array = vo0.varying;
-		var varying1:Float32Array = vo1.varying;
-		var varying2:Float32Array = vo2.varying;
+
+		var varying:Float32Array = this._fragmentVO.varying;
+		var numVarying:number = varying.length;
 		var derivativeX:Float32Array;
 		var derivativeY:Float32Array;
 
 		if (varyingDerivatives.indexOf(i) == -1) {
-			derivativeX = vo.derivativeX = new Float32Array(numVarying);
-			derivativeY = vo.derivativeY = new Float32Array(numVarying);
+			derivativeX = this._fragmentVO.derivativeX;
+			derivativeY = this._fragmentVO.derivativeY;
 		}
 		
 		
@@ -213,10 +235,10 @@ class ProgramSoftware implements IProgram
 
 		for (var i:number = 0; i < len; i++) {
 			var token:Token = this._fragmentDescr.tokens[i];
-			ProgramSoftware._opCodeFunc[token.opcode](vo, this._fragmentDescr, token.dest, token.a, token.b, context);
+			ProgramSoftware._opCodeFunc[token.opcode](this._fragmentVO, this._fragmentDescr, token.dest, token.a, token.b, context);
 		}
 
-		return vo;
+		return this._fragmentVO;
 	}
 
 	private static getDestTarget(vo:ProgramVOSoftware, desc:Description, dest:Destination):Float32Array

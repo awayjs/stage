@@ -33,7 +33,6 @@ class TextureSoftware implements ITexture
 	public uploadFromData(imageData:ImageData, miplevel?:number);
 	public uploadFromData(data:any, miplevel:number = 0)
 	{
-		console.log("uploadFromData: " + data + " miplevel: " + miplevel);
 		this._mipLevels[miplevel] = data.data;
 	}
 
