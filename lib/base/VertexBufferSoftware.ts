@@ -25,7 +25,7 @@ class VertexBufferSoftware implements IVertexBuffer
 	{
 		console.log("VertexBufferSoftware.uploadFromByteArray");
 		//this._dataOffset = startVertex * this._dataPerVertex;
-		this._floatData = new Float32Array(data, startVertex * this._dataPerVertex, numVertices * this._dataPerVertex / 4);
+		this._floatData = new Float32Array(data, startVertex*this._dataPerVertex, numVertices*this._dataPerVertex/4);
 		this._uintData = new Uint8Array(data);
 	}
 
@@ -41,7 +41,7 @@ class VertexBufferSoftware implements IVertexBuffer
 
 	public get attributesPerVertex():number
 	{
-		return this._dataPerVertex / 4;
+		return this._dataPerVertex/4;
 	}
 
 	public dispose()

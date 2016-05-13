@@ -13,13 +13,13 @@ class IndexBufferSoftware implements IIndexBuffer
 
 	public uploadFromArray(data:number[], startOffset:number, count:number)
 	{
-		this._startOffset = startOffset * 2;
+		this._startOffset = startOffset*2;
 		this._data = new Uint16Array(data);
 	}
 
 	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number)
 	{
-		this._startOffset = startOffset * 2;
+		this._startOffset = startOffset*2;
 		this._data = new Uint16Array(data);
 	}
 

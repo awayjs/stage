@@ -47,7 +47,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	private _x:number = 0;
 	private _y:number = 0;
 
-	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver / request animation frame
+	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver/request animation frame
 
 	private _stageIndex:number = -1;
 

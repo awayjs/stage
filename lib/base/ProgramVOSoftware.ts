@@ -2,14 +2,14 @@ import Vector3D						from "awayjs-core/lib/geom/Vector3D";
 
 class ProgramVOSoftware
 {
-	public outputPosition:Vector3D[] = [];
-	public outputColor:Vector3D[] = [];
+	public outputPosition:Float32Array = new Float32Array([0,0,0,1]);
+	public outputColor:Float32Array = new Float32Array([0,0,0,1]);
 	public outputDepth:number;
-	public varying:Vector3D[] = [];
-	public derivativeX:Vector3D[] = [];
-	public derivativeY:Vector3D[] = [];
-	public temp:Vector3D[] = [];
-	public attributes:Vector3D[] = [];
+	public varying:Float32Array;
+	public derivativeX:Float32Array;
+	public derivativeY:Float32Array;
+	public temp:Float32Array;
+	public attributes:Float32Array;
 	public discard:boolean = false;
 }
 
