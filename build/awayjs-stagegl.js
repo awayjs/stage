@@ -1521,16 +1521,13 @@ var ContextSoftware = (function () {
         this._vertexBuffers = [];
         this._vertexBufferOffsets = [];
         this._vertexBufferFormats = [];
-        this._fragmentConstants = [];
-        this._vertexConstants = [];
         //public static _drawCallback:Function = null;
         this._antialias = 0;
         this._canvas = canvas;
         this._backBufferColor = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, false, 0, false);
         this._frontBuffer = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, true, 0, false);
-        if (document && document.body) {
+        if (document && document.body)
             document.body.appendChild(this._frontBuffer.getCanvas());
-        }
     }
     Object.defineProperty(ContextSoftware.prototype, "frontBuffer", {
         get: function () {
@@ -1555,27 +1552,23 @@ var ContextSoftware = (function () {
         if (stencil === void 0) { stencil = 0; }
         if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
         console.log("clear: " + red + ", " + green + ", " + blue + ", alpha: " + alpha);
-        if (mask & ContextGLClearMask_1.default.COLOR) {
+        if (mask & ContextGLClearMask_1.default.COLOR)
             this._backBufferColor.fillRect(this._backBufferRect, ColorUtils_1.default.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
-        }
         //TODO: mask & ContextGLClearMask.STENCIL
         if (mask & ContextGLClearMask_1.default.DEPTH) {
             this._zbuffer.length = 0;
             var len = this._backBufferWidth * this._backBufferHeight;
-            for (var i = 0; i < len; i++) {
+            for (var i = 0; i < len; i++)
                 this._zbuffer[i] = 10000000;
-            }
         }
     };
     ContextSoftware.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         console.log("configureBackBuffer antiAlias: " + antiAlias);
         this._antialias = antiAlias;
-        if (this._antialias % 2 != 0) {
+        if (this._antialias % 2 != 0)
             this._antialias = Math.floor(this._antialias - 0.5);
-        }
-        if (this._antialias == 0) {
+        if (this._antialias == 0)
             this._antialias = 1;
-        }
         this._frontBuffer._setSize(width, height);
         this._backBufferWidth = width * this._antialias;
         this._backBufferHeight = height * this._antialias;
@@ -1583,14 +1576,14 @@ var ContextSoftware = (function () {
         this._backBufferRect.height = this._backBufferHeight;
         this._backBufferColor._setSize(this._backBufferWidth, this._backBufferHeight);
         var raw = this._screenMatrix.rawData;
-        raw[0] = (this._backBufferWidth) / 2;
+        raw[0] = this._backBufferWidth / 2;
         raw[1] = 0;
         raw[2] = 0;
-        raw[3] = (this._backBufferWidth) / 2;
+        raw[3] = this._backBufferWidth / 2;
         raw[4] = 0;
-        raw[5] = -(this._backBufferHeight) / 2;
+        raw[5] = -this._backBufferHeight / 2;
         raw[6] = 0;
-        raw[7] = (this._backBufferHeight) / 2;
+        raw[7] = this._backBufferHeight / 2;
         raw[8] = 0;
         raw[9] = 0;
         raw[10] = 1;
@@ -1653,17 +1646,11 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, data) {
         console.log("setProgramConstantsFromArray: programType" + programType + " data: " + data);
         var target;
-        if (programType == ContextGLProgramType_1.default.VERTEX) {
-            target = this._vertexConstants;
-        }
-        else if (programType == ContextGLProgramType_1.default.FRAGMENT) {
-            target = this._fragmentConstants;
-        }
-        var k = 0;
-        var len = data.length / 4;
-        for (var i = 0; i < len; i++) {
-            target[i] = new Vector3D_1.default(data[k++], data[k++], data[k++], data[k++]);
-        }
+        if (programType == ContextGLProgramType_1.default.VERTEX)
+            target = this._vertexConstants = new Float32Array(data.length);
+        else if (programType == ContextGLProgramType_1.default.FRAGMENT)
+            target = this._fragmentConstants = new Float32Array(data.length);
+        target.set(data);
     };
     ContextSoftware.prototype.setTextureAt = function (sampler, texture) {
         console.log("setTextureAt sample: " + sampler + " texture: " + texture);
@@ -1702,7 +1689,7 @@ var ContextSoftware = (function () {
                 vo0 = this._program.vertex(this, index0);
                 vo1 = this._program.vertex(this, index1);
                 vo2 = this._program.vertex(this, index2);
-                this.triangle(vo0, vo1, vo2);
+                this._triangle(vo0, vo1, vo2);
             }
         }
         else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT) {
@@ -1713,7 +1700,7 @@ var ContextSoftware = (function () {
                 vo0 = this._program.vertex(this, index0);
                 vo1 = this._program.vertex(this, index1);
                 vo2 = this._program.vertex(this, index2);
-                this.triangle(vo0, vo1, vo2);
+                this._triangle(vo0, vo1, vo2);
             }
         }
         else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace_1.default.NONE) {
@@ -1724,14 +1711,14 @@ var ContextSoftware = (function () {
                 vo0 = this._program.vertex(this, index0);
                 vo1 = this._program.vertex(this, index1);
                 vo2 = this._program.vertex(this, index2);
-                this.triangle(vo0, vo1, vo2);
+                this._triangle(vo0, vo1, vo2);
                 index0 = indexBuffer.data[indexBuffer.startOffset + i];
                 index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
                 index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
                 vo0 = this._program.vertex(this, index0);
                 vo1 = this._program.vertex(this, index1);
                 vo2 = this._program.vertex(this, index2);
-                this.triangle(vo0, vo1, vo2);
+                this._triangle(vo0, vo1, vo2);
             }
         }
         //if (ContextSoftware._drawCallback) {
@@ -1761,7 +1748,7 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setRenderToBackBuffer = function () {
         //TODO:
     };
-    ContextSoftware.prototype.putPixel = function (x, y, color) {
+    ContextSoftware.prototype._putPixel = function (x, y, color) {
         var dest = ColorUtils_1.default.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
         dest[0] /= 255;
         dest[1] /= 255;
@@ -1772,8 +1759,8 @@ var ContextSoftware = (function () {
         source[1] /= 255;
         source[2] /= 255;
         source[3] /= 255;
-        var destModified = this.applyBlendMode(dest, this._blendDestination, dest, source);
-        var sourceModified = this.applyBlendMode(source, this._blendSource, dest, source);
+        var destModified = this._applyBlendMode(dest, this._blendDestination, dest, source);
+        var sourceModified = this._applyBlendMode(source, this._blendSource, dest, source);
         var a = destModified[0] + sourceModified[0];
         var r = destModified[1] + sourceModified[1];
         var g = destModified[2] + sourceModified[2];
@@ -1789,7 +1776,7 @@ var ContextSoftware = (function () {
         //a = 255;
         this._backBufferColor.setPixel32(x, y, ColorUtils_1.default.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
     };
-    ContextSoftware.prototype.applyBlendMode = function (argb, blend, dest, source) {
+    ContextSoftware.prototype._applyBlendMode = function (argb, blend, dest, source) {
         var result = [];
         result[0] = argb[0];
         result[1] = argb[1];
@@ -1859,14 +1846,14 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.interpolate = function (min, max, gradient) {
         return min + (max - min) * this.clamp(gradient);
     };
-    ContextSoftware.prototype.triangle = function (vo0, vo1, vo2) {
-        var p0 = vo0.outputPosition[0];
+    ContextSoftware.prototype._triangle = function (vo0, vo1, vo2) {
+        var p0 = new Vector3D_1.default(vo0.outputPosition[0], vo0.outputPosition[1], vo0.outputPosition[2], vo0.outputPosition[3]);
         if (!p0 || p0.w == 0 || isNaN(p0.w)) {
-            console.error("wrong position");
+            console.error("wrong position: " + vo0.outputPosition);
             return;
         }
-        var p1 = vo1.outputPosition[0];
-        var p2 = vo2.outputPosition[0];
+        var p1 = new Vector3D_1.default(vo1.outputPosition[0], vo1.outputPosition[1], vo1.outputPosition[2], vo1.outputPosition[3]);
+        var p2 = new Vector3D_1.default(vo2.outputPosition[0], vo2.outputPosition[1], vo2.outputPosition[2], vo2.outputPosition[3]);
         p0.z = p0.z * 2 - p0.w;
         p1.z = p1.z * 2 - p1.w;
         p2.z = p2.z * 2 - p2.w;
@@ -1900,82 +1887,63 @@ var ContextSoftware = (function () {
         this._bboxMin.y = Math.floor(this._bboxMin.y);
         this._bboxMax.x = Math.floor(this._bboxMax.x);
         this._bboxMax.y = Math.floor(this._bboxMax.y);
-        for (var x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
+        for (var x = this._bboxMin.x; x <= this._bboxMax.x; x++)
             for (var y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
-                var color = this.calcPixel(x, y, p0, p1, p2, project, depth, vo0, vo1, vo2);
-                if (color) {
-                    this.putPixel(x, y, ColorUtils_1.default.ARGBtoFloat32(color.w, color.x, color.y, color.z));
+                var screen = this._barycentric(p0, p1, p2, x, y);
+                if (screen.x < 0 || screen.y < 0 || screen.z < 0)
+                    continue;
+                var screenRight = this._barycentric(p0, p1, p2, x + 1, y);
+                var screenBottom = this._barycentric(p0, p1, p2, x, y + 1);
+                var clip = new Vector3D_1.default(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+                clip.scaleBy(1 / (clip.x + clip.y + clip.z));
+                var clipRight = new Vector3D_1.default(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
+                clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
+                var clipBottom = new Vector3D_1.default(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
+                clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
+                var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
+                var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
+                var currentDepth = this._zbuffer[index];
+                //< fragDepth
+                var passDepthTest = false;
+                switch (this._depthCompareMode) {
+                    case ContextGLCompareMode_1.default.ALWAYS:
+                        passDepthTest = true;
+                        break;
+                    case ContextGLCompareMode_1.default.EQUAL:
+                        passDepthTest = fragDepth == currentDepth;
+                        break;
+                    case ContextGLCompareMode_1.default.GREATER:
+                        passDepthTest = fragDepth > currentDepth;
+                        break;
+                    case ContextGLCompareMode_1.default.GREATER_EQUAL:
+                        passDepthTest = fragDepth >= currentDepth;
+                        break;
+                    case ContextGLCompareMode_1.default.LESS:
+                        passDepthTest = fragDepth < currentDepth;
+                        break;
+                    case ContextGLCompareMode_1.default.LESS_EQUAL:
+                        passDepthTest = fragDepth <= currentDepth;
+                        break;
+                    case ContextGLCompareMode_1.default.NEVER:
+                        passDepthTest = false;
+                        break;
+                    case ContextGLCompareMode_1.default.NOT_EQUAL:
+                        passDepthTest = fragDepth != currentDepth;
+                        break;
+                    default:
                 }
+                if (!passDepthTest)
+                    continue;
+                var fragmentVO = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
+                if (fragmentVO.discard)
+                    continue;
+                if (this._writeDepth)
+                    this._zbuffer[index] = fragDepth; //todo: fragmentVO.outputDepth?
+                var color = fragmentVO.outputColor;
+                this._putPixel(x, y, ((Math.max(0, Math.min(color[3], 1)) * 255) << 24) | ((Math.max(0, Math.min(color[0], 1)) * 255) << 16) | ((Math.max(0, Math.min(color[1], 1)) * 255) << 8) | Math.max(0, Math.min(color[2], 1)) * 255);
             }
-        }
     };
-    ContextSoftware.prototype.calcPixel = function (x, y, p0, p1, p2, project, depth, vo0, vo1, vo2) {
-        var screen = this.barycentric(p0, p1, p2, x, y);
-        var screenRight = this.barycentric(p0, p1, p2, x + 1, y);
-        var screenBottom = this.barycentric(p0, p1, p2, x, y + 1);
-        var clip = new Vector3D_1.default(screen.x / project.x, screen.y / project.y, screen.z / project.z);
-        clip.scaleBy(1 / (clip.x + clip.y + clip.z));
-        var clipRight = new Vector3D_1.default(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
-        clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
-        var clipBottom = new Vector3D_1.default(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
-        clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
-        var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
-        var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
-        if (screen.x < 0 || screen.y < 0 || screen.z < 0) {
-            return null;
-        }
-        var currentDepth = this._zbuffer[index];
-        //< fragDepth
-        var passDepthTest = false;
-        switch (this._depthCompareMode) {
-            case ContextGLCompareMode_1.default.ALWAYS:
-                passDepthTest = true;
-                break;
-            case ContextGLCompareMode_1.default.EQUAL:
-                passDepthTest = fragDepth == currentDepth;
-                break;
-            case ContextGLCompareMode_1.default.GREATER:
-                passDepthTest = fragDepth > currentDepth;
-                break;
-            case ContextGLCompareMode_1.default.GREATER_EQUAL:
-                passDepthTest = fragDepth >= currentDepth;
-                break;
-            case ContextGLCompareMode_1.default.LESS:
-                passDepthTest = fragDepth < currentDepth;
-                break;
-            case ContextGLCompareMode_1.default.LESS_EQUAL:
-                passDepthTest = fragDepth <= currentDepth;
-                break;
-            case ContextGLCompareMode_1.default.NEVER:
-                passDepthTest = false;
-                break;
-            case ContextGLCompareMode_1.default.NOT_EQUAL:
-                passDepthTest = fragDepth != currentDepth;
-                break;
-            default:
-        }
-        if (!passDepthTest) {
-            return null;
-        }
-        var fragmentVO = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
-        if (fragmentVO.discard) {
-            return null;
-        }
-        if (this._writeDepth) {
-            this._zbuffer[index] = fragDepth; //todo: fragmentVO.outputDepth?
-        }
-        var color = fragmentVO.outputColor[0];
-        color.x = Math.max(0, Math.min(color.x, 1));
-        color.y = Math.max(0, Math.min(color.y, 1));
-        color.z = Math.max(0, Math.min(color.z, 1));
-        color.w = Math.max(0, Math.min(color.w, 1));
-        color.x *= 255;
-        color.y *= 255;
-        color.z *= 255;
-        color.w *= 255;
-        return color;
-    };
-    ContextSoftware.prototype.barycentric = function (a, b, c, x, y) {
+    ContextSoftware.prototype._barycentric = function (a, b, c, x, y) {
         var sx = new Vector3D_1.default();
         sx.x = c.x - a.x;
         sx.y = b.x - a.x;
@@ -1995,14 +1963,6 @@ var ContextSoftware = (function () {
 }());
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = ContextSoftware;
-var VertexBufferProperties = (function () {
-    function VertexBufferProperties(size, type, normalized) {
-        this.size = size;
-        this.type = type;
-        this.normalized = normalized;
-    }
-    return VertexBufferProperties;
-}());
 
 },{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","../base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","../base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","../base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware","awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 "use strict";
@@ -3095,8 +3055,6 @@ exports.default = ProgramFlash;
 
 },{"../base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/ProgramSoftware":[function(require,module,exports){
 "use strict";
-var Matrix3D_1 = require("awayjs-core/lib/geom/Matrix3D");
-var Vector3D_1 = require("awayjs-core/lib/geom/Vector3D");
 var AGALTokenizer_1 = require("../aglsl/AGALTokenizer");
 var ProgramVOSoftware_1 = require("../base/ProgramVOSoftware");
 var ContextGLVertexBufferFormat_1 = require("../base/ContextGLVertexBufferFormat");
@@ -3115,52 +3073,69 @@ var ProgramSoftware = (function () {
         this._vertexDescr = null;
         this._fragmentDescr = null;
     };
-    ProgramSoftware.prototype.vertex = function (contextSoftware, vertexIndex) {
+    ProgramSoftware.prototype.vertex = function (context, vertexIndex) {
         var vo = new ProgramVOSoftware_1.default();
         //parse attributes
         var i;
-        for (i = 0; i < contextSoftware._vertexBuffers.length; i++) {
-            var buffer = contextSoftware._vertexBuffers[i];
+        var j = 0;
+        var numAttributes = this._vertexDescr.regread[0x0].length;
+        var attributes = vo.attributes = new Float32Array(numAttributes * 4);
+        for (i = 0; i < numAttributes; i++) {
+            var buffer = context._vertexBuffers[i];
             if (!buffer)
                 continue;
-            var attribute = new Vector3D_1.default(0, 0, 0, 1);
-            var index = contextSoftware._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4) {
-                attribute.x = buffer.uintData[index * 4];
-                attribute.y = buffer.uintData[index * 4 + 1];
-                attribute.z = buffer.uintData[index * 4 + 2];
-                attribute.w = buffer.uintData[index * 4 + 3];
+            var index = context._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
+            if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4) {
+                attributes[j++] = buffer.uintData[index * 4];
+                attributes[j++] = buffer.uintData[index * 4 + 1];
+                attributes[j++] = buffer.uintData[index * 4 + 2];
+                attributes[j++] = buffer.uintData[index * 4 + 3];
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_1) {
-                attribute.x = buffer.data[index];
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_4) {
+                attributes[j++] = buffer.data[index];
+                attributes[j++] = buffer.data[index + 1];
+                attributes[j++] = buffer.data[index + 2];
+                attributes[j++] = buffer.data[index + 3];
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_2) {
-                attribute.x = buffer.data[index];
-                attribute.y = buffer.data[index + 1];
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_3) {
+                attributes[j++] = buffer.data[index];
+                attributes[j++] = buffer.data[index + 1];
+                attributes[j++] = buffer.data[index + 2];
+                attributes[j++] = 1;
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_3) {
-                attribute.x = buffer.data[index];
-                attribute.y = buffer.data[index + 1];
-                attribute.z = buffer.data[index + 2];
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_2) {
+                attributes[j++] = buffer.data[index];
+                attributes[j++] = buffer.data[index + 1];
+                attributes[j++] = 0;
+                attributes[j++] = 1;
             }
-            if (contextSoftware._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_4) {
-                attribute.x = buffer.data[index];
-                attribute.y = buffer.data[index + 1];
-                attribute.z = buffer.data[index + 2];
-                attribute.w = buffer.data[index + 3];
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_1) {
+                attributes[j++] = buffer.data[index];
+                attributes[j++] = 0;
+                attributes[j++] = 0;
+                attributes[j++] = 1;
             }
-            vo.attributes[i] = attribute;
         }
+        var numTemp = this._vertexDescr.regwrite[0x2].length * 4;
+        vo.temp = new Float32Array(numTemp);
+        for (var i = 0; i < numTemp; i += 4)
+            vo.temp[i + 3] = 1;
+        var numVarying = this._vertexDescr.regwrite[0x4].length * 4;
+        vo.varying = new Float32Array(numVarying);
         var len = this._vertexDescr.tokens.length;
         for (var i = 0; i < len; i++) {
             var token = this._vertexDescr.tokens[i];
-            ProgramSoftware._opCodeFunc[token.opcode](vo, this._vertexDescr, token.dest, token.a, token.b, contextSoftware);
+            ProgramSoftware._opCodeFunc[token.opcode](vo, this._vertexDescr, token.dest, token.a, token.b, context);
         }
         return vo;
     };
     ProgramSoftware.prototype.fragment = function (context, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth) {
         var vo = new ProgramVOSoftware_1.default();
         vo.outputDepth = fragDepth;
+        var numTemp = this._fragmentDescr.regwrite[0x2].length * 4;
+        vo.temp = new Float32Array(numTemp);
+        for (var i = 0; i < numTemp; i += 4)
+            vo.temp[i + 3] = 1;
         //check for requirement of derivatives
         var varyingDerivatives = [];
         var len = this._fragmentDescr.tokens.length;
@@ -3169,37 +3144,41 @@ var ProgramSoftware = (function () {
             if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter_1.default.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
                 varyingDerivatives.push(token.a.regnum);
         }
-        for (var i = 0; i < vo0.varying.length; i++) {
-            var varying0 = vo0.varying[i];
-            var varying1 = vo1.varying[i];
-            var varying2 = vo2.varying[i];
-            if (!varying0 || !varying1 || !varying2)
-                continue;
-            var result = vo.varying[i] = new Vector3D_1.default(0, 0, 0, 1);
-            result.x = clip.x * varying0.x + clip.y * varying1.x + clip.z * varying2.x;
-            result.y = clip.x * varying0.y + clip.y * varying1.y + clip.z * varying2.y;
-            result.z = clip.x * varying0.z + clip.y * varying1.z + clip.z * varying2.z;
-            result.w = clip.x * varying0.w + clip.y * varying1.w + clip.z * varying2.w;
+        var numVarying = this._fragmentDescr.regread[0x4].length * 4;
+        var varying = vo.varying = new Float32Array(numVarying);
+        var varying0 = vo0.varying;
+        var varying1 = vo1.varying;
+        var varying2 = vo2.varying;
+        var derivativeX;
+        var derivativeY;
+        if (varyingDerivatives.indexOf(i) == -1) {
+            derivativeX = vo.derivativeX = new Float32Array(numVarying);
+            derivativeY = vo.derivativeY = new Float32Array(numVarying);
+        }
+        for (var i = 0; i < numVarying; i += 4) {
+            // if (!varying0 || !varying1 || !varying2) continue;
+            varying[i] = clip.x * varying0[i] + clip.y * varying1[i] + clip.z * varying2[i];
+            varying[i + 1] = clip.x * varying0[i + 1] + clip.y * varying1[i + 1] + clip.z * varying2[i + 1];
+            varying[i + 2] = clip.x * varying0[i + 2] + clip.y * varying1[i + 2] + clip.z * varying2[i + 2];
+            varying[i + 3] = clip.x * varying0[i + 3] + clip.y * varying1[i + 3] + clip.z * varying2[i + 3];
             if (varyingDerivatives.indexOf(i) == -1)
                 continue;
-            var derivativeX = vo.derivativeX[i] = new Vector3D_1.default();
-            derivativeX.x = clipRight.x * varying0.x + clipRight.y * varying1.x + clipRight.z * varying2.x;
-            derivativeX.y = clipRight.x * varying0.y + clipRight.y * varying1.y + clipRight.z * varying2.y;
-            derivativeX.z = clipRight.x * varying0.z + clipRight.y * varying1.z + clipRight.z * varying2.z;
-            derivativeX.w = clipRight.x * varying0.w + clipRight.y * varying1.w + clipRight.z * varying2.w;
-            derivativeX.x -= result.x;
-            derivativeX.y -= result.y;
-            derivativeX.z -= result.z;
-            derivativeX.w -= result.w;
-            var derivativeY = vo.derivativeY[i] = new Vector3D_1.default();
-            derivativeY.x = clipBottom.x * varying0.x + clipBottom.y * varying1.x + clipBottom.z * varying2.x;
-            derivativeY.y = clipBottom.x * varying0.y + clipBottom.y * varying1.y + clipBottom.z * varying2.y;
-            derivativeY.z = clipBottom.x * varying0.z + clipBottom.y * varying1.z + clipBottom.z * varying2.z;
-            derivativeY.w = clipBottom.x * varying0.w + clipBottom.y * varying1.w + clipBottom.z * varying2.w;
-            derivativeY.x -= result.x;
-            derivativeY.y -= result.y;
-            derivativeY.z -= result.z;
-            derivativeY.w -= result.w;
+            derivativeX[i] = clipRight.x * varying0[i] + clipRight.y * varying1[i] + clipRight.z * varying2[i];
+            derivativeX[i + 1] = clipRight.x * varying0[i + 1] + clipRight.y * varying1[i + 1] + clipRight.z * varying2[i + 1];
+            derivativeX[i + 2] = clipRight.x * varying0[i + 2] + clipRight.y * varying1[i + 2] + clipRight.z * varying2[i + 2];
+            derivativeX[i + 3] = clipRight.x * varying0[i + 3] + clipRight.y * varying1[i + 3] + clipRight.z * varying2[i + 3];
+            derivativeX[i] -= varying[i];
+            derivativeX[i + 1] -= varying[i + 1];
+            derivativeX[i + 2] -= varying[i + 2];
+            derivativeX[i + 3] -= varying[i + 3];
+            derivativeY[i] = clipBottom.x * varying0[i] + clipBottom.y * varying1[i] + clipBottom.z * varying2[i];
+            derivativeY[i + 1] = clipBottom.x * varying0[i + 1] + clipBottom.y * varying1[i + 1] + clipBottom.z * varying2[i + 1];
+            derivativeY[i + 2] = clipBottom.x * varying0[i + 2] + clipBottom.y * varying1[i + 2] + clipBottom.z * varying2[i + 2];
+            derivativeY[i + 3] = clipBottom.x * varying0[i + 3] + clipBottom.y * varying1[i + 3] + clipBottom.z * varying2[i + 3];
+            derivativeY[i] -= varying[i];
+            derivativeY[i + 1] -= varying[i + 1];
+            derivativeY[i + 2] -= varying[i + 2];
+            derivativeY[i + 3] -= varying[i + 3];
         }
         for (var i = 0; i < len; i++) {
             var token = this._fragmentDescr.tokens[i];
@@ -3208,135 +3187,104 @@ var ProgramSoftware = (function () {
         return vo;
     };
     ProgramSoftware.getDestTarget = function (vo, desc, dest) {
-        var targetType;
+        var target;
         if (dest.regtype == 0x2) {
-            targetType = vo.temp;
+            target = vo.temp;
         }
         else if (dest.regtype == 0x3) {
             if (desc.header.type == "vertex") {
-                targetType = vo.outputPosition;
+                target = vo.outputPosition;
             }
             else {
-                targetType = vo.outputColor;
+                target = vo.outputColor;
             }
         }
         else if (dest.regtype == 0x4) {
-            targetType = vo.varying;
-        }
-        var targetIndex = dest.regnum;
-        var target = targetType[targetIndex];
-        if (!target) {
-            target = targetType[targetIndex] = new Vector3D_1.default(0, 0, 0, 1);
-        }
-        return target;
-    };
-    ProgramSoftware.getSourceTargetType = function (vo, desc, dest, context) {
-        var targetType;
-        if (dest.regtype == 0x0) {
-            targetType = vo.attributes;
-        }
-        else if (dest.regtype == 0x1) {
-            if (desc.header.type == "vertex") {
-                targetType = context._vertexConstants;
-            }
-            else {
-                targetType = context._fragmentConstants;
-            }
-        }
-        else if (dest.regtype == 0x2) {
-            targetType = vo.temp;
-        }
-        else if (dest.regtype == 0x4) {
-            targetType = vo.varying;
-        }
-        return targetType;
-    };
-    ProgramSoftware.getSourceTargetByIndex = function (targetType, targetIndex) {
-        var target = targetType[targetIndex];
-        if (!target) {
-            target = targetType[targetIndex] = new Vector3D_1.default(0, 0, 0, 1);
+            target = vo.varying;
         }
         return target;
     };
     ProgramSoftware.getSourceTarget = function (vo, desc, dest, context) {
-        var targetType = ProgramSoftware.getSourceTargetType(vo, desc, dest, context);
-        return ProgramSoftware.getSourceTargetByIndex(targetType, dest.regnum);
+        var target;
+        if (dest.regtype == 0x0) {
+            target = vo.attributes;
+        }
+        else if (dest.regtype == 0x1) {
+            if (desc.header.type == "vertex") {
+                target = context._vertexConstants;
+            }
+            else {
+                target = context._fragmentConstants;
+            }
+        }
+        else if (dest.regtype == 0x2) {
+            target = vo.temp;
+        }
+        else if (dest.regtype == 0x4) {
+            target = vo.varying;
+        }
+        return target;
     };
     ProgramSoftware.mov = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1.swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1.swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1.swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1.swizzle >> 6) & 3)];
     };
     ProgramSoftware.m44 = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source2Type = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
-        var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
-        var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
-        var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
-        var source2Target3 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 3);
-        var matrix = new Matrix3D_1.default(new Float32Array([
-            source2Target0.x, source2Target1.x, source2Target2.x, source2Target3.x,
-            source2Target0.y, source2Target1.y, source2Target2.y, source2Target3.y,
-            source2Target0.z, source2Target1.z, source2Target2.z, source2Target3.z,
-            source2Target0.w, source2Target1.w, source2Target2.w, source2Target3.w
-        ]));
-        var result = matrix.transformVector(source1Target);
-        if (dest.mask & 1) {
-            target.x = result.x;
-        }
-        if (dest.mask & 2) {
-            target.y = result.y;
-        }
-        if (dest.mask & 4) {
-            target.z = result.z;
-        }
-        if (dest.mask & 8) {
-            target.w = result.w;
-        }
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var mask = dest.mask;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg] * source2Target[source2Reg] + source1Target[source1Reg + 1] * source2Target[source2Reg + 1] + source1Target[source1Reg + 2] * source2Target[source2Reg + 2] + source2Target[source2Reg + 3];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg] * source2Target[source2Reg + 4] + source1Target[source1Reg + 1] * source2Target[source2Reg + 5] + source1Target[source1Reg + 2] * source2Target[source2Reg + 6] + source2Target[source2Reg + 7];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg] * source2Target[source2Reg + 8] + source1Target[source1Reg + 1] * source2Target[source2Reg + 9] + source1Target[source1Reg + 2] * source2Target[source2Reg + 10] + source2Target[source2Reg + 11];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg] * source2Target[source2Reg + 12] + source1Target[source1Reg + 1] * source2Target[source2Reg + 13] + source1Target[source1Reg + 2] * source2Target[source2Reg + 14] + source2Target[source2Reg + 15];
     };
     ProgramSoftware.sample = function (vo, desc, context, source1, textureIndex) {
+        var source1Reg = 4 * source1.regnum;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        var u = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var v = source1Target[swiz[(source1.swizzle >> 2) & 3]];
+        var u = source1Target[((source1.swizzle >> 0) & 3)];
+        var v = source1Target[((source1.swizzle >> 2) & 3)];
         if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
-            return [1, u, v, 0];
+            return new Float32Array([1, u, v, 0]);
         var texture = context._textures[textureIndex];
         var state = context._samplerStates[textureIndex] || this._defaultSamplerState;
         var repeat = state.wrap == ContextGLWrapMode_1.default.REPEAT;
         var mipmap = state.mipfilter == ContextGLMipFilter_1.default.MIPLINEAR;
         if (mipmap && texture.getMipLevelsCount() > 1) {
-            var dux = Math.abs(vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 0) & 3]]);
-            var dvx = Math.abs(vo.derivativeX[source1.regnum][swiz[(source1.swizzle >> 2) & 3]]);
-            var duy = Math.abs(vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 0) & 3]]);
-            var dvy = Math.abs(vo.derivativeY[source1.regnum][swiz[(source1.swizzle >> 2) & 3]]);
+            var dux = Math.abs(vo.derivativeX[source1Reg + ((source1.swizzle >> 0) & 3)]);
+            var dvx = Math.abs(vo.derivativeX[source1Reg + ((source1.swizzle >> 2) & 3)]);
+            var duy = Math.abs(vo.derivativeY[source1Reg + ((source1.swizzle >> 0) & 3)]);
+            var dvy = Math.abs(vo.derivativeY[source1Reg + ((source1.swizzle >> 2) & 3)]);
             var lambda = Math.log(Math.max(texture.width * Math.sqrt(dux * dux + dvx * dvx), texture.height * Math.sqrt(duy * duy + dvy * dvy))) / Math.LN2;
             if (lambda > 0) {
                 var miplevelLow = Math.floor(lambda);
                 var miplevelHigh = Math.ceil(lambda);
                 var maxmiplevel = Math.log(Math.min(texture.width, texture.height)) / Math.LN2;
-                if (miplevelHigh > maxmiplevel) {
+                if (miplevelHigh > maxmiplevel)
                     miplevelHigh = maxmiplevel;
-                }
-                if (miplevelLow > maxmiplevel) {
+                if (miplevelLow > maxmiplevel)
                     miplevelLow = maxmiplevel;
-                }
                 var mipblend = lambda - Math.floor(lambda);
-                var resultLow = [];
-                var resultHigh = [];
+                var resultLow;
+                var resultHigh;
                 var dataLow = texture.getData(miplevelLow);
                 var dataLowWidth = texture.width / Math.pow(2, miplevelLow);
                 var dataLowHeight = texture.height / Math.pow(2, miplevelLow);
@@ -3392,7 +3340,7 @@ var ProgramSoftware = (function () {
         var g = textureData[pos + 1] / 255;
         var b = textureData[pos + 2] / 255;
         var a = textureData[pos + 3] / 255;
-        return [a, r, g, b];
+        return new Float32Array([a, r, g, b]);
     };
     ProgramSoftware.sampleBilinear = function (u, v, textureData, textureWidth, textureHeight, repeat) {
         var texelSizeX = 1 / textureWidth;
@@ -3412,7 +3360,7 @@ var ProgramSoftware = (function () {
         return ProgramSoftware.interpolateColor(interColor0, interColor1, b);
     };
     ProgramSoftware.interpolateColor = function (source, target, a) {
-        var result = [];
+        var result = new Float32Array(4);
         result[0] = source[0] + (target[0] - source[0]) * a;
         result[1] = source[1] + (target[1] - source[1]) * a;
         result[2] = source[2] + (target[2] - source[2]) * a;
@@ -3420,667 +3368,621 @@ var ProgramSoftware = (function () {
         return result;
     };
     ProgramSoftware.tex = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var color = ProgramSoftware.sample(vo, desc, context, source1, source2.regnum);
-        if (dest.mask & 1) {
-            target.x = color[1];
-        }
-        if (dest.mask & 2) {
-            target.y = color[2];
-        }
-        if (dest.mask & 4) {
-            target.z = color[3];
-        }
-        if (dest.mask & 8) {
-            target.w = color[0];
-        }
+        var mask = dest.mask;
+        if (mask & 1)
+            target[targetReg] = color[1];
+        if (mask & 2)
+            target[targetReg + 1] = color[2];
+        if (mask & 4)
+            target[targetReg + 2] = color[3];
+        if (mask & 8)
+            target[targetReg + 3] = color[0];
     };
     ProgramSoftware.add = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] + source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] + source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] + source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] + source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)] + source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)] + source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)] + source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] + source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
     };
     ProgramSoftware.sub = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] - source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] - source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] - source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] - source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)] - source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)] - source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)] - source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] - source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
     };
     ProgramSoftware.mul = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] * source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] * source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] * source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] * source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)] * source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)] * source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)] * source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] * source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
     };
     ProgramSoftware.div = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] / source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] / source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] / source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] / source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)] / source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)] / source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)] / source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] / source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
     };
     ProgramSoftware.rcp = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = 1 / source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = 1 / source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = 1 / source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = 1 / source1Target[swiz[(source1.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = 1 / source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = 1 / source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = 1 / source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = 1 / source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
     };
     ProgramSoftware.min = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.min(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source2.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.min(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source2.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.min(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source2.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.min(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source2.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.min(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)], source2Target[source2Reg + ((source2Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.min(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)], source2Target[source2Reg + ((source2Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.min(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)], source2Target[source2Reg + ((source2Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.min(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)], source2Target[source2Reg + ((source2Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.max = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.max(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source2.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.max(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source2.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.max(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source2.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.max(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source2.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.max(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)], source2Target[source2Reg + ((source2Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.max(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)], source2Target[source2Reg + ((source2Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.max(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)], source2Target[source2Reg + ((source2Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.max(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)], source2Target[source2Reg + ((source2Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.frc = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]] - Math.floor(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)] - Math.floor(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)] - Math.floor(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)] - Math.floor(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] - Math.floor(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.sqt = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.sqrt(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.sqrt(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.sqrt(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.sqrt(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.rsq = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = 1 / Math.sqrt(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = 1 / Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = 1 / Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = 1 / Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = 1 / Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.pow = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.pow(source1Target[swiz[(source1.swizzle >> 0) & 3]], source2Target[swiz[(source2.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.pow(source1Target[swiz[(source1.swizzle >> 2) & 3]], source2Target[swiz[(source2.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.pow(source1Target[swiz[(source1.swizzle >> 4) & 3]], source2Target[swiz[(source2.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.pow(source1Target[swiz[(source1.swizzle >> 6) & 3]], source2Target[swiz[(source2.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.pow(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)], source2Target[source2Reg + ((source2Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.pow(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)], source2Target[source2Reg + ((source2Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.pow(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)], source2Target[source2Reg + ((source2Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.pow(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)], source2Target[source2Reg + ((source2Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.log = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.log(source1Target[swiz[(source1.swizzle >> 0) & 3]]) / Math.LN2;
-        }
-        if (dest.mask & 2) {
-            target.y = Math.log(source1Target[swiz[(source1.swizzle >> 2) & 3]]) / Math.LN2;
-        }
-        if (dest.mask & 4) {
-            target.z = Math.log(source1Target[swiz[(source1.swizzle >> 4) & 3]]) / Math.LN2;
-        }
-        if (dest.mask & 8) {
-            target.w = Math.log(source1Target[swiz[(source1.swizzle >> 6) & 3]]) / Math.LN2;
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.log(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]) / Math.LN2;
+        if (mask & 2)
+            target[targetReg + 1] = Math.log(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]) / Math.LN2;
+        if (mask & 4)
+            target[targetReg + 2] = Math.log(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]) / Math.LN2;
+        if (mask & 8)
+            target[targetReg + 3] = Math.log(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]) / Math.LN2;
     };
     ProgramSoftware.exp = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.exp(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.exp(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.exp(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.exp(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.exp(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.exp(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.exp(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.exp(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.nrm = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        var x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var x = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var y = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var z = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
         var len = Math.sqrt(x * x + y * y + z * z);
         x /= len;
         y /= len;
         z /= len;
-        if (dest.mask & 1) {
-            target.x = x;
-        }
-        if (dest.mask & 2) {
-            target.y = y;
-        }
-        if (dest.mask & 4) {
-            target.z = z;
-        }
+        if (mask & 1)
+            target[targetReg] = x;
+        if (mask & 2)
+            target[targetReg + 1] = y;
+        if (mask & 4)
+            target[targetReg + 2] = z;
     };
     ProgramSoftware.sin = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.sin(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.sin(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.sin(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.sin(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.sin(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.sin(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.sin(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.sin(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.cos = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.cos(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.cos(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.cos(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.cos(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.cos(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.cos(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.cos(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.cos(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.crs = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetY * source2TargetZ - source1TargetZ * source2TargetY;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetZ * source2TargetX - source1TargetX * source2TargetZ;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetX * source2TargetY - source1TargetY * source2TargetX;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetY * source2TargetZ - source1TargetZ * source2TargetY;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetZ * source2TargetX - source1TargetX * source2TargetZ;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetX * source2TargetY - source1TargetY * source2TargetX;
     };
     ProgramSoftware.dp3 = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
-        }
-        if (dest.mask & 8) {
-            target.w = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
+        if (mask & 8)
+            target[targetReg + 3] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ;
     };
     ProgramSoftware.dp4 = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        var source1TargetW = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        var source2TargetW = source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
-        }
-        if (dest.mask & 8) {
-            target.w = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        var source2TargetW = source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
+        if (mask & 8)
+            target[targetReg + 3] = source1TargetX * source2TargetX + source1TargetY * source2TargetY + source1TargetZ * source2TargetZ + source1TargetW * source2TargetW;
     };
     ProgramSoftware.abs = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.abs(source1Target[swiz[(source1.swizzle >> 0) & 3]]);
-        }
-        if (dest.mask & 2) {
-            target.y = Math.abs(source1Target[swiz[(source1.swizzle >> 2) & 3]]);
-        }
-        if (dest.mask & 4) {
-            target.z = Math.abs(source1Target[swiz[(source1.swizzle >> 4) & 3]]);
-        }
-        if (dest.mask & 8) {
-            target.w = Math.abs(source1Target[swiz[(source1.swizzle >> 6) & 3]]);
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.abs(source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]);
+        if (mask & 2)
+            target[targetReg + 1] = Math.abs(source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]);
+        if (mask & 4)
+            target[targetReg + 2] = Math.abs(source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]);
+        if (mask & 8)
+            target[targetReg + 3] = Math.abs(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
     };
     ProgramSoftware.neg = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = -source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = -source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = -source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = -source1Target[swiz[(source1.swizzle >> 6) & 3]];
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = -source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = -source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = -source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = -source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
     };
     ProgramSoftware.sat = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 0) & 3]]));
-        }
-        if (dest.mask & 2) {
-            target.y = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 2) & 3]]));
-        }
-        if (dest.mask & 4) {
-            target.z = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 4) & 3]]));
-        }
-        if (dest.mask & 8) {
-            target.w = Math.max(0, Math.min(1, source1Target[swiz[(source1.swizzle >> 6) & 3]]));
-        }
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = Math.max(0, Math.min(1, source1Target[source1Reg + ((source1Swizzle >> 0) & 3)]));
+        if (mask & 2)
+            target[targetReg + 1] = Math.max(0, Math.min(1, source1Target[source1Reg + ((source1Swizzle >> 2) & 3)]));
+        if (mask & 4)
+            target[targetReg + 2] = Math.max(0, Math.min(1, source1Target[source1Reg + ((source1Swizzle >> 4) & 3)]));
+        if (mask & 8)
+            target[targetReg + 3] = Math.max(0, Math.min(1, source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]));
     };
     ProgramSoftware.m33 = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source2Type = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
-        var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
-        var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
-        var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
-        var matrix = new Matrix3D_1.default(new Float32Array([
-            source2Target0.x, source2Target1.x, source2Target2.x, 0,
-            source2Target0.y, source2Target1.y, source2Target2.y, 0,
-            source2Target0.z, source2Target1.z, source2Target2.z, 0,
-            0, 0, 0, 0
-        ]));
-        var result = matrix.transformVector(source1Target);
-        if (dest.mask & 1) {
-            target.x = result.x;
-        }
-        if (dest.mask & 2) {
-            target.y = result.y;
-        }
-        if (dest.mask & 4) {
-            target.z = result.z;
-        }
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var mask = dest.mask;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg] * source2Target[source2Reg] + source1Target[source1Reg + 1] * source2Target[source2Reg + 1] + source1Target[source1Reg + 2] * source2Target[source2Reg + 2];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg] * source2Target[source2Reg + 4] + source1Target[source1Reg + 1] * source2Target[source2Reg + 5] + source1Target[source1Reg + 2] * source2Target[source2Reg + 6];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg] * source2Target[source2Reg + 8] + source1Target[source1Reg + 1] * source2Target[source2Reg + 9] + source1Target[source1Reg + 2] * source2Target[source2Reg + 10];
     };
     ProgramSoftware.m34 = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source2.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source2Type = ProgramSoftware.getSourceTargetType(vo, desc, source2, context);
-        var source2Target0 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum);
-        var source2Target1 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 1);
-        var source2Target2 = ProgramSoftware.getSourceTargetByIndex(source2Type, source2.regnum + 2);
-        var matrix = new Matrix3D_1.default(new Float32Array([
-            source2Target0.x, source2Target1.x, source2Target2.x, 0,
-            source2Target0.y, source2Target1.y, source2Target2.y, 0,
-            source2Target0.z, source2Target1.z, source2Target2.z, 0,
-            source2Target0.w, source2Target1.w, source2Target2.w, 1
-        ]));
-        var result = matrix.transformVector(source1Target);
-        if (dest.mask & 1) {
-            target.x = result.x;
-        }
-        if (dest.mask & 2) {
-            target.y = result.y;
-        }
-        if (dest.mask & 4) {
-            target.z = result.z;
-        }
-        if (dest.mask & 8) {
-            target.w = result.w;
-        }
+        var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
+        var mask = dest.mask;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg] * source2Target[source2Reg] + source1Target[source1Reg + 1] * source2Target[source2Reg + 1] + source1Target[source1Reg + 2] * source2Target[source2Reg + 2] + source2Target[source2Reg + 3];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg] * source2Target[source2Reg + 4] + source1Target[source1Reg + 1] * source2Target[source2Reg + 5] + source1Target[source1Reg + 2] * source2Target[source2Reg + 6] + source2Target[source2Reg + 7];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg] * source2Target[source2Reg + 8] + source1Target[source1Reg + 1] * source2Target[source2Reg + 9] + source1Target[source1Reg + 2] * source2Target[source2Reg + 10] + source2Target[source2Reg + 11];
     };
     ProgramSoftware.ddx = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var source1Target = vo.derivativeX[source1.regnum];
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]];
-        }
+        var source1Target = vo.derivativeX;
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
     };
     ProgramSoftware.ddy = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var source1Target = vo.derivativeY[source1.regnum];
-        var swiz = ["x", "y", "z", "w"];
-        if (dest.mask & 1) {
-            target.x = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        }
-        if (dest.mask & 2) {
-            target.y = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        }
-        if (dest.mask & 4) {
-            target.z = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        }
-        if (dest.mask & 8) {
-            target.w = source1Target[swiz[(source1.swizzle >> 6) & 3]];
-        }
+        var source1Target = vo.derivativeY;
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        if (mask & 1)
+            target[targetReg] = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        if (mask & 2)
+            target[targetReg + 1] = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        if (mask & 4)
+            target[targetReg + 2] = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        if (mask & 8)
+            target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
     };
     ProgramSoftware.sge = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        var source1TargetW = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        var source2TargetW = source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetX >= source2TargetX ? 1 : 0;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetY >= source2TargetY ? 1 : 0;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetZ >= source2TargetZ ? 1 : 0;
-        }
-        if (dest.mask & 8) {
-            target.w = source1TargetW >= source2TargetW ? 1 : 0;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        var source2TargetW = source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetX >= source2TargetX ? 1 : 0;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetY >= source2TargetY ? 1 : 0;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetZ >= source2TargetZ ? 1 : 0;
+        if (mask & 8)
+            target[targetReg + 3] = source1TargetW >= source2TargetW ? 1 : 0;
     };
     ProgramSoftware.slt = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        var source1TargetW = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        var source2TargetW = source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetX < source2TargetX ? 1 : 0;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetY < source2TargetY ? 1 : 0;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetZ < source2TargetZ ? 1 : 0;
-        }
-        if (dest.mask & 8) {
-            target.w = source1TargetW < source2TargetW ? 1 : 0;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        var source2TargetW = source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetX < source2TargetX ? 1 : 0;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetY < source2TargetY ? 1 : 0;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetZ < source2TargetZ ? 1 : 0;
+        if (mask & 8)
+            target[targetReg + 3] = source1TargetW < source2TargetW ? 1 : 0;
     };
     ProgramSoftware.seq = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        var source1TargetW = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        var source2TargetW = source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetX == source2TargetX ? 1 : 0;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetY == source2TargetY ? 1 : 0;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetZ == source2TargetZ ? 1 : 0;
-        }
-        if (dest.mask & 8) {
-            target.w = source1TargetW == source2TargetW ? 1 : 0;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        var source2TargetW = source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetX == source2TargetX ? 1 : 0;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetY == source2TargetY ? 1 : 0;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetZ == source2TargetZ ? 1 : 0;
+        if (mask & 8)
+            target[targetReg + 3] = source1TargetW == source2TargetW ? 1 : 0;
     };
     ProgramSoftware.sne = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
+        var source2Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
+        var source2Swizzle = source2.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        var source1TargetW = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
         var source2Target = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
-        var source2TargetX = source2Target[swiz[(source2.swizzle >> 0) & 3]];
-        var source2TargetY = source2Target[swiz[(source2.swizzle >> 2) & 3]];
-        var source2TargetZ = source2Target[swiz[(source2.swizzle >> 4) & 3]];
-        var source2TargetW = source2Target[swiz[(source2.swizzle >> 6) & 3]];
-        if (dest.mask & 1) {
-            target.x = source1TargetX != source2TargetX ? 1 : 0;
-        }
-        if (dest.mask & 2) {
-            target.y = source1TargetY != source2TargetY ? 1 : 0;
-        }
-        if (dest.mask & 4) {
-            target.z = source1TargetZ != source2TargetZ ? 1 : 0;
-        }
-        if (dest.mask & 8) {
-            target.w = source1TargetW != source2TargetW ? 1 : 0;
-        }
+        var source2TargetX = source2Target[source2Reg + ((source2Swizzle >> 0) & 3)];
+        var source2TargetY = source2Target[source2Reg + ((source2Swizzle >> 2) & 3)];
+        var source2TargetZ = source2Target[source2Reg + ((source2Swizzle >> 4) & 3)];
+        var source2TargetW = source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
+        if (mask & 1)
+            target[targetReg] = source1TargetX != source2TargetX ? 1 : 0;
+        if (mask & 2)
+            target[targetReg + 1] = source1TargetY != source2TargetY ? 1 : 0;
+        if (mask & 4)
+            target[targetReg + 2] = source1TargetZ != source2TargetZ ? 1 : 0;
+        if (mask & 8)
+            target[targetReg + 3] = source1TargetW != source2TargetW ? 1 : 0;
     };
     ProgramSoftware.sgn = function (vo, desc, dest, source1, source2, context) {
+        var targetReg = 4 * dest.regnum;
+        var source1Reg = 4 * source1.regnum;
         var target = ProgramSoftware.getDestTarget(vo, desc, dest);
-        var swiz = ["x", "y", "z", "w"];
+        var mask = dest.mask;
+        var source1Swizzle = source1.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        var source1TargetY = source1Target[swiz[(source1.swizzle >> 2) & 3]];
-        var source1TargetZ = source1Target[swiz[(source1.swizzle >> 4) & 3]];
-        var source1TargetW = source1Target[swiz[(source1.swizzle >> 6) & 3]];
-        if (dest.mask & 1) {
-            target.x = 1;
-            if (source1TargetX < 0) {
-                target.x = -1;
-            }
-            else if (source1TargetX == 0) {
-                target.x = 0;
-            }
-        }
-        if (dest.mask & 2) {
-            target.y = 1;
-            if (source1TargetY < 0) {
-                target.y = -1;
-            }
-            else if (source1TargetY == 0) {
-                target.y = 0;
-            }
-        }
-        if (dest.mask & 4) {
-            target.z = 1;
-            if (source1TargetZ < 0) {
-                target.z = -1;
-            }
-            else if (source1TargetZ == 0) {
-                target.z = 0;
-            }
-        }
-        if (dest.mask & 8) {
-            target.w = 1;
-            if (source1TargetW < 0) {
-                target.w = -1;
-            }
-            else if (source1TargetW == 0) {
-                target.w = 0;
-            }
-        }
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        var source1TargetY = source1Target[source1Reg + ((source1Swizzle >> 2) & 3)];
+        var source1TargetZ = source1Target[source1Reg + ((source1Swizzle >> 4) & 3)];
+        var source1TargetW = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
+        if (mask & 1)
+            target[targetReg] = (source1TargetX < 0) ? -1 : (source1TargetX > 0) ? 1 : 0;
+        if (mask & 2)
+            target[targetReg + 1] = (source1TargetY < 0) ? -1 : (source1TargetY > 0) ? 1 : 0;
+        if (mask & 4)
+            target[targetReg + 2] = (source1TargetZ < 0) ? -1 : (source1TargetZ > 0) ? 1 : 0;
+        if (mask & 8)
+            target[targetReg + 3] = (source1TargetW < 0) ? -1 : (source1TargetW > 0) ? 1 : 0;
     };
     ProgramSoftware.kil = function (vo, desc, dest, source1, source2, context) {
-        var swiz = ["x", "y", "z", "w"];
+        var source1Reg = 4 * source1.regnum;
+        var source1Swizzle = source1.swizzle;
         var source1Target = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-        var source1TargetX = source1Target[swiz[(source1.swizzle >> 0) & 3]];
-        if (source1TargetX < 0) {
+        var source1TargetX = source1Target[source1Reg + ((source1Swizzle >> 0) & 3)];
+        if (source1TargetX < 0)
             vo.discard = true;
-        }
     };
     ProgramSoftware._defaultSamplerState = new SoftwareSamplerState_1.default();
     ProgramSoftware._tokenizer = new AGALTokenizer_1.default();
@@ -4137,17 +4039,12 @@ var ProgramSoftware = (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = ProgramSoftware;
 
-},{"../aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Vector3D":undefined}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
+},{"../aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState"}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
 "use strict";
 var ProgramVOSoftware = (function () {
     function ProgramVOSoftware() {
-        this.outputPosition = [];
-        this.outputColor = [];
-        this.varying = [];
-        this.derivativeX = [];
-        this.derivativeY = [];
-        this.temp = [];
-        this.attributes = [];
+        this.outputPosition = new Float32Array([0, 0, 0, 1]);
+        this.outputColor = new Float32Array([0, 0, 0, 1]);
         this.discard = false;
     }
     return ProgramVOSoftware;
@@ -4318,7 +4215,7 @@ var Stage = (function (_super) {
         this._programData = new Array();
         this._x = 0;
         this._y = 0;
-        //private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver / request animation frame
+        //private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver/request animation frame
         this._stageIndex = -1;
         this._antiAlias = 0;
         //private var _activeVertexBuffers : Vector.<VertexBuffer> = new Vector.<VertexBuffer>(8, true);
