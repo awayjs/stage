@@ -1551,7 +1551,6 @@ var ContextSoftware = (function () {
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
         if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
-        console.log("clear: " + red + ", " + green + ", " + blue + ", alpha: " + alpha);
         if (mask & ContextGLClearMask_1.default.COLOR)
             this._backBufferColor.fillRect(this._backBufferRect, ColorUtils_1.default.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
         //TODO: mask & ContextGLClearMask.STENCIL
@@ -1563,7 +1562,6 @@ var ContextSoftware = (function () {
         }
     };
     ContextSoftware.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
-        console.log("configureBackBuffer antiAlias: " + antiAlias);
         this._antialias = antiAlias;
         if (this._antialias % 2 != 0)
             this._antialias = Math.floor(this._antialias - 0.5);
@@ -1615,7 +1613,6 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.dispose = function () {
     };
     ContextSoftware.prototype.setBlendFactors = function (sourceFactor, destinationFactor) {
-        console.log("setBlendFactors sourceFactor: " + sourceFactor + " destinationFactor: " + destinationFactor);
         this._blendSource = sourceFactor;
         this._blendDestination = destinationFactor;
     };
@@ -1636,7 +1633,6 @@ var ContextSoftware = (function () {
         this._cullingMode = triangleFaceToCull;
     };
     ContextSoftware.prototype.setDepthTest = function (depthMask, passCompareMode) {
-        console.log("setDepthTest: " + depthMask + " , " + passCompareMode);
         this._writeDepth = depthMask;
         this._depthCompareMode = passCompareMode;
     };
@@ -1644,7 +1640,6 @@ var ContextSoftware = (function () {
         this._program = program;
     };
     ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, data) {
-        console.log("setProgramConstantsFromArray: programType" + programType + " data: " + data);
         var target;
         if (programType == ContextGLProgramType_1.default.VERTEX)
             target = this._vertexConstants = new Float32Array(data.length);
@@ -1653,72 +1648,56 @@ var ContextSoftware = (function () {
         target.set(data);
     };
     ContextSoftware.prototype.setTextureAt = function (sampler, texture) {
-        console.log("setTextureAt sample: " + sampler + " texture: " + texture);
         this._textures[sampler] = texture;
     };
     ContextSoftware.prototype.setVertexBufferAt = function (index, buffer, bufferOffset, format) {
-        console.log("setVertexBufferAt index: " + index + " buffer: " + buffer + " bufferOffset: " + bufferOffset + " format: " + format);
         this._vertexBuffers[index] = buffer;
         this._vertexBufferOffsets[index] = bufferOffset;
         this._vertexBufferFormats[index] = format;
     };
     ContextSoftware.prototype.present = function () {
-        console.log("present()");
         this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils_1.default.ARGBtoFloat32(0, 0, 0, 0));
         this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
     };
     ContextSoftware.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
-        console.log("drawIndices mode: " + mode + " firstIndex: " + firstIndex + " numIndices: " + numIndices);
         if (!this._program) {
             return;
         }
         this._backBufferColor.lock();
-        var index0;
-        var index1;
-        var index2;
-        var vo0;
-        var vo1;
-        var vo2;
+        var position0 = new Float32Array(4);
+        var position1 = new Float32Array(4);
+        var position2 = new Float32Array(4);
+        var varying0 = new Float32Array(this._program.numVarying * 4);
+        var varying1 = new Float32Array(this._program.numVarying * 4);
+        var varying2 = new Float32Array(this._program.numVarying * 4);
         if (this._cullingMode == ContextGLTriangleFace_1.default.BACK) {
             for (var i = firstIndex; i < numIndices; i += 3) {
-                index0 = indexBuffer.data[indexBuffer.startOffset + i];
-                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
-                index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
-                vo0 = this._program.vertex(this, index0);
-                vo1 = this._program.vertex(this, index1);
-                vo2 = this._program.vertex(this, index2);
-                this._triangle(vo0, vo1, vo2);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position0, varying0);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position2, varying2);
+                this._triangle(position0, position1, position2, varying0, varying1, varying2);
             }
         }
         else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT) {
             for (var i = firstIndex; i < numIndices; i += 3) {
-                index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
-                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
-                index2 = indexBuffer.data[indexBuffer.startOffset + i + 0];
-                vo0 = this._program.vertex(this, index0);
-                vo1 = this._program.vertex(this, index1);
-                vo2 = this._program.vertex(this, index2);
-                this._triangle(vo0, vo1, vo2);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position2, varying2);
+                this._triangle(position0, position1, position2, varying0, varying1, varying2);
             }
         }
         else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace_1.default.NONE) {
             for (var i = firstIndex; i < numIndices; i += 3) {
-                index0 = indexBuffer.data[indexBuffer.startOffset + i + 2];
-                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
-                index2 = indexBuffer.data[indexBuffer.startOffset + i + 0];
-                vo0 = this._program.vertex(this, index0);
-                vo1 = this._program.vertex(this, index1);
-                vo2 = this._program.vertex(this, index2);
-                this._triangle(vo0, vo1, vo2);
-                index0 = indexBuffer.data[indexBuffer.startOffset + i];
-                index1 = indexBuffer.data[indexBuffer.startOffset + i + 1];
-                index2 = indexBuffer.data[indexBuffer.startOffset + i + 2];
-                vo0 = this._program.vertex(this, index0);
-                vo1 = this._program.vertex(this, index1);
-                vo2 = this._program.vertex(this, index2);
-                this._triangle(vo0, vo1, vo2);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position2, varying2);
+                this._triangle(position0, position1, position2, varying0, varying1, varying2);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position0, varying0);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
+                this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position2, varying2);
+                this._triangle(position0, position1, position2, varying0, varying1, varying2);
             }
         }
         //if (ContextSoftware._drawCallback) {
@@ -1733,7 +1712,6 @@ var ContextSoftware = (function () {
         //TODO:
     };
     ContextSoftware.prototype.setSamplerStateAt = function (sampler, wrap, filter, mipfilter) {
-        //console.log("setSamplerStateAt: "+sampler+" wrap: "+wrap+" filter: "+filter+" mipfilter: "+mipfilter);
         var state = this._samplerStates[sampler];
         if (!state) {
             state = this._samplerStates[sampler] = new SoftwareSamplerState_1.default();
@@ -1769,11 +1747,6 @@ var ContextSoftware = (function () {
         r = Math.max(0, Math.min(r, 1));
         g = Math.max(0, Math.min(g, 1));
         b = Math.max(0, Math.min(b, 1));
-        //
-        //r*=a/255;
-        //g*=a/255;
-        //b*=a/255;
-        //a = 255;
         this._backBufferColor.setPixel32(x, y, ColorUtils_1.default.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
     };
     ContextSoftware.prototype._applyBlendMode = function (argb, blend, dest, source) {
@@ -1846,14 +1819,14 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.interpolate = function (min, max, gradient) {
         return min + (max - min) * this.clamp(gradient);
     };
-    ContextSoftware.prototype._triangle = function (vo0, vo1, vo2) {
-        var p0 = new Vector3D_1.default(vo0.outputPosition[0], vo0.outputPosition[1], vo0.outputPosition[2], vo0.outputPosition[3]);
+    ContextSoftware.prototype._triangle = function (position0, position1, position2, varying0, varying1, varying2) {
+        var p0 = new Vector3D_1.default(position0[0], position0[1], position0[2], position0[3]);
         if (!p0 || p0.w == 0 || isNaN(p0.w)) {
-            console.error("wrong position: " + vo0.outputPosition);
+            console.error("wrong position: " + position0);
             return;
         }
-        var p1 = new Vector3D_1.default(vo1.outputPosition[0], vo1.outputPosition[1], vo1.outputPosition[2], vo1.outputPosition[3]);
-        var p2 = new Vector3D_1.default(vo2.outputPosition[0], vo2.outputPosition[1], vo2.outputPosition[2], vo2.outputPosition[3]);
+        var p1 = new Vector3D_1.default(position1[0], position1[1], position1[2], position1[3]);
+        var p2 = new Vector3D_1.default(position2[0], position2[1], position2[2], position2[3]);
         p0.z = p0.z * 2 - p0.w;
         p1.z = p1.z * 2 - p1.w;
         p2.z = p2.z * 2 - p2.w;
@@ -1934,7 +1907,7 @@ var ContextSoftware = (function () {
                 }
                 if (!passDepthTest)
                     continue;
-                var fragmentVO = this._program.fragment(this, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth);
+                var fragmentVO = this._program.fragment(this, clip, clipRight, clipBottom, varying0, varying1, varying2, fragDepth);
                 if (fragmentVO.discard)
                     continue;
                 if (this._writeDepth)
@@ -3064,22 +3037,38 @@ var ContextGLMipFilter_1 = require("../base/ContextGLMipFilter");
 var ContextGLWrapMode_1 = require("../base/ContextGLWrapMode");
 var ProgramSoftware = (function () {
     function ProgramSoftware() {
+        this._numVarying = 0;
     }
+    Object.defineProperty(ProgramSoftware.prototype, "numVarying", {
+        get: function () {
+            return this._numVarying;
+        },
+        enumerable: true,
+        configurable: true
+    });
     ProgramSoftware.prototype.upload = function (vertexProgram, fragmentProgram) {
         this._vertexDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(vertexProgram);
+        this._vertexVO = new ProgramVOSoftware_1.default();
+        this._vertexVO.temp = new Float32Array(this._vertexDescr.regwrite[0x2].length * 4);
+        this._vertexVO.attributes = new Float32Array(this._vertexDescr.regread[0x0].length * 4);
+        this._numVarying = this._vertexDescr.regwrite[0x4].length;
         this._fragmentDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(fragmentProgram);
+        this._fragmentVO = new ProgramVOSoftware_1.default();
+        this._fragmentVO.temp = new Float32Array(this._fragmentDescr.regwrite[0x2].length * 4);
+        this._fragmentVO.varying = new Float32Array(this._fragmentDescr.regread[0x4].length * 4);
+        this._fragmentVO.derivativeX = new Float32Array(this._fragmentVO.varying.length);
+        this._fragmentVO.derivativeY = new Float32Array(this._fragmentVO.varying.length);
     };
     ProgramSoftware.prototype.dispose = function () {
         this._vertexDescr = null;
         this._fragmentDescr = null;
     };
-    ProgramSoftware.prototype.vertex = function (context, vertexIndex) {
-        var vo = new ProgramVOSoftware_1.default();
-        //parse attributes
+    ProgramSoftware.prototype.vertex = function (context, vertexIndex, position, varying) {
+        //set attributes
         var i;
         var j = 0;
         var numAttributes = this._vertexDescr.regread[0x0].length;
-        var attributes = vo.attributes = new Float32Array(numAttributes * 4);
+        var attributes = this._vertexVO.attributes;
         for (i = 0; i < numAttributes; i++) {
             var buffer = context._vertexBuffers[i];
             if (!buffer)
@@ -3116,26 +3105,34 @@ var ProgramSoftware = (function () {
                 attributes[j++] = 1;
             }
         }
-        var numTemp = this._vertexDescr.regwrite[0x2].length * 4;
-        vo.temp = new Float32Array(numTemp);
-        for (var i = 0; i < numTemp; i += 4)
-            vo.temp[i + 3] = 1;
-        var numVarying = this._vertexDescr.regwrite[0x4].length * 4;
-        vo.varying = new Float32Array(numVarying);
+        //clear temps
+        var temp = this._vertexVO.temp;
+        var numTemp = temp.length;
+        for (var i = 0; i < numTemp; i += 4) {
+            temp[i] = 0;
+            temp[i + 1] = 0;
+            temp[i + 2] = 0;
+            temp[i + 3] = 1;
+        }
+        this._vertexVO.outputPosition = position;
+        this._vertexVO.varying = varying;
         var len = this._vertexDescr.tokens.length;
         for (var i = 0; i < len; i++) {
             var token = this._vertexDescr.tokens[i];
-            ProgramSoftware._opCodeFunc[token.opcode](vo, this._vertexDescr, token.dest, token.a, token.b, context);
+            ProgramSoftware._opCodeFunc[token.opcode](this._vertexVO, this._vertexDescr, token.dest, token.a, token.b, context);
         }
-        return vo;
     };
-    ProgramSoftware.prototype.fragment = function (context, clip, clipRight, clipBottom, vo0, vo1, vo2, fragDepth) {
-        var vo = new ProgramVOSoftware_1.default();
-        vo.outputDepth = fragDepth;
-        var numTemp = this._fragmentDescr.regwrite[0x2].length * 4;
-        vo.temp = new Float32Array(numTemp);
-        for (var i = 0; i < numTemp; i += 4)
-            vo.temp[i + 3] = 1;
+    ProgramSoftware.prototype.fragment = function (context, clip, clipRight, clipBottom, varying0, varying1, varying2, fragDepth) {
+        this._fragmentVO.outputDepth = fragDepth;
+        //clear temps
+        var temp = this._fragmentVO.temp;
+        var numTemp = temp.length;
+        for (var i = 0; i < numTemp; i += 4) {
+            temp[i] = 0;
+            temp[i + 1] = 0;
+            temp[i + 2] = 0;
+            temp[i + 3] = 1;
+        }
         //check for requirement of derivatives
         var varyingDerivatives = [];
         var len = this._fragmentDescr.tokens.length;
@@ -3144,16 +3141,13 @@ var ProgramSoftware = (function () {
             if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter_1.default.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
                 varyingDerivatives.push(token.a.regnum);
         }
-        var numVarying = this._fragmentDescr.regread[0x4].length * 4;
-        var varying = vo.varying = new Float32Array(numVarying);
-        var varying0 = vo0.varying;
-        var varying1 = vo1.varying;
-        var varying2 = vo2.varying;
+        var varying = this._fragmentVO.varying;
+        var numVarying = varying.length;
         var derivativeX;
         var derivativeY;
         if (varyingDerivatives.indexOf(i) == -1) {
-            derivativeX = vo.derivativeX = new Float32Array(numVarying);
-            derivativeY = vo.derivativeY = new Float32Array(numVarying);
+            derivativeX = this._fragmentVO.derivativeX;
+            derivativeY = this._fragmentVO.derivativeY;
         }
         for (var i = 0; i < numVarying; i += 4) {
             // if (!varying0 || !varying1 || !varying2) continue;
@@ -3182,9 +3176,9 @@ var ProgramSoftware = (function () {
         }
         for (var i = 0; i < len; i++) {
             var token = this._fragmentDescr.tokens[i];
-            ProgramSoftware._opCodeFunc[token.opcode](vo, this._fragmentDescr, token.dest, token.a, token.b, context);
+            ProgramSoftware._opCodeFunc[token.opcode](this._fragmentVO, this._fragmentDescr, token.dest, token.a, token.b, context);
         }
-        return vo;
+        return this._fragmentVO;
     };
     ProgramSoftware.getDestTarget = function (vo, desc, dest) {
         var target;
@@ -4043,7 +4037,6 @@ exports.default = ProgramSoftware;
 "use strict";
 var ProgramVOSoftware = (function () {
     function ProgramVOSoftware() {
-        this.outputPosition = new Float32Array([0, 0, 0, 1]);
         this.outputColor = new Float32Array([0, 0, 0, 1]);
         this.discard = false;
     }
@@ -4792,7 +4785,6 @@ var TextureSoftware = (function () {
     });
     TextureSoftware.prototype.uploadFromData = function (data, miplevel) {
         if (miplevel === void 0) { miplevel = 0; }
-        console.log("uploadFromData: " + data + " miplevel: " + miplevel);
         this._mipLevels[miplevel] = data.data;
     };
     TextureSoftware.prototype.getData = function (miplevel) {
@@ -4950,12 +4942,10 @@ var VertexBufferSoftware = (function () {
         this._dataPerVertex = dataPerVertex;
     }
     VertexBufferSoftware.prototype.uploadFromArray = function (vertices, startVertex, numVertices) {
-        console.log("VertexBufferSoftware.uploadFromArray");
         //this._dataOffset = startVertex * this._dataPerVertex;
         this._floatData = new Float32Array(vertices);
     };
     VertexBufferSoftware.prototype.uploadFromByteArray = function (data, startVertex, numVertices) {
-        console.log("VertexBufferSoftware.uploadFromByteArray");
         //this._dataOffset = startVertex * this._dataPerVertex;
         this._floatData = new Float32Array(data, startVertex * this._dataPerVertex, numVertices * this._dataPerVertex / 4);
         this._uintData = new Uint8Array(data);
