@@ -93,6 +93,7 @@ class ProgramSoftware implements IProgram
 
 		this._fragmentDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(fragmentProgram);
 		this._fragmentVO = new ProgramVOSoftware();
+		
 		this._fragmentVO.temp = new Float32Array(this._fragmentDescr.regwrite[0x2].length*4);
 		this._fragmentVO.varying = new Float32Array(this._fragmentDescr.regread[0x4].length*4);
 		this._fragmentVO.derivativeX = new Float32Array(this._fragmentVO.varying.length);
@@ -191,17 +192,11 @@ class ProgramSoftware implements IProgram
 				varyingDerivatives.push(token.a.regnum);
 		}
 
+		var derivativeX:Float32Array = this._fragmentVO.derivativeX;
+		var derivativeY:Float32Array = this._fragmentVO.derivativeY;
+
 		var varying:Float32Array = this._fragmentVO.varying;
 		var numVarying:number = varying.length;
-		var derivativeX:Float32Array;
-		var derivativeY:Float32Array;
-
-		if (varyingDerivatives.indexOf(i) == -1) {
-			derivativeX = this._fragmentVO.derivativeX;
-			derivativeY = this._fragmentVO.derivativeY;
-		}
-		
-		
 		for (var i:number = 0; i < numVarying; i+=4) {
 			
 			// if (!varying0 || !varying1 || !varying2) continue;
@@ -410,17 +405,15 @@ class ProgramSoftware implements IProgram
 			u = Math.abs(u % textureWidth);
 			v = Math.abs(v % textureHeight);
 		} else {
-			if (u < 0) {
+			if (u < 0)
 				u = 0;
-			} else if (u > textureWidth - 1) {
+			else if (u > textureWidth - 1)
 				u = textureWidth - 1;
-			}
 
-			if (v < 0) {
+			if (v < 0)
 				v = 0;
-			} else if (v > textureHeight - 1) {
+			else if (v > textureHeight - 1)
 				v = textureHeight - 1;
-			}
 		}
 
 		u = Math.floor(u);

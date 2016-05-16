@@ -270,14 +270,11 @@ class ContextWebGL implements IContextGL
 
 	public drawToBitmapImage2D(destination:BitmapImage2D)
 	{
-		var arrayBuffer:ArrayBuffer = new ArrayBuffer(destination.width*destination.height*4);
+		var pixels:Uint8ClampedArray = new Uint8ClampedArray(destination.width*destination.height*4);
 
-		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, new Uint8Array(arrayBuffer));
+		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
 
-		var byteArray:ByteArray = new ByteArray();
-		byteArray.setArrayBuffer(arrayBuffer);
-
-		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), byteArray);
+		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), pixels);
 	}
 
 	public drawIndices(mode:string, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numIndices:number = -1)

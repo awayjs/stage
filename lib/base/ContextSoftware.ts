@@ -34,7 +34,10 @@ class ContextSoftware implements IContextGL
 	private _backBufferColor:BitmapImage2D;
 	private _frontBuffer:BitmapImage2D;
 
-	private _zbuffer:number[] = [];
+	private _zbuffer:Float32Array;
+	private _zbufferClear:Float32Array;
+	private _colorClearUint8:Uint8ClampedArray;
+	private _colorClearUint32:Uint32Array;
 	private _cullingMode:string = ContextGLTriangleFace.BACK;
 	private _blendSource:string = ContextGLBlendFactor.ONE;
 	private _blendDestination:string = ContextGLBlendFactor.ZERO;
@@ -89,17 +92,17 @@ class ContextSoftware implements IContextGL
 
 	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL)
 	{
-		if (mask & ContextGLClearMask.COLOR)
-			this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha*0xFF, red*0xFF, green*0xFF, blue*0xFF));
+		this._backBufferColor.lock();
+
+		if (mask & ContextGLClearMask.COLOR) {
+			this._colorClearUint32.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
+			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
+		}
 
 		//TODO: mask & ContextGLClearMask.STENCIL
 
-		if (mask & ContextGLClearMask.DEPTH) {
-			this._zbuffer.length = 0;
-			var len:number = this._backBufferWidth*this._backBufferHeight;
-			for (var i:number = 0; i < len; i++)
-				this._zbuffer[i] = 10000000;
-		}
+		if (mask & ContextGLClearMask.DEPTH)
+			this._zbuffer.set(this._zbufferClear); //fast memcpy
 	}
 
 	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean)
@@ -117,6 +120,18 @@ class ContextSoftware implements IContextGL
 		this._backBufferWidth = width*this._antialias;
 		this._backBufferHeight = height*this._antialias;
 
+		//double buffer for fast clearing
+		var len:number = this._backBufferWidth*this._backBufferHeight;
+		var zbufferBytes:ArrayBuffer = new ArrayBuffer(len*8);
+		this._zbuffer = new Float32Array(zbufferBytes, 0, len);
+		this._zbufferClear = new Float32Array(zbufferBytes, len*4, len);
+		for (var i:number = 0; i < len; i++)
+			this._zbufferClear[i] = 10000000;
+
+		var colorClearBuffer:ArrayBuffer = new ArrayBuffer(len*4);
+
+		this._colorClearUint8 = new Uint8ClampedArray(colorClearBuffer);
+		this._colorClearUint32 = new Uint32Array(colorClearBuffer);
 		this._backBufferRect.width = this._backBufferWidth;
 		this._backBufferRect.height = this._backBufferHeight;
 
@@ -244,6 +259,8 @@ class ContextSoftware implements IContextGL
 
 	public present()
 	{
+		this._backBufferColor.unlock();
+
 		this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
 		this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
 	}
@@ -254,11 +271,8 @@ class ContextSoftware implements IContextGL
 
 	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number)
 	{
-		if (!this._program) {
+		if (!this._program)
 			return;
-		}
-
-		this._backBufferColor.lock();
 
 		var position0:Float32Array = new Float32Array(4);
 		var position1:Float32Array = new Float32Array(4);
@@ -299,11 +313,6 @@ class ContextSoftware implements IContextGL
 				this._triangle(position0, position1, position2, varying0, varying1, varying2);
 			}
 		}
-
-		//if (ContextSoftware._drawCallback) {
-		//    ContextSoftware._drawCallback(this._backBufferColor);
-		//}
-		this._backBufferColor.unlock();
 	}
 
 	public drawVertices(mode:string, firstVertex:number, numVertices:number)
@@ -319,9 +328,10 @@ class ContextSoftware implements IContextGL
 	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string)
 	{
 		var state:SoftwareSamplerState = this._samplerStates[sampler];
-		if (!state) {
+
+		if (!state)
 			state = this._samplerStates[sampler] = new SoftwareSamplerState();
-		}
+
 		state.wrap = wrap;
 		state.filter = filter;
 		state.mipfilter = mipfilter;
@@ -337,93 +347,17 @@ class ContextSoftware implements IContextGL
 		//TODO:
 	}
 
-	private _putPixel(x:number, y:number, color:number)
+	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray)
 	{
-		var dest:number[] = ColorUtils.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
-		dest[0] /= 255;
-		dest[1] /= 255;
-		dest[2] /= 255;
-		dest[3] /= 255;
+		argb[0] = 0;
+		argb[1] = 0;
+		argb[2] = 0;
+		argb[3] = 0;
 
-		var source:number[] = ColorUtils.float32ColorToARGB(color);
-		source[0] /= 255;
-		source[1] /= 255;
-		source[2] /= 255;
-		source[3] /= 255;
+		BlendModeSoftware[this._blendDestination](dest, dest, source);
+		BlendModeSoftware[this._blendSource](source, dest, source);
 
-		var destModified:number[] = this._applyBlendMode(dest, this._blendDestination, dest, source);
-		var sourceModified:number[] = this._applyBlendMode(source, this._blendSource, dest, source);
-
-		var a:number = destModified[0] + sourceModified[0];
-		var r:number = destModified[1] + sourceModified[1];
-		var g:number = destModified[2] + sourceModified[2];
-		var b:number = destModified[3] + sourceModified[3];
-
-		a = Math.max(0, Math.min(a, 1));
-		r = Math.max(0, Math.min(r, 1));
-		g = Math.max(0, Math.min(g, 1));
-		b = Math.max(0, Math.min(b, 1));
-
-		this._backBufferColor.setPixel32(x, y, ColorUtils.ARGBtoFloat32(a*255, r*255, g*255, b*255));
-	}
-
-	private _applyBlendMode(argb:number[], blend:string, dest:number[], source:number[]):number[]
-	{
-		var result:number[] = [];
-
-		result[0] = argb[0];
-		result[1] = argb[1];
-		result[2] = argb[2];
-		result[3] = argb[3];
-
-		if (blend == ContextGLBlendFactor.DESTINATION_ALPHA) {
-			result[0] *= dest[0];
-			result[1] *= dest[0];
-			result[2] *= dest[0];
-			result[3] *= dest[0];
-		} else if (blend == ContextGLBlendFactor.DESTINATION_COLOR) {
-			result[0] *= dest[0];
-			result[1] *= dest[1];
-			result[2] *= dest[2];
-			result[3] *= dest[3];
-		} else if (blend == ContextGLBlendFactor.ZERO) {
-			result[0] = 0;
-			result[1] = 0;
-			result[2] = 0;
-			result[3] = 0;
-		} else if (blend == ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA) {
-			result[0] *= 1 - dest[0];
-			result[1] *= 1 - dest[0];
-			result[2] *= 1 - dest[0];
-			result[3] *= 1 - dest[0];
-		} else if (blend == ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR) {
-			result[0] *= 1 - dest[0];
-			result[1] *= 1 - dest[1];
-			result[2] *= 1 - dest[2];
-			result[3] *= 1 - dest[3];
-		} else if (blend == ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA) {
-			result[0] *= 1 - source[0];
-			result[1] *= 1 - source[0];
-			result[2] *= 1 - source[0];
-			result[3] *= 1 - source[0];
-		} else if (blend == ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR) {
-			result[0] *= 1 - source[0];
-			result[1] *= 1 - source[1];
-			result[2] *= 1 - source[2];
-			result[3] *= 1 - source[3];
-		} else if (blend == ContextGLBlendFactor.SOURCE_ALPHA) {
-			result[0] *= source[0];
-			result[1] *= source[0];
-			result[2] *= source[0];
-			result[3] *= source[0];
-		} else if (blend == ContextGLBlendFactor.SOURCE_COLOR) {
-			result[0] *= source[0];
-			result[1] *= source[1];
-			result[2] *= source[2];
-			result[3] *= source[3];
-		}
-
-		return result;
+		this._backBufferColor.setPixelData(x, y, argb);
 	}
 
 	public clamp(value:number, min:number = 0, max:number = 1):number
@@ -510,42 +444,11 @@ class ContextSoftware implements IContextGL
 				var clipBottom:Vector3D = new Vector3D(screenBottom.x/project.x, screenBottom.y/project.y, screenBottom.z/project.z);
 				clipBottom.scaleBy(1/(clipBottom.x + clipBottom.y + clipBottom.z));
 
-				var index:number = ((x % this._backBufferWidth) + y*this._backBufferWidth);
+				var index:number = (x % this._backBufferWidth) + y*this._backBufferWidth;
 
 				var fragDepth:number = depth.x*screen.x + depth.y*screen.y + depth.z*screen.z;
-
-				var currentDepth:number = this._zbuffer[index];
-				//< fragDepth
-				var passDepthTest:boolean = false;
-				switch (this._depthCompareMode) {
-					case ContextGLCompareMode.ALWAYS:
-						passDepthTest = true;
-						break;
-					case ContextGLCompareMode.EQUAL:
-						passDepthTest = fragDepth == currentDepth;
-						break;
-					case ContextGLCompareMode.GREATER:
-						passDepthTest = fragDepth > currentDepth;
-						break;
-					case ContextGLCompareMode.GREATER_EQUAL:
-						passDepthTest = fragDepth >= currentDepth;
-						break;
-					case ContextGLCompareMode.LESS:
-						passDepthTest = fragDepth < currentDepth;
-						break;
-					case ContextGLCompareMode.LESS_EQUAL:
-						passDepthTest = fragDepth <= currentDepth;
-						break;
-					case ContextGLCompareMode.NEVER:
-						passDepthTest = false;
-						break;
-					case ContextGLCompareMode.NOT_EQUAL:
-						passDepthTest = fragDepth != currentDepth;
-						break;
-					default:
-				}
-
-				if (!passDepthTest)
+				
+				if (!DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._zbuffer[index]))
 					continue;
 
 				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, clipRight, clipBottom, varying0, varying1, varying2, fragDepth);
@@ -556,30 +459,168 @@ class ContextSoftware implements IContextGL
 				if (this._writeDepth)
 					this._zbuffer[index] = fragDepth;//todo: fragmentVO.outputDepth?
 
-				var color:Float32Array = fragmentVO.outputColor;
+				//set source
+				source[0] = fragmentVO.outputColor[0]*255;
+				source[1] = fragmentVO.outputColor[1]*255;
+				source[2] = fragmentVO.outputColor[2]*255;
+				source[3] = fragmentVO.outputColor[3]*255;
+
+				//set dest
+				this._backBufferColor.getPixelData(x, y, dest);
 				
-				this._putPixel(x, y, ((Math.max(0, Math.min(color[3], 1))*255) << 24) | ((Math.max(0, Math.min(color[0], 1))*255) << 16) | ((Math.max(0, Math.min(color[1], 1))*255) << 8) | Math.max(0, Math.min(color[2], 1))*255);
+				this._putPixel(x, y, source, dest);
 			}
 	}
 
+	private _sx:Vector3D = new Vector3D();
+	private _sy:Vector3D = new Vector3D();
+	private _u:Vector3D = new Vector3D();
+	
 	private _barycentric(a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number):Vector3D
 	{
-		var sx:Vector3D = new Vector3D();
-		sx.x = c.x - a.x;
-		sx.y = b.x - a.x;
-		sx.z = a.x - x;
+		this._sx.x = c.x - a.x;
+		this._sx.y = b.x - a.x;
+		this._sx.z = a.x - x;
+		
+		this._sy.x = c.y - a.y;
+		this._sy.y = b.y - a.y;
+		this._sy.z = a.y - y;
 
-		var sy:Vector3D = new Vector3D();
-		sy.x = c.y - a.y;
-		sy.y = b.y - a.y;
-		sy.z = a.y - y;
-
-		var u:Vector3D = sx.crossProduct(sy);
-		if (u.z < 0.01) {
-			return new Vector3D(1 - (u.x + u.y)/u.z, u.y/u.z, u.x/u.z);
-		}
+		this._u = this._sx.crossProduct(this._sy, this._u);
+		
+		if (this._u.z < 0.01)
+			return new Vector3D(1 - (this._u.x + this._u.y)/this._u.z, this._u.y/this._u.z, this._u.x/this._u.z);
+		
 		return new Vector3D(-1, 1, 1);
 	}
 }
+
+class BlendModeSoftware
+{
+	public static destinationAlpha(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray)
+	{
+		argb[0] += result[0]*dest[0]/0xFF;
+		argb[1] += result[1]*dest[0]/0xFF;
+		argb[2] += result[2]*dest[0]/0xFF;
+		argb[3] += result[3]*dest[0]/0xFF;
+	}
+
+
+	public static destinationColor(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray)
+	{
+		argb[0] += result[0]*dest[0]/0xFF;
+		argb[1] += result[1]*dest[1]/0xFF;
+		argb[2] += result[2]*dest[2]/0xFF;
+		argb[3] += result[3]*dest[3]/0xFF;
+	}
+
+	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+	}
+
+	public static one(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0];
+		argb[1] += result[1];
+		argb[2] += result[2];
+		argb[3] += result[3];
+	}
+
+	public static oneMinusDestinationAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0]*(1 - dest[0]/0xFF);
+		argb[1] += result[1]*(1 - dest[0]/0xFF);
+		argb[2] += result[2]*(1 - dest[0]/0xFF);
+		argb[3] += result[3]*(1 - dest[0]/0xFF);
+	}
+
+	public static oneMinusDestinationColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0]*(1 - dest[0]/0xFF);
+		argb[1] += result[1]*(1 - dest[1]/0xFF);
+		argb[2] += result[2]*(1 - dest[2]/0xFF);
+		argb[3] += result[3]*(1 - dest[3]/0xFF);
+	}
+
+	public static oneMinusSourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0]*(1 - source[0]/0xFF);
+		argb[1] += result[1]*(1 - source[0]/0xFF);
+		argb[2] += result[2]*(1 - source[0]/0xFF);
+		argb[3] += result[3]*(1 - source[0]/0xFF);
+	}
+
+	public static oneMinusSourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0]*(1 - source[0]/0xFF);
+		argb[1] += result[1]*(1 - source[1]/0xFF);
+		argb[2] += result[2]*(1 - source[2]/0xFF);
+		argb[3] += result[3]*(1 - source[3]/0xFF);
+	}
+
+	public static sourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0]*source[0]/0xFF;
+		argb[1] += result[1]*source[0]/0xFF;
+		argb[2] += result[2]*source[0]/0xFF;
+		argb[3] += result[3]*source[0]/0xFF;
+	}
+
+	public static sourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	{
+		argb[0] += result[0]*source[0]/0xFF;
+		argb[1] += result[1]*source[1]/0xFF;
+		argb[2] += result[2]*source[2]/0xFF;
+		argb[3] += result[3]*source[3]/0xFF;
+	}
+}
+
+
+class DepthCompareModeSoftware
+{
+	public static always(fragDepth:number, currentDepth:number):boolean
+	{
+		return true;
+	}
+
+	public static equal(fragDepth:number, currentDepth:number):boolean
+	{
+		return fragDepth == currentDepth;
+	}
+
+	public static greater(fragDepth:number, currentDepth:number):boolean
+	{
+		return fragDepth > currentDepth;
+	}
+
+	public static greaterEqual(fragDepth:number, currentDepth:number):boolean
+	{
+		return fragDepth >= currentDepth;
+	}
+
+	public static less(fragDepth:number, currentDepth:number):boolean
+	{
+		return fragDepth < currentDepth;
+	}
+
+	public static lessEqual(fragDepth:number, currentDepth:number):boolean
+	{
+		return fragDepth <= currentDepth;
+	}
+
+	public static never(fragDepth:number, currentDepth:number):boolean
+	{
+		return false;
+	}
+
+	public static notEqual(fragDepth:number, currentDepth:number):boolean
+	{
+		return fragDepth != currentDepth;
+	}
+}
+
+var argb:Uint8ClampedArray = new Uint8ClampedArray(4);
+var source:Uint8ClampedArray = new Uint8ClampedArray(4);
+var dest:Uint8ClampedArray = new Uint8ClampedArray(4);
 
 export default ContextSoftware;
