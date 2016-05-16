@@ -1501,7 +1501,6 @@ var ContextSoftware = (function () {
         this._backBufferRect = new Rectangle_1.default();
         this._backBufferWidth = 100;
         this._backBufferHeight = 100;
-        this._zbuffer = [];
         this._cullingMode = ContextGLTriangleFace_1.default.BACK;
         this._blendSource = ContextGLBlendFactor_1.default.ONE;
         this._blendDestination = ContextGLBlendFactor_1.default.ZERO;
@@ -1523,6 +1522,9 @@ var ContextSoftware = (function () {
         this._vertexBufferFormats = [];
         //public static _drawCallback:Function = null;
         this._antialias = 0;
+        this._sx = new Vector3D_1.default();
+        this._sy = new Vector3D_1.default();
+        this._u = new Vector3D_1.default();
         this._canvas = canvas;
         this._backBufferColor = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, false, 0, false);
         this._frontBuffer = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, true, 0, false);
@@ -1551,15 +1553,14 @@ var ContextSoftware = (function () {
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
         if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
-        if (mask & ContextGLClearMask_1.default.COLOR)
-            this._backBufferColor.fillRect(this._backBufferRect, ColorUtils_1.default.ARGBtoFloat32(alpha * 0xFF, red * 0xFF, green * 0xFF, blue * 0xFF));
-        //TODO: mask & ContextGLClearMask.STENCIL
-        if (mask & ContextGLClearMask_1.default.DEPTH) {
-            this._zbuffer.length = 0;
-            var len = this._backBufferWidth * this._backBufferHeight;
-            for (var i = 0; i < len; i++)
-                this._zbuffer[i] = 10000000;
+        this._backBufferColor.lock();
+        if (mask & ContextGLClearMask_1.default.COLOR) {
+            this._colorClearUint32.fill(((alpha * 0xFF << 24) | (red * 0xFF << 16) | (green * 0xFF << 8) | blue * 0xFF));
+            this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
         }
+        //TODO: mask & ContextGLClearMask.STENCIL
+        if (mask & ContextGLClearMask_1.default.DEPTH)
+            this._zbuffer.set(this._zbufferClear); //fast memcpy
     };
     ContextSoftware.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         this._antialias = antiAlias;
@@ -1570,6 +1571,16 @@ var ContextSoftware = (function () {
         this._frontBuffer._setSize(width, height);
         this._backBufferWidth = width * this._antialias;
         this._backBufferHeight = height * this._antialias;
+        //double buffer for fast clearing
+        var len = this._backBufferWidth * this._backBufferHeight;
+        var zbufferBytes = new ArrayBuffer(len * 8);
+        this._zbuffer = new Float32Array(zbufferBytes, 0, len);
+        this._zbufferClear = new Float32Array(zbufferBytes, len * 4, len);
+        for (var i = 0; i < len; i++)
+            this._zbufferClear[i] = 10000000;
+        var colorClearBuffer = new ArrayBuffer(len * 4);
+        this._colorClearUint8 = new Uint8ClampedArray(colorClearBuffer);
+        this._colorClearUint32 = new Uint32Array(colorClearBuffer);
         this._backBufferRect.width = this._backBufferWidth;
         this._backBufferRect.height = this._backBufferHeight;
         this._backBufferColor._setSize(this._backBufferWidth, this._backBufferHeight);
@@ -1656,16 +1667,15 @@ var ContextSoftware = (function () {
         this._vertexBufferFormats[index] = format;
     };
     ContextSoftware.prototype.present = function () {
+        this._backBufferColor.unlock();
         this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils_1.default.ARGBtoFloat32(0, 0, 0, 0));
         this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
     };
     ContextSoftware.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
-        if (!this._program) {
+        if (!this._program)
             return;
-        }
-        this._backBufferColor.lock();
         var position0 = new Float32Array(4);
         var position1 = new Float32Array(4);
         var position2 = new Float32Array(4);
@@ -1700,10 +1710,6 @@ var ContextSoftware = (function () {
                 this._triangle(position0, position1, position2, varying0, varying1, varying2);
             }
         }
-        //if (ContextSoftware._drawCallback) {
-        //    ContextSoftware._drawCallback(this._backBufferColor);
-        //}
-        this._backBufferColor.unlock();
     };
     ContextSoftware.prototype.drawVertices = function (mode, firstVertex, numVertices) {
         //TODO:
@@ -1713,9 +1719,8 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.setSamplerStateAt = function (sampler, wrap, filter, mipfilter) {
         var state = this._samplerStates[sampler];
-        if (!state) {
+        if (!state)
             state = this._samplerStates[sampler] = new SoftwareSamplerState_1.default();
-        }
         state.wrap = wrap;
         state.filter = filter;
         state.mipfilter = mipfilter;
@@ -1726,90 +1731,14 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setRenderToBackBuffer = function () {
         //TODO:
     };
-    ContextSoftware.prototype._putPixel = function (x, y, color) {
-        var dest = ColorUtils_1.default.float32ColorToARGB(this._backBufferColor.getPixel32(x, y));
-        dest[0] /= 255;
-        dest[1] /= 255;
-        dest[2] /= 255;
-        dest[3] /= 255;
-        var source = ColorUtils_1.default.float32ColorToARGB(color);
-        source[0] /= 255;
-        source[1] /= 255;
-        source[2] /= 255;
-        source[3] /= 255;
-        var destModified = this._applyBlendMode(dest, this._blendDestination, dest, source);
-        var sourceModified = this._applyBlendMode(source, this._blendSource, dest, source);
-        var a = destModified[0] + sourceModified[0];
-        var r = destModified[1] + sourceModified[1];
-        var g = destModified[2] + sourceModified[2];
-        var b = destModified[3] + sourceModified[3];
-        a = Math.max(0, Math.min(a, 1));
-        r = Math.max(0, Math.min(r, 1));
-        g = Math.max(0, Math.min(g, 1));
-        b = Math.max(0, Math.min(b, 1));
-        this._backBufferColor.setPixel32(x, y, ColorUtils_1.default.ARGBtoFloat32(a * 255, r * 255, g * 255, b * 255));
-    };
-    ContextSoftware.prototype._applyBlendMode = function (argb, blend, dest, source) {
-        var result = [];
-        result[0] = argb[0];
-        result[1] = argb[1];
-        result[2] = argb[2];
-        result[3] = argb[3];
-        if (blend == ContextGLBlendFactor_1.default.DESTINATION_ALPHA) {
-            result[0] *= dest[0];
-            result[1] *= dest[0];
-            result[2] *= dest[0];
-            result[3] *= dest[0];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.DESTINATION_COLOR) {
-            result[0] *= dest[0];
-            result[1] *= dest[1];
-            result[2] *= dest[2];
-            result[3] *= dest[3];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.ZERO) {
-            result[0] = 0;
-            result[1] = 0;
-            result[2] = 0;
-            result[3] = 0;
-        }
-        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_ALPHA) {
-            result[0] *= 1 - dest[0];
-            result[1] *= 1 - dest[0];
-            result[2] *= 1 - dest[0];
-            result[3] *= 1 - dest[0];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_COLOR) {
-            result[0] *= 1 - dest[0];
-            result[1] *= 1 - dest[1];
-            result[2] *= 1 - dest[2];
-            result[3] *= 1 - dest[3];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_ALPHA) {
-            result[0] *= 1 - source[0];
-            result[1] *= 1 - source[0];
-            result[2] *= 1 - source[0];
-            result[3] *= 1 - source[0];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_COLOR) {
-            result[0] *= 1 - source[0];
-            result[1] *= 1 - source[1];
-            result[2] *= 1 - source[2];
-            result[3] *= 1 - source[3];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.SOURCE_ALPHA) {
-            result[0] *= source[0];
-            result[1] *= source[0];
-            result[2] *= source[0];
-            result[3] *= source[0];
-        }
-        else if (blend == ContextGLBlendFactor_1.default.SOURCE_COLOR) {
-            result[0] *= source[0];
-            result[1] *= source[1];
-            result[2] *= source[2];
-            result[3] *= source[3];
-        }
-        return result;
+    ContextSoftware.prototype._putPixel = function (x, y, source, dest) {
+        argb[0] = 0;
+        argb[1] = 0;
+        argb[2] = 0;
+        argb[3] = 0;
+        BlendModeSoftware[this._blendDestination](dest, dest, source);
+        BlendModeSoftware[this._blendSource](source, dest, source);
+        this._backBufferColor.setPixelData(x, y, argb);
     };
     ContextSoftware.prototype.clamp = function (value, min, max) {
         if (min === void 0) { min = 0; }
@@ -1873,67 +1802,133 @@ var ContextSoftware = (function () {
                 clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
                 var clipBottom = new Vector3D_1.default(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
                 clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
-                var index = ((x % this._backBufferWidth) + y * this._backBufferWidth);
+                var index = (x % this._backBufferWidth) + y * this._backBufferWidth;
                 var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
-                var currentDepth = this._zbuffer[index];
-                //< fragDepth
-                var passDepthTest = false;
-                switch (this._depthCompareMode) {
-                    case ContextGLCompareMode_1.default.ALWAYS:
-                        passDepthTest = true;
-                        break;
-                    case ContextGLCompareMode_1.default.EQUAL:
-                        passDepthTest = fragDepth == currentDepth;
-                        break;
-                    case ContextGLCompareMode_1.default.GREATER:
-                        passDepthTest = fragDepth > currentDepth;
-                        break;
-                    case ContextGLCompareMode_1.default.GREATER_EQUAL:
-                        passDepthTest = fragDepth >= currentDepth;
-                        break;
-                    case ContextGLCompareMode_1.default.LESS:
-                        passDepthTest = fragDepth < currentDepth;
-                        break;
-                    case ContextGLCompareMode_1.default.LESS_EQUAL:
-                        passDepthTest = fragDepth <= currentDepth;
-                        break;
-                    case ContextGLCompareMode_1.default.NEVER:
-                        passDepthTest = false;
-                        break;
-                    case ContextGLCompareMode_1.default.NOT_EQUAL:
-                        passDepthTest = fragDepth != currentDepth;
-                        break;
-                    default:
-                }
-                if (!passDepthTest)
+                if (!DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._zbuffer[index]))
                     continue;
                 var fragmentVO = this._program.fragment(this, clip, clipRight, clipBottom, varying0, varying1, varying2, fragDepth);
                 if (fragmentVO.discard)
                     continue;
                 if (this._writeDepth)
                     this._zbuffer[index] = fragDepth; //todo: fragmentVO.outputDepth?
-                var color = fragmentVO.outputColor;
-                this._putPixel(x, y, ((Math.max(0, Math.min(color[3], 1)) * 255) << 24) | ((Math.max(0, Math.min(color[0], 1)) * 255) << 16) | ((Math.max(0, Math.min(color[1], 1)) * 255) << 8) | Math.max(0, Math.min(color[2], 1)) * 255);
+                //set source
+                source[0] = fragmentVO.outputColor[0] * 255;
+                source[1] = fragmentVO.outputColor[1] * 255;
+                source[2] = fragmentVO.outputColor[2] * 255;
+                source[3] = fragmentVO.outputColor[3] * 255;
+                //set dest
+                this._backBufferColor.getPixelData(x, y, dest);
+                this._putPixel(x, y, source, dest);
             }
     };
     ContextSoftware.prototype._barycentric = function (a, b, c, x, y) {
-        var sx = new Vector3D_1.default();
-        sx.x = c.x - a.x;
-        sx.y = b.x - a.x;
-        sx.z = a.x - x;
-        var sy = new Vector3D_1.default();
-        sy.x = c.y - a.y;
-        sy.y = b.y - a.y;
-        sy.z = a.y - y;
-        var u = sx.crossProduct(sy);
-        if (u.z < 0.01) {
-            return new Vector3D_1.default(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
-        }
+        this._sx.x = c.x - a.x;
+        this._sx.y = b.x - a.x;
+        this._sx.z = a.x - x;
+        this._sy.x = c.y - a.y;
+        this._sy.y = b.y - a.y;
+        this._sy.z = a.y - y;
+        this._u = this._sx.crossProduct(this._sy, this._u);
+        if (this._u.z < 0.01)
+            return new Vector3D_1.default(1 - (this._u.x + this._u.y) / this._u.z, this._u.y / this._u.z, this._u.x / this._u.z);
         return new Vector3D_1.default(-1, 1, 1);
     };
     ContextSoftware.MAX_SAMPLERS = 8;
     return ContextSoftware;
 }());
+var BlendModeSoftware = (function () {
+    function BlendModeSoftware() {
+    }
+    BlendModeSoftware.destinationAlpha = function (result, dest, source) {
+        argb[0] += result[0] * dest[0] / 0xFF;
+        argb[1] += result[1] * dest[0] / 0xFF;
+        argb[2] += result[2] * dest[0] / 0xFF;
+        argb[3] += result[3] * dest[0] / 0xFF;
+    };
+    BlendModeSoftware.destinationColor = function (result, dest, source) {
+        argb[0] += result[0] * dest[0] / 0xFF;
+        argb[1] += result[1] * dest[1] / 0xFF;
+        argb[2] += result[2] * dest[2] / 0xFF;
+        argb[3] += result[3] * dest[3] / 0xFF;
+    };
+    BlendModeSoftware.zero = function (result, dest, source) {
+    };
+    BlendModeSoftware.one = function (result, dest, source) {
+        argb[0] += result[0];
+        argb[1] += result[1];
+        argb[2] += result[2];
+        argb[3] += result[3];
+    };
+    BlendModeSoftware.oneMinusDestinationAlpha = function (result, dest, source) {
+        argb[0] += result[0] * (1 - dest[0] / 0xFF);
+        argb[1] += result[1] * (1 - dest[0] / 0xFF);
+        argb[2] += result[2] * (1 - dest[0] / 0xFF);
+        argb[3] += result[3] * (1 - dest[0] / 0xFF);
+    };
+    BlendModeSoftware.oneMinusDestinationColor = function (result, dest, source) {
+        argb[0] += result[0] * (1 - dest[0] / 0xFF);
+        argb[1] += result[1] * (1 - dest[1] / 0xFF);
+        argb[2] += result[2] * (1 - dest[2] / 0xFF);
+        argb[3] += result[3] * (1 - dest[3] / 0xFF);
+    };
+    BlendModeSoftware.oneMinusSourceAlpha = function (result, dest, source) {
+        argb[0] += result[0] * (1 - source[0] / 0xFF);
+        argb[1] += result[1] * (1 - source[0] / 0xFF);
+        argb[2] += result[2] * (1 - source[0] / 0xFF);
+        argb[3] += result[3] * (1 - source[0] / 0xFF);
+    };
+    BlendModeSoftware.oneMinusSourceColor = function (result, dest, source) {
+        argb[0] += result[0] * (1 - source[0] / 0xFF);
+        argb[1] += result[1] * (1 - source[1] / 0xFF);
+        argb[2] += result[2] * (1 - source[2] / 0xFF);
+        argb[3] += result[3] * (1 - source[3] / 0xFF);
+    };
+    BlendModeSoftware.sourceAlpha = function (result, dest, source) {
+        argb[0] += result[0] * source[0] / 0xFF;
+        argb[1] += result[1] * source[0] / 0xFF;
+        argb[2] += result[2] * source[0] / 0xFF;
+        argb[3] += result[3] * source[0] / 0xFF;
+    };
+    BlendModeSoftware.sourceColor = function (result, dest, source) {
+        argb[0] += result[0] * source[0] / 0xFF;
+        argb[1] += result[1] * source[1] / 0xFF;
+        argb[2] += result[2] * source[2] / 0xFF;
+        argb[3] += result[3] * source[3] / 0xFF;
+    };
+    return BlendModeSoftware;
+}());
+var DepthCompareModeSoftware = (function () {
+    function DepthCompareModeSoftware() {
+    }
+    DepthCompareModeSoftware.always = function (fragDepth, currentDepth) {
+        return true;
+    };
+    DepthCompareModeSoftware.equal = function (fragDepth, currentDepth) {
+        return fragDepth == currentDepth;
+    };
+    DepthCompareModeSoftware.greater = function (fragDepth, currentDepth) {
+        return fragDepth > currentDepth;
+    };
+    DepthCompareModeSoftware.greaterEqual = function (fragDepth, currentDepth) {
+        return fragDepth >= currentDepth;
+    };
+    DepthCompareModeSoftware.less = function (fragDepth, currentDepth) {
+        return fragDepth < currentDepth;
+    };
+    DepthCompareModeSoftware.lessEqual = function (fragDepth, currentDepth) {
+        return fragDepth <= currentDepth;
+    };
+    DepthCompareModeSoftware.never = function (fragDepth, currentDepth) {
+        return false;
+    };
+    DepthCompareModeSoftware.notEqual = function (fragDepth, currentDepth) {
+        return fragDepth != currentDepth;
+    };
+    return DepthCompareModeSoftware;
+}());
+var argb = new Uint8ClampedArray(4);
+var source = new Uint8ClampedArray(4);
+var dest = new Uint8ClampedArray(4);
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = ContextSoftware;
 
@@ -2249,7 +2244,6 @@ function mountain_js_context_available(id, driverInfo) {
 },{"../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","../base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","../base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","../base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash"}],"awayjs-stagegl/lib/base/ContextWebGL":[function(require,module,exports){
 "use strict";
 var Rectangle_1 = require("awayjs-core/lib/geom/Rectangle");
-var ByteArray_1 = require("awayjs-core/lib/utils/ByteArray");
 var ContextGLBlendFactor_1 = require("../base/ContextGLBlendFactor");
 var ContextGLDrawMode_1 = require("../base/ContextGLDrawMode");
 var ContextGLClearMask_1 = require("../base/ContextGLClearMask");
@@ -2463,11 +2457,9 @@ var ContextWebGL = (function () {
             this._samplerStates[i] = null;
     };
     ContextWebGL.prototype.drawToBitmapImage2D = function (destination) {
-        var arrayBuffer = new ArrayBuffer(destination.width * destination.height * 4);
-        this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, new Uint8Array(arrayBuffer));
-        var byteArray = new ByteArray_1.default();
-        byteArray.setArrayBuffer(arrayBuffer);
-        destination.setPixels(new Rectangle_1.default(0, 0, destination.width, destination.height), byteArray);
+        var pixels = new Uint8ClampedArray(destination.width * destination.height * 4);
+        this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
+        destination.setPixels(new Rectangle_1.default(0, 0, destination.width, destination.height), pixels);
     };
     ContextWebGL.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
         if (firstIndex === void 0) { firstIndex = 0; }
@@ -2671,7 +2663,7 @@ var VertexBufferProperties = (function () {
     return VertexBufferProperties;
 }());
 
-},{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","../base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","../base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","../base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","../base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","../base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL","awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/ByteArray":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
+},{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","../base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","../base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","../base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","../base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","../base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL","awayjs-core/lib/geom/Rectangle":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3141,14 +3133,10 @@ var ProgramSoftware = (function () {
             if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter_1.default.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
                 varyingDerivatives.push(token.a.regnum);
         }
+        var derivativeX = this._fragmentVO.derivativeX;
+        var derivativeY = this._fragmentVO.derivativeY;
         var varying = this._fragmentVO.varying;
         var numVarying = varying.length;
-        var derivativeX;
-        var derivativeY;
-        if (varyingDerivatives.indexOf(i) == -1) {
-            derivativeX = this._fragmentVO.derivativeX;
-            derivativeY = this._fragmentVO.derivativeY;
-        }
         for (var i = 0; i < numVarying; i += 4) {
             // if (!varying0 || !varying1 || !varying2) continue;
             varying[i] = clip.x * varying0[i] + clip.y * varying1[i] + clip.z * varying2[i];
@@ -3314,18 +3302,14 @@ var ProgramSoftware = (function () {
             v = Math.abs(v % textureHeight);
         }
         else {
-            if (u < 0) {
+            if (u < 0)
                 u = 0;
-            }
-            else if (u > textureWidth - 1) {
+            else if (u > textureWidth - 1)
                 u = textureWidth - 1;
-            }
-            if (v < 0) {
+            if (v < 0)
                 v = 0;
-            }
-            else if (v > textureHeight - 1) {
+            else if (v > textureHeight - 1)
                 v = textureHeight - 1;
-            }
         }
         u = Math.floor(u);
         v = Math.floor(v);
