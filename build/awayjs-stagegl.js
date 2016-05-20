@@ -22,14 +22,14 @@ var ImageCube_1 = require("awayjs-core/lib/image/ImageCube");
 var SpecularImage2D_1 = require("awayjs-core/lib/image/SpecularImage2D");
 var Sampler2D_1 = require("awayjs-core/lib/image/Sampler2D");
 var SamplerCube_1 = require("awayjs-core/lib/image/SamplerCube");
-base.Stage.registerAbstraction(attributes.GL_AttributesBuffer, AttributesBuffer_1.default);
-base.Stage.registerAbstraction(image.GL_RenderImage2D, Image2D_1.default);
-base.Stage.registerAbstraction(image.GL_RenderImageCube, ImageCube_1.default);
-base.Stage.registerAbstraction(image.GL_BitmapImage2D, BitmapImage2D_1.default);
-base.Stage.registerAbstraction(image.GL_BitmapImageCube, BitmapImageCube_1.default);
-base.Stage.registerAbstraction(image.GL_BitmapImage2D, SpecularImage2D_1.default);
-base.Stage.registerAbstraction(image.GL_Sampler2D, Sampler2D_1.default);
-base.Stage.registerAbstraction(image.GL_SamplerCube, SamplerCube_1.default);
+base.Stage.registerAbstraction(attributes.GL_AttributesBuffer, AttributesBuffer_1.AttributesBuffer);
+base.Stage.registerAbstraction(image.GL_RenderImage2D, Image2D_1.Image2D);
+base.Stage.registerAbstraction(image.GL_RenderImageCube, ImageCube_1.ImageCube);
+base.Stage.registerAbstraction(image.GL_BitmapImage2D, BitmapImage2D_1.BitmapImage2D);
+base.Stage.registerAbstraction(image.GL_BitmapImageCube, BitmapImageCube_1.BitmapImageCube);
+base.Stage.registerAbstraction(image.GL_BitmapImage2D, SpecularImage2D_1.SpecularImage2D);
+base.Stage.registerAbstraction(image.GL_Sampler2D, Sampler2D_1.Sampler2D);
+base.Stage.registerAbstraction(image.GL_SamplerCube, SamplerCube_1.SamplerCube);
 
 },{"./lib/aglsl":"awayjs-stagegl/lib/aglsl","./lib/attributes":"awayjs-stagegl/lib/attributes","./lib/base":"awayjs-stagegl/lib/base","./lib/events":"awayjs-stagegl/lib/events","./lib/image":"awayjs-stagegl/lib/image","./lib/library":"awayjs-stagegl/lib/library","./lib/managers":"awayjs-stagegl/lib/managers","awayjs-core/lib/attributes/AttributesBuffer":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/image/BitmapImageCube":undefined,"awayjs-core/lib/image/Image2D":undefined,"awayjs-core/lib/image/ImageCube":undefined,"awayjs-core/lib/image/Sampler2D":undefined,"awayjs-core/lib/image/SamplerCube":undefined,"awayjs-core/lib/image/SpecularImage2D":undefined}],"awayjs-stagegl/lib/aglsl/AGALTokenizer":[function(require,module,exports){
 "use strict";
@@ -41,7 +41,7 @@ var AGALTokenizer = (function () {
     function AGALTokenizer() {
     }
     AGALTokenizer.prototype.decribeAGALByteArray = function (bytes) {
-        var header = new Header_1.default();
+        var header = new Header_1.Header();
         if (bytes.readUnsignedByte() != 0xa0) {
             throw "Bad AGAL: Missing 0xa0 magic byte.";
         }
@@ -68,12 +68,12 @@ var AGALTokenizer = (function () {
                 header.type = "";
                 break;
         }
-        var desc = new Description_1.default();
+        var desc = new Description_1.Description();
         var tokens = [];
         while (bytes.position < bytes.length) {
-            var token = new Token_1.default();
+            var token = new Token_1.Token();
             token.opcode = bytes.readUnsignedInt();
-            var lutentry = Mapping_1.default.agal2glsllut[token.opcode];
+            var lutentry = Mapping_1.Mapping.agal2glsllut[token.opcode];
             if (!lutentry) {
                 throw "Opcode not valid or not implemented yet: " + token.opcode;
             }
@@ -151,8 +151,7 @@ var AGALTokenizer = (function () {
     };
     return AGALTokenizer;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = AGALTokenizer;
+exports.AGALTokenizer = AGALTokenizer;
 
 },{"../aglsl/Description":"awayjs-stagegl/lib/aglsl/Description","../aglsl/Header":"awayjs-stagegl/lib/aglsl/Header","../aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping","../aglsl/Token":"awayjs-stagegl/lib/aglsl/Token"}],"awayjs-stagegl/lib/aglsl/AGLSLParser":[function(require,module,exports){
 "use strict";
@@ -219,7 +218,7 @@ var AGLSLParser = (function () {
         // start body of code
         body += "void main() {\n";
         for (var i = 0; i < desc.tokens.length; i++) {
-            var lutentry = Mapping_1.default.agal2glsllut[desc.tokens[i].opcode];
+            var lutentry = Mapping_1.Mapping.agal2glsllut[desc.tokens[i].opcode];
             if (lutentry.s.indexOf("dFdx") != -1 || lutentry.s.indexOf("dFdy") != -1)
                 derivatives = true;
             if (!lutentry) {
@@ -395,8 +394,7 @@ var AGLSLParser = (function () {
     AGLSLParser.maxtextures = 8;
     return AGLSLParser;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = AGLSLParser;
+exports.AGLSLParser = AGLSLParser;
 
 },{"../aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping"}],"awayjs-stagegl/lib/aglsl/Description":[function(require,module,exports){
 "use strict";
@@ -427,12 +425,11 @@ var Description = (function () {
         this.samplers = [];
         // added due to dynamic assignment 3*0xFFFFFFuuuu
         this.tokens = [];
-        this.header = new Header_1.default();
+        this.header = new Header_1.Header();
     }
     return Description;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Description;
+exports.Description = Description;
 
 },{"../aglsl/Header":"awayjs-stagegl/lib/aglsl/Header"}],"awayjs-stagegl/lib/aglsl/Destination":[function(require,module,exports){
 "use strict";
@@ -455,8 +452,7 @@ var Destination = (function () {
     }
     return Destination;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Destination;
+exports.Destination = Destination;
 
 },{}],"awayjs-stagegl/lib/aglsl/Header":[function(require,module,exports){
 "use strict";
@@ -468,8 +464,7 @@ var Header = (function () {
     }
     return Header;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Header;
+exports.Header = Header;
 
 },{}],"awayjs-stagegl/lib/aglsl/Mapping":[function(require,module,exports){
 "use strict";
@@ -480,44 +475,43 @@ var Mapping = (function () {
     }
     Mapping.agal2glsllut = [
         //         s 												flags   dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
-        new OpLUT_1.default("%dest = %cast(%a);\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(%a + %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(%a - %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(%a * %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(%a / %b);\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(1.0) / %a;\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(min(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(max(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(fract(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(sqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(inversesqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(pow(abs(%a),%b));\n", 0, true, true, true, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(log2(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(exp2(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(%a);\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(%a + %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(%a - %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(%a * %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(%a / %b);\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(1.0) / %a;\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(min(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(max(%a,%b));\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(fract(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(sqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(inversesqrt(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(pow(abs(%a),%b));\n", 0, true, true, true, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(log2(abs(%a)));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(exp2(%a));\n", 0, true, true, false, null, null, null, null, null, null),
         //         s 												flags  	dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
-        new OpLUT_1.default("%dest = %cast(normalize(vec3( %a ) ));\n", 0, true, true, false, null, null, true, null, null, null),
-        new OpLUT_1.default("%dest = %cast(sin(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(cos(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(cross(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
-        new OpLUT_1.default("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
-        new OpLUT_1.default("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
-        new OpLUT_1.default("%dest = %cast(abs(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(%a * -1.0);\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(clamp(%a,0.0,1.0));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", null, true, true, true, 3, 3, true, null, null, null),
-        new OpLUT_1.default("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 4, true, null, null, null),
-        new OpLUT_1.default("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 3, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(normalize(vec3( %a ) ));\n", 0, true, true, false, null, null, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(sin(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(cos(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(cross(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", 0, true, true, true, null, null, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(abs(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(%a * -1.0);\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(clamp(%a,0.0,1.0));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dot(vec3(%a),vec3(%b)));\n", null, true, true, true, 3, 3, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 4, true, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dot(vec4(%a),vec4(%b)));\n", null, true, true, true, 4, 3, true, null, null, null),
         //s:string, flags:number, dest:boolean, a:boolean, b:boolean, matrixwidth:number, matrixheight:number, ndwm:boolean, scaler:boolean, dm:boolean, lod:boolean
-        new OpLUT_1.default("%dest = %cast(dFdx(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("%dest = %cast(dFdy(%a));\n", 0, true, true, false, null, null, null, null, null, null),
-        new OpLUT_1.default("if (float(%a)==float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("if (float(%a)!=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("if (float(%a)>=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("if (float(%a)<float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.default("} else {;\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT_1.default("};\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.default(null, null, null, null, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dFdx(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("%dest = %cast(dFdy(%a));\n", 0, true, true, false, null, null, null, null, null, null),
+        new OpLUT_1.OpLUT("if (float(%a)==float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.OpLUT("if (float(%a)!=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.OpLUT("if (float(%a)>=float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.OpLUT("if (float(%a)<float(%b)) {;\n", 0, false, true, true, null, null, null, true, null, null), new OpLUT_1.OpLUT("} else {;\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT_1.OpLUT("};\n", 0, false, false, false, null, null, null, null, null, null), new OpLUT_1.OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT_1.OpLUT(null, null, null, null, false, null, null, null, null, null, null),
         //         s 															flags  	dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
-        new OpLUT_1.default("%dest = %cast(texture%texdimLod(%b,%texsize(%a)).%dm);\n", null, true, true, true, null, null, null, null, true, null), new OpLUT_1.default("if ( float(%a)<0.0 ) discard;\n", null, false, true, false, null, null, null, true, null, null), new OpLUT_1.default("%dest = %cast(texture%texdim(%b,%texsize(%a)%lod).%dm);\n", null, true, true, true, null, null, true, null, true, true), new OpLUT_1.default("%dest = %cast(greaterThanEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.default("%dest = %cast(lessThan(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.default("%dest = %cast(sign(%a));\n", 0, true, true, false, null, null, null, null, null, null), new OpLUT_1.default("%dest = %cast(equal(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.default("%dest = %cast(notEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null)
+        new OpLUT_1.OpLUT("%dest = %cast(texture%texdimLod(%b,%texsize(%a)).%dm);\n", null, true, true, true, null, null, null, null, true, null), new OpLUT_1.OpLUT("if ( float(%a)<0.0 ) discard;\n", null, false, true, false, null, null, null, true, null, null), new OpLUT_1.OpLUT("%dest = %cast(texture%texdim(%b,%texsize(%a)%lod).%dm);\n", null, true, true, true, null, null, true, null, true, true), new OpLUT_1.OpLUT("%dest = %cast(greaterThanEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.OpLUT("%dest = %cast(lessThan(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.OpLUT("%dest = %cast(sign(%a));\n", 0, true, true, false, null, null, null, null, null, null), new OpLUT_1.OpLUT("%dest = %cast(equal(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null), new OpLUT_1.OpLUT("%dest = %cast(notEqual(%a,%b).%dm);\n", 0, true, true, true, null, null, true, null, true, null)
     ];
     return Mapping;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Mapping;
+exports.Mapping = Mapping;
 
 },{"../aglsl/OpLUT":"awayjs-stagegl/lib/aglsl/OpLUT"}],"awayjs-stagegl/lib/aglsl/OpLUT":[function(require,module,exports){
 "use strict";
@@ -537,23 +531,21 @@ var OpLUT = (function () {
     }
     return OpLUT;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = OpLUT;
+exports.OpLUT = OpLUT;
 
 },{}],"awayjs-stagegl/lib/aglsl/Token":[function(require,module,exports){
 "use strict";
 var Destination_1 = require("../aglsl/Destination");
 var Token = (function () {
     function Token() {
-        this.dest = new Destination_1.default();
+        this.dest = new Destination_1.Destination();
         this.opcode = 0;
-        this.a = new Destination_1.default();
-        this.b = new Destination_1.default();
+        this.a = new Destination_1.Destination();
+        this.b = new Destination_1.Destination();
     }
     return Token;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Token;
+exports.Token = Token;
 
 },{"../aglsl/Destination":"awayjs-stagegl/lib/aglsl/Destination"}],"awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler":[function(require,module,exports){
 "use strict";
@@ -564,7 +556,7 @@ var SamplerMap_1 = require("../../aglsl/assembler/SamplerMap");
 var AGALMiniAssembler = (function () {
     function AGALMiniAssembler() {
         this.r = {};
-        this.cur = new Part_1.default();
+        this.cur = new Part_1.Part();
     }
     AGALMiniAssembler.prototype.assemble = function (source, ext_part, ext_version) {
         if (ext_part === void 0) { ext_part = null; }
@@ -624,7 +616,7 @@ var AGALMiniAssembler = (function () {
                 if (this.cur.name == "comment") {
                     return;
                 }
-                var op = OpcodeMap_1.default.map[tokens[0]];
+                var op = OpcodeMap_1.OpcodeMap.map[tokens[0]];
                 if (!op) {
                     throw "Bad opcode " + tokens[0] + " " + linenr + ": " + line;
                 }
@@ -702,9 +694,9 @@ var AGALMiniAssembler = (function () {
         var reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:mask
         // console.log( 'AGALMiniAssembler' , 'emitDest' , 'reg' , reg , reg[1] , RegMap.map[reg[1]] );
         // console.log( 'AGALMiniAssembler' , 'emitDest' , 'RegMap.map[reg[1]]' , RegMap.map[reg[1]] , 'bool' , !RegMap.map[reg[1]] ) ;
-        if (!RegMap_1.default.map[reg[1]])
+        if (!RegMap_1.RegMap.map[reg[1]])
             return false;
-        var em = { num: reg[2] ? reg[2] : 0, code: RegMap_1.default.map[reg[1]].code, mask: this.stringToMask(reg[3]) };
+        var em = { num: reg[2] ? reg[2] : 0, code: RegMap_1.RegMap.map[reg[1]].code, mask: this.stringToMask(reg[3]) };
         pr.data.writeUnsignedShort(em.num);
         pr.data.writeUnsignedByte(em.mask);
         pr.data.writeUnsignedByte(em.code);
@@ -774,7 +766,7 @@ var AGALMiniAssembler = (function () {
         var samplerbits = 0x5;
         var sampleroptset = 0;
         for (var i = 0; i < opts.length; i++) {
-            var o = SamplerMap_1.default.map[opts[i].toLowerCase()];
+            var o = SamplerMap_1.SamplerMap.map[opts[i].toLowerCase()];
             //console.log( 'AGALMiniAssembler' , 'emitSampler' , 'SampleMap opt:' , o , '<-------- WATCH FOR THIS');
             if (o) {
                 if (((sampleroptset >> o.shift) & o.mask) != 0) {
@@ -795,11 +787,11 @@ var AGALMiniAssembler = (function () {
         var indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([\+\-]\d+)?\](\.[xyzw]{1,4})?/i); // g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
         var reg;
         if (indexed) {
-            if (!RegMap_1.default.map[indexed[1]]) {
+            if (!RegMap_1.RegMap.map[indexed[1]]) {
                 return false;
             }
             var selindex = { x: 0, y: 1, z: 2, w: 3 };
-            var em = { num: indexed[2] | 0, code: RegMap_1.default.map[indexed[1]].code, swizzle: this.stringToSwizzle(indexed[5]), select: selindex[indexed[3]], offset: indexed[4] | 0 };
+            var em = { num: indexed[2] | 0, code: RegMap_1.RegMap.map[indexed[1]].code, swizzle: this.stringToSwizzle(indexed[5]), select: selindex[indexed[3]], offset: indexed[4] | 0 };
             pr.data.writeUnsignedShort(em.num);
             pr.data.writeByte(em.offset);
             pr.data.writeUnsignedByte(em.swizzle);
@@ -810,10 +802,10 @@ var AGALMiniAssembler = (function () {
         }
         else {
             reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:swizzle
-            if (!RegMap_1.default.map[reg[1]]) {
+            if (!RegMap_1.RegMap.map[reg[1]]) {
                 return false;
             }
-            var em = { num: reg[2] | 0, code: RegMap_1.default.map[reg[1]].code, swizzle: this.stringToSwizzle(reg[3]) };
+            var em = { num: reg[2] | 0, code: RegMap_1.RegMap.map[reg[1]].code, swizzle: this.stringToSwizzle(reg[3]) };
             pr.data.writeUnsignedShort(em.num);
             pr.data.writeUnsignedByte(0);
             pr.data.writeUnsignedByte(em.swizzle);
@@ -829,7 +821,7 @@ var AGALMiniAssembler = (function () {
             version = 1;
         }
         if (this.r[partname] == undefined) {
-            this.r[partname] = new Part_1.default(partname, version);
+            this.r[partname] = new Part_1.Part(partname, version);
             this.emitHeader(this.r[partname]);
         }
         else if (this.r[partname].version != version) {
@@ -839,8 +831,7 @@ var AGALMiniAssembler = (function () {
     };
     return AGALMiniAssembler;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = AGALMiniAssembler;
+exports.AGALMiniAssembler = AGALMiniAssembler;
 
 },{"../../aglsl/assembler/OpcodeMap":"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap","../../aglsl/assembler/Part":"awayjs-stagegl/lib/aglsl/assembler/Part","../../aglsl/assembler/RegMap":"awayjs-stagegl/lib/aglsl/assembler/RegMap","../../aglsl/assembler/SamplerMap":"awayjs-stagegl/lib/aglsl/assembler/SamplerMap"}],"awayjs-stagegl/lib/aglsl/assembler/FS":[function(require,module,exports){
 "use strict";
@@ -849,8 +840,7 @@ var FS = (function () {
     }
     return FS;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = FS;
+exports.FS = FS;
 
 },{}],"awayjs-stagegl/lib/aglsl/assembler/Flags":[function(require,module,exports){
 "use strict";
@@ -859,8 +849,7 @@ var Flags = (function () {
     }
     return Flags;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Flags;
+exports.Flags = Flags;
 
 },{}],"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap":[function(require,module,exports){
 "use strict";
@@ -872,42 +861,42 @@ var OpcodeMap = (function () {
         get: function () {
             if (!OpcodeMap._map) {
                 OpcodeMap._map = new Array();
-                OpcodeMap._map['mov'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x00, true, null, null, null); //0
-                OpcodeMap._map['add'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x01, true, null, null, null); //1
-                OpcodeMap._map['sub'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x02, true, null, null, null); //2
-                OpcodeMap._map['mul'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x03, true, null, null, null); //3
-                OpcodeMap._map['div'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x04, true, null, null, null); //4
-                OpcodeMap._map['rcp'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x05, true, null, null, null); //5
-                OpcodeMap._map['min'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x06, true, null, null, null); //6
-                OpcodeMap._map['max'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x07, true, null, null, null); //7
-                OpcodeMap._map['frc'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x08, true, null, null, null); //8
-                OpcodeMap._map['sqt'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x09, true, null, null, null); //9
-                OpcodeMap._map['rsq'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0a, true, null, null, null); //10
-                OpcodeMap._map['pow'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x0b, true, null, null, null); //11
-                OpcodeMap._map['log'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0c, true, null, null, null); //12
-                OpcodeMap._map['exp'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0d, true, null, null, null); //13
-                OpcodeMap._map['nrm'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0e, true, null, null, null); //14
-                OpcodeMap._map['sin'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x0f, true, null, null, null); //15
-                OpcodeMap._map['cos'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x10, true, null, null, null); //16
-                OpcodeMap._map['crs'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x11, true, true, null, null); //17
-                OpcodeMap._map['dp3'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x12, true, true, null, null); //18
-                OpcodeMap._map['dp4'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x13, true, true, null, null); //19
-                OpcodeMap._map['abs'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x14, true, null, null, null); //20
-                OpcodeMap._map['neg'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x15, true, null, null, null); //21
-                OpcodeMap._map['sat'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x16, true, null, null, null); //22
-                OpcodeMap._map['ted'] = new Opcode_1.default("vector", "vector", 4, "sampler", 1, 0x26, true, null, true, null); //38
-                OpcodeMap._map['kil'] = new Opcode_1.default("none", "scalar", 1, "none", 0, 0x27, true, null, true, null); //39
-                OpcodeMap._map['tex'] = new Opcode_1.default("vector", "vector", 4, "sampler", 1, 0x28, true, null, true, null); //40
-                OpcodeMap._map['m33'] = new Opcode_1.default("vector", "matrix", 3, "vector", 3, 0x17, true, null, null, true); //23
-                OpcodeMap._map['m44'] = new Opcode_1.default("vector", "matrix", 4, "vector", 4, 0x18, true, null, null, true); //24
-                OpcodeMap._map['m43'] = new Opcode_1.default("vector", "matrix", 3, "vector", 4, 0x19, true, null, null, true); //25
-                OpcodeMap._map['ddx'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x1a, true, null, true, null); //26
-                OpcodeMap._map['ddy'] = new Opcode_1.default("vector", "vector", 4, "none", 0, 0x1b, true, null, true, null); //27
-                OpcodeMap._map['sge'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x29, true, null, null, null); //41
-                OpcodeMap._map['slt'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2a, true, null, null, null); //42
-                OpcodeMap._map['sgn'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2b, true, null, null, null); //43
-                OpcodeMap._map['seq'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2c, true, null, null, null); //44
-                OpcodeMap._map['sne'] = new Opcode_1.default("vector", "vector", 4, "vector", 4, 0x2d, true, null, null, null); //45
+                OpcodeMap._map['mov'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x00, true, null, null, null); //0
+                OpcodeMap._map['add'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x01, true, null, null, null); //1
+                OpcodeMap._map['sub'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x02, true, null, null, null); //2
+                OpcodeMap._map['mul'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x03, true, null, null, null); //3
+                OpcodeMap._map['div'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x04, true, null, null, null); //4
+                OpcodeMap._map['rcp'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x05, true, null, null, null); //5
+                OpcodeMap._map['min'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x06, true, null, null, null); //6
+                OpcodeMap._map['max'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x07, true, null, null, null); //7
+                OpcodeMap._map['frc'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x08, true, null, null, null); //8
+                OpcodeMap._map['sqt'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x09, true, null, null, null); //9
+                OpcodeMap._map['rsq'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x0a, true, null, null, null); //10
+                OpcodeMap._map['pow'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x0b, true, null, null, null); //11
+                OpcodeMap._map['log'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x0c, true, null, null, null); //12
+                OpcodeMap._map['exp'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x0d, true, null, null, null); //13
+                OpcodeMap._map['nrm'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x0e, true, null, null, null); //14
+                OpcodeMap._map['sin'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x0f, true, null, null, null); //15
+                OpcodeMap._map['cos'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x10, true, null, null, null); //16
+                OpcodeMap._map['crs'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x11, true, true, null, null); //17
+                OpcodeMap._map['dp3'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x12, true, true, null, null); //18
+                OpcodeMap._map['dp4'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x13, true, true, null, null); //19
+                OpcodeMap._map['abs'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x14, true, null, null, null); //20
+                OpcodeMap._map['neg'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x15, true, null, null, null); //21
+                OpcodeMap._map['sat'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x16, true, null, null, null); //22
+                OpcodeMap._map['ted'] = new Opcode_1.Opcode("vector", "vector", 4, "sampler", 1, 0x26, true, null, true, null); //38
+                OpcodeMap._map['kil'] = new Opcode_1.Opcode("none", "scalar", 1, "none", 0, 0x27, true, null, true, null); //39
+                OpcodeMap._map['tex'] = new Opcode_1.Opcode("vector", "vector", 4, "sampler", 1, 0x28, true, null, true, null); //40
+                OpcodeMap._map['m33'] = new Opcode_1.Opcode("vector", "matrix", 3, "vector", 3, 0x17, true, null, null, true); //23
+                OpcodeMap._map['m44'] = new Opcode_1.Opcode("vector", "matrix", 4, "vector", 4, 0x18, true, null, null, true); //24
+                OpcodeMap._map['m43'] = new Opcode_1.Opcode("vector", "matrix", 3, "vector", 4, 0x19, true, null, null, true); //25
+                OpcodeMap._map['ddx'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x1a, true, null, true, null); //26
+                OpcodeMap._map['ddy'] = new Opcode_1.Opcode("vector", "vector", 4, "none", 0, 0x1b, true, null, true, null); //27
+                OpcodeMap._map['sge'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x29, true, null, null, null); //41
+                OpcodeMap._map['slt'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x2a, true, null, null, null); //42
+                OpcodeMap._map['sgn'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x2b, true, null, null, null); //43
+                OpcodeMap._map['seq'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x2c, true, null, null, null); //44
+                OpcodeMap._map['sne'] = new Opcode_1.Opcode("vector", "vector", 4, "vector", 4, 0x2d, true, null, null, null); //45
             }
             return OpcodeMap._map;
         },
@@ -916,8 +905,7 @@ var OpcodeMap = (function () {
     });
     return OpcodeMap;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = OpcodeMap;
+exports.OpcodeMap = OpcodeMap;
 
 },{"../../aglsl/assembler/Opcode":"awayjs-stagegl/lib/aglsl/assembler/Opcode"}],"awayjs-stagegl/lib/aglsl/assembler/Opcode":[function(require,module,exports){
 "use strict";
@@ -928,9 +916,9 @@ var FS_1 = require("../../aglsl/assembler/FS");
  */
 var Opcode = (function () {
     function Opcode(dest, aformat, asize, bformat, bsize, opcode, simple, horizontal, fragonly, matrix) {
-        this.a = new FS_1.default();
-        this.b = new FS_1.default();
-        this.flags = new Flags_1.default();
+        this.a = new FS_1.FS();
+        this.b = new FS_1.FS();
+        this.flags = new Flags_1.Flags();
         this.dest = dest;
         this.a.format = aformat;
         this.a.size = asize;
@@ -944,8 +932,7 @@ var Opcode = (function () {
     }
     return Opcode;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Opcode;
+exports.Opcode = Opcode;
 
 },{"../../aglsl/assembler/FS":"awayjs-stagegl/lib/aglsl/assembler/FS","../../aglsl/assembler/Flags":"awayjs-stagegl/lib/aglsl/assembler/Flags"}],"awayjs-stagegl/lib/aglsl/assembler/Part":[function(require,module,exports){
 "use strict";
@@ -958,12 +945,11 @@ var Part = (function () {
         this.version = 0;
         this.name = name;
         this.version = version;
-        this.data = new ByteArray_1.default();
+        this.data = new ByteArray_1.ByteArray();
     }
     return Part;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Part;
+exports.Part = Part;
 
 },{"awayjs-core/lib/utils/ByteArray":undefined}],"awayjs-stagegl/lib/aglsl/assembler/RegMap":[function(require,module,exports){
 "use strict";
@@ -1019,8 +1005,7 @@ var RegMap = (function () {
     });
     return RegMap;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = RegMap;
+exports.RegMap = RegMap;
 
 },{}],"awayjs-stagegl/lib/aglsl/assembler/SamplerMap":[function(require,module,exports){
 "use strict";
@@ -1098,32 +1083,32 @@ var SamplerMap = (function () {
         get: function () {
             if (!SamplerMap._map) {
                 SamplerMap._map = new Array();
-                SamplerMap._map['rgba'] = new Sampler_1.default(8, 0xf, 0);
-                SamplerMap._map['rg'] = new Sampler_1.default(8, 0xf, 5);
-                SamplerMap._map['r'] = new Sampler_1.default(8, 0xf, 4);
-                SamplerMap._map['compressed'] = new Sampler_1.default(8, 0xf, 1);
-                SamplerMap._map['compressed_alpha'] = new Sampler_1.default(8, 0xf, 2);
-                SamplerMap._map['dxt1'] = new Sampler_1.default(8, 0xf, 1);
-                SamplerMap._map['dxt5'] = new Sampler_1.default(8, 0xf, 2);
+                SamplerMap._map['rgba'] = new Sampler_1.Sampler(8, 0xf, 0);
+                SamplerMap._map['rg'] = new Sampler_1.Sampler(8, 0xf, 5);
+                SamplerMap._map['r'] = new Sampler_1.Sampler(8, 0xf, 4);
+                SamplerMap._map['compressed'] = new Sampler_1.Sampler(8, 0xf, 1);
+                SamplerMap._map['compressed_alpha'] = new Sampler_1.Sampler(8, 0xf, 2);
+                SamplerMap._map['dxt1'] = new Sampler_1.Sampler(8, 0xf, 1);
+                SamplerMap._map['dxt5'] = new Sampler_1.Sampler(8, 0xf, 2);
                 // dimension
-                SamplerMap._map['2d'] = new Sampler_1.default(12, 0xf, 0);
-                SamplerMap._map['cube'] = new Sampler_1.default(12, 0xf, 1);
-                SamplerMap._map['3d'] = new Sampler_1.default(12, 0xf, 2);
+                SamplerMap._map['2d'] = new Sampler_1.Sampler(12, 0xf, 0);
+                SamplerMap._map['cube'] = new Sampler_1.Sampler(12, 0xf, 1);
+                SamplerMap._map['3d'] = new Sampler_1.Sampler(12, 0xf, 2);
                 // special
-                SamplerMap._map['centroid'] = new Sampler_1.default(16, 1, 1);
-                SamplerMap._map['ignoresampler'] = new Sampler_1.default(16, 4, 4);
+                SamplerMap._map['centroid'] = new Sampler_1.Sampler(16, 1, 1);
+                SamplerMap._map['ignoresampler'] = new Sampler_1.Sampler(16, 4, 4);
                 // repeat
-                SamplerMap._map['clamp'] = new Sampler_1.default(20, 0xf, 0);
-                SamplerMap._map['repeat'] = new Sampler_1.default(20, 0xf, 1);
-                SamplerMap._map['wrap'] = new Sampler_1.default(20, 0xf, 1);
+                SamplerMap._map['clamp'] = new Sampler_1.Sampler(20, 0xf, 0);
+                SamplerMap._map['repeat'] = new Sampler_1.Sampler(20, 0xf, 1);
+                SamplerMap._map['wrap'] = new Sampler_1.Sampler(20, 0xf, 1);
                 // mip
-                SamplerMap._map['nomip'] = new Sampler_1.default(24, 0xf, 0);
-                SamplerMap._map['mipnone'] = new Sampler_1.default(24, 0xf, 0);
-                SamplerMap._map['mipnearest'] = new Sampler_1.default(24, 0xf, 1);
-                SamplerMap._map['miplinear'] = new Sampler_1.default(24, 0xf, 2);
+                SamplerMap._map['nomip'] = new Sampler_1.Sampler(24, 0xf, 0);
+                SamplerMap._map['mipnone'] = new Sampler_1.Sampler(24, 0xf, 0);
+                SamplerMap._map['mipnearest'] = new Sampler_1.Sampler(24, 0xf, 1);
+                SamplerMap._map['miplinear'] = new Sampler_1.Sampler(24, 0xf, 2);
                 // filter
-                SamplerMap._map['nearest'] = new Sampler_1.default(28, 0xf, 0);
-                SamplerMap._map['linear'] = new Sampler_1.default(28, 0xf, 1);
+                SamplerMap._map['nearest'] = new Sampler_1.Sampler(28, 0xf, 0);
+                SamplerMap._map['linear'] = new Sampler_1.Sampler(28, 0xf, 1);
             }
             return SamplerMap._map;
         },
@@ -1132,8 +1117,7 @@ var SamplerMap = (function () {
     });
     return SamplerMap;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = SamplerMap;
+exports.SamplerMap = SamplerMap;
 
 },{"../../aglsl/assembler/Sampler":"awayjs-stagegl/lib/aglsl/assembler/Sampler"}],"awayjs-stagegl/lib/aglsl/assembler/Sampler":[function(require,module,exports){
 "use strict";
@@ -1145,45 +1129,44 @@ var Sampler = (function () {
     }
     return Sampler;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Sampler;
+exports.Sampler = Sampler;
 
 },{}],"awayjs-stagegl/lib/aglsl":[function(require,module,exports){
 "use strict";
 var AGALMiniAssembler_1 = require("./aglsl/assembler/AGALMiniAssembler");
-exports.AGALMiniAssembler = AGALMiniAssembler_1.default;
+exports.AGALMiniAssembler = AGALMiniAssembler_1.AGALMiniAssembler;
 var Flags_1 = require("./aglsl/assembler/Flags");
-exports.Flags = Flags_1.default;
+exports.Flags = Flags_1.Flags;
 var FS_1 = require("./aglsl/assembler/FS");
-exports.FS = FS_1.default;
+exports.FS = FS_1.FS;
 var Opcode_1 = require("./aglsl/assembler/Opcode");
-exports.Opcode = Opcode_1.default;
+exports.Opcode = Opcode_1.Opcode;
 var OpcodeMap_1 = require("./aglsl/assembler/OpcodeMap");
-exports.OpcodeMap = OpcodeMap_1.default;
+exports.OpcodeMap = OpcodeMap_1.OpcodeMap;
 var Part_1 = require("./aglsl/assembler/Part");
-exports.Part = Part_1.default;
+exports.Part = Part_1.Part;
 var RegMap_1 = require("./aglsl/assembler/RegMap");
-exports.RegMap = RegMap_1.default;
+exports.RegMap = RegMap_1.RegMap;
 var Sampler_1 = require("./aglsl/assembler/Sampler");
-exports.Sampler = Sampler_1.default;
+exports.Sampler = Sampler_1.Sampler;
 var SamplerMap_1 = require("./aglsl/assembler/SamplerMap");
-exports.SamplerMap = SamplerMap_1.default;
+exports.SamplerMap = SamplerMap_1.SamplerMap;
 var AGALTokenizer_1 = require("./aglsl/AGALTokenizer");
-exports.AGALTokenizer = AGALTokenizer_1.default;
+exports.AGALTokenizer = AGALTokenizer_1.AGALTokenizer;
 var AGLSLParser_1 = require("./aglsl/AGLSLParser");
-exports.AGLSLParser = AGLSLParser_1.default;
+exports.AGLSLParser = AGLSLParser_1.AGLSLParser;
 var Description_1 = require("./aglsl/Description");
-exports.Description = Description_1.default;
+exports.Description = Description_1.Description;
 var Destination_1 = require("./aglsl/Destination");
-exports.Destination = Destination_1.default;
+exports.Destination = Destination_1.Destination;
 var Header_1 = require("./aglsl/Header");
-exports.Header = Header_1.default;
+exports.Header = Header_1.Header;
 var Mapping_1 = require("./aglsl/Mapping");
-exports.Mapping = Mapping_1.default;
+exports.Mapping = Mapping_1.Mapping;
 var OpLUT_1 = require("./aglsl/OpLUT");
-exports.OpLUT = OpLUT_1.default;
+exports.OpLUT = OpLUT_1.OpLUT;
 var Token_1 = require("./aglsl/Token");
-exports.Token = Token_1.default;
+exports.Token = Token_1.Token;
 
 },{"./aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","./aglsl/AGLSLParser":"awayjs-stagegl/lib/aglsl/AGLSLParser","./aglsl/Description":"awayjs-stagegl/lib/aglsl/Description","./aglsl/Destination":"awayjs-stagegl/lib/aglsl/Destination","./aglsl/Header":"awayjs-stagegl/lib/aglsl/Header","./aglsl/Mapping":"awayjs-stagegl/lib/aglsl/Mapping","./aglsl/OpLUT":"awayjs-stagegl/lib/aglsl/OpLUT","./aglsl/Token":"awayjs-stagegl/lib/aglsl/Token","./aglsl/assembler/AGALMiniAssembler":"awayjs-stagegl/lib/aglsl/assembler/AGALMiniAssembler","./aglsl/assembler/FS":"awayjs-stagegl/lib/aglsl/assembler/FS","./aglsl/assembler/Flags":"awayjs-stagegl/lib/aglsl/assembler/Flags","./aglsl/assembler/Opcode":"awayjs-stagegl/lib/aglsl/assembler/Opcode","./aglsl/assembler/OpcodeMap":"awayjs-stagegl/lib/aglsl/assembler/OpcodeMap","./aglsl/assembler/Part":"awayjs-stagegl/lib/aglsl/assembler/Part","./aglsl/assembler/RegMap":"awayjs-stagegl/lib/aglsl/assembler/RegMap","./aglsl/assembler/Sampler":"awayjs-stagegl/lib/aglsl/assembler/Sampler","./aglsl/assembler/SamplerMap":"awayjs-stagegl/lib/aglsl/assembler/SamplerMap"}],"awayjs-stagegl/lib/attributes/GL_AttributesBuffer":[function(require,module,exports){
 "use strict";
@@ -1249,14 +1232,13 @@ var GL_AttributesBuffer = (function (_super) {
         return this._vertexBuffer;
     };
     return GL_AttributesBuffer;
-}(AbstractionBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_AttributesBuffer;
+}(AbstractionBase_1.AbstractionBase));
+exports.GL_AttributesBuffer = GL_AttributesBuffer;
 
 },{"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/attributes":[function(require,module,exports){
 "use strict";
 var GL_AttributesBuffer_1 = require("./attributes/GL_AttributesBuffer");
-exports.GL_AttributesBuffer = GL_AttributesBuffer_1.default;
+exports.GL_AttributesBuffer = GL_AttributesBuffer_1.GL_AttributesBuffer;
 
 },{"./attributes/GL_AttributesBuffer":"awayjs-stagegl/lib/attributes/GL_AttributesBuffer"}],"awayjs-stagegl/lib/base/ContextGLBlendFactor":[function(require,module,exports){
 "use strict";
@@ -1275,8 +1257,7 @@ var ContextGLBlendFactor = (function () {
     ContextGLBlendFactor.ZERO = "zero";
     return ContextGLBlendFactor;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLBlendFactor;
+exports.ContextGLBlendFactor = ContextGLBlendFactor;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLClearMask":[function(require,module,exports){
 "use strict";
@@ -1289,8 +1270,7 @@ var ContextGLClearMask = (function () {
     ContextGLClearMask.ALL = ContextGLClearMask.COLOR | ContextGLClearMask.DEPTH | ContextGLClearMask.STENCIL;
     return ContextGLClearMask;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLClearMask;
+exports.ContextGLClearMask = ContextGLClearMask;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLCompareMode":[function(require,module,exports){
 "use strict";
@@ -1307,8 +1287,7 @@ var ContextGLCompareMode = (function () {
     ContextGLCompareMode.NOT_EQUAL = "notEqual";
     return ContextGLCompareMode;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLCompareMode;
+exports.ContextGLCompareMode = ContextGLCompareMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLDrawMode":[function(require,module,exports){
 "use strict";
@@ -1319,8 +1298,7 @@ var ContextGLDrawMode = (function () {
     ContextGLDrawMode.LINES = "lines";
     return ContextGLDrawMode;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLDrawMode;
+exports.ContextGLDrawMode = ContextGLDrawMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLMipFilter":[function(require,module,exports){
 "use strict";
@@ -1332,8 +1310,7 @@ var ContextGLMipFilter = (function () {
     ContextGLMipFilter.MIPNONE = "mipnone";
     return ContextGLMipFilter;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLMipFilter;
+exports.ContextGLMipFilter = ContextGLMipFilter;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLProfile":[function(require,module,exports){
 "use strict";
@@ -1345,6 +1322,7 @@ var ContextGLProfile = (function () {
     ContextGLProfile.BASELINE_EXTENDED = "baselineExtended";
     return ContextGLProfile;
 }());
+exports.ContextGLProfile = ContextGLProfile;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = ContextGLProfile;
 
@@ -1358,8 +1336,7 @@ var ContextGLProgramType = (function () {
     ContextGLProgramType.VERTEX = 2;
     return ContextGLProgramType;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLProgramType;
+exports.ContextGLProgramType = ContextGLProgramType;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLStencilAction":[function(require,module,exports){
 "use strict";
@@ -1376,8 +1353,7 @@ var ContextGLStencilAction = (function () {
     ContextGLStencilAction.ZERO = "zero";
     return ContextGLStencilAction;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLStencilAction;
+exports.ContextGLStencilAction = ContextGLStencilAction;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLTextureFilter":[function(require,module,exports){
 "use strict";
@@ -1388,8 +1364,7 @@ var ContextGLTextureFilter = (function () {
     ContextGLTextureFilter.NEAREST = "nearest";
     return ContextGLTextureFilter;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLTextureFilter;
+exports.ContextGLTextureFilter = ContextGLTextureFilter;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLTextureFormat":[function(require,module,exports){
 "use strict";
@@ -1403,8 +1378,7 @@ var ContextGLTextureFormat = (function () {
     ContextGLTextureFormat.COMPRESSED_ALPHA = "compressedAlpha";
     return ContextGLTextureFormat;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLTextureFormat;
+exports.ContextGLTextureFormat = ContextGLTextureFormat;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLTriangleFace":[function(require,module,exports){
 "use strict";
@@ -1417,8 +1391,7 @@ var ContextGLTriangleFace = (function () {
     ContextGLTriangleFace.NONE = "none";
     return ContextGLTriangleFace;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLTriangleFace;
+exports.ContextGLTriangleFace = ContextGLTriangleFace;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat":[function(require,module,exports){
 "use strict";
@@ -1447,8 +1420,7 @@ var ContextGLVertexBufferFormat = (function () {
     ContextGLVertexBufferFormat.UNSIGNED_SHORT_4 = 19;
     return ContextGLVertexBufferFormat;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLVertexBufferFormat;
+exports.ContextGLVertexBufferFormat = ContextGLVertexBufferFormat;
 
 },{}],"awayjs-stagegl/lib/base/ContextGLWrapMode":[function(require,module,exports){
 "use strict";
@@ -1459,8 +1431,7 @@ var ContextGLWrapMode = (function () {
     ContextGLWrapMode.REPEAT = "repeat";
     return ContextGLWrapMode;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextGLWrapMode;
+exports.ContextGLWrapMode = ContextGLWrapMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextMode":[function(require,module,exports){
 "use strict";
@@ -1474,8 +1445,7 @@ var ContextMode = (function () {
     ContextMode.SOFTWARE = "software";
     return ContextMode;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextMode;
+exports.ContextMode = ContextMode;
 
 },{}],"awayjs-stagegl/lib/base/ContextSoftware":[function(require,module,exports){
 "use strict";
@@ -1498,23 +1468,23 @@ var ProgramSoftware_1 = require("../base/ProgramSoftware");
 var SoftwareSamplerState_1 = require("../base/SoftwareSamplerState");
 var ContextSoftware = (function () {
     function ContextSoftware(canvas) {
-        this._backBufferRect = new Rectangle_1.default();
+        this._backBufferRect = new Rectangle_1.Rectangle();
         this._backBufferWidth = 100;
         this._backBufferHeight = 100;
-        this._cullingMode = ContextGLTriangleFace_1.default.BACK;
-        this._blendSource = ContextGLBlendFactor_1.default.ONE;
-        this._blendDestination = ContextGLBlendFactor_1.default.ZERO;
+        this._cullingMode = ContextGLTriangleFace_1.ContextGLTriangleFace.BACK;
+        this._blendSource = ContextGLBlendFactor_1.ContextGLBlendFactor.ONE;
+        this._blendDestination = ContextGLBlendFactor_1.ContextGLBlendFactor.ZERO;
         this._colorMaskR = true;
         this._colorMaskG = true;
         this._colorMaskB = true;
         this._colorMaskA = true;
         this._writeDepth = true;
-        this._depthCompareMode = ContextGLCompareMode_1.default.LESS;
-        this._screenMatrix = new Matrix3D_1.default();
-        this._frontBufferMatrix = new Matrix_1.default();
-        this._bboxMin = new Point_1.default();
-        this._bboxMax = new Point_1.default();
-        this._clamp = new Point_1.default();
+        this._depthCompareMode = ContextGLCompareMode_1.ContextGLCompareMode.LESS;
+        this._screenMatrix = new Matrix3D_1.Matrix3D();
+        this._frontBufferMatrix = new Matrix_1.Matrix();
+        this._bboxMin = new Point_1.Point();
+        this._bboxMax = new Point_1.Point();
+        this._clamp = new Point_1.Point();
         this._samplerStates = [];
         this._textures = [];
         this._vertexBuffers = [];
@@ -1522,12 +1492,12 @@ var ContextSoftware = (function () {
         this._vertexBufferFormats = [];
         //public static _drawCallback:Function = null;
         this._antialias = 0;
-        this._sx = new Vector3D_1.default();
-        this._sy = new Vector3D_1.default();
-        this._u = new Vector3D_1.default();
+        this._sx = new Vector3D_1.Vector3D();
+        this._sy = new Vector3D_1.Vector3D();
+        this._u = new Vector3D_1.Vector3D();
         this._canvas = canvas;
-        this._backBufferColor = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-        this._frontBuffer = new BitmapImage2D_1.default(this._backBufferWidth, this._backBufferHeight, true, 0, false);
+        this._backBufferColor = new BitmapImage2D_1.BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
+        this._frontBuffer = new BitmapImage2D_1.BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
         if (document && document.body)
             document.body.appendChild(this._frontBuffer.getCanvas());
     }
@@ -1552,14 +1522,14 @@ var ContextSoftware = (function () {
         if (alpha === void 0) { alpha = 1; }
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
+        if (mask === void 0) { mask = ContextGLClearMask_1.ContextGLClearMask.ALL; }
         this._backBufferColor.lock();
-        if (mask & ContextGLClearMask_1.default.COLOR) {
+        if (mask & ContextGLClearMask_1.ContextGLClearMask.COLOR) {
             this._colorClearUint32.fill(((alpha * 0xFF << 24) | (red * 0xFF << 16) | (green * 0xFF << 8) | blue * 0xFF));
             this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
         }
         //TODO: mask & ContextGLClearMask.STENCIL
-        if (mask & ContextGLClearMask_1.default.DEPTH)
+        if (mask & ContextGLClearMask_1.ContextGLClearMask.DEPTH)
             this._zbuffer.set(this._zbufferClear); //fast memcpy
     };
     ContextSoftware.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
@@ -1602,7 +1572,7 @@ var ContextSoftware = (function () {
         raw[14] = 0;
         raw[15] = 0;
         this._screenMatrix.transpose();
-        this._frontBufferMatrix = new Matrix_1.default();
+        this._frontBufferMatrix = new Matrix_1.Matrix();
         this._frontBufferMatrix.scale(1 / this._antialias, 1 / this._antialias);
     };
     ContextSoftware.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
@@ -1610,16 +1580,16 @@ var ContextSoftware = (function () {
         return undefined;
     };
     ContextSoftware.prototype.createIndexBuffer = function (numIndices) {
-        return new IndexBufferSoftware_1.default(numIndices);
+        return new IndexBufferSoftware_1.IndexBufferSoftware(numIndices);
     };
     ContextSoftware.prototype.createProgram = function () {
-        return new ProgramSoftware_1.default();
+        return new ProgramSoftware_1.ProgramSoftware();
     };
     ContextSoftware.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
-        return new TextureSoftware_1.default(width, height);
+        return new TextureSoftware_1.TextureSoftware(width, height);
     };
     ContextSoftware.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
-        return new VertexBufferSoftware_1.default(numVertices, dataPerVertex);
+        return new VertexBufferSoftware_1.VertexBufferSoftware(numVertices, dataPerVertex);
     };
     ContextSoftware.prototype.dispose = function () {
     };
@@ -1652,9 +1622,9 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.setProgramConstantsFromArray = function (programType, data) {
         var target;
-        if (programType == ContextGLProgramType_1.default.VERTEX)
+        if (programType == ContextGLProgramType_1.ContextGLProgramType.VERTEX)
             target = this._vertexConstants = new Float32Array(data.length);
-        else if (programType == ContextGLProgramType_1.default.FRAGMENT)
+        else if (programType == ContextGLProgramType_1.ContextGLProgramType.FRAGMENT)
             target = this._fragmentConstants = new Float32Array(data.length);
         target.set(data);
     };
@@ -1668,7 +1638,7 @@ var ContextSoftware = (function () {
     };
     ContextSoftware.prototype.present = function () {
         this._backBufferColor.unlock();
-        this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils_1.default.ARGBtoFloat32(0, 0, 0, 0));
+        this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils_1.ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
         this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
     };
     ContextSoftware.prototype.drawToBitmapImage2D = function (destination) {
@@ -1682,7 +1652,7 @@ var ContextSoftware = (function () {
         var varying0 = new Float32Array(this._program.numVarying * 4);
         var varying1 = new Float32Array(this._program.numVarying * 4);
         var varying2 = new Float32Array(this._program.numVarying * 4);
-        if (this._cullingMode == ContextGLTriangleFace_1.default.BACK) {
+        if (this._cullingMode == ContextGLTriangleFace_1.ContextGLTriangleFace.BACK) {
             for (var i = firstIndex; i < numIndices; i += 3) {
                 this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position0, varying0);
                 this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
@@ -1690,7 +1660,7 @@ var ContextSoftware = (function () {
                 this._triangle(position0, position1, position2, varying0, varying1, varying2);
             }
         }
-        else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT) {
+        else if (this._cullingMode == ContextGLTriangleFace_1.ContextGLTriangleFace.FRONT) {
             for (var i = firstIndex; i < numIndices; i += 3) {
                 this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
                 this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
@@ -1698,7 +1668,7 @@ var ContextSoftware = (function () {
                 this._triangle(position0, position1, position2, varying0, varying1, varying2);
             }
         }
-        else if (this._cullingMode == ContextGLTriangleFace_1.default.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace_1.default.NONE) {
+        else if (this._cullingMode == ContextGLTriangleFace_1.ContextGLTriangleFace.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace_1.ContextGLTriangleFace.NONE) {
             for (var i = firstIndex; i < numIndices; i += 3) {
                 this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
                 this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
@@ -1720,7 +1690,7 @@ var ContextSoftware = (function () {
     ContextSoftware.prototype.setSamplerStateAt = function (sampler, wrap, filter, mipfilter) {
         var state = this._samplerStates[sampler];
         if (!state)
-            state = this._samplerStates[sampler] = new SoftwareSamplerState_1.default();
+            state = this._samplerStates[sampler] = new SoftwareSamplerState_1.SoftwareSamplerState();
         state.wrap = wrap;
         state.filter = filter;
         state.mipfilter = mipfilter;
@@ -1749,24 +1719,24 @@ var ContextSoftware = (function () {
         return min + (max - min) * this.clamp(gradient);
     };
     ContextSoftware.prototype._triangle = function (position0, position1, position2, varying0, varying1, varying2) {
-        var p0 = new Vector3D_1.default(position0[0], position0[1], position0[2], position0[3]);
+        var p0 = new Vector3D_1.Vector3D(position0[0], position0[1], position0[2], position0[3]);
         if (!p0 || p0.w == 0 || isNaN(p0.w)) {
             console.error("wrong position: " + position0);
             return;
         }
-        var p1 = new Vector3D_1.default(position1[0], position1[1], position1[2], position1[3]);
-        var p2 = new Vector3D_1.default(position2[0], position2[1], position2[2], position2[3]);
+        var p1 = new Vector3D_1.Vector3D(position1[0], position1[1], position1[2], position1[3]);
+        var p2 = new Vector3D_1.Vector3D(position2[0], position2[1], position2[2], position2[3]);
         p0.z = p0.z * 2 - p0.w;
         p1.z = p1.z * 2 - p1.w;
         p2.z = p2.z * 2 - p2.w;
         p0.scaleBy(1 / p0.w);
         p1.scaleBy(1 / p1.w);
         p2.scaleBy(1 / p2.w);
-        var project = new Vector3D_1.default(p0.w, p1.w, p2.w);
+        var project = new Vector3D_1.Vector3D(p0.w, p1.w, p2.w);
         p0 = this._screenMatrix.transformVector(p0);
         p1 = this._screenMatrix.transformVector(p1);
         p2 = this._screenMatrix.transformVector(p2);
-        var depth = new Vector3D_1.default(p0.z, p1.z, p2.z);
+        var depth = new Vector3D_1.Vector3D(p0.z, p1.z, p2.z);
         this._bboxMin.x = 1000000;
         this._bboxMin.y = 1000000;
         this._bboxMax.x = -1000000;
@@ -1796,11 +1766,11 @@ var ContextSoftware = (function () {
                     continue;
                 var screenRight = this._barycentric(p0, p1, p2, x + 1, y);
                 var screenBottom = this._barycentric(p0, p1, p2, x, y + 1);
-                var clip = new Vector3D_1.default(screen.x / project.x, screen.y / project.y, screen.z / project.z);
+                var clip = new Vector3D_1.Vector3D(screen.x / project.x, screen.y / project.y, screen.z / project.z);
                 clip.scaleBy(1 / (clip.x + clip.y + clip.z));
-                var clipRight = new Vector3D_1.default(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
+                var clipRight = new Vector3D_1.Vector3D(screenRight.x / project.x, screenRight.y / project.y, screenRight.z / project.z);
                 clipRight.scaleBy(1 / (clipRight.x + clipRight.y + clipRight.z));
-                var clipBottom = new Vector3D_1.default(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
+                var clipBottom = new Vector3D_1.Vector3D(screenBottom.x / project.x, screenBottom.y / project.y, screenBottom.z / project.z);
                 clipBottom.scaleBy(1 / (clipBottom.x + clipBottom.y + clipBottom.z));
                 var index = (x % this._backBufferWidth) + y * this._backBufferWidth;
                 var fragDepth = depth.x * screen.x + depth.y * screen.y + depth.z * screen.z;
@@ -1830,12 +1800,13 @@ var ContextSoftware = (function () {
         this._sy.z = a.y - y;
         this._u = this._sx.crossProduct(this._sy, this._u);
         if (this._u.z < 0.01)
-            return new Vector3D_1.default(1 - (this._u.x + this._u.y) / this._u.z, this._u.y / this._u.z, this._u.x / this._u.z);
-        return new Vector3D_1.default(-1, 1, 1);
+            return new Vector3D_1.Vector3D(1 - (this._u.x + this._u.y) / this._u.z, this._u.y / this._u.z, this._u.x / this._u.z);
+        return new Vector3D_1.Vector3D(-1, 1, 1);
     };
     ContextSoftware.MAX_SAMPLERS = 8;
     return ContextSoftware;
 }());
+exports.ContextSoftware = ContextSoftware;
 var BlendModeSoftware = (function () {
     function BlendModeSoftware() {
     }
@@ -1897,6 +1868,7 @@ var BlendModeSoftware = (function () {
     };
     return BlendModeSoftware;
 }());
+exports.BlendModeSoftware = BlendModeSoftware;
 var DepthCompareModeSoftware = (function () {
     function DepthCompareModeSoftware() {
     }
@@ -1926,15 +1898,14 @@ var DepthCompareModeSoftware = (function () {
     };
     return DepthCompareModeSoftware;
 }());
+exports.DepthCompareModeSoftware = DepthCompareModeSoftware;
 var argb = new Uint8ClampedArray(4);
 var source = new Uint8ClampedArray(4);
 var dest = new Uint8ClampedArray(4);
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextSoftware;
 
 },{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","../base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","../base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","../base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware","awayjs-core/lib/geom/Matrix":undefined,"awayjs-core/lib/geom/Matrix3D":undefined,"awayjs-core/lib/geom/Point":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/geom/Vector3D":undefined,"awayjs-core/lib/image/BitmapImage2D":undefined,"awayjs-core/lib/utils/ColorUtils":undefined}],"awayjs-stagegl/lib/base/ContextStage3D":[function(require,module,exports){
 "use strict";
-//import swfobject					from "../swfobject";
+//import {swfobject}					from "../swfobject";
 var ContextGLClearMask_1 = require("../base/ContextGLClearMask");
 var ContextGLProgramType_1 = require("../base/ContextGLProgramType");
 var CubeTextureFlash_1 = require("../base/CubeTextureFlash");
@@ -2001,7 +1972,7 @@ var ContextStage3D = (function () {
             if (this._errorCheckingEnabled == value)
                 return;
             this._errorCheckingEnabled = value;
-            this.addStream(String.fromCharCode(OpCodes_1.default.enableErrorChecking, value ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue));
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.enableErrorChecking, value ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue));
             this.execute();
         },
         enumerable: true,
@@ -2016,19 +1987,19 @@ var ContextStage3D = (function () {
     ContextStage3D.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO:streaming
-        return new TextureFlash_1.default(this, width, height, format, optimizeForRenderToTexture);
+        return new TextureFlash_1.TextureFlash(this, width, height, format, optimizeForRenderToTexture);
     };
     ContextStage3D.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO:streaming
-        return new CubeTextureFlash_1.default(this, size, format, optimizeForRenderToTexture);
+        return new CubeTextureFlash_1.CubeTextureFlash(this, size, format, optimizeForRenderToTexture);
     };
     ContextStage3D.prototype.setTextureAt = function (sampler, texture) {
         if (texture) {
-            this.addStream(String.fromCharCode(OpCodes_1.default.setTextureAt) + sampler + "," + texture.id + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setTextureAt) + sampler + "," + texture.id + ",");
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes_1.default.clearTextureAt) + sampler.toString() + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.clearTextureAt) + sampler.toString() + ",");
         }
         if (ContextStage3D.debug)
             this.execute();
@@ -2043,21 +2014,21 @@ var ContextStage3D = (function () {
         if (actionOnDepthFail === void 0) { actionOnDepthFail = "keep"; }
         if (actionOnDepthPassStencilFail === void 0) { actionOnDepthPassStencilFail = "keep"; }
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
-        this.addStream(String.fromCharCode(OpCodes_1.default.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setStencilReferenceValue = function (referenceValue, readMask, writeMask) {
         if (readMask === void 0) { readMask = 255; }
         if (writeMask === void 0) { writeMask = 255; }
-        this.addStream(String.fromCharCode(OpCodes_1.default.setStencilReferenceValue, referenceValue + OpCodes_1.default.intMask, readMask + OpCodes_1.default.intMask, writeMask + OpCodes_1.default.intMask));
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setStencilReferenceValue, referenceValue + OpCodes_1.OpCodes.intMask, readMask + OpCodes_1.OpCodes.intMask, writeMask + OpCodes_1.OpCodes.intMask));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setCulling = function (triangleFaceToCull, coordinateSystem) {
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
         //TODO implement coordinateSystem option
-        this.addStream(String.fromCharCode(OpCodes_1.default.setCulling) + triangleFaceToCull + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setCulling) + triangleFaceToCull + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2068,7 +2039,7 @@ var ContextStage3D = (function () {
         if (!numIndices || numIndices < 0)
             numIndices = indexBuffer.numIndices;
         //assume triangles
-        this.addStream(String.fromCharCode(OpCodes_1.default.drawTriangles, indexBuffer.id + OpCodes_1.default.intMask) + firstIndex + "," + numIndices + ",");
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.drawTriangles, indexBuffer.id + OpCodes_1.OpCodes.intMask) + firstIndex + "," + numIndices + ",");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2080,21 +2051,21 @@ var ContextStage3D = (function () {
     ContextStage3D.prototype.setProgramConstantsFromArray = function (programType, data) {
         var startIndex;
         var numRegisters = data.length / 4;
-        var target = (programType == ContextGLProgramType_1.default.VERTEX) ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue;
+        var target = (programType == ContextGLProgramType_1.ContextGLProgramType.VERTEX) ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue;
         for (var i = 0; i < numRegisters; i++) {
             startIndex = i * 4;
-            this.addStream(String.fromCharCode(OpCodes_1.default.setProgramConstant, target, i + OpCodes_1.default.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setProgramConstant, target, i + OpCodes_1.OpCodes.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
             if (ContextStage3D.debug)
                 this.execute();
         }
     };
     ContextStage3D.prototype.setProgram = function (program) {
-        this.addStream(String.fromCharCode(OpCodes_1.default.setProgram, program.id + OpCodes_1.default.intMask));
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setProgram, program.id + OpCodes_1.OpCodes.intMask));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.present = function () {
-        this.addStream(String.fromCharCode(OpCodes_1.default.present));
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.present));
         this.execute();
     };
     ContextStage3D.prototype.clear = function (red, green, blue, alpha, depth, stencil, mask) {
@@ -2104,26 +2075,26 @@ var ContextStage3D = (function () {
         if (alpha === void 0) { alpha = 1; }
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
-        this.addStream(String.fromCharCode(OpCodes_1.default.clear) + red + "," + green + "," + blue + "," + alpha + "," + depth + "," + stencil + "," + mask + ",");
+        if (mask === void 0) { mask = ContextGLClearMask_1.ContextGLClearMask.ALL; }
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.clear) + red + "," + green + "," + blue + "," + alpha + "," + depth + "," + stencil + "," + mask + ",");
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.createProgram = function () {
-        return new ProgramFlash_1.default(this);
+        return new ProgramFlash_1.ProgramFlash(this);
     };
     ContextStage3D.prototype.createVertexBuffer = function (numVertices, data32PerVertex) {
-        return new VertexBufferFlash_1.default(this, numVertices, data32PerVertex);
+        return new VertexBufferFlash_1.VertexBufferFlash(this, numVertices, data32PerVertex);
     };
     ContextStage3D.prototype.createIndexBuffer = function (numIndices) {
-        return new IndexBufferFlash_1.default(this, numIndices);
+        return new IndexBufferFlash_1.IndexBufferFlash(this, numIndices);
     };
     ContextStage3D.prototype.configureBackBuffer = function (width, height, antiAlias, enableDepthAndStencil) {
         if (enableDepthAndStencil === void 0) { enableDepthAndStencil = true; }
         this._width = width;
         this._height = height;
         //TODO: add Anitalias setting
-        this.addStream(String.fromCharCode(OpCodes_1.default.configureBackBuffer) + width + "," + height + ",");
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.configureBackBuffer) + width + "," + height + ",");
     };
     ContextStage3D.prototype.drawToBitmapImage2D = function (destination) {
         //TODO
@@ -2132,21 +2103,21 @@ var ContextStage3D = (function () {
         if (bufferOffset === void 0) { bufferOffset = 0; }
         if (format === void 0) { format = null; }
         if (buffer) {
-            this.addStream(String.fromCharCode(OpCodes_1.default.setVertexBufferAt, index + OpCodes_1.default.intMask) + buffer.id + "," + bufferOffset + "," + format + "$");
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setVertexBufferAt, index + OpCodes_1.OpCodes.intMask) + buffer.id + "," + bufferOffset + "," + format + "$");
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes_1.default.clearVertexBufferAt, index + OpCodes_1.default.intMask));
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.clearVertexBufferAt, index + OpCodes_1.OpCodes.intMask));
         }
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setColorMask = function (red, green, blue, alpha) {
-        this.addStream(String.fromCharCode(OpCodes_1.default.setColorMask, red ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue, green ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue, blue ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue, alpha ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue));
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setColorMask, red ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue, green ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue, blue ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue, alpha ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setBlendFactors = function (sourceFactor, destinationFactor) {
-        this.addStream(String.fromCharCode(OpCodes_1.default.setBlendFactors) + sourceFactor + "$" + destinationFactor + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setBlendFactors) + sourceFactor + "$" + destinationFactor + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2155,31 +2126,31 @@ var ContextStage3D = (function () {
         if (antiAlias === void 0) { antiAlias = 0; }
         if (surfaceSelector === void 0) { surfaceSelector = 0; }
         if (target === null || target === undefined) {
-            this.addStream(String.fromCharCode(OpCodes_1.default.clearRenderToTexture));
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.clearRenderToTexture));
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes_1.default.setRenderToTexture, enableDepthAndStencil ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue) + target.id + "," + (antiAlias || 0) + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setRenderToTexture, enableDepthAndStencil ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue) + target.id + "," + (antiAlias || 0) + ",");
         }
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setRenderToBackBuffer = function () {
-        this.addStream(String.fromCharCode(OpCodes_1.default.clearRenderToTexture));
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.clearRenderToTexture));
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setScissorRectangle = function (rectangle) {
         if (rectangle) {
-            this.addStream(String.fromCharCode(OpCodes_1.default.setScissorRect) + rectangle.x + "," + rectangle.y + "," + rectangle.width + "," + rectangle.height + ",");
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setScissorRect) + rectangle.x + "," + rectangle.y + "," + rectangle.width + "," + rectangle.height + ",");
         }
         else {
-            this.addStream(String.fromCharCode(OpCodes_1.default.clearScissorRect));
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.clearScissorRect));
         }
         if (ContextStage3D.debug)
             this.execute();
     };
     ContextStage3D.prototype.setDepthTest = function (depthMask, passCompareMode) {
-        this.addStream(String.fromCharCode(OpCodes_1.default.setDepthTest, depthMask ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue) + passCompareMode + "$");
+        this.addStream(String.fromCharCode(OpCodes_1.OpCodes.setDepthTest, depthMask ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue) + passCompareMode + "$");
         if (ContextStage3D.debug)
             this.execute();
     };
@@ -2191,7 +2162,7 @@ var ContextStage3D = (function () {
             this._resources[0].dispose();
         if (this._container) {
             // encode command
-            this.addStream(String.fromCharCode(OpCodes_1.default.disposeContext));
+            this.addStream(String.fromCharCode(OpCodes_1.OpCodes.disposeContext));
             this.execute();
             //swfobject.removeSWF(this._oldCanvas.id);
             if (this._oldCanvas && this._oldParent) {
@@ -2219,8 +2190,7 @@ var ContextStage3D = (function () {
     ContextStage3D.logStream = false;
     return ContextStage3D;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextStage3D;
+exports.ContextStage3D = ContextStage3D;
 /**
 * global function for flash callback
 */
@@ -2294,35 +2264,35 @@ var ContextWebGL = (function () {
                 this._standardDerivatives = false;
             }
             //setup shortcut dictionaries
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE] = this._gl.ONE;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.DESTINATION_COLOR] = this._gl.DST_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE] = this._gl.ONE;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_ALPHA] = this._gl.ONE_MINUS_DST_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_DESTINATION_COLOR] = this._gl.ONE_MINUS_DST_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_ALPHA] = this._gl.ONE_MINUS_SRC_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ONE_MINUS_SOURCE_COLOR] = this._gl.ONE_MINUS_SRC_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.SOURCE_COLOR] = this._gl.SRC_COLOR;
-            this._blendFactorDictionary[ContextGLBlendFactor_1.default.ZERO] = this._gl.ZERO;
-            this._drawModeDictionary[ContextGLDrawMode_1.default.LINES] = this._gl.LINES;
-            this._drawModeDictionary[ContextGLDrawMode_1.default.TRIANGLES] = this._gl.TRIANGLES;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.ALWAYS] = this._gl.ALWAYS;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.EQUAL] = this._gl.EQUAL;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.GREATER] = this._gl.GREATER;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.GREATER_EQUAL] = this._gl.GEQUAL;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.LESS] = this._gl.LESS;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.LESS_EQUAL] = this._gl.LEQUAL;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.NEVER] = this._gl.NEVER;
-            this._compareModeDictionary[ContextGLCompareMode_1.default.NOT_EQUAL] = this._gl.NOTEQUAL;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.DECREMENT_SATURATE] = this._gl.DECR;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.DECREMENT_WRAP] = this._gl.DECR_WRAP;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.INCREMENT_SATURATE] = this._gl.INCR;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.INCREMENT_WRAP] = this._gl.INCR_WRAP;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.INVERT] = this._gl.INVERT;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.KEEP] = this._gl.KEEP;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.SET] = this._gl.REPLACE;
-            this._stencilActionDictionary[ContextGLStencilAction_1.default.ZERO] = this._gl.ZERO;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ONE] = this._gl.ONE;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.DESTINATION_COLOR] = this._gl.DST_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ONE] = this._gl.ONE;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA] = this._gl.ONE_MINUS_DST_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR] = this._gl.ONE_MINUS_DST_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA] = this._gl.ONE_MINUS_SRC_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR] = this._gl.ONE_MINUS_SRC_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
+            this._blendFactorDictionary[ContextGLBlendFactor_1.ContextGLBlendFactor.ZERO] = this._gl.ZERO;
+            this._drawModeDictionary[ContextGLDrawMode_1.ContextGLDrawMode.LINES] = this._gl.LINES;
+            this._drawModeDictionary[ContextGLDrawMode_1.ContextGLDrawMode.TRIANGLES] = this._gl.TRIANGLES;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.GREATER] = this._gl.GREATER;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.LESS] = this._gl.LESS;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.NEVER] = this._gl.NEVER;
+            this._compareModeDictionary[ContextGLCompareMode_1.ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.DECREMENT_SATURATE] = this._gl.DECR;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.DECREMENT_WRAP] = this._gl.DECR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.INCREMENT_SATURATE] = this._gl.INCR;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.INCREMENT_WRAP] = this._gl.INCR_WRAP;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.INVERT] = this._gl.INVERT;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.KEEP] = this._gl.KEEP;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.SET] = this._gl.REPLACE;
+            this._stencilActionDictionary[ContextGLStencilAction_1.ContextGLStencilAction.ZERO] = this._gl.ZERO;
             this._textureIndexDictionary[0] = this._gl.TEXTURE0;
             this._textureIndexDictionary[1] = this._gl.TEXTURE1;
             this._textureIndexDictionary[2] = this._gl.TEXTURE2;
@@ -2333,38 +2303,38 @@ var ContextWebGL = (function () {
             this._textureIndexDictionary[7] = this._gl.TEXTURE7;
             this._textureTypeDictionary["texture2d"] = this._gl.TEXTURE_2D;
             this._textureTypeDictionary["textureCube"] = this._gl.TEXTURE_CUBE_MAP;
-            this._wrapDictionary[ContextGLWrapMode_1.default.REPEAT] = this._gl.REPEAT;
-            this._wrapDictionary[ContextGLWrapMode_1.default.CLAMP] = this._gl.CLAMP_TO_EDGE;
-            this._filterDictionary[ContextGLTextureFilter_1.default.LINEAR] = this._gl.LINEAR;
-            this._filterDictionary[ContextGLTextureFilter_1.default.NEAREST] = this._gl.NEAREST;
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR] = new Object();
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR][ContextGLMipFilter_1.default.MIPNEAREST] = this._gl.LINEAR_MIPMAP_NEAREST;
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR][ContextGLMipFilter_1.default.MIPLINEAR] = this._gl.LINEAR_MIPMAP_LINEAR;
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.LINEAR][ContextGLMipFilter_1.default.MIPNONE] = this._gl.LINEAR;
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST] = new Object();
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST][ContextGLMipFilter_1.default.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST][ContextGLMipFilter_1.default.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
-            this._mipmapFilterDictionary[ContextGLTextureFilter_1.default.NEAREST][ContextGLMipFilter_1.default.MIPNONE] = this._gl.NEAREST;
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_1] = new VertexBufferProperties(1, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_2] = new VertexBufferProperties(2, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_3] = new VertexBufferProperties(3, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.BYTE_4] = new VertexBufferProperties(4, this._gl.BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_1] = new VertexBufferProperties(1, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_2] = new VertexBufferProperties(2, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_3] = new VertexBufferProperties(3, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.SHORT_4] = new VertexBufferProperties(4, this._gl.SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_SHORT, true);
-            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_SHORT, true);
+            this._wrapDictionary[ContextGLWrapMode_1.ContextGLWrapMode.REPEAT] = this._gl.REPEAT;
+            this._wrapDictionary[ContextGLWrapMode_1.ContextGLWrapMode.CLAMP] = this._gl.CLAMP_TO_EDGE;
+            this._filterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR] = this._gl.LINEAR;
+            this._filterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.NEAREST] = this._gl.NEAREST;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR] = new Object();
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR][ContextGLMipFilter_1.ContextGLMipFilter.MIPNEAREST] = this._gl.LINEAR_MIPMAP_NEAREST;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR][ContextGLMipFilter_1.ContextGLMipFilter.MIPLINEAR] = this._gl.LINEAR_MIPMAP_LINEAR;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR][ContextGLMipFilter_1.ContextGLMipFilter.MIPNONE] = this._gl.LINEAR;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.NEAREST] = new Object();
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.NEAREST][ContextGLMipFilter_1.ContextGLMipFilter.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.NEAREST][ContextGLMipFilter_1.ContextGLMipFilter.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
+            this._mipmapFilterDictionary[ContextGLTextureFilter_1.ContextGLTextureFilter.NEAREST][ContextGLMipFilter_1.ContextGLMipFilter.MIPNONE] = this._gl.NEAREST;
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_1] = new VertexBufferProperties(1, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_2] = new VertexBufferProperties(2, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_3] = new VertexBufferProperties(3, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_4] = new VertexBufferProperties(4, this._gl.BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_1] = new VertexBufferProperties(1, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_2] = new VertexBufferProperties(2, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_3] = new VertexBufferProperties(3, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_4] = new VertexBufferProperties(4, this._gl.SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_SHORT, true);
+            this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_SHORT, true);
             this._stencilCompareMode = this._gl.ALWAYS;
             this._stencilCompareModeBack = this._gl.ALWAYS;
             this._stencilCompareModeFront = this._gl.ALWAYS;
@@ -2375,7 +2345,7 @@ var ContextWebGL = (function () {
         }
         //defaults
         for (var i = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
-            this._samplerStates[i] = new SamplerState_1.default();
+            this._samplerStates[i] = new SamplerState_1.SamplerState();
             this._samplerStates[i].wrap = this._gl.REPEAT;
             this._samplerStates[i].filter = this._gl.LINEAR;
             this._samplerStates[i].mipfilter = this._gl.LINEAR;
@@ -2405,17 +2375,17 @@ var ContextWebGL = (function () {
         if (alpha === void 0) { alpha = 1; }
         if (depth === void 0) { depth = 1; }
         if (stencil === void 0) { stencil = 0; }
-        if (mask === void 0) { mask = ContextGLClearMask_1.default.ALL; }
+        if (mask === void 0) { mask = ContextGLClearMask_1.ContextGLClearMask.ALL; }
         if (!this._drawing) {
             this.updateBlendStatus();
             this._drawing = true;
         }
         var glmask = 0;
-        if (mask & ContextGLClearMask_1.default.COLOR)
+        if (mask & ContextGLClearMask_1.ContextGLClearMask.COLOR)
             glmask |= this._gl.COLOR_BUFFER_BIT;
-        if (mask & ContextGLClearMask_1.default.STENCIL)
+        if (mask & ContextGLClearMask_1.ContextGLClearMask.STENCIL)
             glmask |= this._gl.STENCIL_BUFFER_BIT;
-        if (mask & ContextGLClearMask_1.default.DEPTH)
+        if (mask & ContextGLClearMask_1.ContextGLClearMask.DEPTH)
             glmask |= this._gl.DEPTH_BUFFER_BIT;
         this._gl.clearColor(red, green, blue, alpha);
         this._gl.clearDepth(depth);
@@ -2436,21 +2406,21 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.createCubeTexture = function (size, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
-        return new CubeTextureWebGL_1.default(this._gl, size);
+        return new CubeTextureWebGL_1.CubeTextureWebGL(this._gl, size);
     };
     ContextWebGL.prototype.createIndexBuffer = function (numIndices) {
-        return new IndexBufferWebGL_1.default(this._gl, numIndices);
+        return new IndexBufferWebGL_1.IndexBufferWebGL(this._gl, numIndices);
     };
     ContextWebGL.prototype.createProgram = function () {
-        return new ProgramWebGL_1.default(this._gl);
+        return new ProgramWebGL_1.ProgramWebGL(this._gl);
     };
     ContextWebGL.prototype.createTexture = function (width, height, format, optimizeForRenderToTexture, streamingLevels) {
         if (streamingLevels === void 0) { streamingLevels = 0; }
         //TODO streaming
-        return new TextureWebGL_1.default(this._gl, width, height);
+        return new TextureWebGL_1.TextureWebGL(this._gl, width, height);
     };
     ContextWebGL.prototype.createVertexBuffer = function (numVertices, dataPerVertex) {
-        return new VertexBufferWebGL_1.default(this._gl, numVertices, dataPerVertex);
+        return new VertexBufferWebGL_1.VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
     };
     ContextWebGL.prototype.dispose = function () {
         for (var i = 0; i < this._samplerStates.length; ++i)
@@ -2459,7 +2429,7 @@ var ContextWebGL = (function () {
     ContextWebGL.prototype.drawToBitmapImage2D = function (destination) {
         var pixels = new Uint8ClampedArray(destination.width * destination.height * 4);
         this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
-        destination.setPixels(new Rectangle_1.default(0, 0, destination.width, destination.height), pixels);
+        destination.setPixels(new Rectangle_1.Rectangle(0, 0, destination.width, destination.height), pixels);
     };
     ContextWebGL.prototype.drawIndices = function (mode, indexBuffer, firstIndex, numIndices) {
         if (firstIndex === void 0) { firstIndex = 0; }
@@ -2490,7 +2460,7 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.setCulling = function (triangleFaceToCull, coordinateSystem) {
         if (coordinateSystem === void 0) { coordinateSystem = "leftHanded"; }
-        if (triangleFaceToCull == ContextGLTriangleFace_1.default.NONE) {
+        if (triangleFaceToCull == ContextGLTriangleFace_1.ContextGLTriangleFace.NONE) {
             this._gl.disable(this._gl.CULL_FACE);
         }
         else {
@@ -2576,7 +2546,7 @@ var ContextWebGL = (function () {
         var textureType = this._textureTypeDictionary[texture.textureType];
         samplerState.type = textureType;
         this._gl.bindTexture(textureType, texture.glTexture);
-        this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType_1.default.SAMPLER, sampler), sampler);
+        this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType_1.ContextGLProgramType.SAMPLER, sampler), sampler);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
         this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
@@ -2638,11 +2608,11 @@ var ContextWebGL = (function () {
     };
     ContextWebGL.prototype.translateTriangleFace = function (triangleFace, coordinateSystem) {
         switch (triangleFace) {
-            case ContextGLTriangleFace_1.default.BACK:
+            case ContextGLTriangleFace_1.ContextGLTriangleFace.BACK:
                 return (coordinateSystem == "leftHanded") ? this._gl.FRONT : this._gl.BACK;
-            case ContextGLTriangleFace_1.default.FRONT:
+            case ContextGLTriangleFace_1.ContextGLTriangleFace.FRONT:
                 return (coordinateSystem == "leftHanded") ? this._gl.BACK : this._gl.FRONT;
-            case ContextGLTriangleFace_1.default.FRONT_AND_BACK:
+            case ContextGLTriangleFace_1.ContextGLTriangleFace.FRONT_AND_BACK:
                 return this._gl.FRONT_AND_BACK;
             default:
                 throw "Unknown ContextGLTriangleFace type."; // TODO error
@@ -2652,8 +2622,7 @@ var ContextWebGL = (function () {
     ContextWebGL.modulo = 0;
     return ContextWebGL;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ContextWebGL;
+exports.ContextWebGL = ContextWebGL;
 var VertexBufferProperties = (function () {
     function VertexBufferProperties(size, type, normalized) {
         this.size = size;
@@ -2662,6 +2631,7 @@ var VertexBufferProperties = (function () {
     }
     return VertexBufferProperties;
 }());
+exports.VertexBufferProperties = VertexBufferProperties;
 
 },{"../base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","../base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","../base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","../base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","../base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","../base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","../base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","../base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","../base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","../base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL","awayjs-core/lib/geom/Rectangle":undefined}],"awayjs-stagegl/lib/base/CubeTextureFlash":[function(require,module,exports){
 "use strict";
@@ -2680,7 +2650,7 @@ var CubeTextureFlash = (function (_super) {
         _super.call(this);
         this._context = context;
         this._size = size;
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.initCubeTexture, (forRTT ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue)) + size + "," + streaming + "," + format + "$");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.initCubeTexture, (forRTT ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue)) + size + "," + streaming + "," + format + "$");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
@@ -2692,7 +2662,7 @@ var CubeTextureFlash = (function (_super) {
         configurable: true
     });
     CubeTextureFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeCubeTexture) + this._pId.toString() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.disposeCubeTexture) + this._pId.toString() + ",");
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
@@ -2710,19 +2680,18 @@ var CubeTextureFlash = (function (_super) {
             data = ctx.getImageData(0, 0, w, h).data;
         }
         var pos = 0;
-        var bytes = ByteArrayBase_1.default.internalGetBase64String(data.length, function () {
+        var bytes = ByteArrayBase_1.ByteArrayBase.internalGetBase64String(data.length, function () {
             return data[pos++];
         }, null);
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadBytesCubeTexture) + this._pId + "," + miplevel + "," + side + "," + (this.size >> miplevel) + "," + bytes + "%");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.uploadBytesCubeTexture) + this._pId + "," + miplevel + "," + side + "," + (this.size >> miplevel) + "," + bytes + "%");
         this._context.execute();
     };
     CubeTextureFlash.prototype.uploadCompressedTextureFromByteArray = function (data, byteArrayOffset /*uint*/, async) {
         if (async === void 0) { async = false; }
     };
     return CubeTextureFlash;
-}(ResourceBaseFlash_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = CubeTextureFlash;
+}(ResourceBaseFlash_1.ResourceBaseFlash));
+exports.CubeTextureFlash = CubeTextureFlash;
 
 },{"../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash","awayjs-core/lib/utils/ByteArrayBase":undefined}],"awayjs-stagegl/lib/base/CubeTextureWebGL":[function(require,module,exports){
 "use strict";
@@ -2774,9 +2743,8 @@ var CubeTextureWebGL = (function (_super) {
         configurable: true
     });
     return CubeTextureWebGL;
-}(TextureBaseWebGL_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = CubeTextureWebGL;
+}(TextureBaseWebGL_1.TextureBaseWebGL));
+exports.CubeTextureWebGL = CubeTextureWebGL;
 
 },{"../base/TextureBaseWebGL":"awayjs-stagegl/lib/base/TextureBaseWebGL"}],"awayjs-stagegl/lib/base/IContextGL":[function(require,module,exports){
 "use strict";
@@ -2814,18 +2782,18 @@ var IndexBufferFlash = (function (_super) {
         _super.call(this);
         this._context = context;
         this._numIndices = numIndices;
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.initIndexBuffer, numIndices + OpCodes_1.default.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.initIndexBuffer, numIndices + OpCodes_1.OpCodes.intMask));
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     IndexBufferFlash.prototype.uploadFromArray = function (data, startOffset, count) {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadArrayIndexBuffer, this._pId + OpCodes_1.default.intMask) + data.join() + "#" + startOffset + "," + count + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.uploadArrayIndexBuffer, this._pId + OpCodes_1.OpCodes.intMask) + data.join() + "#" + startOffset + "," + count + ",");
         this._context.execute();
     };
     IndexBufferFlash.prototype.uploadFromByteArray = function (data, startOffset, count) {
     };
     IndexBufferFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeIndexBuffer, this._pId + OpCodes_1.default.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.disposeIndexBuffer, this._pId + OpCodes_1.OpCodes.intMask));
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
@@ -2838,9 +2806,8 @@ var IndexBufferFlash = (function (_super) {
         configurable: true
     });
     return IndexBufferFlash;
-}(ResourceBaseFlash_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = IndexBufferFlash;
+}(ResourceBaseFlash_1.ResourceBaseFlash));
+exports.IndexBufferFlash = IndexBufferFlash;
 
 },{"../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/IndexBufferSoftware":[function(require,module,exports){
 "use strict";
@@ -2882,8 +2849,7 @@ var IndexBufferSoftware = (function () {
     });
     return IndexBufferSoftware;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = IndexBufferSoftware;
+exports.IndexBufferSoftware = IndexBufferSoftware;
 
 },{}],"awayjs-stagegl/lib/base/IndexBufferWebGL":[function(require,module,exports){
 "use strict";
@@ -2926,8 +2892,7 @@ var IndexBufferWebGL = (function () {
     });
     return IndexBufferWebGL;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = IndexBufferWebGL;
+exports.IndexBufferWebGL = IndexBufferWebGL;
 
 },{}],"awayjs-stagegl/lib/base/OpCodes":[function(require,module,exports){
 "use strict";
@@ -2980,8 +2945,7 @@ var OpCodes = (function () {
     OpCodes.enableErrorChecking = 81;
     return OpCodes;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = OpCodes;
+exports.OpCodes = OpCodes;
 
 },{}],"awayjs-stagegl/lib/base/ProgramFlash":[function(require,module,exports){
 "use strict";
@@ -2998,25 +2962,24 @@ var ProgramFlash = (function (_super) {
     function ProgramFlash(context) {
         _super.call(this);
         this._context = context;
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.initProgram));
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.initProgram));
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     ProgramFlash.prototype.upload = function (vertexProgram, fragmentProgram) {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadAGALBytesProgram, this._pId + OpCodes_1.default.intMask) + vertexProgram.readBase64String(vertexProgram.length) + "%" + fragmentProgram.readBase64String(fragmentProgram.length) + "%");
-        if (ContextStage3D_1.default.debug)
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.uploadAGALBytesProgram, this._pId + OpCodes_1.OpCodes.intMask) + vertexProgram.readBase64String(vertexProgram.length) + "%" + fragmentProgram.readBase64String(fragmentProgram.length) + "%");
+        if (ContextStage3D_1.ContextStage3D.debug)
             this._context.execute();
     };
     ProgramFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeProgram, this._pId + OpCodes_1.default.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.disposeProgram, this._pId + OpCodes_1.OpCodes.intMask));
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
     };
     return ProgramFlash;
-}(ResourceBaseFlash_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ProgramFlash;
+}(ResourceBaseFlash_1.ResourceBaseFlash));
+exports.ProgramFlash = ProgramFlash;
 
 },{"../base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/ProgramSoftware":[function(require,module,exports){
 "use strict";
@@ -3040,12 +3003,12 @@ var ProgramSoftware = (function () {
     });
     ProgramSoftware.prototype.upload = function (vertexProgram, fragmentProgram) {
         this._vertexDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(vertexProgram);
-        this._vertexVO = new ProgramVOSoftware_1.default();
+        this._vertexVO = new ProgramVOSoftware_1.ProgramVOSoftware();
         this._vertexVO.temp = new Float32Array(this._vertexDescr.regwrite[0x2].length * 4);
         this._vertexVO.attributes = new Float32Array(this._vertexDescr.regread[0x0].length * 4);
         this._numVarying = this._vertexDescr.regwrite[0x4].length;
         this._fragmentDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(fragmentProgram);
-        this._fragmentVO = new ProgramVOSoftware_1.default();
+        this._fragmentVO = new ProgramVOSoftware_1.ProgramVOSoftware();
         this._fragmentVO.temp = new Float32Array(this._fragmentDescr.regwrite[0x2].length * 4);
         this._fragmentVO.varying = new Float32Array(this._fragmentDescr.regread[0x4].length * 4);
         this._fragmentVO.derivativeX = new Float32Array(this._fragmentVO.varying.length);
@@ -3066,31 +3029,31 @@ var ProgramSoftware = (function () {
             if (!buffer)
                 continue;
             var index = context._vertexBufferOffsets[i] / 4 + vertexIndex * buffer.attributesPerVertex;
-            if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4) {
+            if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_4) {
                 attributes[j++] = buffer.uintData[index * 4];
                 attributes[j++] = buffer.uintData[index * 4 + 1];
                 attributes[j++] = buffer.uintData[index * 4 + 2];
                 attributes[j++] = buffer.uintData[index * 4 + 3];
             }
-            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_4) {
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_4) {
                 attributes[j++] = buffer.data[index];
                 attributes[j++] = buffer.data[index + 1];
                 attributes[j++] = buffer.data[index + 2];
                 attributes[j++] = buffer.data[index + 3];
             }
-            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_3) {
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_3) {
                 attributes[j++] = buffer.data[index];
                 attributes[j++] = buffer.data[index + 1];
                 attributes[j++] = buffer.data[index + 2];
                 attributes[j++] = 1;
             }
-            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_2) {
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_2) {
                 attributes[j++] = buffer.data[index];
                 attributes[j++] = buffer.data[index + 1];
                 attributes[j++] = 0;
                 attributes[j++] = 1;
             }
-            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.default.FLOAT_1) {
+            else if (context._vertexBufferFormats[i] == ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_1) {
                 attributes[j++] = buffer.data[index];
                 attributes[j++] = 0;
                 attributes[j++] = 0;
@@ -3130,7 +3093,7 @@ var ProgramSoftware = (function () {
         var len = this._fragmentDescr.tokens.length;
         for (var i = 0; i < len; i++) {
             var token = this._fragmentDescr.tokens[i];
-            if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter_1.default.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
+            if (token.opcode == 0x28 && context._samplerStates[token.b.regnum] && context._samplerStates[token.b.regnum].mipfilter == ContextGLMipFilter_1.ContextGLMipFilter.MIPLINEAR && context._textures[token.b.regnum].getMipLevelsCount() > 1)
                 varyingDerivatives.push(token.a.regnum);
         }
         var derivativeX = this._fragmentVO.derivativeX;
@@ -3248,8 +3211,8 @@ var ProgramSoftware = (function () {
             return new Float32Array([1, u, v, 0]);
         var texture = context._textures[textureIndex];
         var state = context._samplerStates[textureIndex] || this._defaultSamplerState;
-        var repeat = state.wrap == ContextGLWrapMode_1.default.REPEAT;
-        var mipmap = state.mipfilter == ContextGLMipFilter_1.default.MIPLINEAR;
+        var repeat = state.wrap == ContextGLWrapMode_1.ContextGLWrapMode.REPEAT;
+        var mipmap = state.mipfilter == ContextGLMipFilter_1.ContextGLMipFilter.MIPLINEAR;
         if (mipmap && texture.getMipLevelsCount() > 1) {
             var dux = Math.abs(vo.derivativeX[source1Reg + ((source1.swizzle >> 0) & 3)]);
             var dvx = Math.abs(vo.derivativeX[source1Reg + ((source1.swizzle >> 2) & 3)]);
@@ -3273,7 +3236,7 @@ var ProgramSoftware = (function () {
                 var dataHigh = texture.getData(miplevelHigh);
                 var dataHighWidth = texture.width / Math.pow(2, miplevelHigh);
                 var dataHighHeight = texture.height / Math.pow(2, miplevelHigh);
-                if (state.filter == ContextGLTextureFilter_1.default.LINEAR) {
+                if (state.filter == ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR) {
                     resultLow = ProgramSoftware.sampleBilinear(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
                     resultHigh = ProgramSoftware.sampleBilinear(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
                 }
@@ -3286,7 +3249,7 @@ var ProgramSoftware = (function () {
         }
         var result;
         var data = texture.getData(0);
-        if (state.filter == ContextGLTextureFilter_1.default.LINEAR) {
+        if (state.filter == ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR) {
             result = ProgramSoftware.sampleBilinear(u, v, data, texture.width, texture.height, repeat);
         }
         else {
@@ -3962,8 +3925,8 @@ var ProgramSoftware = (function () {
         if (source1TargetX < 0)
             vo.discard = true;
     };
-    ProgramSoftware._defaultSamplerState = new SoftwareSamplerState_1.default();
-    ProgramSoftware._tokenizer = new AGALTokenizer_1.default();
+    ProgramSoftware._defaultSamplerState = new SoftwareSamplerState_1.SoftwareSamplerState();
+    ProgramSoftware._tokenizer = new AGALTokenizer_1.AGALTokenizer();
     ProgramSoftware._opCodeFunc = [
         ProgramSoftware.mov,
         ProgramSoftware.add,
@@ -4014,8 +3977,7 @@ var ProgramSoftware = (function () {
     ];
     return ProgramSoftware;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ProgramSoftware;
+exports.ProgramSoftware = ProgramSoftware;
 
 },{"../aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","../base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState"}],"awayjs-stagegl/lib/base/ProgramVOSoftware":[function(require,module,exports){
 "use strict";
@@ -4026,8 +3988,7 @@ var ProgramVOSoftware = (function () {
     }
     return ProgramVOSoftware;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ProgramVOSoftware;
+exports.ProgramVOSoftware = ProgramVOSoftware;
 
 },{}],"awayjs-stagegl/lib/base/ProgramWebGL":[function(require,module,exports){
 "use strict";
@@ -4065,10 +4026,10 @@ var ProgramWebGL = (function () {
     };
     ProgramWebGL.prototype.getUniformLocation = function (programType, index) {
         if (index === void 0) { index = -1; }
-        if (this._uniforms[programType][index] != null)
-            return this._uniforms[programType][index];
+        if (this._uniforms[programType][index + 1] != null)
+            return this._uniforms[programType][index + 1];
         var name = (index == -1) ? ProgramWebGL._uniformLocationNameDictionary[programType] : ProgramWebGL._uniformLocationNameDictionary[programType] + index;
-        return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, name));
+        return (this._uniforms[programType][index + 1] = this._gl.getUniformLocation(this._program, name));
     };
     //
     // public getUniformLocation(programType:number, index:number):WebGLUniformLocation
@@ -4096,13 +4057,12 @@ var ProgramWebGL = (function () {
         enumerable: true,
         configurable: true
     });
-    ProgramWebGL._tokenizer = new AGALTokenizer_1.default();
-    ProgramWebGL._aglslParser = new AGLSLParser_1.default();
+    ProgramWebGL._tokenizer = new AGALTokenizer_1.AGALTokenizer();
+    ProgramWebGL._aglslParser = new AGLSLParser_1.AGLSLParser();
     ProgramWebGL._uniformLocationNameDictionary = ["fc", "fs", "vc"];
     return ProgramWebGL;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ProgramWebGL;
+exports.ProgramWebGL = ProgramWebGL;
 
 },{"../aglsl/AGALTokenizer":"awayjs-stagegl/lib/aglsl/AGALTokenizer","../aglsl/AGLSLParser":"awayjs-stagegl/lib/aglsl/AGLSLParser"}],"awayjs-stagegl/lib/base/ResourceBaseFlash":[function(require,module,exports){
 "use strict";
@@ -4120,8 +4080,7 @@ var ResourceBaseFlash = (function () {
     };
     return ResourceBaseFlash;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ResourceBaseFlash;
+exports.ResourceBaseFlash = ResourceBaseFlash;
 
 },{}],"awayjs-stagegl/lib/base/SamplerState":[function(require,module,exports){
 "use strict";
@@ -4130,8 +4089,7 @@ var SamplerState = (function () {
     }
     return SamplerState;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = SamplerState;
+exports.SamplerState = SamplerState;
 
 },{}],"awayjs-stagegl/lib/base/SoftwareSamplerState":[function(require,module,exports){
 "use strict";
@@ -4144,12 +4102,13 @@ var ContextGLWrapMode_1 = require("./ContextGLWrapMode");
  */
 var SoftwareSamplerState = (function () {
     function SoftwareSamplerState() {
-        this.wrap = ContextGLWrapMode_1.default.REPEAT;
-        this.filter = ContextGLTextureFilter_1.default.LINEAR;
-        this.mipfilter = ContextGLMipFilter_1.default.MIPLINEAR;
+        this.wrap = ContextGLWrapMode_1.ContextGLWrapMode.REPEAT;
+        this.filter = ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR;
+        this.mipfilter = ContextGLMipFilter_1.ContextGLMipFilter.MIPLINEAR;
     }
     return SoftwareSamplerState;
 }());
+exports.SoftwareSamplerState = SoftwareSamplerState;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = SoftwareSamplerState;
 
@@ -4205,7 +4164,7 @@ var Stage = (function (_super) {
         this._bufferFormatDictionary = new Array(5);
         this.globalDisableMipmap = false;
         this.globalDisableSmooth = false;
-        this._programDataPool = new ProgramDataPool_1.default(this);
+        this._programDataPool = new ProgramDataPool_1.ProgramDataPool(this);
         this._container = container;
         if (this._container) {
             this._container.addEventListener("webglcontextlost", function (event) { return _this.onContextLost(event); });
@@ -4213,35 +4172,35 @@ var Stage = (function (_super) {
         }
         this._stageIndex = stageIndex;
         this._stageManager = stageManager;
-        this._viewPort = new Rectangle_1.default();
+        this._viewPort = new Rectangle_1.Rectangle();
         this._enableDepthAndStencil = true;
-        CSS_1.default.setElementX(this._container, 0);
-        CSS_1.default.setElementY(this._container, 0);
+        CSS_1.CSS.setElementX(this._container, 0);
+        CSS_1.CSS.setElementY(this._container, 0);
         this._bufferFormatDictionary[1] = new Array(5);
-        this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat_1.default.BYTE_1;
-        this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat_1.default.BYTE_2;
-        this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat_1.default.BYTE_3;
-        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat_1.default.BYTE_4;
+        this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_1;
+        this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_2;
+        this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_3;
+        this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.BYTE_4;
         this._bufferFormatDictionary[2] = new Array(5);
-        this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat_1.default.SHORT_1;
-        this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat_1.default.SHORT_2;
-        this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat_1.default.SHORT_3;
-        this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat_1.default.SHORT_4;
+        this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_1;
+        this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_2;
+        this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_3;
+        this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.SHORT_4;
         this._bufferFormatDictionary[4] = new Array(5);
-        this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat_1.default.FLOAT_1;
-        this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat_1.default.FLOAT_2;
-        this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat_1.default.FLOAT_3;
-        this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat_1.default.FLOAT_4;
+        this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_1;
+        this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_2;
+        this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_3;
+        this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.FLOAT_4;
         this._bufferFormatDictionary[5] = new Array(5);
-        this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_1;
-        this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_2;
-        this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_3;
-        this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat_1.default.UNSIGNED_BYTE_4;
+        this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_1;
+        this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_2;
+        this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_3;
+        this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_BYTE_4;
         this._bufferFormatDictionary[6] = new Array(5);
-        this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_1;
-        this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_2;
-        this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_3;
-        this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat_1.default.UNSIGNED_SHORT_4;
+        this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_1;
+        this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_2;
+        this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_3;
+        this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
         this.visible = true;
     }
     Stage.prototype.getProgramData = function (vertexString, fragmentString) {
@@ -4296,22 +4255,22 @@ var Stage = (function (_super) {
             this._usesSoftwareRendering = forceSoftware;
         this._profile = profile;
         try {
-            if (mode == ContextMode_1.default.FLASH)
-                new ContextStage3D_1.default(this._container, function (context) { return _this._callback(context); });
-            else if (mode == ContextMode_1.default.SOFTWARE)
-                this._context = new ContextSoftware_1.default(this._container);
+            if (mode == ContextMode_1.ContextMode.FLASH)
+                new ContextStage3D_1.ContextStage3D(this._container, function (context) { return _this._callback(context); });
+            else if (mode == ContextMode_1.ContextMode.SOFTWARE)
+                this._context = new ContextSoftware_1.ContextSoftware(this._container);
             else
-                this._context = new ContextWebGL_1.default(this._container);
+                this._context = new ContextWebGL_1.ContextWebGL(this._container);
         }
         catch (e) {
             try {
-                if (mode == ContextMode_1.default.AUTO)
-                    new ContextStage3D_1.default(this._container, function (context) { return _this._callback(context); });
+                if (mode == ContextMode_1.ContextMode.AUTO)
+                    new ContextStage3D_1.ContextStage3D(this._container, function (context) { return _this._callback(context); });
                 else
-                    this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.STAGE_ERROR, this));
+                    this.dispatchEvent(new StageEvent_1.StageEvent(StageEvent_1.StageEvent.STAGE_ERROR, this));
             }
             catch (e) {
-                this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.STAGE_ERROR, this));
+                this.dispatchEvent(new StageEvent_1.StageEvent(StageEvent_1.StageEvent.STAGE_ERROR, this));
             }
         }
         if (this._context)
@@ -4327,7 +4286,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._width == val)
                 return;
-            CSS_1.default.setElementWidth(this._container, val);
+            CSS_1.CSS.setElementWidth(this._container, val);
             this._width = this._viewPort.width = val;
             this._backBufferDirty = true;
             this.notifyViewportUpdated();
@@ -4345,7 +4304,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._height == val)
                 return;
-            CSS_1.default.setElementHeight(this._container, val);
+            CSS_1.CSS.setElementHeight(this._container, val);
             this._height = this._viewPort.height = val;
             this._backBufferDirty = true;
             this.notifyViewportUpdated();
@@ -4363,7 +4322,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._x == val)
                 return;
-            CSS_1.default.setElementX(this._container, val);
+            CSS_1.CSS.setElementX(this._container, val);
             this._x = this._viewPort.x = val;
             this.notifyViewportUpdated();
         },
@@ -4380,7 +4339,7 @@ var Stage = (function (_super) {
         set: function (val) {
             if (this._y == val)
                 return;
-            CSS_1.default.setElementY(this._container, val);
+            CSS_1.CSS.setElementY(this._container, val);
             this._y = this._viewPort.y = val;
             this.notifyViewportUpdated();
         },
@@ -4389,10 +4348,10 @@ var Stage = (function (_super) {
     });
     Object.defineProperty(Stage.prototype, "visible", {
         get: function () {
-            return CSS_1.default.getElementVisibility(this._container);
+            return CSS_1.CSS.getElementVisibility(this._container);
         },
         set: function (val) {
-            CSS_1.default.setElementVisibility(this._container, val);
+            CSS_1.CSS.setElementVisibility(this._container, val);
         },
         enumerable: true,
         configurable: true
@@ -4418,7 +4377,7 @@ var Stage = (function (_super) {
         if (this._viewportDirty)
             return;
         this._viewportDirty = true;
-        this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.VIEWPORT_UPDATED, this));
+        this.dispatchEvent(new StageEvent_1.StageEvent(StageEvent_1.StageEvent.VIEWPORT_UPDATED, this));
     };
     Object.defineProperty(Stage.prototype, "profile", {
         get: function () {
@@ -4599,7 +4558,7 @@ var Stage = (function (_super) {
     Stage.prototype.freeContext = function () {
         if (this._context) {
             this._context.dispose();
-            this.dispatchEvent(new StageEvent_1.default(StageEvent_1.default.CONTEXT_DISPOSED, this));
+            this.dispatchEvent(new StageEvent_1.StageEvent(StageEvent_1.StageEvent.CONTEXT_DISPOSED, this));
         }
         this._context = null;
         this._initialised = false;
@@ -4633,7 +4592,7 @@ var Stage = (function (_super) {
             this._context.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
         // Dispatch the appropriate event depending on whether context was
         // created for the first time or recreated after a device loss.
-        this.dispatchEvent(new StageEvent_1.default(this._initialised ? StageEvent_1.default.CONTEXT_RECREATED : StageEvent_1.default.CONTEXT_CREATED, this));
+        this.dispatchEvent(new StageEvent_1.StageEvent(this._initialised ? StageEvent_1.StageEvent.CONTEXT_RECREATED : StageEvent_1.StageEvent.CONTEXT_CREATED, this));
         this._initialised = true;
     };
     Stage.prototype.setVertexBuffer = function (index, buffer, size, dimensions, offset, unsigned) {
@@ -4641,16 +4600,15 @@ var Stage = (function (_super) {
         this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned ? size + 4 : size][dimensions]);
     };
     Stage.prototype.setSamplerState = function (index, repeat, smooth, mipmap) {
-        var wrap = repeat ? ContextGLWrapMode_1.default.REPEAT : ContextGLWrapMode_1.default.CLAMP;
-        var filter = (smooth && !this.globalDisableSmooth) ? ContextGLTextureFilter_1.default.LINEAR : ContextGLTextureFilter_1.default.NEAREST;
-        var mipfilter = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter_1.default.MIPLINEAR : ContextGLMipFilter_1.default.MIPNONE;
+        var wrap = repeat ? ContextGLWrapMode_1.ContextGLWrapMode.REPEAT : ContextGLWrapMode_1.ContextGLWrapMode.CLAMP;
+        var filter = (smooth && !this.globalDisableSmooth) ? ContextGLTextureFilter_1.ContextGLTextureFilter.LINEAR : ContextGLTextureFilter_1.ContextGLTextureFilter.NEAREST;
+        var mipfilter = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter_1.ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter_1.ContextGLMipFilter.MIPNONE;
         this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
     };
     Stage._abstractionClassPool = new Object();
     return Stage;
-}(EventDispatcher_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = Stage;
+}(EventDispatcher_1.EventDispatcher));
+exports.Stage = Stage;
 
 },{"../base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","../base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","../base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","../base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","../base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","../base/ContextSoftware":"awayjs-stagegl/lib/base/ContextSoftware","../base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","../base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","../events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","../image/ProgramDataPool":"awayjs-stagegl/lib/image/ProgramDataPool","awayjs-core/lib/events/EventDispatcher":undefined,"awayjs-core/lib/geom/Rectangle":undefined,"awayjs-core/lib/utils/CSS":undefined}],"awayjs-stagegl/lib/base/TextureBaseWebGL":[function(require,module,exports){
 "use strict";
@@ -4665,15 +4623,14 @@ var TextureBaseWebGL = (function () {
     };
     Object.defineProperty(TextureBaseWebGL.prototype, "glTexture", {
         get: function () {
-            throw new AbstractMethodError_1.default();
+            throw new AbstractMethodError_1.AbstractMethodError();
         },
         enumerable: true,
         configurable: true
     });
     return TextureBaseWebGL;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = TextureBaseWebGL;
+exports.TextureBaseWebGL = TextureBaseWebGL;
 
 },{"awayjs-core/lib/errors/AbstractMethodError":undefined}],"awayjs-stagegl/lib/base/TextureFlash":[function(require,module,exports){
 "use strict";
@@ -4693,7 +4650,7 @@ var TextureFlash = (function (_super) {
         this._context = context;
         this._width = width;
         this._height = height;
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.initTexture, (forRTT ? OpCodes_1.default.trueValue : OpCodes_1.default.falseValue)) + width + "," + height + "," + streaming + "," + format + "$");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.initTexture, (forRTT ? OpCodes_1.OpCodes.trueValue : OpCodes_1.OpCodes.falseValue)) + width + "," + height + "," + streaming + "," + format + "$");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
@@ -4712,7 +4669,7 @@ var TextureFlash = (function (_super) {
         configurable: true
     });
     TextureFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeTexture) + this._pId.toString() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.disposeTexture) + this._pId.toString() + ",");
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
@@ -4730,16 +4687,15 @@ var TextureFlash = (function (_super) {
             data = ctx.getImageData(0, 0, w, h).data;
         }
         var pos = 0;
-        var bytes = ByteArrayBase_1.default.internalGetBase64String(data.length, function () {
+        var bytes = ByteArrayBase_1.ByteArrayBase.internalGetBase64String(data.length, function () {
             return data[pos++];
         }, null);
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadBytesTexture) + this._pId + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," + bytes + "%");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.uploadBytesTexture) + this._pId + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," + bytes + "%");
         this._context.execute();
     };
     return TextureFlash;
-}(ResourceBaseFlash_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = TextureFlash;
+}(ResourceBaseFlash_1.ResourceBaseFlash));
+exports.TextureFlash = TextureFlash;
 
 },{"../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash","awayjs-core/lib/utils/ByteArrayBase":undefined}],"awayjs-stagegl/lib/base/TextureSoftware":[function(require,module,exports){
 "use strict";
@@ -4779,8 +4735,7 @@ var TextureSoftware = (function () {
     };
     return TextureSoftware;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = TextureSoftware;
+exports.TextureSoftware = TextureSoftware;
 
 },{}],"awayjs-stagegl/lib/base/TextureWebGL":[function(require,module,exports){
 "use strict";
@@ -4862,9 +4817,8 @@ var TextureWebGL = (function (_super) {
         //this._gl.bindTexture( this._gl.TEXTURE_2D, null );
     };
     return TextureWebGL;
-}(TextureBaseWebGL_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = TextureWebGL;
+}(TextureBaseWebGL_1.TextureBaseWebGL));
+exports.TextureWebGL = TextureWebGL;
 
 },{"../base/TextureBaseWebGL":"awayjs-stagegl/lib/base/TextureBaseWebGL"}],"awayjs-stagegl/lib/base/VertexBufferFlash":[function(require,module,exports){
 "use strict";
@@ -4882,12 +4836,12 @@ var VertexBufferFlash = (function (_super) {
         this._context = context;
         this._numVertices = numVertices;
         this._dataPerVertex = dataPerVertex;
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.initVertexBuffer, dataPerVertex + OpCodes_1.default.intMask) + numVertices.toString() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.initVertexBuffer, dataPerVertex + OpCodes_1.OpCodes.intMask) + numVertices.toString() + ",");
         this._pId = this._context.execute();
         this._context._iAddResource(this);
     }
     VertexBufferFlash.prototype.uploadFromArray = function (data, startVertex, numVertices) {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.uploadArrayVertexBuffer, this._pId + OpCodes_1.default.intMask) + data.join() + "#" + [startVertex, numVertices].join() + ",");
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.uploadArrayVertexBuffer, this._pId + OpCodes_1.OpCodes.intMask) + data.join() + "#" + [startVertex, numVertices].join() + ",");
         this._context.execute();
     };
     VertexBufferFlash.prototype.uploadFromByteArray = function (data, startVertex, numVertices) {
@@ -4907,15 +4861,14 @@ var VertexBufferFlash = (function (_super) {
         configurable: true
     });
     VertexBufferFlash.prototype.dispose = function () {
-        this._context.addStream(String.fromCharCode(OpCodes_1.default.disposeVertexBuffer, this._pId + OpCodes_1.default.intMask));
+        this._context.addStream(String.fromCharCode(OpCodes_1.OpCodes.disposeVertexBuffer, this._pId + OpCodes_1.OpCodes.intMask));
         this._context.execute();
         this._context._iRemoveResource(this);
         this._context = null;
     };
     return VertexBufferFlash;
-}(ResourceBaseFlash_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = VertexBufferFlash;
+}(ResourceBaseFlash_1.ResourceBaseFlash));
+exports.VertexBufferFlash = VertexBufferFlash;
 
 },{"../base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","../base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash"}],"awayjs-stagegl/lib/base/VertexBufferSoftware":[function(require,module,exports){
 "use strict";
@@ -4974,8 +4927,7 @@ var VertexBufferSoftware = (function () {
     });
     return VertexBufferSoftware;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = VertexBufferSoftware;
+exports.VertexBufferSoftware = VertexBufferSoftware;
 
 },{}],"awayjs-stagegl/lib/base/VertexBufferWebGL":[function(require,module,exports){
 "use strict";
@@ -5026,87 +4978,86 @@ var VertexBufferWebGL = (function () {
     };
     return VertexBufferWebGL;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = VertexBufferWebGL;
+exports.VertexBufferWebGL = VertexBufferWebGL;
 
 },{}],"awayjs-stagegl/lib/base":[function(require,module,exports){
 "use strict";
 var ContextGLBlendFactor_1 = require("./base/ContextGLBlendFactor");
-exports.ContextGLBlendFactor = ContextGLBlendFactor_1.default;
+exports.ContextGLBlendFactor = ContextGLBlendFactor_1.ContextGLBlendFactor;
 var ContextGLClearMask_1 = require("./base/ContextGLClearMask");
-exports.ContextGLClearMask = ContextGLClearMask_1.default;
+exports.ContextGLClearMask = ContextGLClearMask_1.ContextGLClearMask;
 var ContextGLCompareMode_1 = require("./base/ContextGLCompareMode");
-exports.ContextGLCompareMode = ContextGLCompareMode_1.default;
+exports.ContextGLCompareMode = ContextGLCompareMode_1.ContextGLCompareMode;
 var ContextGLDrawMode_1 = require("./base/ContextGLDrawMode");
-exports.ContextGLDrawMode = ContextGLDrawMode_1.default;
+exports.ContextGLDrawMode = ContextGLDrawMode_1.ContextGLDrawMode;
 var ContextGLMipFilter_1 = require("./base/ContextGLMipFilter");
-exports.ContextGLMipFilter = ContextGLMipFilter_1.default;
+exports.ContextGLMipFilter = ContextGLMipFilter_1.ContextGLMipFilter;
 var ContextGLProfile_1 = require("./base/ContextGLProfile");
-exports.ContextGLProfile = ContextGLProfile_1.default;
+exports.ContextGLProfile = ContextGLProfile_1.ContextGLProfile;
 var ContextGLProgramType_1 = require("./base/ContextGLProgramType");
-exports.ContextGLProgramType = ContextGLProgramType_1.default;
+exports.ContextGLProgramType = ContextGLProgramType_1.ContextGLProgramType;
 var ContextGLStencilAction_1 = require("./base/ContextGLStencilAction");
-exports.ContextGLStencilAction = ContextGLStencilAction_1.default;
+exports.ContextGLStencilAction = ContextGLStencilAction_1.ContextGLStencilAction;
 var ContextGLTextureFilter_1 = require("./base/ContextGLTextureFilter");
-exports.ContextGLTextureFilter = ContextGLTextureFilter_1.default;
+exports.ContextGLTextureFilter = ContextGLTextureFilter_1.ContextGLTextureFilter;
 var ContextGLTextureFormat_1 = require("./base/ContextGLTextureFormat");
-exports.ContextGLTextureFormat = ContextGLTextureFormat_1.default;
+exports.ContextGLTextureFormat = ContextGLTextureFormat_1.ContextGLTextureFormat;
 var ContextGLTriangleFace_1 = require("./base/ContextGLTriangleFace");
-exports.ContextGLTriangleFace = ContextGLTriangleFace_1.default;
+exports.ContextGLTriangleFace = ContextGLTriangleFace_1.ContextGLTriangleFace;
 var ContextGLVertexBufferFormat_1 = require("./base/ContextGLVertexBufferFormat");
-exports.ContextGLVertexBufferFormat = ContextGLVertexBufferFormat_1.default;
+exports.ContextGLVertexBufferFormat = ContextGLVertexBufferFormat_1.ContextGLVertexBufferFormat;
 var ContextGLWrapMode_1 = require("./base/ContextGLWrapMode");
-exports.ContextGLWrapMode = ContextGLWrapMode_1.default;
+exports.ContextGLWrapMode = ContextGLWrapMode_1.ContextGLWrapMode;
 var ContextMode_1 = require("./base/ContextMode");
-exports.ContextMode = ContextMode_1.default;
+exports.ContextMode = ContextMode_1.ContextMode;
 var ContextSoftware_1 = require("./base/ContextSoftware");
-exports.ContextSoftware = ContextSoftware_1.default;
+exports.ContextSoftware = ContextSoftware_1.ContextSoftware;
 var ContextStage3D_1 = require("./base/ContextStage3D");
-exports.ContextStage3D = ContextStage3D_1.default;
+exports.ContextStage3D = ContextStage3D_1.ContextStage3D;
 var ContextWebGL_1 = require("./base/ContextWebGL");
-exports.ContextWebGL = ContextWebGL_1.default;
+exports.ContextWebGL = ContextWebGL_1.ContextWebGL;
 var CubeTextureFlash_1 = require("./base/CubeTextureFlash");
-exports.CubeTextureFlash = CubeTextureFlash_1.default;
+exports.CubeTextureFlash = CubeTextureFlash_1.CubeTextureFlash;
 var CubeTextureWebGL_1 = require("./base/CubeTextureWebGL");
-exports.CubeTextureWebGL = CubeTextureWebGL_1.default;
+exports.CubeTextureWebGL = CubeTextureWebGL_1.CubeTextureWebGL;
 var IndexBufferFlash_1 = require("./base/IndexBufferFlash");
-exports.IndexBufferFlash = IndexBufferFlash_1.default;
+exports.IndexBufferFlash = IndexBufferFlash_1.IndexBufferFlash;
 var IndexBufferSoftware_1 = require("./base/IndexBufferSoftware");
-exports.IndexBufferSoftware = IndexBufferSoftware_1.default;
+exports.IndexBufferSoftware = IndexBufferSoftware_1.IndexBufferSoftware;
 var IndexBufferWebGL_1 = require("./base/IndexBufferWebGL");
-exports.IndexBufferWebGL = IndexBufferWebGL_1.default;
+exports.IndexBufferWebGL = IndexBufferWebGL_1.IndexBufferWebGL;
 var OpCodes_1 = require("./base/OpCodes");
-exports.OpCodes = OpCodes_1.default;
+exports.OpCodes = OpCodes_1.OpCodes;
 var ProgramFlash_1 = require("./base/ProgramFlash");
-exports.ProgramFlash = ProgramFlash_1.default;
+exports.ProgramFlash = ProgramFlash_1.ProgramFlash;
 var ProgramSoftware_1 = require("./base/ProgramSoftware");
-exports.ProgramSoftware = ProgramSoftware_1.default;
+exports.ProgramSoftware = ProgramSoftware_1.ProgramSoftware;
 var ProgramVOSoftware_1 = require("./base/ProgramVOSoftware");
-exports.ProgramVOSoftware = ProgramVOSoftware_1.default;
+exports.ProgramVOSoftware = ProgramVOSoftware_1.ProgramVOSoftware;
 var ProgramWebGL_1 = require("./base/ProgramWebGL");
-exports.ProgramWebGL = ProgramWebGL_1.default;
+exports.ProgramWebGL = ProgramWebGL_1.ProgramWebGL;
 var ResourceBaseFlash_1 = require("./base/ResourceBaseFlash");
-exports.ResourceBaseFlash = ResourceBaseFlash_1.default;
+exports.ResourceBaseFlash = ResourceBaseFlash_1.ResourceBaseFlash;
 var SamplerState_1 = require("./base/SamplerState");
-exports.SamplerState = SamplerState_1.default;
+exports.SamplerState = SamplerState_1.SamplerState;
 var SoftwareSamplerState_1 = require("./base/SoftwareSamplerState");
-exports.SoftwareSamplerState = SoftwareSamplerState_1.default;
+exports.SoftwareSamplerState = SoftwareSamplerState_1.SoftwareSamplerState;
 var Stage_1 = require("./base/Stage");
-exports.Stage = Stage_1.default;
+exports.Stage = Stage_1.Stage;
 var TextureBaseWebGL_1 = require("./base/TextureBaseWebGL");
-exports.TextureBaseWebGL = TextureBaseWebGL_1.default;
+exports.TextureBaseWebGL = TextureBaseWebGL_1.TextureBaseWebGL;
 var TextureFlash_1 = require("./base/TextureFlash");
-exports.TextureFlash = TextureFlash_1.default;
+exports.TextureFlash = TextureFlash_1.TextureFlash;
 var TextureSoftware_1 = require("./base/TextureSoftware");
-exports.TextureSoftware = TextureSoftware_1.default;
+exports.TextureSoftware = TextureSoftware_1.TextureSoftware;
 var TextureWebGL_1 = require("./base/TextureWebGL");
-exports.TextureWebGL = TextureWebGL_1.default;
+exports.TextureWebGL = TextureWebGL_1.TextureWebGL;
 var VertexBufferFlash_1 = require("./base/VertexBufferFlash");
-exports.VertexBufferFlash = VertexBufferFlash_1.default;
+exports.VertexBufferFlash = VertexBufferFlash_1.VertexBufferFlash;
 var VertexBufferSoftware_1 = require("./base/VertexBufferSoftware");
-exports.VertexBufferSoftware = VertexBufferSoftware_1.default;
+exports.VertexBufferSoftware = VertexBufferSoftware_1.VertexBufferSoftware;
 var VertexBufferWebGL_1 = require("./base/VertexBufferWebGL");
-exports.VertexBufferWebGL = VertexBufferWebGL_1.default;
+exports.VertexBufferWebGL = VertexBufferWebGL_1.VertexBufferWebGL;
 
 },{"./base/ContextGLBlendFactor":"awayjs-stagegl/lib/base/ContextGLBlendFactor","./base/ContextGLClearMask":"awayjs-stagegl/lib/base/ContextGLClearMask","./base/ContextGLCompareMode":"awayjs-stagegl/lib/base/ContextGLCompareMode","./base/ContextGLDrawMode":"awayjs-stagegl/lib/base/ContextGLDrawMode","./base/ContextGLMipFilter":"awayjs-stagegl/lib/base/ContextGLMipFilter","./base/ContextGLProfile":"awayjs-stagegl/lib/base/ContextGLProfile","./base/ContextGLProgramType":"awayjs-stagegl/lib/base/ContextGLProgramType","./base/ContextGLStencilAction":"awayjs-stagegl/lib/base/ContextGLStencilAction","./base/ContextGLTextureFilter":"awayjs-stagegl/lib/base/ContextGLTextureFilter","./base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","./base/ContextGLTriangleFace":"awayjs-stagegl/lib/base/ContextGLTriangleFace","./base/ContextGLVertexBufferFormat":"awayjs-stagegl/lib/base/ContextGLVertexBufferFormat","./base/ContextGLWrapMode":"awayjs-stagegl/lib/base/ContextGLWrapMode","./base/ContextMode":"awayjs-stagegl/lib/base/ContextMode","./base/ContextSoftware":"awayjs-stagegl/lib/base/ContextSoftware","./base/ContextStage3D":"awayjs-stagegl/lib/base/ContextStage3D","./base/ContextWebGL":"awayjs-stagegl/lib/base/ContextWebGL","./base/CubeTextureFlash":"awayjs-stagegl/lib/base/CubeTextureFlash","./base/CubeTextureWebGL":"awayjs-stagegl/lib/base/CubeTextureWebGL","./base/IndexBufferFlash":"awayjs-stagegl/lib/base/IndexBufferFlash","./base/IndexBufferSoftware":"awayjs-stagegl/lib/base/IndexBufferSoftware","./base/IndexBufferWebGL":"awayjs-stagegl/lib/base/IndexBufferWebGL","./base/OpCodes":"awayjs-stagegl/lib/base/OpCodes","./base/ProgramFlash":"awayjs-stagegl/lib/base/ProgramFlash","./base/ProgramSoftware":"awayjs-stagegl/lib/base/ProgramSoftware","./base/ProgramVOSoftware":"awayjs-stagegl/lib/base/ProgramVOSoftware","./base/ProgramWebGL":"awayjs-stagegl/lib/base/ProgramWebGL","./base/ResourceBaseFlash":"awayjs-stagegl/lib/base/ResourceBaseFlash","./base/SamplerState":"awayjs-stagegl/lib/base/SamplerState","./base/SoftwareSamplerState":"awayjs-stagegl/lib/base/SoftwareSamplerState","./base/Stage":"awayjs-stagegl/lib/base/Stage","./base/TextureBaseWebGL":"awayjs-stagegl/lib/base/TextureBaseWebGL","./base/TextureFlash":"awayjs-stagegl/lib/base/TextureFlash","./base/TextureSoftware":"awayjs-stagegl/lib/base/TextureSoftware","./base/TextureWebGL":"awayjs-stagegl/lib/base/TextureWebGL","./base/VertexBufferFlash":"awayjs-stagegl/lib/base/VertexBufferFlash","./base/VertexBufferSoftware":"awayjs-stagegl/lib/base/VertexBufferSoftware","./base/VertexBufferWebGL":"awayjs-stagegl/lib/base/VertexBufferWebGL"}],"awayjs-stagegl/lib/events/StageEvent":[function(require,module,exports){
 "use strict";
@@ -5159,14 +5110,13 @@ var StageEvent = (function (_super) {
      */
     StageEvent.VIEWPORT_UPDATED = "viewportUpdated";
     return StageEvent;
-}(EventBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = StageEvent;
+}(EventBase_1.EventBase));
+exports.StageEvent = StageEvent;
 
 },{"awayjs-core/lib/events/EventBase":undefined}],"awayjs-stagegl/lib/events":[function(require,module,exports){
 "use strict";
 var StageEvent_1 = require("./events/StageEvent");
-exports.StageEvent = StageEvent_1.default;
+exports.StageEvent = StageEvent_1.StageEvent;
 
 },{"./events/StageEvent":"awayjs-stagegl/lib/events/StageEvent"}],"awayjs-stagegl/lib/image/GL_BitmapImage2D":[function(require,module,exports){
 "use strict";
@@ -5201,7 +5151,7 @@ var GL_BitmapImage2D = (function (_super) {
             this._invalid = false;
             if (mipmap) {
                 var mipmapData = this._mipmapData || (this._mipmapData = new Array());
-                MipmapGenerator_1.default._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
+                MipmapGenerator_1.MipmapGenerator._generateMipMaps(this._asset.getCanvas(), mipmapData, true);
                 var len = mipmapData.length;
                 for (var i = 0; i < len; i++)
                     this._texture.uploadFromData(mipmapData[i].getImageData(), i);
@@ -5220,13 +5170,12 @@ var GL_BitmapImage2D = (function (_super) {
         if (this._mipmapData) {
             var len = this._mipmapData.length;
             for (var i = 0; i < len; i++)
-                MipmapGenerator_1.default._freeMipMapHolder(this._mipmapData[i]);
+                MipmapGenerator_1.MipmapGenerator._freeMipMapHolder(this._mipmapData[i]);
         }
     };
     return GL_BitmapImage2D;
-}(GL_Image2D_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_BitmapImage2D;
+}(GL_Image2D_1.GL_Image2D));
+exports.GL_BitmapImage2D = GL_BitmapImage2D;
 
 },{"../image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D","awayjs-core/lib/utils/MipmapGenerator":undefined}],"awayjs-stagegl/lib/image/GL_BitmapImageCube":[function(require,module,exports){
 "use strict";
@@ -5263,7 +5212,7 @@ var GL_BitmapImageCube = (function (_super) {
             for (var i = 0; i < 6; ++i) {
                 if (mipmap) {
                     var mipmapData = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array());
-                    MipmapGenerator_1.default._generateMipMaps(this._asset.getCanvas(i), mipmapData, true);
+                    MipmapGenerator_1.MipmapGenerator._generateMipMaps(this._asset.getCanvas(i), mipmapData, true);
                     var len = mipmapData.length;
                     for (var j = 0; j < len; j++)
                         this._texture.uploadFromData(mipmapData[j].getImageData(), i, j);
@@ -5285,14 +5234,13 @@ var GL_BitmapImageCube = (function (_super) {
             if (mipmapData) {
                 var len = mipmapData.length;
                 for (var j = 0; j < len; i++)
-                    MipmapGenerator_1.default._freeMipMapHolder(mipmapData[j]);
+                    MipmapGenerator_1.MipmapGenerator._freeMipMapHolder(mipmapData[j]);
             }
         }
     };
     return GL_BitmapImageCube;
-}(GL_ImageCube_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_BitmapImageCube;
+}(GL_ImageCube_1.GL_ImageCube));
+exports.GL_BitmapImageCube = GL_BitmapImageCube;
 
 },{"../image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube","awayjs-core/lib/utils/MipmapGenerator":undefined}],"awayjs-stagegl/lib/image/GL_Image2D":[function(require,module,exports){
 "use strict";
@@ -5318,12 +5266,11 @@ var GL_Image2D = (function (_super) {
      * @returns {ITexture}
      */
     GL_Image2D.prototype._createTexture = function () {
-        this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat_1.default.BGRA, true);
+        this._texture = this._stage.context.createTexture(this._asset.width, this._asset.height, ContextGLTextureFormat_1.ContextGLTextureFormat.BGRA, true);
     };
     return GL_Image2D;
-}(GL_ImageBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_Image2D;
+}(GL_ImageBase_1.GL_ImageBase));
+exports.GL_Image2D = GL_Image2D;
 
 },{"../base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","../image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase"}],"awayjs-stagegl/lib/image/GL_ImageBase":[function(require,module,exports){
 "use strict";
@@ -5370,12 +5317,11 @@ var GL_ImageBase = (function (_super) {
         this._stage.context.setTextureAt(index, this._texture);
     };
     GL_ImageBase.prototype._createTexture = function () {
-        throw new AbstractMethodError_1.default();
+        throw new AbstractMethodError_1.AbstractMethodError();
     };
     return GL_ImageBase;
-}(AbstractionBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_ImageBase;
+}(AbstractionBase_1.AbstractionBase));
+exports.GL_ImageBase = GL_ImageBase;
 
 },{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/image/GL_ImageCube":[function(require,module,exports){
 "use strict";
@@ -5401,12 +5347,11 @@ var GL_ImageCube = (function (_super) {
      * @returns {ITexture}
      */
     GL_ImageCube.prototype._createTexture = function () {
-        this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat_1.default.BGRA, false);
+        this._texture = this._stage.context.createCubeTexture(this._asset.size, ContextGLTextureFormat_1.ContextGLTextureFormat.BGRA, false);
     };
     return GL_ImageCube;
-}(GL_ImageBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_ImageCube;
+}(GL_ImageBase_1.GL_ImageBase));
+exports.GL_ImageCube = GL_ImageCube;
 
 },{"../base/ContextGLTextureFormat":"awayjs-stagegl/lib/base/ContextGLTextureFormat","../image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase"}],"awayjs-stagegl/lib/image/GL_RenderImage2D":[function(require,module,exports){
 "use strict";
@@ -5430,9 +5375,8 @@ var GL_RenderImage2D = (function (_super) {
         //TODO: allow automatic mipmap generation
     };
     return GL_RenderImage2D;
-}(GL_Image2D_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_RenderImage2D;
+}(GL_Image2D_1.GL_Image2D));
+exports.GL_RenderImage2D = GL_RenderImage2D;
 
 },{"../image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D"}],"awayjs-stagegl/lib/image/GL_RenderImageCube":[function(require,module,exports){
 "use strict";
@@ -5456,9 +5400,8 @@ var GL_RenderImageCube = (function (_super) {
         //TODO: allow automatic mipmap generation
     };
     return GL_RenderImageCube;
-}(GL_ImageCube_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_RenderImageCube;
+}(GL_ImageCube_1.GL_ImageCube));
+exports.GL_RenderImageCube = GL_RenderImageCube;
 
 },{"../image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube"}],"awayjs-stagegl/lib/image/GL_Sampler2D":[function(require,module,exports){
 "use strict";
@@ -5482,9 +5425,8 @@ var GL_Sampler2D = (function (_super) {
         this._stage.setSamplerState(index, this._sampler.repeat, this._sampler.smooth, this._sampler.mipmap);
     };
     return GL_Sampler2D;
-}(GL_SamplerBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_Sampler2D;
+}(GL_SamplerBase_1.GL_SamplerBase));
+exports.GL_Sampler2D = GL_Sampler2D;
 
 },{"../image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase"}],"awayjs-stagegl/lib/image/GL_SamplerBase":[function(require,module,exports){
 "use strict";
@@ -5506,12 +5448,11 @@ var GL_SamplerBase = (function (_super) {
         this._stage = stage;
     }
     GL_SamplerBase.prototype.activate = function (index) {
-        throw new AbstractMethodError_1.default();
+        throw new AbstractMethodError_1.AbstractMethodError();
     };
     return GL_SamplerBase;
-}(AbstractionBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_SamplerBase;
+}(AbstractionBase_1.AbstractionBase));
+exports.GL_SamplerBase = GL_SamplerBase;
 
 },{"awayjs-core/lib/errors/AbstractMethodError":undefined,"awayjs-core/lib/library/AbstractionBase":undefined}],"awayjs-stagegl/lib/image/GL_SamplerCube":[function(require,module,exports){
 "use strict";
@@ -5535,9 +5476,8 @@ var GL_SamplerCube = (function (_super) {
         this._stage.setSamplerState(index, false, this._sampler.smooth, this._sampler.mipmap);
     };
     return GL_SamplerCube;
-}(GL_SamplerBase_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = GL_SamplerCube;
+}(GL_SamplerBase_1.GL_SamplerBase));
+exports.GL_SamplerCube = GL_SamplerCube;
 
 },{"../image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase"}],"awayjs-stagegl/lib/image/ProgramDataPool":[function(require,module,exports){
 "use strict";
@@ -5563,7 +5503,7 @@ var ProgramDataPool = (function () {
      */
     ProgramDataPool.prototype.getItem = function (vertexString, fragmentString) {
         var key = vertexString + fragmentString;
-        return this._pool[key] || (this._pool[key] = new ProgramData_1.default(this, this._stage, vertexString, fragmentString));
+        return this._pool[key] || (this._pool[key] = new ProgramData_1.ProgramData(this, this._stage, vertexString, fragmentString));
     };
     /**
      * //TODO
@@ -5575,8 +5515,7 @@ var ProgramDataPool = (function () {
     };
     return ProgramDataPool;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ProgramDataPool;
+exports.ProgramDataPool = ProgramDataPool;
 
 },{"../image/ProgramData":"awayjs-stagegl/lib/image/ProgramData"}],"awayjs-stagegl/lib/image/ProgramData":[function(require,module,exports){
 "use strict";
@@ -5610,35 +5549,34 @@ var ProgramData = (function () {
     ProgramData.PROGRAMDATA_ID_COUNT = 0;
     return ProgramData;
 }());
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = ProgramData;
+exports.ProgramData = ProgramData;
 
 },{}],"awayjs-stagegl/lib/image":[function(require,module,exports){
 "use strict";
 var GL_BitmapImage2D_1 = require("./image/GL_BitmapImage2D");
-exports.GL_BitmapImage2D = GL_BitmapImage2D_1.default;
+exports.GL_BitmapImage2D = GL_BitmapImage2D_1.GL_BitmapImage2D;
 var GL_BitmapImageCube_1 = require("./image/GL_BitmapImageCube");
-exports.GL_BitmapImageCube = GL_BitmapImageCube_1.default;
+exports.GL_BitmapImageCube = GL_BitmapImageCube_1.GL_BitmapImageCube;
 var GL_Image2D_1 = require("./image/GL_Image2D");
-exports.GL_Image2D = GL_Image2D_1.default;
+exports.GL_Image2D = GL_Image2D_1.GL_Image2D;
 var GL_ImageBase_1 = require("./image/GL_ImageBase");
-exports.GL_ImageBase = GL_ImageBase_1.default;
+exports.GL_ImageBase = GL_ImageBase_1.GL_ImageBase;
 var GL_ImageCube_1 = require("./image/GL_ImageCube");
-exports.GL_ImageCube = GL_ImageCube_1.default;
+exports.GL_ImageCube = GL_ImageCube_1.GL_ImageCube;
 var GL_RenderImage2D_1 = require("./image/GL_RenderImage2D");
-exports.GL_RenderImage2D = GL_RenderImage2D_1.default;
+exports.GL_RenderImage2D = GL_RenderImage2D_1.GL_RenderImage2D;
 var GL_RenderImageCube_1 = require("./image/GL_RenderImageCube");
-exports.GL_RenderImageCube = GL_RenderImageCube_1.default;
+exports.GL_RenderImageCube = GL_RenderImageCube_1.GL_RenderImageCube;
 var GL_Sampler2D_1 = require("./image/GL_Sampler2D");
-exports.GL_Sampler2D = GL_Sampler2D_1.default;
+exports.GL_Sampler2D = GL_Sampler2D_1.GL_Sampler2D;
 var GL_SamplerBase_1 = require("./image/GL_SamplerBase");
-exports.GL_SamplerBase = GL_SamplerBase_1.default;
+exports.GL_SamplerBase = GL_SamplerBase_1.GL_SamplerBase;
 var GL_SamplerCube_1 = require("./image/GL_SamplerCube");
-exports.GL_SamplerCube = GL_SamplerCube_1.default;
+exports.GL_SamplerCube = GL_SamplerCube_1.GL_SamplerCube;
 var ProgramData_1 = require("./image/ProgramData");
-exports.ProgramData = ProgramData_1.default;
+exports.ProgramData = ProgramData_1.ProgramData;
 var ProgramDataPool_1 = require("./image/ProgramDataPool");
-exports.ProgramDataPool = ProgramDataPool_1.default;
+exports.ProgramDataPool = ProgramDataPool_1.ProgramDataPool;
 
 },{"./image/GL_BitmapImage2D":"awayjs-stagegl/lib/image/GL_BitmapImage2D","./image/GL_BitmapImageCube":"awayjs-stagegl/lib/image/GL_BitmapImageCube","./image/GL_Image2D":"awayjs-stagegl/lib/image/GL_Image2D","./image/GL_ImageBase":"awayjs-stagegl/lib/image/GL_ImageBase","./image/GL_ImageCube":"awayjs-stagegl/lib/image/GL_ImageCube","./image/GL_RenderImage2D":"awayjs-stagegl/lib/image/GL_RenderImage2D","./image/GL_RenderImageCube":"awayjs-stagegl/lib/image/GL_RenderImageCube","./image/GL_Sampler2D":"awayjs-stagegl/lib/image/GL_Sampler2D","./image/GL_SamplerBase":"awayjs-stagegl/lib/image/GL_SamplerBase","./image/GL_SamplerCube":"awayjs-stagegl/lib/image/GL_SamplerCube","./image/ProgramData":"awayjs-stagegl/lib/image/ProgramData","./image/ProgramDataPool":"awayjs-stagegl/lib/image/ProgramDataPool"}],"awayjs-stagegl/lib/library/GL_IAssetClass":[function(require,module,exports){
 "use strict";
@@ -5698,7 +5636,7 @@ var StageManager = (function (_super) {
         if (profile === void 0) { profile = "baseline"; }
         if (mode === void 0) { mode = "auto"; }
         if (index < 0 || index >= StageManager.STAGE_MAX_QUANTITY)
-            throw new ArgumentError_1.default("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
+            throw new ArgumentError_1.ArgumentError("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
         if (!this._stages[index]) {
             StageManager._numStages++;
             if (document) {
@@ -5706,8 +5644,8 @@ var StageManager = (function (_super) {
                 canvas.id = "stage" + index;
                 document.body.appendChild(canvas);
             }
-            var stage = this._stages[index] = new Stage_1.default(canvas, index, this, forceSoftware, profile);
-            stage.addEventListener(StageEvent_1.default.CONTEXT_CREATED, this._onContextCreatedDelegate);
+            var stage = this._stages[index] = new Stage_1.Stage(canvas, index, this, forceSoftware, profile);
+            stage.addEventListener(StageEvent_1.StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
             stage.requestContext(forceSoftware, profile, mode);
         }
         return stage;
@@ -5719,7 +5657,7 @@ var StageManager = (function (_super) {
      */
     StageManager.prototype.iRemoveStage = function (stage) {
         StageManager._numStages--;
-        stage.removeEventListener(StageEvent_1.default.CONTEXT_CREATED, this._onContextCreatedDelegate);
+        stage.removeEventListener(StageEvent_1.StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
         this._stages[stage.stageIndex] = null;
     };
     /**
@@ -5791,14 +5729,13 @@ var StageManager = (function (_super) {
     StageManager.STAGE_MAX_QUANTITY = 8;
     StageManager._numStages = 0;
     return StageManager;
-}(EventDispatcher_1.default));
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = StageManager;
+}(EventDispatcher_1.EventDispatcher));
+exports.StageManager = StageManager;
 
 },{"../base/Stage":"awayjs-stagegl/lib/base/Stage","../events/StageEvent":"awayjs-stagegl/lib/events/StageEvent","awayjs-core/lib/errors/ArgumentError":undefined,"awayjs-core/lib/events/EventDispatcher":undefined}],"awayjs-stagegl/lib/managers":[function(require,module,exports){
 "use strict";
 var StageManager_1 = require("./managers/StageManager");
-exports.StageManager = StageManager_1.default;
+exports.StageManager = StageManager_1.StageManager;
 
 },{"./managers/StageManager":"awayjs-stagegl/lib/managers/StageManager"}]},{},[1])
 //# sourceMappingURL=awayjs-stagegl.js.map
