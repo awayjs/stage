@@ -1,10 +1,10 @@
-import Stage						from "../base/Stage";
-import ProgramData					from "../image/ProgramData";
+import {Stage}						from "../base/Stage";
+import {ProgramData}					from "../image/ProgramData";
 
 /**
  * @class away.pool.ProgramDataPool
  */
-class ProgramDataPool
+export class ProgramDataPool
 {
 	private _pool:Object = new Object();
 	private _stage:Stage;
@@ -36,10 +36,8 @@ class ProgramDataPool
 	 *
 	 * @param materialOwner
 	 */
-	public disposeItem(key:string)
+	public disposeItem(key:string):void
 	{
 		this._pool[key] = null;
 	}
 }
-
-export default ProgramDataPool;

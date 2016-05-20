@@ -1,4 +1,4 @@
-class ResourceBaseFlash
+export class ResourceBaseFlash
 {
 	public _pId:number;
 
@@ -7,10 +7,8 @@ class ResourceBaseFlash
 		return this._pId;
 	}
 
-	public dispose()
+	public dispose():void
 	{
 
 	}
 }
-
-export default ResourceBaseFlash;

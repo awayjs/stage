@@ -1,11 +1,11 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import AGALTokenizer				from "../aglsl/AGALTokenizer";
-import AGLSLParser					from "../aglsl/AGLSLParser";
-import IProgram						from "../base/IProgram";
-import VertexBufferWebGL			from "../base/VertexBufferWebGL";
+import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
+import {AGLSLParser}					from "../aglsl/AGLSLParser";
+import {IProgram}						from "../base/IProgram";
+import {VertexBufferWebGL}			from "../base/VertexBufferWebGL";
 
-class ProgramWebGL implements IProgram
+export class ProgramWebGL implements IProgram
 {
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
 	private static _aglslParser:AGLSLParser = new AGLSLParser();
@@ -25,7 +25,7 @@ class ProgramWebGL implements IProgram
 		this._program = this._gl.createProgram();
 	}
 
-	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray)
+	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
 		var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram));
 		var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram));
@@ -60,11 +60,11 @@ class ProgramWebGL implements IProgram
 
 	public getUniformLocation(programType:number, index:number = -1):WebGLUniformLocation
 	{
-		if (this._uniforms[programType][index] != null)
-			return this._uniforms[programType][index];
+		if (this._uniforms[programType][index + 1] != null)
+			return this._uniforms[programType][index + 1];
 	
 		var name:string =  (index == -1)? ProgramWebGL._uniformLocationNameDictionary[programType] : ProgramWebGL._uniformLocationNameDictionary[programType] + index;
-		return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, name));
+		return (this._uniforms[programType][index + 1] = this._gl.getUniformLocation(this._program, name));
 	}
 	
 	//
@@ -86,12 +86,12 @@ class ProgramWebGL implements IProgram
 	}
 
 
-	public dispose()
+	public dispose():void
 	{
 		this._gl.deleteProgram(this._program);
 	}
 
-	public focusProgram()
+	public focusProgram():void
 	{
 		this._gl.useProgram(this._program);
 	}
@@ -101,5 +101,3 @@ class ProgramWebGL implements IProgram
 		return this._program;
 	}
 }
-
-export default ProgramWebGL;

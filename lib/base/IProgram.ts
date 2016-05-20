@@ -1,10 +1,8 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-interface IProgram
+export interface IProgram
 {
 	upload(vertexProgram:ByteArray, fragmentProgram:ByteArray);
 
 	dispose();
 }
-
-export default IProgram;

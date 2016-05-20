@@ -1,6 +1,6 @@
-import ByteArray				from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}				from "awayjs-core/lib/utils/ByteArray";
 
-class Part
+export class Part
 {
 	public name:string = "";
 	public version:number = 0;
@@ -13,5 +13,3 @@ class Part
 		this.data = new ByteArray();
 	}
 }
-
-export default Part;

@@ -1,4 +1,4 @@
-class ContextMode
+export class ContextMode
 {
 	static AUTO:string = "auto";
 	static WEBGL:string = "webgl";
@@ -6,5 +6,3 @@ class ContextMode
 	static NATIVE:string = "native";
 	static SOFTWARE:string = "software";
 }
-
-export default ContextMode;

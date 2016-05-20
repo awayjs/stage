@@ -1,6 +1,6 @@
-import IAsset						from "awayjs-core/lib/library/IAsset";
-import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
-import IAbstractionPool				from "awayjs-core/lib/library/IAbstractionPool";
+import {IAsset}						from "awayjs-core/lib/library/IAsset";
+import {AbstractionBase}				from "awayjs-core/lib/library/AbstractionBase";
+import {IAbstractionPool}				from "awayjs-core/lib/library/IAbstractionPool";
 
 /**
  * IImageObjectClass is an interface for the constructable class definition ITextureObject that is used to
@@ -8,12 +8,10 @@ import IAbstractionPool				from "awayjs-core/lib/library/IAbstractionPool";
  *
  * @class away.render.IImageObjectClass
  */
-interface GL_IAssetClass
+export interface GL_IAssetClass
 {
 	/**
 	 *
 	 */
 	new(asset:IAsset, pool:IAbstractionPool):AbstractionBase;
 }
-
-export default GL_IAssetClass;

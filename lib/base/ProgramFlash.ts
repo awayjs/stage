@@ -1,11 +1,11 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import ContextStage3D				from "../base/ContextStage3D";
-import IProgram						from "../base/IProgram";
-import OpCodes						from "../base/OpCodes";
-import ResourceBaseFlash			from "../base/ResourceBaseFlash";
+import {ContextStage3D}				from "../base/ContextStage3D";
+import {IProgram}						from "../base/IProgram";
+import {OpCodes}						from "../base/OpCodes";
+import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
 
-class ProgramFlash extends ResourceBaseFlash implements IProgram
+export class ProgramFlash extends ResourceBaseFlash implements IProgram
 {
 	private _context:ContextStage3D;
 
@@ -19,7 +19,7 @@ class ProgramFlash extends ResourceBaseFlash implements IProgram
 		this._context._iAddResource(this);
 	}
 
-	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray)
+	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.uploadAGALBytesProgram, this._pId + OpCodes.intMask) + vertexProgram.readBase64String(vertexProgram.length) + "%" + fragmentProgram.readBase64String(fragmentProgram.length) + "%");
 
@@ -27,7 +27,7 @@ class ProgramFlash extends ResourceBaseFlash implements IProgram
 			this._context.execute();
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.disposeProgram, this._pId + OpCodes.intMask));
 		this._context.execute();
@@ -36,5 +36,3 @@ class ProgramFlash extends ResourceBaseFlash implements IProgram
 		this._context = null;
 	}
 }
-
-export default ProgramFlash;

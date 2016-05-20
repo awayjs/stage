@@ -1,8 +1,8 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import ITextureBase					from "../base/ITextureBase";
+import {ITextureBase}					from "../base/ITextureBase";
 
-interface ICubeTexture extends ITextureBase
+export interface ICubeTexture extends ITextureBase
 {
 	size:number;
 
@@ -11,5 +11,3 @@ interface ICubeTexture extends ITextureBase
 
 	uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number, async:boolean);
 }
-
-export default ICubeTexture;

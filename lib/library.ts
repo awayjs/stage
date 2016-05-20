@@ -1,1 +1,1 @@
-export {default as GL_IAssetClass}					from "./library/GL_IAssetClass";
+export {GL_IAssetClass}					from "./library/GL_IAssetClass";

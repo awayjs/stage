@@ -1,4 +1,4 @@
-class ContextGLTextureFormat
+export class ContextGLTextureFormat
 {
 	static BGRA:string = "bgra";
 	static BGRA_PACKED:string = "bgraPacked4444";
@@ -6,5 +6,3 @@ class ContextGLTextureFormat
 	static COMPRESSED:string = "compressed";
 	static COMPRESSED_ALPHA:string = "compressedAlpha";
 }
-
-export default ContextGLTextureFormat;

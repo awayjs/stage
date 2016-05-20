@@ -1,21 +1,21 @@
-import IAssetClass					from "awayjs-core/lib/library/IAssetClass";
-import BitmapImageCube				from "awayjs-core/lib/image/BitmapImageCube";
-import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
-import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
-import MipmapGenerator				from "awayjs-core/lib/utils/MipmapGenerator";
+import {IAssetClass}					from "awayjs-core/lib/library/IAssetClass";
+import {BitmapImageCube}				from "awayjs-core/lib/image/BitmapImageCube";
+import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
+import {AssetEvent}					from "awayjs-core/lib/events/AssetEvent";
+import {MipmapGenerator}				from "awayjs-core/lib/utils/MipmapGenerator";
 
-import GL_ImageCube					from "../image/GL_ImageCube";
-import ICubeTexture					from "../base/ICubeTexture";
+import {GL_ImageCube}					from "../image/GL_ImageCube";
+import {ICubeTexture}					from "../base/ICubeTexture";
 
 /**
  *
  * @class away.pool.ImageObjectBase
  */
-class GL_BitmapImageCube extends GL_ImageCube
+export class GL_BitmapImageCube extends GL_ImageCube
 {
 	public _mipmapDataArray:Array<Array<BitmapImage2D>> = new Array<Array<BitmapImage2D>>(6);
 
-	public activate(index:number, mipmap:boolean)
+	public activate(index:number, mipmap:boolean):void
 	{
 		if (mipmap && this._stage.globalDisableMipmap)
 			mipmap = false;
@@ -52,7 +52,7 @@ class GL_BitmapImageCube extends GL_ImageCube
 	/**
 	 *
 	 */
-	public onClear(event:AssetEvent)
+	public onClear(event:AssetEvent):void
 	{
 		super.onClear(event);
 
@@ -68,5 +68,3 @@ class GL_BitmapImageCube extends GL_ImageCube
 		}
 	}
 }
-
-export default GL_BitmapImageCube;

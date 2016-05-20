@@ -1,4 +1,4 @@
-interface IIndexBuffer
+export interface IIndexBuffer
 {
 	numIndices:number;
 
@@ -8,5 +8,3 @@ interface IIndexBuffer
 
 	dispose();
 }
-
-export default IIndexBuffer;

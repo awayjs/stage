@@ -1,9 +1,9 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import ITexture						from "../base/ITexture";
-import TextureBaseWebGL				from "../base/TextureBaseWebGL";
+import {ITexture}						from "../base/ITexture";
+import {TextureBaseWebGL}				from "../base/TextureBaseWebGL";
 
-class TextureWebGL extends TextureBaseWebGL implements ITexture
+export class TextureWebGL extends TextureBaseWebGL implements ITexture
 {
 
 	public textureType:string = "texture2d";
@@ -24,7 +24,7 @@ class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._glTexture = this._gl.createTexture();
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._gl.deleteTexture(this._glTexture);
 	}
@@ -64,14 +64,14 @@ class TextureWebGL extends TextureBaseWebGL implements ITexture
 
 	public uploadFromData(image:HTMLImageElement, miplevel?:number);
 	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0)
+	public uploadFromData(data:any, miplevel:number = 0):void
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false)
+	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
 	{
 		var ext:Object = this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
 		//this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)
@@ -82,7 +82,7 @@ class TextureWebGL extends TextureBaseWebGL implements ITexture
 		return this._glTexture;
 	}
 
-	public generateMipmaps()
+	public generateMipmaps():void
 	{
 		//TODO: implement generating mipmaps
 		//this._gl.bindTexture( this._gl.TEXTURE_2D, this._glTexture );
@@ -90,5 +90,3 @@ class TextureWebGL extends TextureBaseWebGL implements ITexture
 		//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
 	}
 }
-
-export default TextureWebGL;

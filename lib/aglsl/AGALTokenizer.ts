@@ -1,17 +1,17 @@
-import ByteArray				from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}				from "awayjs-core/lib/utils/ByteArray";
 
-import Description				from "../aglsl/Description";
-import Header					from "../aglsl/Header";
-import Mapping					from "../aglsl/Mapping";
-import Token					from "../aglsl/Token";
+import {Description}				from "../aglsl/Description";
+import {Header}					from "../aglsl/Header";
+import {Mapping}					from "../aglsl/Mapping";
+import {Token}					from "../aglsl/Token";
 
-class AGALTokenizer
+export class AGALTokenizer
 {
 	constructor()
 	{
 	}
 
-	public decribeAGALByteArray(bytes:ByteArray)
+	public decribeAGALByteArray(bytes:ByteArray):Description
 	{
 		var header:Header = new Header();
 
@@ -88,7 +88,7 @@ class AGALTokenizer
 		return desc;
 	}
 
-	public readReg(s, mh, desc, bytes)
+	public readReg(s, mh, desc, bytes):void
 	{
 		s.regnum = bytes.readUnsignedShort();
 		s.indexoffset = bytes.readByte();
@@ -128,5 +128,3 @@ class AGALTokenizer
 		}
 	}
 }
-
-export default AGALTokenizer;

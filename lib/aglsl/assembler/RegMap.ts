@@ -12,7 +12,7 @@ class Reg
 	}
 }
 
-class RegMap
+export class RegMap
 {
 
 	/*
@@ -81,5 +81,3 @@ class RegMap
 	{
 	}
 }
-
-export default RegMap;

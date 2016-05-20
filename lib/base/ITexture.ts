@@ -1,6 +1,6 @@
-import ITextureBase					from "../base/ITextureBase";
+import {ITextureBase}					from "../base/ITextureBase";
 
-interface ITexture extends ITextureBase
+export interface ITexture extends ITextureBase
 {
 	width:number;
 
@@ -10,5 +10,3 @@ interface ITexture extends ITextureBase
 	uploadFromData(imageData:ImageData, miplevel?:number);
 
 }
-
-export default ITexture;

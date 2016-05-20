@@ -1,9 +1,9 @@
-import ContextStage3D				from "../base/ContextStage3D";
-import IVertexBuffer				from "../base/IVertexBuffer";
-import OpCodes						from "../base/OpCodes";
-import ResourceBaseFlash			from "../base/ResourceBaseFlash";
+import {ContextStage3D}				from "../base/ContextStage3D";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {OpCodes}						from "../base/OpCodes";
+import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
 
-class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
+export class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 {
 	private _context:ContextStage3D;
 	private _numVertices:number;
@@ -21,13 +21,13 @@ class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 		this._context._iAddResource(this);
 	}
 
-	public uploadFromArray(data:number[], startVertex:number, numVertices:number)
+	public uploadFromArray(data:number[], startVertex:number, numVertices:number):void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer, this._pId + OpCodes.intMask) + data.join() + "#" + [startVertex, numVertices].join() + ",");
 		this._context.execute();
 	}
 
-	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number)
+	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number):void
 	{
 
 	}
@@ -42,7 +42,7 @@ class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 		return this._dataPerVertex;
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.disposeVertexBuffer, this._pId + OpCodes.intMask));
 		this._context.execute();
@@ -51,5 +51,3 @@ class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 		this._context = null;
 	}
 }
-
-export default VertexBufferFlash;

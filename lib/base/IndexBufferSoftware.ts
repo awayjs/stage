@@ -1,6 +1,6 @@
-import IIndexBuffer					from "../base/IIndexBuffer";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
 
-class IndexBufferSoftware implements IIndexBuffer
+export class IndexBufferSoftware implements IIndexBuffer
 {
 	private _numIndices:number;
 	private _data:Uint16Array;
@@ -11,19 +11,19 @@ class IndexBufferSoftware implements IIndexBuffer
 		this._numIndices = numIndices;
 	}
 
-	public uploadFromArray(data:number[], startOffset:number, count:number)
+	public uploadFromArray(data:number[], startOffset:number, count:number):void
 	{
 		this._startOffset = startOffset*2;
 		this._data = new Uint16Array(data);
 	}
 
-	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number)
+	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void
 	{
 		this._startOffset = startOffset*2;
 		this._data = new Uint16Array(data);
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._data = null;
 	}
@@ -44,5 +44,3 @@ class IndexBufferSoftware implements IIndexBuffer
 	}
 
 }
-
-export default IndexBufferSoftware;

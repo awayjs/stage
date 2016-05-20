@@ -1,9 +1,9 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import ICubeTexture					from "../base/ICubeTexture";
-import TextureBaseWebGL				from "../base/TextureBaseWebGL";
+import {ICubeTexture}					from "../base/ICubeTexture";
+import {TextureBaseWebGL}				from "../base/TextureBaseWebGL";
 
-class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
+export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 {
 
 	private _textureSelectorDictionary:Array<number> = new Array<number>(6);
@@ -26,21 +26,21 @@ class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 		this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._gl.deleteTexture(this._texture);
 	}
 
 	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
 	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
-	public uploadFromData(data:any, side:number, miplevel:number = 0)
+	public uploadFromData(data:any, side:number, miplevel:number = 0):void
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._texture);
 		this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false)
+	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
 	{
 
 	}
@@ -55,5 +55,3 @@ class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 		return this._texture;
 	}
 }
-
-export default CubeTextureWebGL;

@@ -1,12 +1,12 @@
-import ProgramDataPool				from "../image/ProgramDataPool";
-import IProgram						from "../base/IProgram";
-import Stage						from "../base/Stage";
+import {ProgramDataPool}				from "../image/ProgramDataPool";
+import {IProgram}						from "../base/IProgram";
+import {Stage}						from "../base/Stage";
 
 /**
  *
  * @class away.pool.ProgramDataBase
  */
-class ProgramData
+export class ProgramData
 {
 	public static PROGRAMDATA_ID_COUNT:number = 0;
 
@@ -36,7 +36,7 @@ class ProgramData
 	/**
 	 *
 	 */
-	public dispose()
+	public dispose():void
 	{
 		this.usages--;
 
@@ -52,5 +52,3 @@ class ProgramData
 		}
 	}
 }
-
-export default ProgramData;

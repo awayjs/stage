@@ -1,12 +1,12 @@
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
-import ByteArrayBase				from "awayjs-core/lib/utils/ByteArrayBase";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArrayBase}				from "awayjs-core/lib/utils/ByteArrayBase";
 
-import ContextStage3D				from "../base/ContextStage3D";
-import ICubeTexture					from "../base/ICubeTexture";
-import OpCodes						from "../base/OpCodes";
-import ResourceBaseFlash			from "../base/ResourceBaseFlash";
+import {ContextStage3D}				from "../base/ContextStage3D";
+import {ICubeTexture}					from "../base/ICubeTexture";
+import {OpCodes}						from "../base/OpCodes";
+import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
 
-class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
+export class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 {
 	private _context:ContextStage3D;
 	private _size:number;
@@ -28,7 +28,7 @@ class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 		this._context._iAddResource(this);
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.disposeCubeTexture) + this._pId.toString() + ",");
 		this._context.execute();
@@ -39,7 +39,7 @@ class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 
 	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
 	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
-	public uploadFromData(data:any, side:number, miplevel:number = 0)
+	public uploadFromData(data:any, side:number, miplevel:number = 0):void
 	{
 		if (data instanceof HTMLImageElement) {
 			var can = document.createElement("canvas");
@@ -61,10 +61,8 @@ class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 		this._context.execute();
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false)
+	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
 	{
 
 	}
 }
-
-export default CubeTextureFlash;

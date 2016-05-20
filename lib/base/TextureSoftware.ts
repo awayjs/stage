@@ -1,6 +1,6 @@
-import ITexture						from "../base/ITexture";
+import {ITexture}						from "../base/ITexture";
 
-class TextureSoftware implements ITexture
+export class TextureSoftware implements ITexture
 {
 	public textureType:string = "texture2d";
 
@@ -14,7 +14,7 @@ class TextureSoftware implements ITexture
 		this._height = height;
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._mipLevels = null;
 	}
@@ -31,7 +31,7 @@ class TextureSoftware implements ITexture
 
 	public uploadFromData(image:HTMLImageElement, miplevel?:number);
 	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0)
+	public uploadFromData(data:any, miplevel:number = 0):void
 	{
 		this._mipLevels[miplevel] = data.data;
 	}
@@ -46,5 +46,3 @@ class TextureSoftware implements ITexture
 		return this._mipLevels.length;
 	}
 }
-
-export default TextureSoftware;

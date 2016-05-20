@@ -1,15 +1,15 @@
-import EventDispatcher				from "awayjs-core/lib/events/EventDispatcher";
-import ArgumentError				from "awayjs-core/lib/errors/ArgumentError";
+import {EventDispatcher}				from "awayjs-core/lib/events/EventDispatcher";
+import {ArgumentError}				from "awayjs-core/lib/errors/ArgumentError";
 
-import Stage						from "../base/Stage";
-import StageEvent					from "../events/StageEvent";
+import {Stage}						from "../base/Stage";
+import {StageEvent}					from "../events/StageEvent";
 
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.
  *
  * @see away.base.Stage
  */
-class StageManager extends EventDispatcher
+export class StageManager extends EventDispatcher
 {
 	private static STAGE_MAX_QUANTITY:number = 8;
 	private _stages:Array<Stage>;
@@ -79,7 +79,7 @@ class StageManager extends EventDispatcher
 	 * @param stage
 	 * @private
 	 */
-	public iRemoveStage(stage:Stage)
+	public iRemoveStage(stage:Stage):void
 	{
 		StageManager._numStages--;
 
@@ -150,5 +150,3 @@ class StageManager extends EventDispatcher
 		//document.body.appendChild(stage.canvas)
 	}
 }
-
-export default StageManager;

@@ -1,1 +1,1 @@
-export {default as StageManager}					from "./managers/StageManager";
+export {StageManager}					from "./managers/StageManager";

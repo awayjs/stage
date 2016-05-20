@@ -1,15 +1,15 @@
-import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
-import Rectangle					from "awayjs-core/lib/geom/Rectangle";
-import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
+import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
+import {Rectangle}					from "awayjs-core/lib/geom/Rectangle";
+import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
 
-import ICubeTexture					from "../base/ICubeTexture";
-import IIndexBuffer					from "../base/IIndexBuffer";
-import IProgram						from "../base/IProgram";
-import ITexture						from "../base/ITexture";
-import ITextureBase					from "../base/ITextureBase";
-import IVertexBuffer				from "../base/IVertexBuffer";
+import {ICubeTexture}					from "../base/ICubeTexture";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {IProgram}						from "../base/IProgram";
+import {ITexture}						from "../base/ITexture";
+import {ITextureBase}					from "../base/ITextureBase";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
 
-interface IContextGL
+export interface IContextGL
 {
 	container:HTMLElement;
 
@@ -65,5 +65,3 @@ interface IContextGL
 
 	setRenderToBackBuffer();
 }
-
-export default IContextGL;

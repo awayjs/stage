@@ -1,23 +1,23 @@
-import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
-import Vector3D						from "awayjs-core/lib/geom/Vector3D";
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
+import {Vector3D}						from "awayjs-core/lib/geom/Vector3D";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import AGALTokenizer				from "../aglsl/AGALTokenizer";
-import IProgram						from "../base/IProgram";
-import ProgramVOSoftware			from "../base/ProgramVOSoftware";
-import ContextSoftware				from "../base/ContextSoftware";
-import Description					from "../aglsl/Description";
-import Token						from "../aglsl/Token";
-import Destination					from "../aglsl/Destination";
-import VertexBufferSoftware			from "../base/VertexBufferSoftware";
-import ContextGLVertexBufferFormat	from "../base/ContextGLVertexBufferFormat";
-import TextureSoftware				from "../base/TextureSoftware";
-import SoftwareSamplerState			from "../base/SoftwareSamplerState";
-import ContextGLTextureFilter		from "../base/ContextGLTextureFilter";
-import ContextGLMipFilter			from "../base/ContextGLMipFilter";
-import ContextGLWrapMode			from "../base/ContextGLWrapMode";
+import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
+import {IProgram}						from "../base/IProgram";
+import {ProgramVOSoftware}			from "../base/ProgramVOSoftware";
+import {ContextSoftware}				from "../base/ContextSoftware";
+import {Description}					from "../aglsl/Description";
+import {Token}						from "../aglsl/Token";
+import {Destination}					from "../aglsl/Destination";
+import {VertexBufferSoftware}			from "../base/VertexBufferSoftware";
+import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
+import {TextureSoftware}				from "../base/TextureSoftware";
+import {SoftwareSamplerState}			from "../base/SoftwareSamplerState";
+import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
+import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
+import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
 
-class ProgramSoftware implements IProgram
+export class ProgramSoftware implements IProgram
 {
 	private static _defaultSamplerState:SoftwareSamplerState = new SoftwareSamplerState();
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
@@ -82,7 +82,7 @@ class ProgramSoftware implements IProgram
 		return this._numVarying;
 	}
 
-	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray)
+	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
 		this._vertexDescr = ProgramSoftware._tokenizer.decribeAGALByteArray(vertexProgram);
 		this._vertexVO = new ProgramVOSoftware();
@@ -100,13 +100,13 @@ class ProgramSoftware implements IProgram
 		this._fragmentVO.derivativeY = new Float32Array(this._fragmentVO.varying.length);
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._vertexDescr = null;
 		this._fragmentDescr = null;
 	}
 
-	public vertex(context:ContextSoftware, vertexIndex:number, position:Float32Array, varying:Float32Array)
+	public vertex(context:ContextSoftware, vertexIndex:number, position:Float32Array, varying:Float32Array):void
 	{
 		//set attributes
 		var i:number;
@@ -277,7 +277,7 @@ class ProgramSoftware implements IProgram
 		return target;
 	}
 
-	public static mov(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static mov(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -300,7 +300,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1.swizzle >> 6) & 3)];
 	}
 
-	public static m44(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static m44(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -463,7 +463,7 @@ class ProgramSoftware implements IProgram
 		return result;
 	}
 
-	public static tex(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static tex(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		
@@ -486,7 +486,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = color[0];
 	}
 
-	public static add(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static add(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -513,7 +513,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] + source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
 	}
 
-	public static sub(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sub(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -540,7 +540,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] - source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
 	}
 
-	public static mul(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static mul(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -567,7 +567,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]*source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
 	}
 
-	public static div(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static div(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -594,7 +594,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]/source2Target[source2Reg + ((source2Swizzle >> 6) & 3)];
 	}
 
-	public static rcp(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static rcp(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -618,7 +618,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = 1/source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
 	}
 
-	public static min(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static min(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -645,7 +645,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.min(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)], source2Target[source2Reg + ((source2Swizzle >> 6) & 3)]);
 	}
 
-	public static max(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static max(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -672,7 +672,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.max(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)], source2Target[source2Reg + ((source2Swizzle >> 6) & 3)]);
 	}
 
-	public static frc(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static frc(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -696,7 +696,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)] - Math.floor(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static sqt(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sqt(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -720,7 +720,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static rsq(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static rsq(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -744,7 +744,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = 1/Math.sqrt(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static pow(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static pow(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -771,7 +771,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.pow(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)], source2Target[source2Reg + ((source2Swizzle >> 6) & 3)]);
 	}
 
-	public static log(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static log(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -795,7 +795,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.log(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)])/Math.LN2;
 	}
 
-	public static exp(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static exp(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -819,7 +819,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.exp(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static nrm(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static nrm(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -849,7 +849,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 2] = z;
 	}
 
-	public static sin(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sin(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -874,7 +874,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.sin(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static cos(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static cos(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -898,7 +898,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.cos(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static crs(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static crs(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -930,7 +930,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 2] = source1TargetX*source2TargetY - source1TargetY*source2TargetX;
 	}
 
-	public static dp3(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static dp3(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -965,7 +965,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ;
 	}
 
-	public static dp4(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static dp4(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1002,7 +1002,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1TargetX*source2TargetX + source1TargetY*source2TargetY + source1TargetZ*source2TargetZ + source1TargetW*source2TargetW;
 	}
 
-	public static abs(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static abs(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1026,7 +1026,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.abs(source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]);
 	}
 
-	public static neg(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static neg(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1050,7 +1050,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = -source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
 	}
 
-	public static sat(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sat(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1074,7 +1074,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = Math.max(0, Math.min(1, source1Target[source1Reg + ((source1Swizzle >> 6) & 3)]));
 	}
 
-	public static m33(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static m33(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1096,7 +1096,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 2] = source1Target[source1Reg]*source2Target[source2Reg + 8] + source1Target[source1Reg + 1]*source2Target[source2Reg + 9] + source1Target[source1Reg + 2]*source2Target[source2Reg + 10];
 	}
 
-	public static m34(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static m34(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1118,7 +1118,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 2] = source1Target[source1Reg]*source2Target[source2Reg + 8] + source1Target[source1Reg + 1]*source2Target[source2Reg + 9] + source1Target[source1Reg + 2]*source2Target[source2Reg + 10] + source2Target[source2Reg + 11];
 	}
 
-	public static ddx(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static ddx(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1142,7 +1142,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
 	}
 
-	public static ddy(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static ddy(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1166,7 +1166,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1Target[source1Reg + ((source1Swizzle >> 6) & 3)];
 	}
 
-	public static sge(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sge(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1203,7 +1203,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1TargetW >= source2TargetW ? 1 : 0;
 	}
 
-	public static slt(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static slt(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1240,7 +1240,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1TargetW < source2TargetW ? 1 : 0;
 	}
 
-	public static seq(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static seq(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1277,7 +1277,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1TargetW == source2TargetW ? 1 : 0;
 	}
 
-	public static sne(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sne(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1314,7 +1314,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = source1TargetW != source2TargetW ? 1 : 0;
 	}
 
-	public static sgn(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static sgn(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
@@ -1343,7 +1343,7 @@ class ProgramSoftware implements IProgram
 			target[targetReg + 3] = (source1TargetW < 0)? -1 : (source1TargetW > 0)? 1 : 0;
 	}
 
-	public static kil(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware)
+	public static kil(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
 	{
 		var source1Reg:number = 4*source1.regnum;
 		var source1Swizzle:number = source1.swizzle;
@@ -1355,5 +1355,3 @@ class ProgramSoftware implements IProgram
 			vo.discard = true;
 	}
 }
-
-export default ProgramSoftware;

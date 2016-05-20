@@ -1,19 +1,19 @@
-import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
-import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
-import MipmapGenerator				from "awayjs-core/lib/utils/MipmapGenerator";
+import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
+import {AssetEvent}					from "awayjs-core/lib/events/AssetEvent";
+import {MipmapGenerator}				from "awayjs-core/lib/utils/MipmapGenerator";
 
-import GL_Image2D					from "../image/GL_Image2D";
-import ITexture						from "../base/ITexture";
+import {GL_Image2D}					from "../image/GL_Image2D";
+import {ITexture}						from "../base/ITexture";
 
 /**
  *
  * @class away.pool.ImageObjectBase
  */
-class GL_BitmapImage2D extends GL_Image2D
+export class GL_BitmapImage2D extends GL_Image2D
 {
 	private _mipmapData:Array<BitmapImage2D>;
 
-	public activate(index:number, mipmap:boolean)
+	public activate(index:number, mipmap:boolean):void
 	{
 		if (mipmap && this._stage.globalDisableMipmap)
 			mipmap = false;
@@ -48,7 +48,7 @@ class GL_BitmapImage2D extends GL_Image2D
 	/**
 	 *
 	 */
-	public onClear(event:AssetEvent)
+	public onClear(event:AssetEvent):void
 	{
 		super.onClear(event);
 
@@ -59,5 +59,3 @@ class GL_BitmapImage2D extends GL_Image2D
 		}
 	}
 }
-
-export default GL_BitmapImage2D;

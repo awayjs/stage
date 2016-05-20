@@ -1,11 +1,11 @@
-import ByteArrayBase				from "awayjs-core/lib/utils/ByteArrayBase";
+import {ByteArrayBase}				from "awayjs-core/lib/utils/ByteArrayBase";
 
-import ContextStage3D				from "../base/ContextStage3D";
-import ITexture						from "../base/ITexture";
-import OpCodes						from "../base/OpCodes";
-import ResourceBaseFlash			from "../base/ResourceBaseFlash";
+import {ContextStage3D}				from "../base/ContextStage3D";
+import {ITexture}						from "../base/ITexture";
+import {OpCodes}						from "../base/OpCodes";
+import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
 
-class TextureFlash extends ResourceBaseFlash implements ITexture
+export class TextureFlash extends ResourceBaseFlash implements ITexture
 {
 	private _context:ContextStage3D;
 	private _width:number;
@@ -34,7 +34,7 @@ class TextureFlash extends ResourceBaseFlash implements ITexture
 		this._context._iAddResource(this);
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.disposeTexture) + this._pId.toString() + ",");
 		this._context.execute();
@@ -45,7 +45,7 @@ class TextureFlash extends ResourceBaseFlash implements ITexture
 
 	public uploadFromData(image:HTMLImageElement, miplevel?:number);
 	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0)
+	public uploadFromData(data:any, miplevel:number = 0):void
 	{
 		if (data instanceof HTMLImageElement) {
 			var can = document.createElement("canvas");
@@ -67,5 +67,3 @@ class TextureFlash extends ResourceBaseFlash implements ITexture
 		this._context.execute();
 	}
 }
-
-export default TextureFlash;

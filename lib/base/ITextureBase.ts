@@ -1,6 +1,4 @@
-interface ITextureBase
+export interface ITextureBase
 {
 	dispose();
 }
-
-export default ITextureBase;

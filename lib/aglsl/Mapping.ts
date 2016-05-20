@@ -1,6 +1,6 @@
-import OpLUT					from "../aglsl/OpLUT";
+import {OpLUT}					from "../aglsl/OpLUT";
 
-class Mapping
+export class Mapping
 {
 	static agal2glsllut:Array<OpLUT> = [
 
@@ -49,5 +49,3 @@ class Mapping
 
 	}
 }
-
-export default Mapping;

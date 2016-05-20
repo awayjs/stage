@@ -1,28 +1,28 @@
-import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
-import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
-import Matrix						from "awayjs-core/lib/geom/Matrix";
-import Point						from "awayjs-core/lib/geom/Point";
-import Vector3D						from "awayjs-core/lib/geom/Vector3D";
-import Rectangle					from "awayjs-core/lib/geom/Rectangle";
-import ColorUtils					from "awayjs-core/lib/utils/ColorUtils";
+import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
+import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
+import {Matrix}						from "awayjs-core/lib/geom/Matrix";
+import {Point}						from "awayjs-core/lib/geom/Point";
+import {Vector3D}						from "awayjs-core/lib/geom/Vector3D";
+import {Rectangle}					from "awayjs-core/lib/geom/Rectangle";
+import {ColorUtils}					from "awayjs-core/lib/utils/ColorUtils";
 
-import ContextGLBlendFactor			from "../base/ContextGLBlendFactor";
-import ContextGLClearMask			from "../base/ContextGLClearMask";
-import ContextGLCompareMode			from "../base/ContextGLCompareMode";
-import ContextGLProgramType			from "../base/ContextGLProgramType";
-import ContextGLTriangleFace		from "../base/ContextGLTriangleFace";
-import IContextGL					from "../base/IContextGL";
-import IIndexBuffer					from "../base/IIndexBuffer";
-import ICubeTexture					from "../base/ICubeTexture";
-import ITextureBase					from "../base/ITextureBase";
-import IndexBufferSoftware			from "../base/IndexBufferSoftware";
-import VertexBufferSoftware			from "../base/VertexBufferSoftware";
-import TextureSoftware				from "../base/TextureSoftware";
-import ProgramSoftware				from "../base/ProgramSoftware";
-import ProgramVOSoftware			from "../base/ProgramVOSoftware";
-import SoftwareSamplerState			from "../base/SoftwareSamplerState";
+import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
+import {ContextGLClearMask}			from "../base/ContextGLClearMask";
+import {ContextGLCompareMode}			from "../base/ContextGLCompareMode";
+import {ContextGLProgramType}			from "../base/ContextGLProgramType";
+import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
+import {IContextGL}					from "../base/IContextGL";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {ICubeTexture}					from "../base/ICubeTexture";
+import {ITextureBase}					from "../base/ITextureBase";
+import {IndexBufferSoftware}			from "../base/IndexBufferSoftware";
+import {VertexBufferSoftware}			from "../base/VertexBufferSoftware";
+import {TextureSoftware}				from "../base/TextureSoftware";
+import {ProgramSoftware}				from "../base/ProgramSoftware";
+import {ProgramVOSoftware}			from "../base/ProgramVOSoftware";
+import {SoftwareSamplerState}			from "../base/SoftwareSamplerState";
 
-class ContextSoftware implements IContextGL
+export class ContextSoftware implements IContextGL
 {
 	private _canvas:HTMLCanvasElement;
 
@@ -90,7 +90,7 @@ class ContextSoftware implements IContextGL
 		return this._canvas;
 	}
 
-	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL)
+	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void
 	{
 		this._backBufferColor.lock();
 
@@ -105,7 +105,7 @@ class ContextSoftware implements IContextGL
 			this._zbuffer.set(this._zbufferClear); //fast memcpy
 	}
 
-	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean)
+	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean):void
 	{
 		this._antialias = antiAlias;
 
@@ -189,17 +189,17 @@ class ContextSoftware implements IContextGL
 		return new VertexBufferSoftware(numVertices, dataPerVertex);
 	}
 
-	public dispose()
+	public dispose():void
 	{
 	}
 
-	public setBlendFactors(sourceFactor:string, destinationFactor:string)
+	public setBlendFactors(sourceFactor:string, destinationFactor:string):void
 	{
 		this._blendSource = sourceFactor;
 		this._blendDestination = destinationFactor;
 	}
 
-	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean)
+	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void
 	{
 		this._colorMaskR = red;
 		this._colorMaskG = green;
@@ -207,34 +207,34 @@ class ContextSoftware implements IContextGL
 		this._colorMaskA = alpha;
 	}
 
-	public setStencilActions(triangleFace:string, compareMode:string, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string, coordinateSystem:string)
+	public setStencilActions(triangleFace:string, compareMode:string, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string, coordinateSystem:string):void
 	{
 		//TODO:
 	}
 
-	public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number)
+	public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number):void
 	{
 		//TODO:
 	}
 
-	public setCulling(triangleFaceToCull:string, coordinateSystem:string)
+	public setCulling(triangleFaceToCull:string, coordinateSystem:string):void
 	{
 		//TODO: CoordinateSystem.RIGHT_HAND
 		this._cullingMode = triangleFaceToCull;
 	}
 
-	public setDepthTest(depthMask:boolean, passCompareMode:string)
+	public setDepthTest(depthMask:boolean, passCompareMode:string):void
 	{
 		this._writeDepth = depthMask;
 		this._depthCompareMode = passCompareMode;
 	}
 
-	public setProgram(program:ProgramSoftware)
+	public setProgram(program:ProgramSoftware):void
 	{
 		this._program = program;
 	}
 
-	public setProgramConstantsFromArray(programType:number, data:Float32Array)
+	public setProgramConstantsFromArray(programType:number, data:Float32Array):void
 	{
 		var target:Float32Array;
 		if (programType == ContextGLProgramType.VERTEX)
@@ -245,19 +245,19 @@ class ContextSoftware implements IContextGL
 		target.set(data);
 	}
 
-	public setTextureAt(sampler:number, texture:TextureSoftware)
+	public setTextureAt(sampler:number, texture:TextureSoftware):void
 	{
 		this._textures[sampler] = texture;
 	}
 
-	public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number)
+	public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number):void
 	{
 		this._vertexBuffers[index] = buffer;
 		this._vertexBufferOffsets[index] = bufferOffset;
 		this._vertexBufferFormats[index] = format;
 	}
 
-	public present()
+	public present():void
 	{
 		this._backBufferColor.unlock();
 
@@ -265,11 +265,11 @@ class ContextSoftware implements IContextGL
 		this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
 	}
 
-	public drawToBitmapImage2D(destination:BitmapImage2D)
+	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
 	}
 
-	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number)
+	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void
 	{
 		if (!this._program)
 			return;
@@ -315,17 +315,17 @@ class ContextSoftware implements IContextGL
 		}
 	}
 
-	public drawVertices(mode:string, firstVertex:number, numVertices:number)
+	public drawVertices(mode:string, firstVertex:number, numVertices:number):void
 	{
 		//TODO:
 	}
 
-	public setScissorRectangle(rectangle:Rectangle)
+	public setScissorRectangle(rectangle:Rectangle):void
 	{
 		//TODO:
 	}
 
-	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string)
+	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
 	{
 		var state:SoftwareSamplerState = this._samplerStates[sampler];
 
@@ -342,12 +342,12 @@ class ContextSoftware implements IContextGL
 		//TODO:
 	}
 
-	public setRenderToBackBuffer()
+	public setRenderToBackBuffer():void
 	{
 		//TODO:
 	}
 
-	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray)
+	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
 	{
 		argb[0] = 0;
 		argb[1] = 0;
@@ -365,12 +365,12 @@ class ContextSoftware implements IContextGL
 		return Math.max(min, Math.min(value, max));
 	}
 
-	public interpolate(min:number, max:number, gradient:number)
+	public interpolate(min:number, max:number, gradient:number):number
 	{
 		return min + (max - min)*this.clamp(gradient);
 	}
 
-	private _triangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array)
+	private _triangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array):void
 	{
 		var p0:Vector3D = new Vector3D(position0[0], position0[1], position0[2], position0[3]);
 		if (!p0 || p0.w == 0 || isNaN(p0.w)) {
@@ -495,9 +495,9 @@ class ContextSoftware implements IContextGL
 	}
 }
 
-class BlendModeSoftware
+export class BlendModeSoftware
 {
-	public static destinationAlpha(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray)
+	public static destinationAlpha(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*dest[0]/0xFF;
 		argb[1] += result[1]*dest[0]/0xFF;
@@ -506,7 +506,7 @@ class BlendModeSoftware
 	}
 
 
-	public static destinationColor(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray)
+	public static destinationColor(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*dest[0]/0xFF;
 		argb[1] += result[1]*dest[1]/0xFF;
@@ -514,11 +514,11 @@ class BlendModeSoftware
 		argb[3] += result[3]*dest[3]/0xFF;
 	}
 
-	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 	}
 
-	public static one(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static one(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0];
 		argb[1] += result[1];
@@ -526,7 +526,7 @@ class BlendModeSoftware
 		argb[3] += result[3];
 	}
 
-	public static oneMinusDestinationAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static oneMinusDestinationAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*(1 - dest[0]/0xFF);
 		argb[1] += result[1]*(1 - dest[0]/0xFF);
@@ -534,7 +534,7 @@ class BlendModeSoftware
 		argb[3] += result[3]*(1 - dest[0]/0xFF);
 	}
 
-	public static oneMinusDestinationColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static oneMinusDestinationColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*(1 - dest[0]/0xFF);
 		argb[1] += result[1]*(1 - dest[1]/0xFF);
@@ -542,7 +542,7 @@ class BlendModeSoftware
 		argb[3] += result[3]*(1 - dest[3]/0xFF);
 	}
 
-	public static oneMinusSourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static oneMinusSourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*(1 - source[0]/0xFF);
 		argb[1] += result[1]*(1 - source[0]/0xFF);
@@ -550,7 +550,7 @@ class BlendModeSoftware
 		argb[3] += result[3]*(1 - source[0]/0xFF);
 	}
 
-	public static oneMinusSourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static oneMinusSourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*(1 - source[0]/0xFF);
 		argb[1] += result[1]*(1 - source[1]/0xFF);
@@ -558,7 +558,7 @@ class BlendModeSoftware
 		argb[3] += result[3]*(1 - source[3]/0xFF);
 	}
 
-	public static sourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static sourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*source[0]/0xFF;
 		argb[1] += result[1]*source[0]/0xFF;
@@ -566,7 +566,7 @@ class BlendModeSoftware
 		argb[3] += result[3]*source[0]/0xFF;
 	}
 
-	public static sourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray)
+	public static sourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
 		argb[0] += result[0]*source[0]/0xFF;
 		argb[1] += result[1]*source[1]/0xFF;
@@ -576,7 +576,7 @@ class BlendModeSoftware
 }
 
 
-class DepthCompareModeSoftware
+export class DepthCompareModeSoftware
 {
 	public static always(fragDepth:number, currentDepth:number):boolean
 	{
@@ -622,5 +622,3 @@ class DepthCompareModeSoftware
 var argb:Uint8ClampedArray = new Uint8ClampedArray(4);
 var source:Uint8ClampedArray = new Uint8ClampedArray(4);
 var dest:Uint8ClampedArray = new Uint8ClampedArray(4);
-
-export default ContextSoftware;

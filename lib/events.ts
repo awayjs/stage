@@ -1,1 +1,1 @@
-export {default as StageEvent}						from "./events/StageEvent";
+export {StageEvent}						from "./events/StageEvent";

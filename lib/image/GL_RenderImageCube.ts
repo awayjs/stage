@@ -1,12 +1,12 @@
-import GL_ImageCube					from "../image/GL_ImageCube";
+import {GL_ImageCube}					from "../image/GL_ImageCube";
 
 /**
  *
  * @class away.pool.ImageObjectBase
  */
-class GL_RenderImageCube extends GL_ImageCube
+export class GL_RenderImageCube extends GL_ImageCube
 {
-	public activate(index:number, mipmap:boolean)
+	public activate(index:number, mipmap:boolean):void
 	{
 		super.activate(index, false);
 
@@ -14,5 +14,3 @@ class GL_RenderImageCube extends GL_ImageCube
 
 	}
 }
-
-export default GL_RenderImageCube;

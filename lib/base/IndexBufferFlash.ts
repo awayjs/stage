@@ -1,9 +1,9 @@
-import ContextStage3D				from "../base/ContextStage3D";
-import IIndexBuffer					from "../base/IIndexBuffer";
-import OpCodes						from "../base/OpCodes";
-import ResourceBaseFlash			from "../base/ResourceBaseFlash";
+import {ContextStage3D}				from "../base/ContextStage3D";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {OpCodes}						from "../base/OpCodes";
+import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
 
-class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
+export class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 {
 	private _context:ContextStage3D;
 	private _numIndices:number;
@@ -24,7 +24,7 @@ class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 		this._context.execute();
 	}
 
-	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number)
+	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void
 	{
 
 	}
@@ -43,5 +43,3 @@ class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 		return this._numIndices;
 	}
 }
-
-export default IndexBufferFlash;

@@ -1,4 +1,4 @@
-class OpLUT
+export class OpLUT
 {
 
 	public s:string;
@@ -28,5 +28,3 @@ class OpLUT
 		this.lod = lod;
 	}
 }
-
-export default OpLUT;

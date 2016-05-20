@@ -1,6 +1,6 @@
-import Destination				from "../aglsl/Destination";
+import {Destination}				from "../aglsl/Destination";
 
-class Token
+export class Token
 {
 	public dest:Destination = new Destination();
 	public opcode:number = 0;
@@ -11,5 +11,3 @@ class Token
 	{
 	}
 }
-
-export default Token;

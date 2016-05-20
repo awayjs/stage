@@ -1,4 +1,4 @@
-class Destination
+export class Destination
 {
 	public mask:number = 0;
 	public regnum:number = 0;
@@ -21,5 +21,3 @@ class Destination
 	{
 	}
 }
-
-export default Destination;

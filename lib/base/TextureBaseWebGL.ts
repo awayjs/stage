@@ -1,6 +1,6 @@
-import AbstractMethodError			from "awayjs-core/lib/errors/AbstractMethodError";
+import {AbstractMethodError}			from "awayjs-core/lib/errors/AbstractMethodError";
 
-class TextureBaseWebGL
+export class TextureBaseWebGL
 {
 	public textureType:string = "";
 	public _gl:WebGLRenderingContext;
@@ -20,5 +20,3 @@ class TextureBaseWebGL
 		throw new AbstractMethodError();
 	}
 }
-
-export default TextureBaseWebGL;

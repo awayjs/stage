@@ -1,14 +1,14 @@
-import AbstractMethodError			from "awayjs-core/lib/errors/AbstractMethodError";
-import IAsset						from "awayjs-core/lib/library/IAsset";
-import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
+import {AbstractMethodError}			from "awayjs-core/lib/errors/AbstractMethodError";
+import {IAsset}						from "awayjs-core/lib/library/IAsset";
+import {AbstractionBase}				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						from "../base/Stage";
+import {Stage}						from "../base/Stage";
 
 /**
  *
  * @class away.pool.GL_SamplerBase
  */
-class GL_SamplerBase extends AbstractionBase
+export class GL_SamplerBase extends AbstractionBase
 {
 	public _stage:Stage;
 
@@ -19,10 +19,8 @@ class GL_SamplerBase extends AbstractionBase
 		this._stage = stage;
 	}
 
-	public activate(index:number)
+	public activate(index:number):void
 	{
 		throw new AbstractMethodError();
 	}
 }
-
-export default GL_SamplerBase;

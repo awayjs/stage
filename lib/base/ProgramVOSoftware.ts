@@ -1,6 +1,6 @@
-import Vector3D						from "awayjs-core/lib/geom/Vector3D";
+import {Vector3D}						from "awayjs-core/lib/geom/Vector3D";
 
-class ProgramVOSoftware
+export class ProgramVOSoftware
 {
 	public outputPosition:Float32Array;
 	public outputColor:Float32Array = new Float32Array([0,0,0,1]);
@@ -12,5 +12,3 @@ class ProgramVOSoftware
 	public attributes:Float32Array;
 	public discard:boolean = false;
 }
-
-export default ProgramVOSoftware;

@@ -1,8 +1,8 @@
-import EventBase				from "awayjs-core/lib/events/EventBase";
+import {EventBase}				from "awayjs-core/lib/events/EventBase";
 
-import Stage					from "../base/Stage";
+import {Stage}					from "../base/Stage";
 
-class StageEvent extends EventBase
+export class StageEvent extends EventBase
 {
 	/**
 	 *
@@ -54,5 +54,3 @@ class StageEvent extends EventBase
 		return new StageEvent(this.type, this._stage);
 	}
 }
-
-export default StageEvent;

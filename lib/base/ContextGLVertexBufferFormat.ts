@@ -1,4 +1,4 @@
-class ContextGLVertexBufferFormat
+export class ContextGLVertexBufferFormat
 {
 	static FLOAT_1:number = 0;
 	static FLOAT_2:number = 1;
@@ -21,5 +21,3 @@ class ContextGLVertexBufferFormat
 	static UNSIGNED_SHORT_3:number = 18;
 	static UNSIGNED_SHORT_4:number = 19;
 }
-
-export default ContextGLVertexBufferFormat;

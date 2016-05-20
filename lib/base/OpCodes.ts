@@ -1,4 +1,4 @@
-class OpCodes
+export class OpCodes
 {
 	public static trueValue:number = 32;
 	public static falseValue:number = 33;
@@ -45,5 +45,3 @@ class OpCodes
 	public static clearRenderToTexture:number = 80;
 	public static enableErrorChecking:number = 81;
 }
-
-export default OpCodes;

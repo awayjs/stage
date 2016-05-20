@@ -1,16 +1,16 @@
-import AbstractMethodError			from "awayjs-core/lib/errors/AbstractMethodError";
-import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
-import IAsset						from "awayjs-core/lib/library/IAsset";
-import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
+import {AbstractMethodError}			from "awayjs-core/lib/errors/AbstractMethodError";
+import {AssetEvent}					from "awayjs-core/lib/events/AssetEvent";
+import {IAsset}						from "awayjs-core/lib/library/IAsset";
+import {AbstractionBase}				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						from "../base/Stage";
-import ITextureBase					from "../base/ITextureBase";
+import {Stage}						from "../base/Stage";
+import {ITextureBase}					from "../base/ITextureBase";
 
 /**
  *
  * @class away.pool.GL_ImageBase
  */
-class GL_ImageBase extends AbstractionBase
+export class GL_ImageBase extends AbstractionBase
 {
 	public usages:number = 0;
 
@@ -40,7 +40,7 @@ class GL_ImageBase extends AbstractionBase
 	/**
 	 *
 	 */
-	public onClear(event:AssetEvent)
+	public onClear(event:AssetEvent):void
 	{
 		super.onClear(event);
 
@@ -50,15 +50,13 @@ class GL_ImageBase extends AbstractionBase
 		}
 	}
 
-	public activate(index:number, mipmap:boolean)
+	public activate(index:number, mipmap:boolean):void
 	{
 		this._stage.context.setTextureAt(index, this._texture);
 	}
 
-	public _createTexture()
+	public _createTexture():void
 	{
 		throw new AbstractMethodError();
 	}
 }
-
-export default GL_ImageBase;

@@ -1,6 +1,6 @@
-import IIndexBuffer					from "../base/IIndexBuffer";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
 
-class IndexBufferWebGL implements IIndexBuffer
+export class IndexBufferWebGL implements IIndexBuffer
 {
 
 	private _gl:WebGLRenderingContext;
@@ -24,7 +24,7 @@ class IndexBufferWebGL implements IIndexBuffer
 			this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
 	}
 
-	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number)
+	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void
 	{
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 
@@ -49,5 +49,3 @@ class IndexBufferWebGL implements IIndexBuffer
 		return this._buffer;
 	}
 }
-
-export default IndexBufferWebGL;

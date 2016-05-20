@@ -1,28 +1,28 @@
-import EventDispatcher				from "awayjs-core/lib/events/EventDispatcher";
-import Rectangle					from "awayjs-core/lib/geom/Rectangle";
-import ImageBase					from "awayjs-core/lib/image/ImageBase";
-import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
-import IAsset						from "awayjs-core/lib/library/IAsset";
-import IAssetClass					from "awayjs-core/lib/library/IAssetClass";
-import IAbstractionPool				from "awayjs-core/lib/library/IAbstractionPool";
-import CSS							from "awayjs-core/lib/utils/CSS";
+import {EventDispatcher}				from "awayjs-core/lib/events/EventDispatcher";
+import {Rectangle}					from "awayjs-core/lib/geom/Rectangle";
+import {ImageBase}					from "awayjs-core/lib/image/ImageBase";
+import {AbstractionBase}				from "awayjs-core/lib/library/AbstractionBase";
+import {IAsset}						from "awayjs-core/lib/library/IAsset";
+import {IAssetClass}					from "awayjs-core/lib/library/IAssetClass";
+import {IAbstractionPool}				from "awayjs-core/lib/library/IAbstractionPool";
+import {CSS}							from "awayjs-core/lib/utils/CSS";
 
-import ContextMode					from "../base/ContextMode";
-import ContextGLMipFilter			from "../base/ContextGLMipFilter";
-import ContextGLTextureFilter		from "../base/ContextGLTextureFilter";
-import ContextGLVertexBufferFormat	from "../base/ContextGLVertexBufferFormat";
-import ContextGLWrapMode			from "../base/ContextGLWrapMode";
-import ContextWebGL					from "../base/ContextWebGL";
-import ContextStage3D				from "../base/ContextStage3D";
-import ContextSoftware				from "../base/ContextSoftware";
-import IContextGL					from "../base/IContextGL";
-import IVertexBuffer				from "../base/IVertexBuffer";
-import StageEvent					from "../events/StageEvent";
-import GL_ImageBase					from "../image/GL_ImageBase";
-import GL_IAssetClass				from "../library/GL_IAssetClass";
-import ProgramData					from "../image/ProgramData";
-import ProgramDataPool				from "../image/ProgramDataPool";
-import StageManager					from "../managers/StageManager";
+import {ContextMode}					from "../base/ContextMode";
+import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
+import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
+import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
+import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
+import {ContextWebGL}					from "../base/ContextWebGL";
+import {ContextStage3D}				from "../base/ContextStage3D";
+import {ContextSoftware}				from "../base/ContextSoftware";
+import {IContextGL}					from "../base/IContextGL";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {StageEvent}					from "../events/StageEvent";
+import {GL_ImageBase}					from "../image/GL_ImageBase";
+import {GL_IAssetClass}				from "../library/GL_IAssetClass";
+import {ProgramData}					from "../image/ProgramData";
+import {ProgramDataPool}				from "../image/ProgramDataPool";
+import {StageManager}					from "../managers/StageManager";
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -32,7 +32,7 @@ import StageManager					from "../managers/StageManager";
  * @see away.managers.StageManager
  *
  */
-class Stage extends EventDispatcher implements IAbstractionPool
+export class Stage extends EventDispatcher implements IAbstractionPool
 {
 	private static _abstractionClassPool:Object = new Object();
 
@@ -141,7 +141,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
-	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
+	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0):void
 	{
 		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
 			return;
@@ -166,7 +166,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	 *
 	 * @param image
 	 */
-	public clearAbstraction(asset:IAsset)
+	public clearAbstraction(asset:IAsset):void
 	{
 		this._abstractionPool[asset.id] = null;
 	}
@@ -175,7 +175,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	 *
 	 * @param imageObjectClass
 	 */
-	public static registerAbstraction(gl_assetClass:GL_IAssetClass, assetClass:IAssetClass)
+	public static registerAbstraction(gl_assetClass:GL_IAssetClass, assetClass:IAssetClass):void
 	{
 		Stage._abstractionClassPool[assetClass.assetType] = gl_assetClass;
 	}
@@ -183,7 +183,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * Requests a Context object to attach to the managed gl canvas.
 	 */
-	public requestContext(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto")
+	public requestContext(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):void
 	{
 		// If forcing software, we can be certain that the
 		// returned Context will be running software mode.
@@ -222,7 +222,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * The width of the gl canvas
 	 */
-	public get width()
+	public get width():number
 	{
 		return this._width;
 	}
@@ -244,7 +244,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * The height of the gl canvas
 	 */
-	public get height()
+	public get height():number
 	{
 		return this._height;
 	}
@@ -266,7 +266,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * The x position of the gl canvas
 	 */
-	public get x()
+	public get x():number
 	{
 		return this._x;
 	}
@@ -286,7 +286,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * The y position of the gl canvas
 	 */
-	public get y()
+	public get y():number
 	{
 		return this._y;
 	}
@@ -308,7 +308,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		CSS.setElementVisibility(this._container, val);
 	}
 
-	public get visible()
+	public get visible():boolean
 	{
 		return CSS.getElementVisibility(this._container);
 	}
@@ -326,7 +326,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		return this._context;
 	}
 
-	private notifyViewportUpdated()
+	private notifyViewportUpdated():void
 	{
 		if (this._viewportDirty)
 			return;
@@ -344,7 +344,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * Disposes the Stage object, freeing the Context attached to the Stage.
 	 */
-	public dispose()
+	public dispose():void
 	{
 		for (var id in this._abstractionPool)
 			this._abstractionPool[id].clear();
@@ -364,7 +364,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	 * @param antiAlias The amount of anti-aliasing to use.
 	 * @param enableDepthAndStencil Indicates whether the back buffer contains a depth and stencil buffer.
 	 */
-	public configureBackBuffer(backBufferWidth:number, backBufferHeight:number, antiAlias:number, enableDepthAndStencil:boolean)
+	public configureBackBuffer(backBufferWidth:number, backBufferHeight:number, antiAlias:number, enableDepthAndStencil:boolean):void
 	{
 		this.width = backBufferWidth;
 		this.height = backBufferHeight;
@@ -403,7 +403,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/*
 	 * Clear and reset the back buffer when using a shared context
 	 */
-	public clear()
+	public clear():void
 	{
 		if (!this._context)
 			return;
@@ -502,7 +502,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	}
 
 
-	public registerProgram(programData:ProgramData)
+	public registerProgram(programData:ProgramData):void
 	{
 		var i:number = 0;
 		while (this._programData[i] != null)
@@ -512,7 +512,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		programData.id = i;
 	}
 
-	public unRegisterProgram(programData:ProgramData)
+	public unRegisterProgram(programData:ProgramData):void
 	{
 		this._programData[programData.id] = null;
 		programData.id = -1;
@@ -521,7 +521,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * Frees the Context associated with this StageProxy.
 	 */
-	private freeContext()
+	private freeContext():void
 	{
 		if (this._context) {
 			this._context.dispose();
@@ -534,12 +534,12 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		this._initialised = false;
 	}
 
-	private onContextLost(event)
+	private onContextLost(event):void
 	{
 
 	}
 
-	private onContextRestored(event)
+	private onContextRestored(event):void
 	{
 
 	}
@@ -564,7 +564,7 @@ class Stage extends EventDispatcher implements IAbstractionPool
 
 	}
 
-	private _callback(context:IContextGL)
+	private _callback(context:IContextGL):void
 	{
 		this._context = context;
 
@@ -583,12 +583,12 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		this._initialised = true;
 	}
 
-	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number, unsigned:boolean = false)
+	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number, unsigned:boolean = false):void
 	{
 		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned? size + 4 : size][dimensions]);
 	}
 
-	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean):void
 	{
 		var wrap:string = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
 		var filter:string = (smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
@@ -597,5 +597,3 @@ class Stage extends EventDispatcher implements IAbstractionPool
 		this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
 	}
 }
-
-export default Stage;

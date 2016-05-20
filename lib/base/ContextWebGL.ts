@@ -1,30 +1,30 @@
-import BitmapImage2D				from "awayjs-core/lib/image/BitmapImage2D";
-import Matrix3D						from "awayjs-core/lib/geom/Matrix3D";
-import Matrix3DUtils				from "awayjs-core/lib/geom/Matrix3DUtils";
-import Rectangle					from "awayjs-core/lib/geom/Rectangle";
-import ByteArray					from "awayjs-core/lib/utils/ByteArray";
+import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
+import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
+import {Matrix3DUtils}				from "awayjs-core/lib/geom/Matrix3DUtils";
+import {Rectangle}					from "awayjs-core/lib/geom/Rectangle";
+import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
 
-import ContextGLBlendFactor			from "../base/ContextGLBlendFactor";
-import ContextGLDrawMode			from "../base/ContextGLDrawMode";
-import ContextGLClearMask			from "../base/ContextGLClearMask";
-import ContextGLCompareMode			from "../base/ContextGLCompareMode";
-import ContextGLMipFilter			from "../base/ContextGLMipFilter";
-import ContextGLProgramType			from "../base/ContextGLProgramType";
-import ContextGLStencilAction		from "../base/ContextGLStencilAction";
-import ContextGLTextureFilter		from "../base/ContextGLTextureFilter";
-import ContextGLTriangleFace		from "../base/ContextGLTriangleFace";
-import ContextGLVertexBufferFormat	from "../base/ContextGLVertexBufferFormat";
-import ContextGLWrapMode			from "../base/ContextGLWrapMode";
-import CubeTextureWebGL				from "../base/CubeTextureWebGL";
-import IContextGL				    from "../base/IContextGL";
-import IndexBufferWebGL				from "../base/IndexBufferWebGL";
-import ProgramWebGL					from "../base/ProgramWebGL";
-import TextureBaseWebGL				from "../base/TextureBaseWebGL";
-import TextureWebGL					from "../base/TextureWebGL";
-import SamplerState					from "../base/SamplerState";
-import VertexBufferWebGL			from "../base/VertexBufferWebGL";
+import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
+import {ContextGLDrawMode}			from "../base/ContextGLDrawMode";
+import {ContextGLClearMask}			from "../base/ContextGLClearMask";
+import {ContextGLCompareMode}			from "../base/ContextGLCompareMode";
+import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
+import {ContextGLProgramType}			from "../base/ContextGLProgramType";
+import {ContextGLStencilAction}		from "../base/ContextGLStencilAction";
+import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
+import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
+import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
+import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
+import {CubeTextureWebGL}				from "../base/CubeTextureWebGL";
+import {IContextGL}				    from "../base/IContextGL";
+import {IndexBufferWebGL}				from "../base/IndexBufferWebGL";
+import {ProgramWebGL}					from "../base/ProgramWebGL";
+import {TextureBaseWebGL}				from "../base/TextureBaseWebGL";
+import {TextureWebGL}					from "../base/TextureWebGL";
+import {SamplerState}					from "../base/SamplerState";
+import {VertexBufferWebGL}			from "../base/VertexBufferWebGL";
 
-class ContextWebGL implements IContextGL
+export class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
 	private _drawModeDictionary:Object = new Object();
@@ -202,7 +202,7 @@ class ContextWebGL implements IContextGL
 		return this._gl;
 	}
 
-	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL)
+	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void
 	{
 		if (!this._drawing) {
 			this.updateBlendStatus();
@@ -220,7 +220,7 @@ class ContextWebGL implements IContextGL
 		this._gl.clear(glmask);
 	}
 
-	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true)
+	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true):void
 	{
 		this._width = width;
 		this._height = height;
@@ -262,13 +262,13 @@ class ContextWebGL implements IContextGL
 		return new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		for (var i:number = 0; i < this._samplerStates.length; ++i)
 			this._samplerStates[i] = null;
 	}
 
-	public drawToBitmapImage2D(destination:BitmapImage2D)
+	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
 		var pixels:Uint8ClampedArray = new Uint8ClampedArray(destination.width*destination.height*4);
 
@@ -277,7 +277,7 @@ class ContextWebGL implements IContextGL
 		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), pixels);
 	}
 
-	public drawIndices(mode:string, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numIndices:number = -1)
+	public drawIndices(mode:string, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numIndices:number = -1):void
 	{
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
@@ -287,7 +287,7 @@ class ContextWebGL implements IContextGL
 		this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
 	}
 
-	public drawVertices(mode:string, firstVertex:number = 0, numVertices:number = -1)
+	public drawVertices(mode:string, firstVertex:number = 0, numVertices:number = -1):void
 	{
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
@@ -295,12 +295,12 @@ class ContextWebGL implements IContextGL
 		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
 	}
 
-	public present()
+	public present():void
 	{
 		this._drawing = false;
 	}
 
-	public setBlendFactors(sourceFactor:string, destinationFactor:string)
+	public setBlendFactors(sourceFactor:string, destinationFactor:string):void
 	{
 		this._blendEnabled = true;
 
@@ -311,12 +311,12 @@ class ContextWebGL implements IContextGL
 		this.updateBlendStatus();
 	}
 
-	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean)
+	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void
 	{
 		this._gl.colorMask(red, green, blue, alpha);
 	}
 
-	public setCulling(triangleFaceToCull:string, coordinateSystem:string = "leftHanded")
+	public setCulling(triangleFaceToCull:string, coordinateSystem:string = "leftHanded"):void
 	{
 		if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
 			this._gl.disable(this._gl.CULL_FACE);
@@ -327,7 +327,7 @@ class ContextWebGL implements IContextGL
 	}
 
 	// TODO ContextGLCompareMode
-	public setDepthTest(depthMask:boolean, passCompareMode:string)
+	public setDepthTest(depthMask:boolean, passCompareMode:string):void
 	{
 		this._gl.depthFunc(this._compareModeDictionary[passCompareMode]);
 
@@ -377,7 +377,7 @@ class ContextWebGL implements IContextGL
         this._gl.stencilMask(writeMask);
     }
 
-	public setProgram(program:ProgramWebGL)
+	public setProgram(program:ProgramWebGL):void
 	{
 		//TODO decide on construction/reference resposibilities
 		this._currentProgram = program;
@@ -386,13 +386,13 @@ class ContextWebGL implements IContextGL
 
 	public static modulo:number = 0;
 
-	public setProgramConstantsFromArray(programType:number, data:Float32Array)
+	public setProgramConstantsFromArray(programType:number, data:Float32Array):void
 	{
 		if (data.length)
 			this._gl.uniform4fv(this._currentProgram.getUniformLocation(programType), data);
 	}
 
-	public setScissorRectangle(rectangle:Rectangle)
+	public setScissorRectangle(rectangle:Rectangle):void
 	{
 		if (!rectangle) {
 			this._gl.disable(this._gl.SCISSOR_TEST);
@@ -403,7 +403,7 @@ class ContextWebGL implements IContextGL
 		this._gl.scissor(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
 	}
 
-	public setTextureAt(sampler:number, texture:TextureBaseWebGL)
+	public setTextureAt(sampler:number, texture:TextureBaseWebGL):void
 	{
 		var samplerState:SamplerState = this._samplerStates[sampler];
 
@@ -446,7 +446,7 @@ class ContextWebGL implements IContextGL
 		}
 	}
 
-	public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:number = 4)
+	public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:number = 4):void
 	{
 		var location:number = this._currentProgram? this._currentProgram.getAttribLocation(index) : -1;
 
@@ -469,7 +469,7 @@ class ContextWebGL implements IContextGL
 		this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
 	}
 
-	public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0)
+	public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0):void
 	{
 		var texture:TextureWebGL = <TextureWebGL> target;
 		var frameBuffer:WebGLFramebuffer = texture.frameBuffer;
@@ -483,12 +483,12 @@ class ContextWebGL implements IContextGL
 		this._gl.viewport(0, 0, texture.width, texture.height );
 	}
 
-	public setRenderToBackBuffer()
+	public setRenderToBackBuffer():void
 	{
 		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 	}
 
-	private updateBlendStatus()
+	private updateBlendStatus():void
 	{
 		if (this._blendEnabled) {
 			this._gl.enable(this._gl.BLEND);
@@ -514,10 +514,8 @@ class ContextWebGL implements IContextGL
     }
 }
 
-export default ContextWebGL;
 
-
-class VertexBufferProperties
+export class VertexBufferProperties
 {
 	public size:number;
 

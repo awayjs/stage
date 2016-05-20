@@ -1,16 +1,16 @@
-import AttributesBuffer				from "awayjs-core/lib/attributes/AttributesBuffer";
-import AssetEvent					from "awayjs-core/lib/events/AssetEvent";
-import AbstractionBase				from "awayjs-core/lib/library/AbstractionBase";
+import {AttributesBuffer}				from "awayjs-core/lib/attributes/AttributesBuffer";
+import {AssetEvent}					from "awayjs-core/lib/events/AssetEvent";
+import {AbstractionBase}				from "awayjs-core/lib/library/AbstractionBase";
 
-import Stage						from "../base/Stage";
-import IIndexBuffer					from "../base/IIndexBuffer";
-import IVertexBuffer				from "../base/IVertexBuffer";
+import {Stage}						from "../base/Stage";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
 
 /**
  *
  * @class away.pool.GL_AttributesBuffer
  */
-class GL_AttributesBuffer extends AbstractionBase
+export class GL_AttributesBuffer extends AbstractionBase
 {
 	public _indexBuffer:IIndexBuffer;
 
@@ -36,7 +36,7 @@ class GL_AttributesBuffer extends AbstractionBase
 	/**
 	 *
 	 */
-	public onClear(event:AssetEvent)
+	public onClear(event:AssetEvent):void
 	{
 		super.onClear(event);
 
@@ -53,12 +53,12 @@ class GL_AttributesBuffer extends AbstractionBase
 		}
 	}
 
-	public activate(index:number, size:number, dimensions:number, offset:number, unsigned:boolean = false)
+	public activate(index:number, size:number, dimensions:number, offset:number, unsigned:boolean = false):void
 	{
 		this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset, unsigned);
 	}
 
-	public draw(mode:string, firstIndex:number, numIndices:number)
+	public draw(mode:string, firstIndex:number, numIndices:number):void
 	{
 		this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
 	}
@@ -93,5 +93,3 @@ class GL_AttributesBuffer extends AbstractionBase
 		return this._vertexBuffer;
 	}
 }
-
-export default GL_AttributesBuffer;

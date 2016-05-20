@@ -1,6 +1,6 @@
-import IVertexBuffer				from "../base/IVertexBuffer";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
 
-class VertexBufferSoftware implements IVertexBuffer
+export class VertexBufferSoftware implements IVertexBuffer
 {
 	private _numVertices:number;
 	private _dataPerVertex:number;
@@ -14,13 +14,13 @@ class VertexBufferSoftware implements IVertexBuffer
 		this._dataPerVertex = dataPerVertex;
 	}
 
-	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number)
+	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number):void
 	{
 		//this._dataOffset = startVertex * this._dataPerVertex;
 		this._floatData = new Float32Array(vertices);
 	}
 
-	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number)
+	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number):void
 	{
 		//this._dataOffset = startVertex * this._dataPerVertex;
 		this._floatData = new Float32Array(data, startVertex*this._dataPerVertex, numVertices*this._dataPerVertex/4);
@@ -42,7 +42,7 @@ class VertexBufferSoftware implements IVertexBuffer
 		return this._dataPerVertex/4;
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._floatData = null;
 	}
@@ -57,5 +57,3 @@ class VertexBufferSoftware implements IVertexBuffer
 		return this._uintData;
 	}
 }
-
-export default VertexBufferSoftware;

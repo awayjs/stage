@@ -1,6 +1,6 @@
-import IVertexBuffer				from "../base/IVertexBuffer";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
 
-class VertexBufferWebGL implements IVertexBuffer
+export class VertexBufferWebGL implements IVertexBuffer
 {
 
 	private _gl:WebGLRenderingContext;
@@ -16,7 +16,7 @@ class VertexBufferWebGL implements IVertexBuffer
 		this._dataPerVertex = dataPerVertex;
 	}
 
-	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number)
+	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number):void
 	{
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
 
@@ -27,7 +27,7 @@ class VertexBufferWebGL implements IVertexBuffer
 	}
 
 
-	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number)
+	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number):void
 	{
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
 
@@ -52,10 +52,8 @@ class VertexBufferWebGL implements IVertexBuffer
 		return this._buffer;
 	}
 
-	public dispose()
+	public dispose():void
 	{
 		this._gl.deleteBuffer(this._buffer);
 	}
 }
-
-export default VertexBufferWebGL;

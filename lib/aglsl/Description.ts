@@ -1,7 +1,7 @@
-import Header					from "../aglsl/Header";
-import Token					from "../aglsl/Token";
+import {Header}					from "../aglsl/Header";
+import {Token}					from "../aglsl/Token";
 
-class Description
+export class Description
 {
 	public regread:any[] = [
 		[],
@@ -34,5 +34,3 @@ class Description
 	{
 	}
 }
-
-export default Description;

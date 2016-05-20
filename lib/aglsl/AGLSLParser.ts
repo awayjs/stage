@@ -1,7 +1,7 @@
-import Description				from "../aglsl/Description";
-import Mapping					from "../aglsl/Mapping";
+import {Description}				from "../aglsl/Description";
+import {Mapping}					from "../aglsl/Mapping";
 
-class AGLSLParser
+export class AGLSLParser
 {
 	public static maxvertexconstants:number = 128;
 	public static maxfragconstants:number = 28;
@@ -9,7 +9,7 @@ class AGLSLParser
 	public static maxstreams:number = 8;
 	public static maxtextures:number = 8;
 	
-	public parse(desc:Description)
+	public parse(desc:Description):string
 	{
 		var header:string = "";
 		var body:string = "";
@@ -193,7 +193,7 @@ class AGLSLParser
 		return header + body;
 	}
 
-	public regtostring(regtype:number, regnum:number, desc:Description, tag)
+	public regtostring(regtype:number, regnum:number, desc:Description, tag):string
 	{
 		switch (regtype) {
 			case 0x0:
@@ -260,5 +260,3 @@ class AGLSLParser
 		return r;
 	}
 }
-
-export default AGLSLParser;
