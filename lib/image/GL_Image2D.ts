@@ -1,4 +1,4 @@
-import {Image2D}						from "awayjs-core/lib/image/Image2D";
+import {Image2D}						from "@awayjs/core/lib/image/Image2D";
 
 import {ContextGLTextureFormat}		from "../base/ContextGLTextureFormat";
 import {GL_ImageBase}					from "../image/GL_ImageBase";

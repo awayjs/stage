@@ -1,4 +1,4 @@
-import {Sampler2D}					from "awayjs-core/lib/image/Sampler2D";
+import {Sampler2D}					from "@awayjs/core/lib/image/Sampler2D";
 
 import {Stage}						from "../base/Stage";
 import {GL_SamplerBase}				from "../image/GL_SamplerBase";

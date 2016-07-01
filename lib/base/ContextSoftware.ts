@@ -1,10 +1,10 @@
-import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
-import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
-import {Matrix}						from "awayjs-core/lib/geom/Matrix";
-import {Point}						from "awayjs-core/lib/geom/Point";
-import {Vector3D}						from "awayjs-core/lib/geom/Vector3D";
-import {Rectangle}					from "awayjs-core/lib/geom/Rectangle";
-import {ColorUtils}					from "awayjs-core/lib/utils/ColorUtils";
+import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
+import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
+import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
+import {Point}						from "@awayjs/core/lib/geom/Point";
+import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
+import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {ColorUtils}					from "@awayjs/core/lib/utils/ColorUtils";
 
 import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
 import {ContextGLClearMask}			from "../base/ContextGLClearMask";

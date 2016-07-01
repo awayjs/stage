@@ -1,6 +1,6 @@
-import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
-import {AssetEvent}					from "awayjs-core/lib/events/AssetEvent";
-import {MipmapGenerator}				from "awayjs-core/lib/utils/MipmapGenerator";
+import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
+import {AssetEvent}					from "@awayjs/core/lib/events/AssetEvent";
+import {MipmapGenerator}				from "@awayjs/core/lib/utils/MipmapGenerator";
 
 import {GL_Image2D}					from "../image/GL_Image2D";
 import {ITexture}						from "../base/ITexture";

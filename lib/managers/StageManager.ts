@@ -1,5 +1,5 @@
-import {EventDispatcher}				from "awayjs-core/lib/events/EventDispatcher";
-import {ArgumentError}				from "awayjs-core/lib/errors/ArgumentError";
+import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
+import {ArgumentError}				from "@awayjs/core/lib/errors/ArgumentError";
 
 import {Stage}						from "../base/Stage";
 import {StageEvent}					from "../events/StageEvent";

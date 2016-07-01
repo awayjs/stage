@@ -1,4 +1,4 @@
-import {AbstractMethodError}			from "awayjs-core/lib/errors/AbstractMethodError";
+import {AbstractMethodError}			from "@awayjs/core/lib/errors/AbstractMethodError";
 
 export class TextureBaseWebGL
 {

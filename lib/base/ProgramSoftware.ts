@@ -1,6 +1,6 @@
-import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
-import {Vector3D}						from "awayjs-core/lib/geom/Vector3D";
-import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
+import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
+import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
+import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 
 import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
 import {IProgram}						from "../base/IProgram";

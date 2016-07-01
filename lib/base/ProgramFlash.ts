@@ -1,4 +1,4 @@
-import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 
 import {ContextStage3D}				from "../base/ContextStage3D";
 import {IProgram}						from "../base/IProgram";

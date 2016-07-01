@@ -1,6 +1,6 @@
-import {AbstractMethodError}			from "awayjs-core/lib/errors/AbstractMethodError";
-import {IAsset}						from "awayjs-core/lib/library/IAsset";
-import {AbstractionBase}				from "awayjs-core/lib/library/AbstractionBase";
+import {AbstractMethodError}			from "@awayjs/core/lib/errors/AbstractMethodError";
+import {IAsset}						from "@awayjs/core/lib/library/IAsset";
+import {AbstractionBase}				from "@awayjs/core/lib/library/AbstractionBase";
 
 import {Stage}						from "../base/Stage";
 

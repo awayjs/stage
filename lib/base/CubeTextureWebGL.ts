@@ -1,4 +1,4 @@
-import {ByteArray}					from "awayjs-core/lib/utils/ByteArray";
+import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 
 import {ICubeTexture}					from "../base/ICubeTexture";
 import {TextureBaseWebGL}				from "../base/TextureBaseWebGL";

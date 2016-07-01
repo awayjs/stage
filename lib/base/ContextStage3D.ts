@@ -1,7 +1,7 @@
-import {BitmapImage2D}				from "awayjs-core/lib/image/BitmapImage2D";
-import {Matrix3D}						from "awayjs-core/lib/geom/Matrix3D";
-import {Matrix3DUtils}				from "awayjs-core/lib/geom/Matrix3DUtils";
-import {Rectangle}					from "awayjs-core/lib/geom/Rectangle";
+import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
+import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
+import {Matrix3DUtils}				from "@awayjs/core/lib/geom/Matrix3DUtils";
+import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
 
 //import {swfobject}					from "../swfobject";
 import {ContextGLClearMask}			from "../base/ContextGLClearMask";
