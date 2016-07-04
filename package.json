@@ -1,5 +1,5 @@
 {
-  "name": "awayjs-stagegl",
+  "name": "@awayjs/stage",
   "version": "0.8.20",
   "description": "Stage for AwayJS",
   "url": "http://www.away3d.com",
