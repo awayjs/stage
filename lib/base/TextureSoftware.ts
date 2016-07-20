@@ -45,4 +45,9 @@ export class TextureSoftware implements ITexture
 	{
 		return this._mipLevels.length;
 	}
+
+	public generateMipmaps():void
+	{
+		//TODO
+	}
 }

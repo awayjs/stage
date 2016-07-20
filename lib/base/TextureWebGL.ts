@@ -13,8 +13,6 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 
 	private _frameBuffer:WebGLFramebuffer;
 
-	private _glTexture:WebGLTexture;
-
 	constructor(gl:WebGLRenderingContext, width:number, height:number)
 	{
 		super(gl);
@@ -22,11 +20,6 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._height = height;
 
 		this._glTexture = this._gl.createTexture();
-	}
-
-	public dispose():void
-	{
-		this._gl.deleteTexture(this._glTexture);
 	}
 
 	public get width():number
@@ -75,18 +68,5 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	{
 		var ext:Object = this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
 		//this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)
-	}
-
-	public get glTexture():WebGLTexture
-	{
-		return this._glTexture;
-	}
-
-	public generateMipmaps():void
-	{
-		//TODO: implement generating mipmaps
-		//this._gl.bindTexture( this._gl.TEXTURE_2D, this._glTexture );
-		//this._gl.generateMipmap(this._gl.TEXTURE_2D);
-		//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
 	}
 }

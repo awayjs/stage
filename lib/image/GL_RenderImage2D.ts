@@ -11,6 +11,15 @@ export class GL_RenderImage2D extends GL_Image2D
 	{
 		super.activate(index, false);
 
-		//TODO: allow automatic mipmap generation
+		if (!this._mipmap && mipmap) {
+			this._mipmap = true;
+			this._invalid = true;
+		}
+
+		if (this._invalid) {
+			this._invalid = false;
+			if (mipmap)
+				this._texture.generateMipmaps();
+		}
 	}
 }

@@ -11,4 +11,9 @@ export class ResourceBaseFlash
 	{
 
 	}
+
+	public generateMipmaps():void
+	{
+		//TODO
+	}
 }
