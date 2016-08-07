@@ -30,17 +30,25 @@ export class GL_BitmapImage2D extends GL_Image2D
 
 		if (this._invalid) {
 			this._invalid = false;
-			if (mipmap) {
-				var mipmapData:Array<BitmapImage2D> = this._mipmapData || (this._mipmapData = new Array<BitmapImage2D>());
 
-				MipmapGenerator._generateMipMaps((<BitmapImage2D> this._asset).getCanvas(), mipmapData, true);
-				var len:number = mipmapData.length;
-				for (var i:number = 0; i < len; i++)
-					(<ITexture> this._texture).uploadFromData(mipmapData[i].getImageData(), i);
-			} else {
-				(<ITexture> this._texture).uploadFromData((<BitmapImage2D> this._asset).getImageData(), 0);
-			}
+			(<ITexture> this._texture).uploadFromData((<BitmapImage2D> this._asset).getImageData(), 0);
+
+			if (mipmap)
+				this._texture.generateMipmaps();
 		}
+		// if (this._invalid) {
+		// 	this._invalid = false;
+		// 	if (mipmap) {
+		// 		var mipmapData:Array<BitmapImage2D> = this._mipmapData || (this._mipmapData = new Array<BitmapImage2D>());
+		//
+		// 		MipmapGenerator._generateMipMaps((<BitmapImage2D> this._asset).getCanvas(), mipmapData, true);
+		// 		var len:number = mipmapData.length;
+		// 		for (var i:number = 0; i < len; i++)
+		// 			(<ITexture> this._texture).uploadFromData(mipmapData[i].getImageData(), i);
+		// 	} else {
+		// 		(<ITexture> this._texture).uploadFromData((<BitmapImage2D> this._asset).getImageData(), 0);
+		// 	}
+		// }
 
 		super.activate(index, mipmap);
 	}
