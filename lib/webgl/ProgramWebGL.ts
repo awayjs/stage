@@ -3,7 +3,6 @@ import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
 import {AGLSLParser}					from "../aglsl/AGLSLParser";
 import {IProgram}						from "../base/IProgram";
-import {VertexBufferWebGL}			from "../base/VertexBufferWebGL";
 
 export class ProgramWebGL implements IProgram
 {

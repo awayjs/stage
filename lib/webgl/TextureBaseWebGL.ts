@@ -1,5 +1,3 @@
-import {AbstractMethodError}			from "@awayjs/core/lib/errors/AbstractMethodError";
-
 export class TextureBaseWebGL
 {
 	public textureType:string = "";

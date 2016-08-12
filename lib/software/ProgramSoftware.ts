@@ -1,21 +1,21 @@
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
 import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
 import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 
 import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
 import {IProgram}						from "../base/IProgram";
-import {ProgramVOSoftware}			from "../base/ProgramVOSoftware";
-import {ContextSoftware}				from "../base/ContextSoftware";
 import {Description}					from "../aglsl/Description";
 import {Token}						from "../aglsl/Token";
 import {Destination}					from "../aglsl/Destination";
-import {VertexBufferSoftware}			from "../base/VertexBufferSoftware";
 import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
-import {TextureSoftware}				from "../base/TextureSoftware";
-import {SoftwareSamplerState}			from "../base/SoftwareSamplerState";
 import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
 import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
 import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
+
+import {ProgramVOSoftware}			from "./ProgramVOSoftware";
+import {ContextSoftware}				from "./ContextSoftware";
+import {VertexBufferSoftware}			from "./VertexBufferSoftware";
+import {TextureSoftware}				from "./TextureSoftware";
+import {SoftwareSamplerState}			from "./SoftwareSamplerState";
 
 export class ProgramSoftware implements IProgram
 {

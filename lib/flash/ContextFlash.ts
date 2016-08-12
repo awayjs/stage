@@ -1,21 +1,20 @@
 import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Matrix3DUtils}				from "@awayjs/core/lib/geom/Matrix3DUtils";
 import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
 
 //import {swfobject}					from "../swfobject";
 import {ContextGLClearMask}			from "../base/ContextGLClearMask";
 import {ContextGLProgramType}			from "../base/ContextGLProgramType";
-import {CubeTextureFlash}				from "../base/CubeTextureFlash";
 import {IContextGL}					from "../base/IContextGL";
-import {IndexBufferFlash}				from "../base/IndexBufferFlash";
-import {OpCodes}						from "../base/OpCodes";
-import {ProgramFlash}					from "../base/ProgramFlash";
-import {TextureFlash}					from "../base/TextureFlash";
-import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
-import {VertexBufferFlash}			from "../base/VertexBufferFlash";
 
-export class ContextStage3D implements IContextGL
+import {CubeTextureFlash}				from "./CubeTextureFlash";
+import {IndexBufferFlash}				from "./IndexBufferFlash";
+import {OpCodes}						from "./OpCodes";
+import {ProgramFlash}					from "./ProgramFlash";
+import {TextureFlash}					from "./TextureFlash";
+import {ResourceBaseFlash}			from "./ResourceBaseFlash";
+import {VertexBufferFlash}			from "./VertexBufferFlash";
+
+export class ContextFlash implements IContextGL
 {
 	public static contexts:Object = new Object();
 
@@ -95,7 +94,7 @@ export class ContextStage3D implements IContextGL
 		this._oldParent = <HTMLElement> container.parentNode;
 
 		var context3dObj = this;
-		ContextStage3D.contexts[container.id] = this;
+		ContextFlash.contexts[container.id] = this;
 
 		function callbackSWFObject(callbackInfo)
 		{
@@ -140,7 +139,7 @@ export class ContextStage3D implements IContextGL
 			this.addStream(String.fromCharCode(OpCodes.clearTextureAt) + sampler.toString() + ",");
 		}
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -153,7 +152,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -161,7 +160,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.setStencilReferenceValue, referenceValue + OpCodes.intMask, readMask + OpCodes.intMask, writeMask + OpCodes.intMask));
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -170,7 +169,7 @@ export class ContextStage3D implements IContextGL
 		//TODO implement coordinateSystem option
 		this.addStream(String.fromCharCode(OpCodes.setCulling) + triangleFaceToCull + "$");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -183,7 +182,7 @@ export class ContextStage3D implements IContextGL
 		//assume triangles
 		this.addStream(String.fromCharCode(OpCodes.drawTriangles, indexBuffer.id + OpCodes.intMask) + firstIndex + "," + numIndices + ",");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -201,7 +200,7 @@ export class ContextStage3D implements IContextGL
 			startIndex = i*4;
 			this.addStream(String.fromCharCode(OpCodes.setProgramConstant, target, i + OpCodes.intMask) + data[startIndex] + "," + data[startIndex + 1] + "," + data[startIndex + 2] + "," + data[startIndex + 3] + ",");
 
-			if (ContextStage3D.debug)
+			if (ContextFlash.debug)
 				this.execute();
 		}
 	}
@@ -210,7 +209,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.setProgram, program.id + OpCodes.intMask));
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -224,7 +223,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.clear) + red + "," + green + "," + blue + "," + alpha + "," + depth + "," + stencil + "," + mask + ",");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -265,7 +264,7 @@ export class ContextStage3D implements IContextGL
 			this.addStream(String.fromCharCode(OpCodes.clearVertexBufferAt, index + OpCodes.intMask));
 		}
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -273,7 +272,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.setColorMask, red? OpCodes.trueValue : OpCodes.falseValue, green? OpCodes.trueValue : OpCodes.falseValue, blue? OpCodes.trueValue : OpCodes.falseValue, alpha? OpCodes.trueValue : OpCodes.falseValue));
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -281,7 +280,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.setBlendFactors) + sourceFactor + "$" + destinationFactor + "$");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -293,7 +292,7 @@ export class ContextStage3D implements IContextGL
 			this.addStream(String.fromCharCode(OpCodes.setRenderToTexture, enableDepthAndStencil? OpCodes.trueValue : OpCodes.falseValue) + target.id + "," + (antiAlias || 0) + ",");
 		}
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -302,7 +301,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.clearRenderToTexture));
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -314,7 +313,7 @@ export class ContextStage3D implements IContextGL
 			this.addStream(String.fromCharCode(OpCodes.clearScissorRect));
 		}
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -322,7 +321,7 @@ export class ContextStage3D implements IContextGL
 	{
 		this.addStream(String.fromCharCode(OpCodes.setDepthTest, depthMask? OpCodes.trueValue : OpCodes.falseValue) + passCompareMode + "$");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this.execute();
 	}
 
@@ -358,7 +357,7 @@ export class ContextStage3D implements IContextGL
 
 	public execute():number
 	{
-		if (ContextStage3D.logStream)
+		if (ContextFlash.logStream)
 			console.log(this._cmdStream);
 
 		var result:number = this._container["CallFunction"]("<invoke name=\"execStage3dOpStream\" returntype=\"javascript\"><arguments><string>" + this._cmdStream + "</string></arguments></invoke>");
@@ -377,7 +376,7 @@ export class ContextStage3D implements IContextGL
 */
 function mountain_js_context_available(id, driverInfo)
 {
-	var ctx:ContextStage3D = ContextStage3D.contexts[id];
+	var ctx:ContextFlash = ContextFlash.contexts[id];
 	if (ctx._iCallback) {
 		ctx._iDriverInfo = driverInfo;
 		// get out of the current JS stack frame and call back from flash player

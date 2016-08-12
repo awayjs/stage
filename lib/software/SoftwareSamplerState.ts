@@ -1,6 +1,6 @@
-import {ContextGLTextureFilter}		from "./ContextGLTextureFilter";
-import {ContextGLMipFilter}			from "./ContextGLMipFilter";
-import {ContextGLWrapMode}			from "./ContextGLWrapMode";
+import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
+import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
+import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
 
 /**
  * The same as SamplerState, but with strings

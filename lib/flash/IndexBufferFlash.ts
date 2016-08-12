@@ -1,14 +1,15 @@
-import {ContextStage3D}				from "../base/ContextStage3D";
 import {IIndexBuffer}					from "../base/IIndexBuffer";
-import {OpCodes}						from "../base/OpCodes";
-import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
+
+import {ContextFlash}				from "./ContextFlash";
+import {OpCodes}						from "./OpCodes";
+import {ResourceBaseFlash}			from "./ResourceBaseFlash";
 
 export class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 {
-	private _context:ContextStage3D;
+	private _context:ContextFlash;
 	private _numIndices:number;
 
-	constructor(context:ContextStage3D, numIndices:number)
+	constructor(context:ContextFlash, numIndices:number)
 	{
 		super();
 

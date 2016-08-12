@@ -1,15 +1,16 @@
-import {ContextStage3D}				from "../base/ContextStage3D";
 import {IVertexBuffer}				from "../base/IVertexBuffer";
-import {OpCodes}						from "../base/OpCodes";
-import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
+
+import {ContextFlash}				from "./ContextFlash";
+import {OpCodes}						from "./OpCodes";
+import {ResourceBaseFlash}			from "./ResourceBaseFlash";
 
 export class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 {
-	private _context:ContextStage3D;
+	private _context:ContextFlash;
 	private _numVertices:number;
 	private _dataPerVertex:number;
 
-	constructor(context:ContextStage3D, numVertices:number, dataPerVertex:number)
+	constructor(context:ContextFlash, numVertices:number, dataPerVertex:number)
 	{
 		super();
 

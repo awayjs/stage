@@ -15,12 +15,13 @@ import {IContextGL}					from "../base/IContextGL";
 import {IIndexBuffer}					from "../base/IIndexBuffer";
 import {ICubeTexture}					from "../base/ICubeTexture";
 import {ITextureBase}					from "../base/ITextureBase";
-import {IndexBufferSoftware}			from "../base/IndexBufferSoftware";
-import {VertexBufferSoftware}			from "../base/VertexBufferSoftware";
-import {TextureSoftware}				from "../base/TextureSoftware";
-import {ProgramSoftware}				from "../base/ProgramSoftware";
-import {ProgramVOSoftware}			from "../base/ProgramVOSoftware";
-import {SoftwareSamplerState}			from "../base/SoftwareSamplerState";
+
+import {IndexBufferSoftware}			from "./IndexBufferSoftware";
+import {VertexBufferSoftware}			from "./VertexBufferSoftware";
+import {TextureSoftware}				from "./TextureSoftware";
+import {ProgramSoftware}				from "./ProgramSoftware";
+import {ProgramVOSoftware}			from "./ProgramVOSoftware";
+import {SoftwareSamplerState}			from "./SoftwareSamplerState";
 
 export class ContextSoftware implements IContextGL
 {

@@ -2,9 +2,13 @@ import * as aglsl					from "./lib/aglsl";
 import * as attributes				from "./lib/attributes";
 import * as base					from "./lib/base";
 import * as events					from "./lib/events";
+import * as flash					from "./lib/flash";
+import * as gles					from "./lib/gles";
 import * as image					from "./lib/image";
 import * as library					from "./lib/library";
 import * as managers				from "./lib/managers";
+import * as software				from "./lib/software";
+import * as webgl					from "./lib/webgl";
 
 import {AttributesBuffer}				from "@awayjs/core/lib/attributes/AttributesBuffer";
 import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
@@ -29,7 +33,11 @@ export {
 	attributes,
 	base,
 	events,
+	flash,
+	gles,
 	image,
 	library,
-	managers
+	managers,
+	software,
+	webgl
 }

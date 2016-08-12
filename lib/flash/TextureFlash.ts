@@ -1,13 +1,14 @@
 import {ByteArrayBase}				from "@awayjs/core/lib/utils/ByteArrayBase";
 
-import {ContextStage3D}				from "../base/ContextStage3D";
 import {ITexture}						from "../base/ITexture";
-import {OpCodes}						from "../base/OpCodes";
-import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
+
+import {ContextFlash}				from "./ContextFlash";
+import {OpCodes}						from "./OpCodes";
+import {ResourceBaseFlash}			from "./ResourceBaseFlash";
 
 export class TextureFlash extends ResourceBaseFlash implements ITexture
 {
-	private _context:ContextStage3D;
+	private _context:ContextFlash;
 	private _width:number;
 	private _height:number;
 
@@ -21,7 +22,7 @@ export class TextureFlash extends ResourceBaseFlash implements ITexture
 		return this._height;
 	}
 
-	constructor(context:ContextStage3D, width:number, height:number, format:string, forRTT:boolean, streaming:boolean = false)
+	constructor(context:ContextFlash, width:number, height:number, format:string, forRTT:boolean, streaming:boolean = false)
 	{
 		super();
 

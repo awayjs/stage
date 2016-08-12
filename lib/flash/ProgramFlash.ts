@@ -1,15 +1,16 @@
 import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 
-import {ContextStage3D}				from "../base/ContextStage3D";
 import {IProgram}						from "../base/IProgram";
-import {OpCodes}						from "../base/OpCodes";
-import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
+
+import {ContextFlash}				from "./ContextFlash";
+import {OpCodes}						from "./OpCodes";
+import {ResourceBaseFlash}			from "./ResourceBaseFlash";
 
 export class ProgramFlash extends ResourceBaseFlash implements IProgram
 {
-	private _context:ContextStage3D;
+	private _context:ContextFlash;
 
-	constructor(context:ContextStage3D)
+	constructor(context:ContextFlash)
 	{
 		super();
 
@@ -23,7 +24,7 @@ export class ProgramFlash extends ResourceBaseFlash implements IProgram
 	{
 		this._context.addStream(String.fromCharCode(OpCodes.uploadAGALBytesProgram, this._pId + OpCodes.intMask) + vertexProgram.readBase64String(vertexProgram.length) + "%" + fragmentProgram.readBase64String(fragmentProgram.length) + "%");
 
-		if (ContextStage3D.debug)
+		if (ContextFlash.debug)
 			this._context.execute();
 	}
 

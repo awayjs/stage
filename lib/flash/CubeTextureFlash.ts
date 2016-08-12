@@ -1,14 +1,15 @@
 import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 import {ByteArrayBase}				from "@awayjs/core/lib/utils/ByteArrayBase";
 
-import {ContextStage3D}				from "../base/ContextStage3D";
 import {ICubeTexture}					from "../base/ICubeTexture";
-import {OpCodes}						from "../base/OpCodes";
-import {ResourceBaseFlash}			from "../base/ResourceBaseFlash";
+
+import {ContextFlash}				from "./ContextFlash";
+import {OpCodes}						from "./OpCodes";
+import {ResourceBaseFlash}			from "./ResourceBaseFlash";
 
 export class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 {
-	private _context:ContextStage3D;
+	private _context:ContextFlash;
 	private _size:number;
 
 	public get size():number
@@ -16,7 +17,7 @@ export class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 		return this._size;
 	}
 
-	constructor(context:ContextStage3D, size:number, format:string, forRTT:boolean, streaming:boolean = false)
+	constructor(context:ContextFlash, size:number, format:string, forRTT:boolean, streaming:boolean = false)
 	{
 		super();
 

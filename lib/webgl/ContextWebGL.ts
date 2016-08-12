@@ -1,8 +1,5 @@
 import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Matrix3DUtils}				from "@awayjs/core/lib/geom/Matrix3DUtils";
 import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 
 import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
 import {ContextGLDrawMode}			from "../base/ContextGLDrawMode";
@@ -15,14 +12,15 @@ import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
 import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
 import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
 import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
-import {CubeTextureWebGL}				from "../base/CubeTextureWebGL";
-import {IContextGL}				    from "../base/IContextGL";
-import {IndexBufferWebGL}				from "../base/IndexBufferWebGL";
-import {ProgramWebGL}					from "../base/ProgramWebGL";
-import {TextureBaseWebGL}				from "../base/TextureBaseWebGL";
-import {TextureWebGL}					from "../base/TextureWebGL";
+import {IContextGL}				    from "../base/IContextGL"
 import {SamplerState}					from "../base/SamplerState";
-import {VertexBufferWebGL}			from "../base/VertexBufferWebGL";
+
+import {CubeTextureWebGL}				from "./CubeTextureWebGL";
+import {IndexBufferWebGL}				from "./IndexBufferWebGL";
+import {ProgramWebGL}					from "./ProgramWebGL";
+import {TextureBaseWebGL}				from "./TextureBaseWebGL";
+import {TextureWebGL}					from "./TextureWebGL";
+import {VertexBufferWebGL}			from "./VertexBufferWebGL";
 
 export class ContextWebGL implements IContextGL
 {

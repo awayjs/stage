@@ -1,5 +1,3 @@
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
-
 export class ProgramVOSoftware
 {
 	public outputPosition:Float32Array;

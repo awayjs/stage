@@ -12,9 +12,6 @@ import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
 import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
 import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
 import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
-import {ContextWebGL}					from "../base/ContextWebGL";
-import {ContextStage3D}				from "../base/ContextStage3D";
-import {ContextSoftware}				from "../base/ContextSoftware";
 import {IContextGL}					from "../base/IContextGL";
 import {IVertexBuffer}				from "../base/IVertexBuffer";
 import {StageEvent}					from "../events/StageEvent";
@@ -23,6 +20,10 @@ import {GL_IAssetClass}				from "../library/GL_IAssetClass";
 import {ProgramData}					from "../image/ProgramData";
 import {ProgramDataPool}				from "../image/ProgramDataPool";
 import {StageManager}					from "../managers/StageManager";
+import {ContextGLES}					from "../gles/ContextGLES";
+import {ContextWebGL}					from "../webgl/ContextWebGL";
+import {ContextFlash}				from "../flash/ContextFlash";
+import {ContextSoftware}				from "../software/ContextSoftware";
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -197,16 +198,18 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 		try {
 			if (mode == ContextMode.FLASH)
-				new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
-			else if(mode == ContextMode.SOFTWARE)
+				new ContextFlash(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+			else if (mode == ContextMode.SOFTWARE)
 				this._context = new ContextSoftware(<HTMLCanvasElement> this._container);
+			else if (mode == ContextMode.GLES)
+				this._context = new ContextGLES(<HTMLCanvasElement> this._container);
 			else
 				this._context = new ContextWebGL(<HTMLCanvasElement> this._container);
 
 		} catch (e) {
 			try {
 				if (mode == ContextMode.AUTO)
-					new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+					new ContextFlash(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
 				else
 					this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 			} catch (e) {
