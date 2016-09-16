@@ -3,6 +3,8 @@ import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
 import {ICubeTexture}					from "../base/ICubeTexture";
 
 import {TextureBaseGLES}				from "./TextureBaseGLES";
+import {GLESConnector}					from "./GLESConnector";
+import {ContextGLES}					from "./ContextGLES";
 
 export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 {
@@ -12,10 +14,11 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 	public textureType:string = "textureCube";
 	private _size:number;
 
-	constructor(gl:WebGLRenderingContext, size:number)
+	constructor(context:ContextGLES, gl:WebGLRenderingContext, size:number, id:number)
 	{
-		super(gl);
+		super(context, gl, id);
 		this._size = size;
+		//todo
 		// this._glTexture = this._gl.createTexture();
 		//
 		// this._textureSelectorDictionary[0] = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
@@ -30,6 +33,7 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
 	public uploadFromData(data:any, side:number, miplevel:number = 0):void
 	{
+		//todo
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
 		// this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
@@ -37,6 +41,7 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 
 	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
 	{
+		//todo
 
 	}
 

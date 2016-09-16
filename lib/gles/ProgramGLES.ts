@@ -1,10 +1,14 @@
 import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {GLESAssetBase}					from "./GLESAssetBase";
+import {GLESConnector}					from "./GLESConnector";
 
 import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
 import {AGLSLParser}					from "../aglsl/AGLSLParser";
 import {IProgram}						from "../base/IProgram";
+import {ContextGLES}					from "./ContextGLES";
+import {OpCodes}						from "../flash/OpCodes";
 
-export class ProgramGLES implements IProgram
+export class ProgramGLES extends GLESAssetBase implements IProgram
 {
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
 	private static _aglslParser:AGLSLParser = new AGLSLParser();
@@ -18,16 +22,19 @@ export class ProgramGLES implements IProgram
 	private _uniforms:Array<Array<WebGLUniformLocation>> = [[],[],[]];
 	private _attribs:Array<number> = [];
 
-	constructor(gl:WebGLRenderingContext)
+	constructor(context:ContextGLES, gl:WebGLRenderingContext, id:number)
 	{
+		super(context, id);
 		// this._gl = gl;
 		// this._program = this._gl.createProgram();
 	}
 
 	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
-		// var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram));
-		// var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram));
+		var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram));
+		var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram));
+		this._context.addCreateStream(String.fromCharCode(OpCodes.uploadProgram, this.id + OpCodes.intMask) + "###"+vertexString +  "###" + fragmentString + "#END");
+
 		//
 		// this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 		// this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
@@ -89,11 +96,14 @@ export class ProgramGLES implements IProgram
 
 	public dispose():void
 	{
+		this._context.addStream(String.fromCharCode(OpCodes.disposeProgram, this.id + OpCodes.intMask));
+		//GLESConnector.gles.disposeProgram(this.id);
 		// this._gl.deleteProgram(this._program);
 	}
 
 	public focusProgram():void
 	{
+		//GLESConnector.gles.focusProgram(this.id);
 		// this._gl.useProgram(this._program);
 	}
 

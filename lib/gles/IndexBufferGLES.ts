@@ -1,14 +1,17 @@
 import {IIndexBuffer}					from "../base/IIndexBuffer";
-
-export class IndexBufferGLES implements IIndexBuffer
+import {GLESAssetBase}					from "./GLESAssetBase";
+import {GLESConnector}					from "./GLESConnector";
+import {ContextGLES}					from "./ContextGLES";
+export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer
 {
 
 	private _gl:WebGLRenderingContext;
 	private _numIndices:number;
 	private _buffer:WebGLBuffer;
 
-	constructor(gl:WebGLRenderingContext, numIndices:number)
+	constructor(context:ContextGLES, gl:WebGLRenderingContext, numIndices:number, id:number)
 	{
+		super(context, id);
 		this._gl = gl;
 		// this._buffer = this._gl.createBuffer();
 		this._numIndices = numIndices;
@@ -16,6 +19,7 @@ export class IndexBufferGLES implements IIndexBuffer
 
 	public uploadFromArray(data:number[], startOffset:number, count:number):void
 	{
+		//GLESConnector.gles.uploadIndexDataFromArray(this.id, data, startOffset, count);
 		// this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 		//
 		// if (startOffset)
@@ -26,6 +30,7 @@ export class IndexBufferGLES implements IIndexBuffer
 
 	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void
 	{
+		//GLESConnector.gles.uploadIndexDataFromByteArray(this.id, data, startOffset, count);
 		// this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 		//
 		// if (startOffset)
@@ -36,6 +41,7 @@ export class IndexBufferGLES implements IIndexBuffer
 
 	public dispose():void
 	{
+		//GLESConnector.gles.disposeIndexBuffer(this.id);
 		// this._gl.deleteBuffer(this._buffer);
 	}
 

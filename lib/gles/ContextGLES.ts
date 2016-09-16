@@ -1,5 +1,6 @@
 import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
 import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {GLESConnector}					from "./GLESConnector";
 
 import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
 import {ContextGLDrawMode}			from "../base/ContextGLDrawMode";
@@ -21,9 +22,11 @@ import {ProgramGLES}					from "./ProgramGLES";
 import {TextureBaseGLES}				from "./TextureBaseGLES";
 import {TextureGLES}					from "./TextureGLES";
 import {VertexBufferGLES}			from "./VertexBufferGLES";
+import {OpCodes}						from "../flash/OpCodes";
 
 export class ContextGLES implements IContextGL
 {
+	private static _uniformLocationNameDictionary:Array<string> = ["fc", "fs", "vc"];
 	private _blendFactorDictionary:Object = new Object();
 	private _drawModeDictionary:Object = new Object();
 	private _compareModeDictionary:Object = new Object();
@@ -35,6 +38,8 @@ export class ContextGLES implements IContextGL
 	private _mipmapFilterDictionary:Object = new Object();
 	private _vertexBufferPropertiesDictionary:Array<VertexBufferProperties> = [];
 
+	private _cmdStream:string = "";
+	private _createStream:string = "";
 	private _container:HTMLElement;
 	private _width:number;
 	private _height:number;
@@ -63,6 +68,11 @@ export class ContextGLES implements IContextGL
     private _stencilReferenceValue : number = 0;
     private _stencilReadMask : number = 0xff;
     private _separateStencil : boolean = false;
+	private _textureCnt:number=0;
+	private _programCnt:number=0;
+	private _cubeTextureCnt:number=0;
+	private _indexBufferCnt:number=0;
+	private _vertexBufferCnt:number=0;
 
 
 	public get container():HTMLElement
@@ -97,29 +107,28 @@ export class ContextGLES implements IContextGL
 		// 	}
 		//
 		// 	//setup shortcut dictionaries
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_COLOR] = this._gl.DST_COLOR;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA] = this._gl.ONE_MINUS_DST_ALPHA;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR] = this._gl.ONE_MINUS_DST_COLOR;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA] = this._gl.ONE_MINUS_SRC_ALPHA;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR] = this._gl.ONE_MINUS_SRC_COLOR;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
-		// 	this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.ONE] = 1;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = 0x0304;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_COLOR] = 0x0306;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA] = 0x0305;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR] = 0x0307;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA] = 0x0303;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR] = 0x0301;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = 0x0302;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = 0x0300;
+		 	this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = 0;
 		//
-		// 	this._drawModeDictionary[ContextGLDrawMode.LINES] = this._gl.LINES;
-		// 	this._drawModeDictionary[ContextGLDrawMode.TRIANGLES] = this._gl.TRIANGLES;
+		 	this._drawModeDictionary[ContextGLDrawMode.LINES] = 0x0001;
+		 	this._drawModeDictionary[ContextGLDrawMode.TRIANGLES] = 0x0004;
 		//
-         //    this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
-         //    this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
-         //    this._compareModeDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
-		// 	this._compareModeDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
-		// 	this._compareModeDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
-		// 	this._compareModeDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
-		// 	this._compareModeDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
-		// 	this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+			this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = 0x0207;
+           	this._compareModeDictionary[ContextGLCompareMode.EQUAL] = 0x0202;
+          	this._compareModeDictionary[ContextGLCompareMode.GREATER] = 0x0204;
+			this._compareModeDictionary[ContextGLCompareMode.GREATER_EQUAL] = 0x0206;
+		 	this._compareModeDictionary[ContextGLCompareMode.LESS] = 0x0201;
+		 	this._compareModeDictionary[ContextGLCompareMode.LESS_EQUAL] = 0x0203;
+		 	this._compareModeDictionary[ContextGLCompareMode.NEVER] = 0x0200;
+		 	this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = 0x0205;
 		//
          //    this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = this._gl.DECR;
          //    this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = this._gl.DECR_WRAP;
@@ -142,20 +151,20 @@ export class ContextGLES implements IContextGL
 		// 	this._textureTypeDictionary["texture2d"] = this._gl.TEXTURE_2D;
 		// 	this._textureTypeDictionary["textureCube"] = this._gl.TEXTURE_CUBE_MAP;
 		//
-		// 	this._wrapDictionary[ContextGLWrapMode.REPEAT] = this._gl.REPEAT;
-		// 	this._wrapDictionary[ContextGLWrapMode.CLAMP] = this._gl.CLAMP_TO_EDGE;
+		 	this._wrapDictionary[ContextGLWrapMode.REPEAT] = 0x2901;
+		 	this._wrapDictionary[ContextGLWrapMode.CLAMP] = 0x812F;
 		//
-		// 	this._filterDictionary[ContextGLTextureFilter.LINEAR] = this._gl.LINEAR;
-		// 	this._filterDictionary[ContextGLTextureFilter.NEAREST] = this._gl.NEAREST;
+		 	this._filterDictionary[ContextGLTextureFilter.LINEAR] = 0x2601;
+		 	this._filterDictionary[ContextGLTextureFilter.NEAREST] = 0x2600;
 		//
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR] = new Object();
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPNEAREST] = this._gl.LINEAR_MIPMAP_NEAREST;
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPLINEAR] = this._gl.LINEAR_MIPMAP_LINEAR;
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPNONE] = this._gl.LINEAR;
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST] = new Object();
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNEAREST] = this._gl.NEAREST_MIPMAP_NEAREST;
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPLINEAR] = this._gl.NEAREST_MIPMAP_LINEAR;
-		// 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNONE] = this._gl.NEAREST;
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR] = new Object();
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPNEAREST] =0x2701;
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPLINEAR] = 0x2703;
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.LINEAR][ContextGLMipFilter.MIPNONE] = 0x2601;
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST] = new Object();
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNEAREST] = 0x2700;
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPLINEAR] = 0x2702;
+		 	this._mipmapFilterDictionary[ContextGLTextureFilter.NEAREST][ContextGLMipFilter.MIPNONE] = 0x2600;
 		//
 		// 	this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
 		// 	this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
@@ -202,72 +211,57 @@ export class ContextGLES implements IContextGL
 
 	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void
 	{
-		// if (!this._drawing) {
-		// 	this.updateBlendStatus();
-		// 	this._drawing = true;
-		// }
-		//
-		// var glmask:number = 0;
-		// if (mask & ContextGLClearMask.COLOR) glmask |= this._gl.COLOR_BUFFER_BIT;
-		// if (mask & ContextGLClearMask.STENCIL) glmask |= this._gl.STENCIL_BUFFER_BIT;
-		// if (mask & ContextGLClearMask.DEPTH) glmask |= this._gl.DEPTH_BUFFER_BIT;
-		//
-		// this._gl.clearColor(red, green, blue, alpha);
-		// this._gl.clearDepth(depth);
-		// this._gl.clearStencil(stencil);
-		// this._gl.clear(glmask);
+		this.addStream(String.fromCharCode(OpCodes.clear) + red + "," + green + "," + blue + "," + alpha + "," + depth + "," + stencil + "," + mask + "#END");
 	}
 
 	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true):void
 	{
-		// this._width = width;
-		// this._height = height;
-		//
-		// if (enableDepthAndStencil) {
-		// 	this._gl.enable(this._gl.STENCIL_TEST);
-		// 	this._gl.enable(this._gl.DEPTH_TEST);
-		// }
-		//
-		// this._gl.viewport['width'] = width;
-		// this._gl.viewport['height'] = height;
-		//
-		// this._gl.viewport(0, 0, width, height);
+		this._width = width;
+		this._height = height;
+		this.addStream(String.fromCharCode(OpCodes.configureBackBuffer) + width + "," + height + ","+ antiAlias+","+enableDepthAndStencil + "#END");
+		//todo: AA setting not used in opengl yet
 	}
 
 	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureGLES
 	{
-		return new CubeTextureGLES(this._gl, size);
+		// todo: cubetextures not finished / tested for opengl yet
+		return new CubeTextureGLES(this, this._gl, size, this._cubeTextureCnt++);
 	}
 
 	public createIndexBuffer(numIndices:number):IndexBufferGLES
 	{
-		return new IndexBufferGLES(this._gl, numIndices);
+		// todo: indexBuffer not finished / tested for opengl yet
+		return new IndexBufferGLES(this, this._gl, numIndices, this._indexBufferCnt++);
 	}
 
 	public createProgram():ProgramGLES
 	{
-		return new ProgramGLES(this._gl);
+		return new ProgramGLES(this, this._gl, this._programCnt++);
 	}
 
 	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureGLES
 	{
 		//TODO streaming
-		return new TextureGLES(this._gl, width, height);
+		return new TextureGLES(this, this._gl, width, height, this._textureCnt++);
 	}
 
 	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferGLES
 	{
-		return new VertexBufferGLES(this._gl, numVertices, dataPerVertex);
+		return new VertexBufferGLES(this, this._gl, numVertices, dataPerVertex, this._vertexBufferCnt++);
 	}
 
 	public dispose():void
 	{
+		this.addStream(String.fromCharCode(OpCodes.disposeContext) + "#END");
+		this.execute();
+		//GLESConnector.gles.glesDispose();
 		// for (var i:number = 0; i < this._samplerStates.length; ++i)
 		// 	this._samplerStates[i] = null;
 	}
 
 	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
+		//todo (not needed for icycle (?) )
 		// var pixels:Uint8ClampedArray = new Uint8ClampedArray(destination.width*destination.height*4);
 		//
 		// this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
@@ -277,6 +271,8 @@ export class ContextGLES implements IContextGL
 
 	public drawIndices(mode:string, indexBuffer:IndexBufferGLES, firstIndex:number = 0, numIndices:number = -1):void
 	{
+		//todo (not needed for icycle)
+		//GLESConnector.gles.drawIndices(mode, indexBuffer.id, firstIndex, numIndices);
 		// if (!this._drawing)
 		// 	throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 		//
@@ -289,44 +285,50 @@ export class ContextGLES implements IContextGL
 	{
 		// if (!this._drawing)
 		// 	throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
-		//
-		// this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
+		this.addStream(String.fromCharCode(OpCodes.drawVertices) + this._drawModeDictionary[mode] + "," + firstVertex + ","+ numVertices  + "#END");
+
 	}
 
 	public present():void
 	{
+		// no need to send the present command (?)
+		//this.addStream(String.fromCharCode(OpCodes.present) + "#END");
+		this.execute();
 		// this._drawing = false;
 	}
 
 	public setBlendFactors(sourceFactor:string, destinationFactor:string):void
 	{
-		// this._blendEnabled = true;
-		//
-		// this._blendSourceFactor = this._blendFactorDictionary[sourceFactor];
-		//
-		// this._blendDestinationFactor = this._blendFactorDictionary[destinationFactor];
-		//
-		// this.updateBlendStatus();
+		this._blendEnabled = true;		
+		this._blendSourceFactor = this._blendFactorDictionary[sourceFactor];		
+		this._blendDestinationFactor = this._blendFactorDictionary[destinationFactor];		
+		this.updateBlendStatus();
 	}
 
 	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void
 	{
+		this.addStream(String.fromCharCode(OpCodes.setColorMask, red? OpCodes.trueValue : OpCodes.falseValue, green? OpCodes.trueValue : OpCodes.falseValue, blue? OpCodes.trueValue : OpCodes.falseValue, alpha? OpCodes.trueValue : OpCodes.falseValue) + "#END");
+		//GLESConnector.gles.setColorMask(red, green, blue, alpha);
 		// this._gl.colorMask(red, green, blue, alpha);
 	}
 
 	public setCulling(triangleFaceToCull:string, coordinateSystem:string = "leftHanded"):void
 	{
-		// if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
-		// 	this._gl.disable(this._gl.CULL_FACE);
-		// } else {
-		// 	this._gl.enable(this._gl.CULL_FACE);
-         //    this._gl.cullFace(this.translateTriangleFace(triangleFaceToCull, coordinateSystem));
-		// }
+		if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
+			this.addStream(String.fromCharCode(OpCodes.disableCulling) + "#END");
+			return;
+		}
+		var faceCulling:number  = this.translateTriangleFace(triangleFaceToCull, coordinateSystem);
+		this.addStream(String.fromCharCode(OpCodes.setCulling)+ faceCulling + "#END");
+
 	}
 
 	// TODO ContextGLCompareMode
 	public setDepthTest(depthMask:boolean, passCompareMode:string):void
 	{
+		this.addStream(String.fromCharCode(OpCodes.setDepthTest, depthMask? OpCodes.trueValue : OpCodes.falseValue)+","+ this._compareModeDictionary[passCompareMode]+ "#END");
+
+		//GLESConnector.gles.setDepthTest(depthMask, passCompareMode);
 		// this._gl.depthFunc(this._compareModeDictionary[passCompareMode]);
 		//
 		// this._gl.depthMask(depthMask);
@@ -334,7 +336,9 @@ export class ContextGLES implements IContextGL
 
     public setStencilActions(triangleFace:string = "frontAndBack", compareMode:string = "always", actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
     {
-        // this._separateStencil = triangleFace != "frontAndBack";
+		this.addStream(String.fromCharCode(OpCodes.setStencilActions) + triangleFace + "," + compareMode + "," + actionOnBothPass + "," + actionOnDepthFail + "," + actionOnDepthPassStencilFail + "," + "#END");
+
+		// this._separateStencil = triangleFace != "frontAndBack";
 		//
         // var compareModeGL = this._compareModeDictionary[compareMode];
 		//
@@ -361,6 +365,9 @@ export class ContextGLES implements IContextGL
 
     public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number)
     {
+		this.addStream(String.fromCharCode(OpCodes.setStencilReferenceValue, referenceValue + OpCodes.intMask, readMask + OpCodes.intMask, writeMask + OpCodes.intMask) + "#END");
+
+		//GLESConnector.gles.setStencilReferenceValue(referenceValue, readMask, writeMask);
         // this._stencilReferenceValue = referenceValue;
         // this._stencilReadMask = readMask;
 		//
@@ -377,98 +384,64 @@ export class ContextGLES implements IContextGL
 
 	public setProgram(program:ProgramGLES):void
 	{
-		// //TODO decide on construction/reference resposibilities
-		// this._currentProgram = program;
-		// program.focusProgram();
+		this.addStream(String.fromCharCode(OpCodes.setProgram, program.id + OpCodes.intMask) + "#END");
 	}
 
 	public static modulo:number = 0;
 
 	public setProgramConstantsFromArray(programType:number, data:Float32Array):void
 	{
-		// if (data.length)
-		// 	this._gl.uniform4fv(this._currentProgram.getUniformLocation(programType), data);
+		// this seem to only be used to set vertex and frac attributs, not texture
+		// we only ever use one attribute per type (vc / fc) without adding any numbers.
+		var target_name:string = ContextGLES._uniformLocationNameDictionary[programType];
+		var data_str="";
+		for (var i:number = 0; i < data.length; i++) {
+			data_str+=data[i]+",";}
+		this.addStream(String.fromCharCode(OpCodes.setProgramConstant)+target_name+"," + data.length + "," + data_str  + "#END");
+
 	}
 
 	public setScissorRectangle(rectangle:Rectangle):void
 	{
-		// if (!rectangle) {
-		// 	this._gl.disable(this._gl.SCISSOR_TEST);
-		// 	return;
-		// }
-		//
-		// this._gl.enable(this._gl.SCISSOR_TEST);
-		// this._gl.scissor(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+		if (rectangle) {
+			this.addStream(String.fromCharCode(OpCodes.setScissorRect) + rectangle.x + "," + rectangle.y + "," + rectangle.width + "," + rectangle.height  + "#END");
+		} else {
+			this.addStream(String.fromCharCode(OpCodes.clearScissorRect) + "#END");
+		}
 	}
 
 	public setTextureAt(sampler:number, texture:TextureBaseGLES):void
 	{
-		// var samplerState:SamplerState = this._samplerStates[sampler];
-		//
-		// if (this._activeTexture != sampler && (texture || samplerState.type)) {
-		// 	this._activeTexture = sampler;
-		// 	this._gl.activeTexture(this._textureIndexDictionary[sampler]);
-		// }
-		//
-		// if (!texture) {
-		// 	if (samplerState.type) {
-		// 		this._gl.bindTexture(samplerState.type, null);
-		// 		samplerState.type = null;
-		// 	}
-		//
-		// 	return;
-		// }
-		//
-		// var textureType:number = this._textureTypeDictionary[texture.textureType];
-		// samplerState.type = textureType;
-		//
-		// this._gl.bindTexture(textureType, texture.glTexture);
-		//
-		// this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
-		//
-		// this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
-		// this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
-		//
-		// this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
-		// this._gl.texParameteri(textureType, this._gl.TEXTURE_MIN_FILTER, samplerState.mipfilter);
+		if (texture) {
+			this.addStream(String.fromCharCode(OpCodes.setTextureAt) + sampler + "," + texture.id  + "#END");
+		} else {
+			this.addStream(String.fromCharCode(OpCodes.clearTextureAt) + sampler + "#END");
+		}
 	}
 
 	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
 	{
-		// if (0 <= sampler && sampler < ContextGLES.MAX_SAMPLERS) {
-		// 	this._samplerStates[sampler].wrap = this._wrapDictionary[wrap];
-		// 	this._samplerStates[sampler].filter = this._filterDictionary[filter];
-		// 	this._samplerStates[sampler].mipfilter = this._mipmapFilterDictionary[filter][mipfilter];
-		// } else {
-		// 	throw "Sampler is out of bounds.";
-		// }
+		this.addStream(String.fromCharCode(OpCodes.setSamplerStateAt) + sampler+","+this._wrapDictionary[wrap] + "," + this._filterDictionary[filter] + ","+ this._mipmapFilterDictionary[filter][mipfilter] + "#END");
 	}
 
 	public setVertexBufferAt(index:number, buffer:VertexBufferGLES, bufferOffset:number = 0, format:number = 4):void
 	{
-		// var location:number = this._currentProgram? this._currentProgram.getAttribLocation(index) : -1;
-		//
-		// if (!buffer) {
-		// 	if (location > -1)
-		// 		this._gl.disableVertexAttribArray(location);
-		//
-		// 	return;
-		// }
-		//
-		// //buffer may not have changed if concatenated buffers are being used
-		// if (this._currentArrayBuffer != buffer) {
-		// 	this._currentArrayBuffer = buffer;
-		// 	this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer? buffer.glBuffer : null);
-		// }
-		//
-		// var properties:VertexBufferProperties = this._vertexBufferPropertiesDictionary[format];
-		//
-		// this._gl.enableVertexAttribArray(location);
-		// this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
+		if (buffer) {
+			this.addStream(String.fromCharCode(OpCodes.setVertexBufferAt) +index+"," + buffer.id + ","
+				+ bufferOffset + "," + format + "," + buffer.dataPerVertex + "," + "#END");
+		} else {
+			this.addStream(String.fromCharCode(OpCodes.clearVertexBufferAt, index + OpCodes.intMask) + "#END");
+		}
+
 	}
 
 	public setRenderToTexture(target:TextureBaseGLES, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0):void
 	{
+		if (target === null || target === undefined) {
+			this.addStream(String.fromCharCode(OpCodes.clearRenderToTexture) + "#END");
+		} else {
+			this.addStream(String.fromCharCode(OpCodes.setRenderToTexture, enableDepthAndStencil? OpCodes.trueValue : OpCodes.falseValue) + target.id + "," + (antiAlias || 0)  + "#END");
+		}
 		// var texture:TextureGLES = <TextureGLES> target;
 		// var frameBuffer:WebGLFramebuffer = texture.frameBuffer;
 		// this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
@@ -483,33 +456,52 @@ export class ContextGLES implements IContextGL
 
 	public setRenderToBackBuffer():void
 	{
+		this.addStream(String.fromCharCode(OpCodes.clearRenderToTexture) + "#END");
+		//todo
 		// this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 	}
 
 	private updateBlendStatus():void
 	{
-		// if (this._blendEnabled) {
-		// 	this._gl.enable(this._gl.BLEND);
-		// 	this._gl.blendEquation(this._gl.FUNC_ADD);
-		// 	this._gl.blendFunc(this._blendSourceFactor, this._blendDestinationFactor);
-		// } else {
-		// 	this._gl.disable(this._gl.BLEND);
-		// }
+		if (this._blendEnabled) {
+			this.addStream(String.fromCharCode(OpCodes.setBlendFactors) + this._blendSourceFactor + "," + this._blendDestinationFactor + "#END");
+		} else {
+			this.addStream(String.fromCharCode(OpCodes.disableBlending) + "#END");
+		}
 	}
 
-    private translateTriangleFace(triangleFace:string, coordinateSystem:string)
-    {
-        // switch (triangleFace) {
-        //     case ContextGLTriangleFace.BACK:
-        //         return (coordinateSystem == "leftHanded")? this._gl.FRONT : this._gl.BACK;
-        //     case ContextGLTriangleFace.FRONT:
-        //         return (coordinateSystem == "leftHanded")? this._gl.BACK : this._gl.FRONT;
-        //     case ContextGLTriangleFace.FRONT_AND_BACK:
-        //         return this._gl.FRONT_AND_BACK;
-        //     default:
-        //         throw "Unknown ContextGLTriangleFace type."; // TODO error
-        // }
-    }
+	private translateTriangleFace(triangleFace:string, coordinateSystem:string)
+	{
+		switch (triangleFace) {
+			case ContextGLTriangleFace.BACK:
+				return (coordinateSystem == "leftHanded")? 0x0404 : 0x0405;
+			case ContextGLTriangleFace.FRONT:
+				return (coordinateSystem == "leftHanded")? 0x0405 : 0x0404;
+			case ContextGLTriangleFace.FRONT_AND_BACK:
+				return 0x0408;
+			default:
+				throw "Unknown ContextGLTriangleFace type."; // TODO error
+		}
+	}
+
+	public addStream(stream:string):void
+	{
+		this._cmdStream += stream;
+	}
+
+	public addCreateStream(stream:string):void
+	{
+		this._createStream += stream;
+	}
+	public execute():void
+	{
+		if(this._createStream.length>0){
+			GLESConnector.gles.sendGLESCreateCommands(this._createStream);
+			this._createStream="";
+		}
+		GLESConnector.gles.sendGLESCommands(this._cmdStream);
+		this._cmdStream = "";
+	}
 }
 
 

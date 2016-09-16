@@ -44,4 +44,12 @@ export class OpCodes
 	public static uploadBytesCubeTexture:number = 79;
 	public static clearRenderToTexture:number = 80;
 	public static enableErrorChecking:number = 81;
+
+	// added for gles context:
+	public static drawVertices:number = 82;
+	public static getFrameBufferForTexture:number = 83;
+	public static uploadProgram:number = 84;
+	public static disableCulling:number = 85;
+	public static disableBlending:number = 86;
+	public static setSamplerStateAt:number = 87;
 }
