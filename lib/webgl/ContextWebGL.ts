@@ -282,7 +282,14 @@ export class ContextWebGL implements IContextGL
 
 
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
+
+		// Note: The 2 code options below are for #1 production and #2 debugging. Pick one and comment the other.
+		// #1
 		this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
+		// #2
+		// for (var i:number = 0; i < numIndices; i+=3) {
+		// 	this._gl.drawElements(this._gl.LINE_LOOP, 3, this._gl.UNSIGNED_SHORT, (firstIndex+i)*2);
+		// }
 	}
 
 	public drawVertices(mode:string, firstVertex:number = 0, numVertices:number = -1):void
