@@ -81,6 +81,16 @@ export class ContextSoftware implements IContextGL
 			document.body.appendChild(this._frontBuffer.getCanvas());
 	}
 
+	public enableStencil(){
+
+	}
+	public disableStencil(){
+
+	}
+	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
+	{
+
+	}
 	public get frontBuffer():BitmapImage2D
 	{
 		return this._frontBuffer;

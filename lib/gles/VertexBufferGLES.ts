@@ -36,7 +36,7 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 
 	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number):void
 	{
-		function base64ArrayBuffer(arrayBuffer) {
+		/*function base64ArrayBuffer(arrayBuffer) {
 			var start = new Date().getTime();
 			var base64    = ''
 			var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -91,7 +91,18 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 			console.log('Execution time for vertexdata base64 encoding: ' + time);
 			return base64
 		}
-		this._context.addCreateStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer) + this.id + "," + startVertex +  "," + numVertices + ","+base64ArrayBuffer(data)+"#END");
+		*/
+		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer) + this.id + "," + startVertex +  "," + numVertices + ","+base64ArrayBuffer(data)+"#END");
+
+		console.log("upload vertexdata "+this.id);
+		this._context._createBytes.ensureSpace(10);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeUnsignedByte(OpCodes.uploadArrayVertexBuffer);
+		
+		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.writeUnsignedInt(startVertex);
+		this._context._createBytes.writeUnsignedInt(data.byteLength);
+		this._context._createBytes.writeArrayBuffer(data);
+		
 		//this._context.execute();
 		//GLESConnector.gles.uploadVertexDataFromByteArray(this.id, data, startVertex, numVertices);
 		// this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
@@ -119,7 +130,10 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 
 	public dispose():void
 	{
-		//GLESConnector.gles.disposeVertexBuffer(this.id);
-		// this._gl.deleteBuffer(this._buffer);
+		console.log("dispose vertexdata "+this.id);
+		//this._context.addCreateStream(String.fromCharCode(OpCodes.disposeVertexBuffer) + this.id+"#END");
+		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeUnsignedByte(OpCodes.disposeVertexBuffer);
+		this._context._createBytes.writeByte(this.id);
 	}
 }

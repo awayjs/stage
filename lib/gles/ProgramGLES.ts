@@ -25,6 +25,7 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 	constructor(context:ContextGLES, gl:WebGLRenderingContext, id:number)
 	{
 		super(context, id);
+		console.log("awayjs created program with id "+ id);
 		// this._gl = gl;
 		// this._program = this._gl.createProgram();
 	}
@@ -33,8 +34,12 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 	{
 		var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram));
 		var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram));
-		this._context.addCreateStream(String.fromCharCode(OpCodes.uploadProgram, this.id + OpCodes.intMask) + "###"+vertexString +  "###" + fragmentString + "#END");
-
+		//(String.fromCharCode(OpCodes.uploadProgram)+""+this.id + "###"+vertexString +  "###" + fragmentString + "#END");
+		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeUnsignedByte(OpCodes.uploadProgram);
+		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.writeUTFBytes(vertexString);
+		this._context._createBytes.writeUTFBytes(fragmentString);
 		//
 		// this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 		// this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
@@ -96,7 +101,10 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 
 	public dispose():void
 	{
-		this._context.addStream(String.fromCharCode(OpCodes.disposeProgram, this.id + OpCodes.intMask));
+		//this._context.addStream(String.fromCharCode(OpCodes.disposeProgram)+""+ this.id);
+		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeUnsignedByte(OpCodes.disposeProgram);
+		this._context._createBytes.writeByte(this.id);
 		//GLESConnector.gles.disposeProgram(this.id);
 		// this._gl.deleteProgram(this._program);
 	}
