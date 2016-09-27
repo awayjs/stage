@@ -339,6 +339,19 @@ export class ContextWebGL implements IContextGL
 		this._gl.depthMask(depthMask);
 	}
 
+	public enableStencil(){
+		this._gl.enable(this._gl.STENCIL_TEST);
+	}
+	public disableStencil(){
+		this._gl.disable(this._gl.STENCIL_TEST);
+
+	}
+	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep")
+	{
+		this._gl.stencilFunc(this._compareModeDictionary[compareMode], referenceValue, 0xff);
+		this._gl.stencilOp(this._stencilActionDictionary[actionOnDepthPassStencilFail], this._stencilActionDictionary[actionOnDepthFail], this._stencilActionDictionary[actionOnBothPass]);
+
+	}
     public setStencilActions(triangleFace:string = "frontAndBack", compareMode:string = "always", actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
     {
         this._separateStencil = triangleFace != "frontAndBack";

@@ -35,6 +35,17 @@ export class ContextFlash implements IContextGL
 
 	public _iCallback:(context:IContextGL) => void;
 
+	public enableStencil(){
+
+	}
+
+	public disableStencil(){
+
+	}
+	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
+	{
+
+	}
 	public get container():HTMLElement
 	{
 		return this._container;

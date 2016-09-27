@@ -38,7 +38,12 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 
 	public get frameBuffer():WebGLFramebuffer
 	{
-		this._context.addStream(String.fromCharCode(OpCodes.getFrameBufferForTexture) + this.id.toString() + "#END");
+		//this._context.addStream(String.fromCharCode(OpCodes.getFrameBufferForTexture) + this.id.toString() + "#END");
+/*
+		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeUnsignedByte(OpCodes.disposeVertexBuffer);
+		this._context._createBytes.writeByte(this.id);
+		*/
 		//this._context.execute();
 		// if (!this._frameBuffer) {
 		// 	this._frameBuffer = this._gl.createFramebuffer();
@@ -72,7 +77,7 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		}, null);
 */
 
-		function base64ArrayBuffer(arrayBuffer) {
+		/*function base64ArrayBuffer(arrayBuffer) {
 			var start = new Date().getTime();
 			var base64    = ''
 			var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -126,8 +131,19 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 			var time = end - start;
 			console.log('Execution time for texture base64 encoding: ' + time);
 			return base64
-		}
-		this._context.addCreateStream(String.fromCharCode(OpCodes.uploadBytesTexture) + this.id.toString() + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," +base64ArrayBuffer(data.data.buffer)+"#END");
+		}*/
+		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadBytesTexture) + this.id.toString() + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," +base64ArrayBuffer(data.data.buffer)+"#END");
+
+		console.log("upload texturedata "+this.id);
+		this._context._createBytes.ensureWriteableSpace(15);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeUnsignedByte(OpCodes.uploadBytesTexture);
+		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.writeByte(miplevel);
+		this._context._createBytes.writeFloat(this._width);
+		this._context._createBytes.writeFloat(this._height);
+		this._context._createBytes.writeUnsignedInt(data.data.buffer.byteLength);
+		this._context._createBytes.writeArrayBuffer(data.data.buffer);
+
 		//GLESConnector.gles.uploadTextureFromData(this.id, data, miplevel);
 		// this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		// this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);

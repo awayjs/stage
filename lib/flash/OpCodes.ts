@@ -52,4 +52,8 @@ export class OpCodes
 	public static disableCulling:number = 85;
 	public static disableBlending:number = 86;
 	public static setSamplerStateAt:number = 87;
+	public static enableStencil:number = 88;
+	public static disableStencil:number = 89;
+	public static setStencilActionsMasks:number = 90;
+
 }

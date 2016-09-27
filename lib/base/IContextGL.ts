@@ -64,4 +64,11 @@ export interface IContextGL
 	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number);
 
 	setRenderToBackBuffer();
+
+	enableStencil();
+
+	disableStencil();
+	
+	setStencilActionsMasks(compareMode:string, referenceValue:number, writeMask:number, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string);
+
 }
