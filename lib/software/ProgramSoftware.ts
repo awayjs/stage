@@ -1,5 +1,6 @@
 import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
 import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ArgumentError}					from "@awayjs/core/lib/errors/ArgumentError";
 
 import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
 import {IProgram}						from "../base/IProgram";
@@ -15,6 +16,8 @@ import {ProgramVOSoftware}			from "./ProgramVOSoftware";
 import {ContextSoftware}				from "./ContextSoftware";
 import {VertexBufferSoftware}			from "./VertexBufferSoftware";
 import {TextureSoftware}				from "./TextureSoftware";
+import {CubeTextureSoftware}				from "./CubeTextureSoftware";
+import {ITextureBase}				from "./../base/ITextureBase";
 import {SoftwareSamplerState}			from "./SoftwareSamplerState";
 
 export class ProgramSoftware implements IProgram
@@ -336,9 +339,42 @@ export class ProgramSoftware implements IProgram
 		if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
 			return new Float32Array([1, u, v, 0]);
 
-		var texture:TextureSoftware = context._textures[textureIndex];
+		var texture:ITextureBase = context._textures[textureIndex];
+		if (texture instanceof TextureSoftware) {
+			return ProgramSoftware.sampleSimpleTexture(u, v, source1Reg, vo, desc, context, source1, textureIndex);
+		}
+		else if (texture instanceof CubeTextureSoftware) {
+			return ProgramSoftware.sampleCubeTexture(u, v, source1Reg, vo, desc, context, source1, textureIndex);
+		}
+		else {
+			throw new ArgumentError("ArgumentError, cannot sample provided texture.");
+		}
+	}
+
+	private static sampleCubeTexture(u:number, v:number, source1Reg:number, vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number) {
+
+		var texture:CubeTextureSoftware = context._textures[textureIndex] as CubeTextureSoftware;
 		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
-		
+
+		var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
+		var mipmap:boolean = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
+		// TODO: implement mip mapping
+
+		var result:Float32Array;
+		var data:number[] = texture.getData(0);
+		if (state.filter == ContextGLTextureFilter.LINEAR) {
+			result = ProgramSoftware.sampleBilinear(u, v, data, texture.size, texture.size, repeat);
+		} else {
+			result = ProgramSoftware.sampleNearest(u, v, data, texture.size, texture.size, repeat);
+		}
+		return result;
+	}
+
+	private static sampleSimpleTexture(u:number, v:number, source1Reg:number, vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number) {
+
+		var texture:TextureSoftware = context._textures[textureIndex] as TextureSoftware;
+		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
+
 		var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
 		var mipmap:boolean = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
 		if (mipmap && texture.getMipLevelsCount() > 1) {

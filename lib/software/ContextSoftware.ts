@@ -19,6 +19,7 @@ import {ITextureBase}					from "../base/ITextureBase";
 import {IndexBufferSoftware}			from "./IndexBufferSoftware";
 import {VertexBufferSoftware}			from "./VertexBufferSoftware";
 import {TextureSoftware}				from "./TextureSoftware";
+import {CubeTextureSoftware}			from "./CubeTextureSoftware";
 import {ProgramSoftware}				from "./ProgramSoftware";
 import {ProgramVOSoftware}			from "./ProgramVOSoftware";
 import {SoftwareSamplerState}			from "./SoftwareSamplerState";
@@ -58,7 +59,7 @@ export class ContextSoftware implements IContextGL
 	private _clamp:Point = new Point();
 
 	public _samplerStates:SoftwareSamplerState[] = [];
-	public _textures:Array<TextureSoftware> = [];
+	public _textures:Array<ITextureBase> = [];
 	public _vertexBuffers:Array<VertexBufferSoftware> = [];
 	public _vertexBufferOffsets:Array<number> = [];
 	public _vertexBufferFormats:Array<number> = [];
@@ -168,8 +169,7 @@ export class ContextSoftware implements IContextGL
 
 	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture
 	{
-		//TODO: impl
-		return undefined;
+		return new CubeTextureSoftware(size);
 	}
 
 	public createIndexBuffer(numIndices:number):IIndexBuffer {
