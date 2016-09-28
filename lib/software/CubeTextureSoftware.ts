@@ -3,10 +3,11 @@ import {ByteArray}							from "@awayjs/core/lib/utils/ByteArray"
 
 export class CubeTextureSoftware implements ICubeTexture
 {
+	private _textureSelectorDictionary:Array<any> = new Array<any>(6);
+
 	public textureType:string = "textureCube";
 
 	private _size:number;
-	private _mipLevels:number[][] = [];
 
 	constructor(size:number)
 	{
@@ -15,7 +16,7 @@ export class CubeTextureSoftware implements ICubeTexture
 
 	public dispose():void
 	{
-		this._mipLevels = null;
+		this._textureSelectorDictionary = null;
 	}
 
 	public get size():number
@@ -23,21 +24,21 @@ export class CubeTextureSoftware implements ICubeTexture
 		return this._size;
 	}
 
-	public uploadFromData(image:HTMLImageElement, miplevel?:number);
-	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0):void
+	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
+	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
+	public uploadFromData(data:any, side:number, miplevel:number = 0):void
 	{
-		this._mipLevels[miplevel] = data.data;
+		this._textureSelectorDictionary[side] = data.data;
 	}
 
-	public getData(miplevel:number):number[]
+	public getData(side:number):any
 	{
-		return this._mipLevels[miplevel];
+		return this._textureSelectorDictionary[side];
 	}
 
 	public getMipLevelsCount():number
 	{
-		return this._mipLevels.length;
+		return 1;
 	}
 
 	public generateMipmaps():void
@@ -45,7 +46,7 @@ export class CubeTextureSoftware implements ICubeTexture
 		//TODO
 	}
 
-	uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number, async:boolean) {
+	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number, async:boolean) {
 		// TODO
 	}
 }

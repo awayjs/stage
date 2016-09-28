@@ -330,38 +330,36 @@ export class ProgramSoftware implements IProgram
 
 	private static sample(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array
 	{
-		var source1Reg:number = 4*source1.regnum;
-		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
-		
-		var u:number = source1Target[((source1.swizzle >> 0) & 3)];
-		var v:number = source1Target[((source1.swizzle >> 2) & 3)];
-		
-		if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
-			return new Float32Array([1, u, v, 0]);
-
 		var texture:ITextureBase = context._textures[textureIndex];
 		if (texture instanceof TextureSoftware) {
-			return ProgramSoftware.sampleSimpleTexture(u, v, source1Reg, vo, desc, context, source1, textureIndex);
+			return ProgramSoftware.sampleSimpleTexture(vo, desc, context, source1, textureIndex);
 		}
 		else if (texture instanceof CubeTextureSoftware) {
-			return ProgramSoftware.sampleCubeTexture(u, v, source1Reg, vo, desc, context, source1, textureIndex);
+			return ProgramSoftware.sampleCubeTexture(vo, desc, context, source1, textureIndex);
 		}
 		else {
 			throw new ArgumentError("ArgumentError, cannot sample provided texture.");
 		}
 	}
 
-	private static sampleCubeTexture(u:number, v:number, source1Reg:number, vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number) {
+	private static sampleCubeTexture(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array {
+
+		var source1Reg:number = 4*source1.regnum;
+		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+
+		var u:number = source1Target[((source1.swizzle >> 0) & 3)];
+		var v:number = source1Target[((source1.swizzle >> 2) & 3)];
 
 		var texture:CubeTextureSoftware = context._textures[textureIndex] as CubeTextureSoftware;
 		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
 
 		var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
 		var mipmap:boolean = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
-		// TODO: implement mip mapping
+		// TODO: implement mip mapping?
 
 		var result:Float32Array;
-		var data:number[] = texture.getData(0);
+		// TODO: select side and translate uv to u'v'
+		var data:number[] = texture.getData(3);
 		if (state.filter == ContextGLTextureFilter.LINEAR) {
 			result = ProgramSoftware.sampleBilinear(u, v, data, texture.size, texture.size, repeat);
 		} else {
@@ -370,7 +368,16 @@ export class ProgramSoftware implements IProgram
 		return result;
 	}
 
-	private static sampleSimpleTexture(u:number, v:number, source1Reg:number, vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number) {
+	private static sampleSimpleTexture(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array {
+
+		var source1Reg:number = 4*source1.regnum;
+		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
+
+		var u:number = source1Target[((source1.swizzle >> 0) & 3)];
+		var v:number = source1Target[((source1.swizzle >> 2) & 3)];
+
+		if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
+			return new Float32Array([1, u, v, 0]);
 
 		var texture:TextureSoftware = context._textures[textureIndex] as TextureSoftware;
 		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
@@ -527,7 +534,7 @@ export class ProgramSoftware implements IProgram
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
 		var source2Reg:number = 4*source2.regnum;
-		
+
 		var target:Float32Array = ProgramSoftware.getDestTarget(vo, desc, dest);
 		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 		var source2Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source2, context);
