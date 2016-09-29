@@ -16,6 +16,8 @@
     "watch": "npm run build -- --w",
     "prebuild": "npm run clean:dist",
     "build": "tsc",
+    "push": "npm run build",
+    "postpush" : "git push",
     "version": "npm run build",
     "postversion": "git push && git push --tags && npm publish"
   },
