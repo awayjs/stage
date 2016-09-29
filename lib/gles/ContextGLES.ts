@@ -414,11 +414,12 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeUnsignedByte(OpCodes.setProgramConstant);
 		this._cmdBytes.writeUnsignedByte(programType);
 		this._cmdBytes.writeUnsignedByte(data.length);
+		this._cmdBytes.writeArrayBuffer(data.buffer);
 		//var data_str="";
-		for (var i:number = 0; i < data.length; i++) {
-			this._cmdBytes.writeFloat(data[i]);
-			//data_str+=data[i]+",";
-		}
+		// for (var i:number = 0; i < data.length; i++) {
+		// 	this._cmdBytes.writeFloat(data[i]);
+		// 	//data_str+=data[i]+",";
+		// }
 		//this.addStream(String.fromCharCode(OpCodes.setProgramConstant)+target_name+"," + data.length + "," + data_str  + "#END");
 
 	}

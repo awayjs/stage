@@ -297,6 +297,11 @@ export class ContextWebGL implements IContextGL
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 
+		//DEBUG: draws triangle outlines
+		// for (var i:number = 0; i < numVertices; i+=3) {
+		// 	this._gl.drawArrays(this._gl.LINE_LOOP, firstVertex+i, 3);
+		// }
+
 		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
 	}
 
