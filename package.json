@@ -1,6 +1,6 @@
 {
   "name": "@awayjs/stage",
-  "version": "0.8.28",
+  "version": "0.8.29",
   "description": "Stage for AwayJS",
   "url": "http://www.away3d.com",
   "author": "Rob Bateman",
@@ -17,7 +17,7 @@
     "prebuild": "npm run clean:dist",
     "build": "tsc",
     "push": "npm run build",
-    "postpush" : "git push",
+    "postpush": "git push",
     "version": "npm run build",
     "postversion": "git push && git push --tags && npm publish"
   },
