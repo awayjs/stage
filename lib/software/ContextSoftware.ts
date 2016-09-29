@@ -14,8 +14,8 @@ import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
 import {IContextGL}					from "../base/IContextGL";
 import {IIndexBuffer}					from "../base/IIndexBuffer";
 import {ICubeTexture}					from "../base/ICubeTexture";
-import {ITextureBase}					from "../base/ITextureBase";
 
+import {ITextureBaseSoftware}			from "./ITextureBaseSoftware";
 import {IndexBufferSoftware}			from "./IndexBufferSoftware";
 import {VertexBufferSoftware}			from "./VertexBufferSoftware";
 import {TextureSoftware}				from "./TextureSoftware";
@@ -59,7 +59,7 @@ export class ContextSoftware implements IContextGL
 	private _clamp:Point = new Point();
 
 	public _samplerStates:SoftwareSamplerState[] = [];
-	public _textures:Array<ITextureBase> = [];
+	public _textures:Array<ITextureBaseSoftware> = [];
 	public _vertexBuffers:Array<VertexBufferSoftware> = [];
 	public _vertexBufferOffsets:Array<number> = [];
 	public _vertexBufferFormats:Array<number> = [];
@@ -348,7 +348,7 @@ export class ContextSoftware implements IContextGL
 		state.mipfilter = mipfilter;
 	}
 
-	public setRenderToTexture(target:ITextureBase, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number) 
+	public setRenderToTexture(target:ITextureBaseSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)
 	{
 		//TODO:
 	}

@@ -1,14 +1,26 @@
+import {ITextureBaseSoftware}				from "../software/ITextureBaseSoftware";
+import {ITextureBaseSoftwareClass}				from "../software/ITextureBaseSoftwareClass";
 import {ICubeTexture}						from "../base/ICubeTexture";
 import {ByteArray}							from "@awayjs/core/lib/utils/ByteArray"
 
-export class CubeTextureSoftware implements ICubeTexture
+export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 {
 	private _textureSelectorDictionary:Array<any> = new Array<any>(6);
 
-	public textureType:string = "textureCube";
+	public static textureType:string = "textureCube";
 
 	private _size:number;
 
+	public get textureType():string
+	{
+		return CubeTextureSoftware.textureType;
+	}
+	
+	public get size():number
+	{
+		return this._size;
+	}
+	
 	constructor(size:number)
 	{
 		this._size = size;
@@ -19,11 +31,11 @@ export class CubeTextureSoftware implements ICubeTexture
 		this._textureSelectorDictionary = null;
 	}
 
-	public get size():number
+	public isTexture(textureClass:ITextureBaseSoftwareClass):boolean
 	{
-		return this._size;
+		return this.textureType == textureClass.textureType;
 	}
-
+	
 	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
 	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
 	public uploadFromData(data:any, side:number, miplevel:number = 0):void

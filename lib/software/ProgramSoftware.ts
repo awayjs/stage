@@ -17,7 +17,7 @@ import {ContextSoftware}				from "./ContextSoftware";
 import {VertexBufferSoftware}			from "./VertexBufferSoftware";
 import {TextureSoftware}				from "./TextureSoftware";
 import {CubeTextureSoftware}				from "./CubeTextureSoftware";
-import {ITextureBase}				from "./../base/ITextureBase";
+import {ITextureBaseSoftware}				from "./ITextureBaseSoftware";
 import {SoftwareSamplerState}			from "./SoftwareSamplerState";
 
 export class ProgramSoftware implements IProgram
@@ -330,11 +330,11 @@ export class ProgramSoftware implements IProgram
 
 	private static sample(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array
 	{
-		var texture:ITextureBase = context._textures[textureIndex];
-		if (texture instanceof TextureSoftware) {
+		var texture:ITextureBaseSoftware = context._textures[textureIndex];
+		if (texture.isTexture(TextureSoftware)) {
 			return ProgramSoftware.sampleSimpleTexture(vo, desc, context, source1, textureIndex);
 		}
-		else if (texture instanceof CubeTextureSoftware) {
+		else if (texture.isTexture(CubeTextureSoftware)) {
 			return ProgramSoftware.sampleCubeTexture(vo, desc, context, source1, textureIndex);
 		}
 		else {

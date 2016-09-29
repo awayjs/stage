@@ -1,22 +1,18 @@
 import {ITexture}						from "../base/ITexture";
+import {ITextureBaseSoftware}				from "../software/ITextureBaseSoftware";
+import {ITextureBaseSoftwareClass}				from "../software/ITextureBaseSoftwareClass";
 
-export class TextureSoftware implements ITexture
+export class TextureSoftware implements ITexture, ITextureBaseSoftware
 {
-	public textureType:string = "texture2d";
+	public static textureType:string = "texture2d";
 
 	private _width:number;
 	private _height:number;
 	private _mipLevels:number[][] = [];
 
-	constructor(width:number, height:number)
+	public get textureType():string
 	{
-		this._width = width;
-		this._height = height;
-	}
-
-	public dispose():void
-	{
-		this._mipLevels = null;
+		return TextureSoftware.textureType;
 	}
 
 	public get width():number
@@ -28,6 +24,23 @@ export class TextureSoftware implements ITexture
 	{
 		return this._height;
 	}
+	
+	constructor(width:number, height:number)
+	{
+		this._width = width;
+		this._height = height;
+	}
+	
+	public dispose():void
+	{
+		this._mipLevels = null;
+	}
+
+	public isTexture(textureClass:ITextureBaseSoftwareClass):boolean
+	{
+		return this.textureType == textureClass.textureType;
+	}
+	
 
 	public uploadFromData(image:HTMLImageElement, miplevel?:number);
 	public uploadFromData(imageData:ImageData, miplevel?:number);
