@@ -149,7 +149,7 @@ export class ContextSoftware implements IContextGL
 
 		this._backBufferColor._setSize(this._backBufferWidth, this._backBufferHeight);
 
-		var raw:Float32Array = this._screenMatrix.rawData;
+		var raw:Float32Array = this._screenMatrix._rawData;
 
 		raw[0] = this._backBufferWidth /2;
 		raw[1] = 0;
