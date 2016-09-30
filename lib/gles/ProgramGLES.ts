@@ -35,9 +35,9 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 		var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram));
 		var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram));
 		//(String.fromCharCode(OpCodes.uploadProgram)+""+this.id + "###"+vertexString +  "###" + fragmentString + "#END");
-		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
-		this._context._createBytes.writeUnsignedByte(OpCodes.uploadProgram);
-		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.ensureSpace(8);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeInt(OpCodes.uploadProgram);
+		this._context._createBytes.writeInt(this.id);
 		this._context._createBytes.writeUTFBytes(vertexString);
 		this._context._createBytes.writeUTFBytes(fragmentString);
 		//
@@ -102,9 +102,9 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 	public dispose():void
 	{
 		//this._context.addStream(String.fromCharCode(OpCodes.disposeProgram)+""+ this.id);
-		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
-		this._context._createBytes.writeUnsignedByte(OpCodes.disposeProgram);
-		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.ensureSpace(8);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeInt(OpCodes.disposeProgram);
+		this._context._createBytes.writeInt(this.id);
 		//GLESConnector.gles.disposeProgram(this.id);
 		// this._gl.deleteProgram(this._program);
 	}

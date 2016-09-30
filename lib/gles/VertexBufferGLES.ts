@@ -95,12 +95,11 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer) + this.id + "," + startVertex +  "," + numVertices + ","+base64ArrayBuffer(data)+"#END");
 
 		console.log("upload vertexdata "+this.id);
-		this._context._createBytes.ensureSpace(10);//the space for the text is ensured during writeUTFBytes
-		this._context._createBytes.writeUnsignedByte(OpCodes.uploadArrayVertexBuffer);
-		
-		this._context._createBytes.writeByte(this.id);
-		this._context._createBytes.writeUnsignedInt(startVertex);
-		this._context._createBytes.writeUnsignedInt(data.byteLength);
+		this._context._createBytes.ensureSpace(16);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeInt(OpCodes.uploadArrayVertexBuffer);
+		this._context._createBytes.writeInt(this.id);
+		this._context._createBytes.writeInt(startVertex);
+		this._context._createBytes.writeInt(data.byteLength);
 		this._context._createBytes.writeArrayBuffer(data);
 		
 		//this._context.execute();
@@ -132,8 +131,8 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 	{
 		console.log("dispose vertexdata "+this.id);
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.disposeVertexBuffer) + this.id+"#END");
-		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
-		this._context._createBytes.writeUnsignedByte(OpCodes.disposeVertexBuffer);
-		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.ensureSpace(8);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeInt(OpCodes.disposeVertexBuffer);
+		this._context._createBytes.writeInt(this.id);
 	}
 }

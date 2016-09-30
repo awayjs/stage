@@ -135,13 +135,12 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadBytesTexture) + this.id.toString() + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," +base64ArrayBuffer(data.data.buffer)+"#END");
 
 		console.log("upload texturedata "+this.id);
-		this._context._createBytes.ensureWriteableSpace(15);//the space for the text is ensured during writeUTFBytes
-		this._context._createBytes.writeUnsignedByte(OpCodes.uploadBytesTexture);
-		this._context._createBytes.writeByte(this.id);
-		this._context._createBytes.writeByte(miplevel);
+		this._context._createBytes.ensureWriteableSpace(20);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeInt(OpCodes.uploadBytesTexture | miplevel<<8);
+		this._context._createBytes.writeInt(this.id);
 		this._context._createBytes.writeFloat(this._width);
 		this._context._createBytes.writeFloat(this._height);
-		this._context._createBytes.writeUnsignedInt(data.data.buffer.byteLength);
+		this._context._createBytes.writeInt(data.data.buffer.byteLength);
 		this._context._createBytes.writeArrayBuffer(data.data.buffer);
 
 		//GLESConnector.gles.uploadTextureFromData(this.id, data, miplevel);

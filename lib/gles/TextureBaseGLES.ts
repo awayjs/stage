@@ -20,9 +20,9 @@ export class TextureBaseGLES extends GLESAssetBase
 	{
 		console.log("dispose texturedata "+this.id);
 		///this._context.addStream(String.fromCharCode(OpCodes.disposeTexture) + this.id.toString() + "#END");
-		this._context._createBytes.ensureSpace(2);//the space for the text is ensured during writeUTFBytes
-		this._context._createBytes.writeUnsignedByte(OpCodes.disposeTexture);
-		this._context._createBytes.writeByte(this.id);
+		this._context._createBytes.ensureSpace(8);//the space for the text is ensured during writeUTFBytes
+		this._context._createBytes.writeInt(OpCodes.disposeTexture);
+		this._context._createBytes.writeInt(this.id);
 		//this._context.execute();
 		//GLESConnector.gles.disposeTexture(this.id);
 		// this._gl.deleteTexture(this._glTexture);
