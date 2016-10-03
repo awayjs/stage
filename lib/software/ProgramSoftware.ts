@@ -347,8 +347,57 @@ export class ProgramSoftware implements IProgram
 		var source1Reg:number = 4*source1.regnum;
 		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-		var u:number = source1Target[((source1.swizzle >> 0) & 3)];
-		var v:number = source1Target[((source1.swizzle >> 2) & 3)];
+		// Get the direction vector.
+		var x:number = source1Target[source1Reg + ((source1.swizzle >> 0) & 3)];
+		var y:number = source1Target[source1Reg + ((source1.swizzle >> 2) & 3)];
+		var z:number = source1Target[source1Reg + ((source1.swizzle >> 4) & 3)];
+
+		// Determine which of the 6 cube sides to sample,
+		// depending on the largest abs value of the direction vector.
+		// Once determined, translate to uv within this side.
+		var texIndex:number = 0;
+		var u:number = 0;
+		var v:number = 0;
+		var absx:number = Math.abs(x);
+		var absy:number = Math.abs(y);
+		var absz:number = Math.abs(z);
+		var absmax:number = Math.max(absx, absy, absz);
+		if (absmax == absx) {
+			if (x >= 0) {
+				texIndex = 0;
+				u = 0.5 - 0.5 * (z / x);
+				v = 0.5 - 0.5 * (y / x);
+			}
+			else {
+				texIndex = 1;
+				u = 0.5 - 0.5 * (z / x);
+				v = 0.5 + 0.5 * (y / x);
+			}
+		}
+		else if (absmax == absy) {
+			if (y >= 0) {
+				texIndex = 2;
+				u = 0.5 + 0.5 * (x / y);
+				v = 0.5 + 0.5 * (z / y);
+			}
+			else {
+				texIndex = 3;
+				u = 0.5 - 0.5 * (x / y);
+				v = 0.5 + 0.5 * (z / y);
+			}
+		}
+		else if (absmax == absz) {
+			if (z >= 0) {
+				texIndex = 4;
+				u = 0.5 + 0.5 * (x / z);
+				v = 0.5 - 0.5 * (y / z);
+			}
+			else {
+				texIndex = 5;
+				u = 0.5 + 0.5 * (x / z);
+				v = 0.5 + 0.5 * (y / z);
+			}
+		}
 
 		var texture:CubeTextureSoftware = context._textures[textureIndex] as CubeTextureSoftware;
 		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
@@ -358,8 +407,7 @@ export class ProgramSoftware implements IProgram
 		// TODO: implement mip mapping?
 
 		var result:Float32Array;
-		// TODO: select side and translate uv to u'v'
-		var data:number[] = texture.getData(3);
+		var data:number[] = texture.getData(texIndex);
 		if (state.filter == ContextGLTextureFilter.LINEAR) {
 			result = ProgramSoftware.sampleBilinear(u, v, data, texture.size, texture.size, repeat);
 		} else {

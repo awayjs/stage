@@ -5,7 +5,7 @@ import {ByteArray}							from "@awayjs/core/lib/utils/ByteArray"
 
 export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 {
-	private _textureSelectorDictionary:Array<any> = new Array<any>(6);
+	private _textureSelectorDictionary:number[][] = [];
 
 	public static textureType:string = "textureCube";
 
@@ -43,7 +43,7 @@ export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 		this._textureSelectorDictionary[side] = data.data;
 	}
 
-	public getData(side:number):any
+	public getData(side:number):number[]
 	{
 		return this._textureSelectorDictionary[side];
 	}
