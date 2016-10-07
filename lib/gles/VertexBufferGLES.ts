@@ -95,12 +95,11 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer) + this.id + "," + startVertex +  "," + numVertices + ","+base64ArrayBuffer(data)+"#END");
 
 		console.log("upload vertexdata "+this.id);
-		this._context._createBytes.ensureSpace(16);//the space for the text is ensured during writeUTFBytes
 		this._context._createBytes.writeInt(OpCodes.uploadArrayVertexBuffer);
 		this._context._createBytes.writeInt(this.id);
 		this._context._createBytes.writeInt(startVertex);
 		this._context._createBytes.writeInt(data.byteLength);
-		this._context._createBytes.writeArrayBuffer(data);
+		this._context._createBytes.writeInt32Array(new Int32Array(data)); //TODO: cache the view on the attributebuffer
 		
 		//this._context.execute();
 		//GLESConnector.gles.uploadVertexDataFromByteArray(this.id, data, startVertex, numVertices);
@@ -131,7 +130,6 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 	{
 		console.log("dispose vertexdata "+this.id);
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.disposeVertexBuffer) + this.id+"#END");
-		this._context._createBytes.ensureSpace(8);//the space for the text is ensured during writeUTFBytes
 		this._context._createBytes.writeInt(OpCodes.disposeVertexBuffer);
 		this._context._createBytes.writeInt(this.id);
 	}

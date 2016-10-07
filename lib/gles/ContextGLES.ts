@@ -1,6 +1,6 @@
 import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
 import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {ByteArray}						from "@awayjs/core/lib/utils/ByteArray";
+import {Byte32Array}				from "@awayjs/core/lib/utils/Byte32Array";
 import {GLESConnector}					from "./GLESConnector";
 
 import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
@@ -40,10 +40,10 @@ export class ContextGLES implements IContextGL
 	private _mipmapFilterDictionary:Object = new Object();
 	private _vertexBufferPropertiesDictionary:Array<VertexBufferProperties> = [];
 
-	public _cmdBytes:ByteArray;
-	public _constantBytes:ByteArray;
-	public _createBytes:ByteArray;
-	public sendBytes:ByteArray;
+	public _cmdBytes:Byte32Array;
+	public _constantBytes:Byte32Array;
+	public _createBytes:Byte32Array;
+	public sendBytes:Byte32Array;
 	private _container:HTMLElement;
 	private _width:number;
 	private _height:number;
@@ -92,10 +92,10 @@ export class ContextGLES implements IContextGL
 	constructor(canvas:HTMLCanvasElement)
 	{
 		this._container = canvas;
-		this._cmdBytes=new ByteArray();
-		this._createBytes=new ByteArray();
-		this.sendBytes=new ByteArray();
-		this._constantBytes = new ByteArray();
+		this._cmdBytes=new Byte32Array();
+		this._createBytes=new Byte32Array();
+		this.sendBytes=new Byte32Array();
+		this._constantBytes = new Byte32Array();
 
 		this._blendFactorDictionary[ContextGLBlendFactor.ONE] = 0;
 		this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = 1;
@@ -154,11 +154,9 @@ export class ContextGLES implements IContextGL
 	}
 
 	public enableStencil(){
-		this._cmdBytes.ensureWriteableSpace(4);
 		this._cmdBytes.writeInt(OpCodes.enableStencil);
 	}
 	public disableStencil(){
-		this._cmdBytes.ensureWriteableSpace(4);
 		this._cmdBytes.writeInt(OpCodes.disableStencil);
 	}
 	public gl():WebGLRenderingContext
@@ -168,7 +166,6 @@ export class ContextGLES implements IContextGL
 
 	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void
 	{
-		this._cmdBytes.ensureWriteableSpace(32);
 		this._cmdBytes.writeInt(OpCodes.clear);
 		this._cmdBytes.writeFloat(red);
 		this._cmdBytes.writeFloat(green);
@@ -183,7 +180,6 @@ export class ContextGLES implements IContextGL
 	{
 		this._width = width;
 		this._height = height;
-		this._cmdBytes.ensureWriteableSpace(12);
 		this._cmdBytes.writeInt(OpCodes.configureBackBuffer | (enableDepthAndStencil?1:0) << 8);
 		this._cmdBytes.writeFloat(width);
 		this._cmdBytes.writeFloat(height);
@@ -219,7 +215,6 @@ export class ContextGLES implements IContextGL
 
 	public dispose():void
 	{
-		this._cmdBytes.ensureWriteableSpace(4);
 		this._cmdBytes.writeInt(OpCodes.disposeContext);
 		this.execute();
 	}
@@ -250,7 +245,6 @@ export class ContextGLES implements IContextGL
 	{
 		// if (!this._drawing)
 		// 	throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
-		this._cmdBytes.ensureWriteableSpace(12);
 		this._cmdBytes.writeInt(OpCodes.drawVertices | (this._drawModeDictionary[mode] << 8));
 		this._cmdBytes.writeInt(firstVertex);
 		this._cmdBytes.writeInt(numVertices);
@@ -271,7 +265,6 @@ export class ContextGLES implements IContextGL
 
 	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void
 	{
-		this._cmdBytes.ensureWriteableSpace(8);
 		this._cmdBytes.writeInt(OpCodes.setColorMask);
 		this._cmdBytes.writeInt((red?1:0) | (green?1:0)<<8 | (blue?1:0)<<16 | (alpha?1:0)<<24);
 
@@ -281,18 +274,15 @@ export class ContextGLES implements IContextGL
 	{
 		if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
 			//this.addStream(String.fromCharCode(OpCodes.disableCulling) + "#END");
-			this._cmdBytes.ensureWriteableSpace(4);
 			this._cmdBytes.writeInt(OpCodes.disableCulling);
 			return;
 		}
 		var faceCulling:number  = this.translateTriangleFace(triangleFaceToCull, coordinateSystem);
-		this._cmdBytes.ensureWriteableSpace(4);
 		this._cmdBytes.writeInt(OpCodes.setCulling | faceCulling<<8);
 	}
 
 	public setDepthTest(depthMask:boolean, passCompareMode:string):void
 	{
-		this._cmdBytes.ensureWriteableSpace(4);
 		this._cmdBytes.writeInt(OpCodes.setDepthTest | (depthMask?1:0)<<8 | this._compareModeDictionary[passCompareMode]<<16);
 
 	}
@@ -303,7 +293,6 @@ export class ContextGLES implements IContextGL
 		var fail = this._stencilActionDictionary[actionOnDepthPassStencilFail];
 		var zFail = this._stencilActionDictionary[actionOnDepthFail];
 		var pass = this._stencilActionDictionary[actionOnBothPass];
-		this._cmdBytes.ensureWriteableSpace(12);
 		this._cmdBytes.writeInt(OpCodes.setStencilActionsMasks | (compareModeGL<<8));
 		this._cmdBytes.writeInt(referenceValue);
 		this._cmdBytes.writeInt(writeMask | fail<<8 | zFail<<16 | pass<<24);
@@ -315,14 +304,12 @@ export class ContextGLES implements IContextGL
 		var fail = this._stencilActionDictionary[actionOnDepthPassStencilFail];
 		var zFail = this._stencilActionDictionary[actionOnDepthFail];
 		var pass = this._stencilActionDictionary[actionOnBothPass];
-		this._cmdBytes.ensureWriteableSpace(8);
 		this._cmdBytes.writeInt(OpCodes.setStencilActions| triangleFaceGL<<8);
 		this._cmdBytes.writeInt(compareModeGL | fail<<8 | zFail<<16 | pass<<24);
     }
 
     public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number)
     {
-		this._cmdBytes.ensureWriteableSpace(16);
 		this._cmdBytes.writeInt(OpCodes.setStencilReferenceValue);
 		this._cmdBytes.writeInt(referenceValue);
 		this._cmdBytes.writeInt(readMask);
@@ -331,33 +318,28 @@ export class ContextGLES implements IContextGL
 
 	public setProgram(program:ProgramGLES):void
 	{
-		this._cmdBytes.ensureWriteableSpace(8);
 		this._cmdBytes.writeInt(OpCodes.setProgram);
 		this._cmdBytes.writeInt(program.id);
 	}
 
 	public setProgramConstantsFromArray(programType:number, data:Float32Array):void
 	{
-		this._cmdBytes.ensureWriteableSpace(data.length);
 		this._cmdBytes.writeInt(OpCodes.setProgramConstant|programType<<8);
 		this._cmdBytes.writeInt(data.length);
-		this._cmdBytes.writeInt(this._constantBytes.position);
+		this._cmdBytes.writeInt(this._constantBytes.bytePosition);
 
-		this._constantBytes.ensureWriteableSpace(data.length);
-		this._constantBytes.writeArrayBuffer(data.buffer);
+		this._constantBytes.writeFloat32Array(data);
 	}
 
 	public setScissorRectangle(rectangle:Rectangle):void
 	{
 		if (rectangle) {
-			this._cmdBytes.ensureWriteableSpace(20);
 			this._cmdBytes.writeInt(OpCodes.setScissorRect);
 			this._cmdBytes.writeFloat(rectangle.x);
 			this._cmdBytes.writeFloat(rectangle.y);
 			this._cmdBytes.writeFloat(rectangle.width);
 			this._cmdBytes.writeFloat(rectangle.height);
 		} else {
-			this._cmdBytes.ensureWriteableSpace(4);
 			this._cmdBytes.writeInt(OpCodes.clearScissorRect);
 		}
 	}
@@ -365,18 +347,15 @@ export class ContextGLES implements IContextGL
 	public setTextureAt(sampler:number, texture:TextureBaseGLES):void
 	{
 		if (texture) {
-			this._cmdBytes.ensureWriteableSpace(8);
 			this._cmdBytes.writeInt(OpCodes.setTextureAt | sampler<<8);
 			this._cmdBytes.writeInt(texture.id);
 		} else {
-			this._cmdBytes.ensureWriteableSpace(4);
 			this._cmdBytes.writeInt(OpCodes.clearTextureAt | sampler<<8);
 		}
 	}
 
 	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
 	{
-		this._cmdBytes.ensureWriteableSpace(8);
 		this._cmdBytes.writeInt(OpCodes.setSamplerStateAt | sampler<<8);
 		this._cmdBytes.writeInt(this._wrapDictionary[wrap] | this._filterDictionary[filter]<<8 | this._mipmapFilterDictionary[filter][mipfilter]<<16);
 
@@ -385,12 +364,10 @@ export class ContextGLES implements IContextGL
 	public setVertexBufferAt(index:number, buffer:VertexBufferGLES, bufferOffset:number = 0, format:number = 4):void
 	{
 		if (buffer) {
-			this._cmdBytes.ensureWriteableSpace(12);
 			this._cmdBytes.writeInt(OpCodes.setVertexBufferAt| index<<8 | format<<16 | buffer.dataPerVertex<<24);
 			this._cmdBytes.writeInt(buffer.id);
 			this._cmdBytes.writeInt(bufferOffset);
 		} else {
-			this._cmdBytes.ensureWriteableSpace(4);
 			this._cmdBytes.writeInt(OpCodes.clearVertexBufferAt| index<<8);
 		}
 	}
@@ -398,10 +375,8 @@ export class ContextGLES implements IContextGL
 	public setRenderToTexture(target:TextureBaseGLES, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0):void
 	{
 		if (target === null || target === undefined) {
-			this._cmdBytes.ensureWriteableSpace(4);
 			this._cmdBytes.writeInt(OpCodes.clearRenderToTexture);
 		} else {
-			this._cmdBytes.ensureWriteableSpace(8);
 			this._cmdBytes.writeInt(OpCodes.setRenderToTexture| (enableDepthAndStencil?1:0)<<8);
 			this._cmdBytes.writeInt(target.id);
 		}
@@ -419,7 +394,6 @@ export class ContextGLES implements IContextGL
 
 	public setRenderToBackBuffer():void
 	{
-		this._cmdBytes.ensureWriteableSpace(4);
 		this._cmdBytes.writeInt(OpCodes.clearRenderToTexture);
 		//todo
 		// this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
@@ -428,11 +402,9 @@ export class ContextGLES implements IContextGL
 	private updateBlendStatus():void
 	{
 		if (this._blendEnabled) {
-			this._cmdBytes.ensureWriteableSpace(4);
 			this._cmdBytes.writeInt(OpCodes.setBlendFactors| this._blendSourceFactor<<8 | this._blendDestinationFactor<<16);
 		} else {
-			this._cmdBytes.ensureWriteableSpace(4);
-			this._cmdBytes.writeUnsignedByte(OpCodes.disableBlending);
+			this._cmdBytes.writeUnsignedInt(OpCodes.disableBlending);
 		}
 	}
 
@@ -454,39 +426,39 @@ export class ContextGLES implements IContextGL
 
 	public execute():void
 	{
-		this.sendBytes.length=0;
-		this.sendBytes.position=0;
-		if(this._createBytes.length>0){
-			this.sendBytes.writeUnsignedInt(this._createBytes.length);
-			this.sendBytes.writeByteArray(this._createBytes);
-			this._createBytes.length=0;
-			this._createBytes.position=0;
+		this.sendBytes.byteLength=0;
+		this.sendBytes.bytePosition=0;
+		if(this._createBytes.byteLength>0){
+			this.sendBytes.writeUnsignedInt(this._createBytes.byteLength);
+			this.sendBytes.writeByte32Array(this._createBytes);
+			this._createBytes.byteLength=0;
+			this._createBytes.bytePosition=0;
 		}
 		else{
 			this.sendBytes.writeUnsignedInt(0);
 		}
-		if(this._constantBytes.length>0){
-			this.sendBytes.writeUnsignedInt(this._constantBytes.length);
-			this.sendBytes.writeByteArray(this._constantBytes);
-			this._constantBytes.length=0;
-			this._constantBytes.position=0;
+		if(this._constantBytes.byteLength>0){
+			this.sendBytes.writeUnsignedInt(this._constantBytes.byteLength);
+			this.sendBytes.writeByte32Array(this._constantBytes);
+			this._constantBytes.byteLength=0;
+			this._constantBytes.bytePosition=0;
 		}
 		else{
 			this.sendBytes.writeUnsignedInt(0);
 		}
-		if(this._cmdBytes.length>0){
-			this.sendBytes.writeUnsignedInt(this._cmdBytes.length);
-			this.sendBytes.writeByteArray(this._cmdBytes);
-			this._cmdBytes.length=0;
-			this._cmdBytes.position=0;
+		if(this._cmdBytes.byteLength>0){
+			this.sendBytes.writeUnsignedInt(this._cmdBytes.byteLength);
+			this.sendBytes.writeByte32Array(this._cmdBytes);
+			this._cmdBytes.byteLength=0;
+			this._cmdBytes.bytePosition=0;
 		}
 		else{
 			this.sendBytes.writeUnsignedInt(0);
 		}
-		var inInt8AView = new Int8Array(this.sendBytes.arraybytes, 0, this.sendBytes.length);
-		var localInt8View = new Int8Array(this.sendBytes.length);
-		localInt8View.set(inInt8AView);
-		GLESConnector.gles.sendGLESCommands(localInt8View.buffer);
+
+		var localInt32View = new Int32Array(this.sendBytes.byteLength);
+		this.sendBytes.readInt32Array(localInt32View);
+		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
 	}
 }
 
