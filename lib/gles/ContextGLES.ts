@@ -456,7 +456,8 @@ export class ContextGLES implements IContextGL
 			this.sendBytes.writeUnsignedInt(0);
 		}
 
-		var localInt32View = new Int32Array(this.sendBytes.byteLength);
+		this.sendBytes.bytePosition=0;
+		var localInt32View = new Int32Array(this.sendBytes.byteLength/4);
 		this.sendBytes.readInt32Array(localInt32View);
 		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
 	}
