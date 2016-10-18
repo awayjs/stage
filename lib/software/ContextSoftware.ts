@@ -505,8 +505,7 @@ export class ContextSoftware implements IContextGL
 				source[3] = fragmentVO.outputColor[3]*255;
 
 				//set dest
-				// this._backBufferColor.getPixelData(x, y, dest);
-				// TODO: *review* commenting this out because it doesn't seem to be necessary - what does it do?
+				this._backBufferColor.getPixelData(x, y, dest);
 
 				this._putPixel(x, y, source, dest);
 			}
