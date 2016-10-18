@@ -35,6 +35,7 @@ export class ContextSoftware implements IContextGL
 	private _backBufferHeight:number = 100;
 	private _backBufferColor:BitmapImage2D;
 	private _frontBuffer:BitmapImage2D;
+	private _activeBuffer:BitmapImage2D;
 
 	private _zbuffer:Float32Array;
 	private _zbufferClear:Float32Array;
@@ -77,6 +78,7 @@ export class ContextSoftware implements IContextGL
 
 		this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
 		this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
+		this._activeBuffer = this._backBufferColor;
 
 		if (document && document.body) 
 			document.body.appendChild(this._frontBuffer.getCanvas());
@@ -278,6 +280,7 @@ export class ContextSoftware implements IContextGL
 
 	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
+		// TODO:
 	}
 
 	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void
@@ -348,14 +351,26 @@ export class ContextSoftware implements IContextGL
 		state.mipfilter = mipfilter;
 	}
 
-	public setRenderToTexture(target:ITextureBaseSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)
+	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)
 	{
-		//TODO:
+		// TODO: consider transparency prop
+		// TODO: consider fill color prop
+		// TODO: consider powerOfTwo prop
+
+		var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0, false);
+
+		// TODO: consider mip levels
+		var rect = textureBuffer.rect;
+		var data:number[] = target.getData(0);
+
+		textureBuffer.setArray(rect, data);
+
+		this._activeBuffer = textureBuffer;
 	}
 
 	public setRenderToBackBuffer():void
 	{
-		//TODO:
+		this._activeBuffer = this._backBufferColor;
 	}
 
 	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
@@ -368,7 +383,20 @@ export class ContextSoftware implements IContextGL
 		BlendModeSoftware[this._blendDestination](dest, dest, source);
 		BlendModeSoftware[this._blendSource](source, dest, source);
 
-		this._backBufferColor.setPixelData(x, y, argb);
+		// TODO: remove
+		// if (this._activeBuffer != this._backBufferColor) {
+			// argb[3] = (<number>(argb[2]) / 255.0);
+			// argb[2] = (<number>(argb[1]) / 255.0);
+			// argb[1] = (<number>(argb[0]) / 255.0);
+			// argb[3] = 255;
+			// argb[0] = 120;
+			// argb[1] = 120;
+			// argb[2] = 120;
+			// argb[3] = 255;
+			// console.log("depth: " + x + ", " + y + " - " + argb)
+		// }
+
+		this._activeBuffer.setPixelData(x, y, argb);
 	}
 
 	public clamp(value:number, min:number = 0, max:number = 1):number
@@ -477,8 +505,9 @@ export class ContextSoftware implements IContextGL
 				source[3] = fragmentVO.outputColor[3]*255;
 
 				//set dest
-				this._backBufferColor.getPixelData(x, y, dest);
-				
+				// this._backBufferColor.getPixelData(x, y, dest);
+				// TODO: *review* commenting this out because it doesn't seem to be necessary - what does it do?
+
 				this._putPixel(x, y, source, dest);
 			}
 	}
