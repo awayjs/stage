@@ -68,6 +68,10 @@ export class ContextSoftware implements IContextGL
 	public _fragmentConstants:Float32Array;
 	public _vertexConstants:Float32Array;
 
+	private _sx:Vector3D = new Vector3D();
+	private _sy:Vector3D = new Vector3D();
+	private _u:Vector3D = new Vector3D();
+
 	//public static _drawCallback:Function = null;
 
 	private _antialias:number = 0;
@@ -288,6 +292,8 @@ export class ContextSoftware implements IContextGL
 		if (!this._program)
 			return;
 
+		// These are place holders for vertex transformation operations.
+
 		var position0:Float32Array = new Float32Array(4);
 		var position1:Float32Array = new Float32Array(4);
 		var position2:Float32Array = new Float32Array(4);
@@ -296,12 +302,13 @@ export class ContextSoftware implements IContextGL
 		var varying1:Float32Array = new Float32Array(this._program.numVarying*4);
 		var varying2:Float32Array = new Float32Array(this._program.numVarying*4);
 
+		// Sweep triangles according to culling mode and process thru vertex shader.
+
 		if (this._cullingMode == ContextGLTriangleFace.BACK) {
 			for (var i:number = firstIndex; i < numIndices; i += 3) {
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position0, varying0);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position2, varying2);
-
 				this._triangle(position0, position1, position2, varying0, varying1, varying2);
 			}
 		} else if (this._cullingMode == ContextGLTriangleFace.FRONT) {
@@ -309,7 +316,6 @@ export class ContextSoftware implements IContextGL
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position2, varying2);
-
 				this._triangle(position0, position1, position2, varying0, varying1, varying2);
 			}
 		} else if (this._cullingMode == ContextGLTriangleFace.FRONT_AND_BACK || this._cullingMode == ContextGLTriangleFace.NONE) {
@@ -317,13 +323,10 @@ export class ContextSoftware implements IContextGL
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position2, varying2);
-
 				this._triangle(position0, position1, position2, varying0, varying1, varying2);
-
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position0, varying0);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position2, varying2);
-
 				this._triangle(position0, position1, position2, varying0, varying1, varying2);
 			}
 		}
@@ -409,29 +412,97 @@ export class ContextSoftware implements IContextGL
 		return min + (max - min)*this.clamp(gradient);
 	}
 
-	private _triangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array):void
+	private _triangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, v0:Float32Array, v1:Float32Array, v2:Float32Array):void
 	{
+		// Wrap the vertex transformed positions in Vector3D objects.
 		var p0:Vector3D = new Vector3D(position0[0], position0[1], position0[2], position0[3]);
-		if (!p0 || p0.w == 0 || isNaN(p0.w)) {
-			console.error("wrong position: " + position0);
-			return;
-		}
 		var p1:Vector3D = new Vector3D(position1[0], position1[1], position1[2], position1[3]);
 		var p2:Vector3D = new Vector3D(position2[0], position2[1], position2[2], position2[3]);
 
+		// Reject any invalid vertices.
+		if (!p0 || !p1 || !p2) { return; }
+		if (p0.w == 0 || p1.w == 0 || p2.w == 0) { return; } // w = 0 represent direction vectors and we want positions
+		if ( isNaN(p0.x) || isNaN(p0.y) || isNaN(p0.z) || isNaN(p0.w) ) { return; }
+		if ( isNaN(p1.x) || isNaN(p1.y) || isNaN(p1.z) || isNaN(p1.w) ) { return; }
+		if ( isNaN(p2.x) || isNaN(p2.y) || isNaN(p2.z) || isNaN(p2.w) ) { return; }
+
+		this._clipTriangle(p0, p1, p2, v0, v1, v2);
+	}
+
+	private _clipTriangle(p0:Vector3D, p1:Vector3D, p2:Vector3D, v0:Float32Array, v1:Float32Array, v2:Float32Array) {
+
+		// Transform into clip space.
 		p0.z = p0.z * 2 - p0.w;
 		p1.z = p1.z * 2 - p1.w;
 		p2.z = p2.z * 2 - p2.w;
 
+		// Check if the vertices are behind the near plane and interpolate
+		// new vertices whenever one vertex in a side is in front of the camera AND the other is behind it.
+		var near = 0; // TODO: use real camera near plane value
+		var numOriginalVerticesInside = 0;
+		var incomingVertices:Array<Vector3D> = new Array<Vector3D>();
+		incomingVertices.push(p1, p2, p0);
+		var outgoingVertices:Array<Vector3D> = new Array<Vector3D>(); // may contain from 0 to 4 vertices
+		var previousVertex = p0;
+		var previousVertexIsInside = previousVertex.z > near;
+		if (previousVertexIsInside) { // add the original vertex if its inside
+			outgoingVertices.push(previousVertex);
+			numOriginalVerticesInside++;
+		}
+		for (var i:number = 0; i < incomingVertices.length; i++) {
+			var currentVertex = incomingVertices[i];
+			var currentVertexIsInside = currentVertex.z > near;
+			if (currentVertexIsInside ^ previousVertexIsInside) { // if one and only one is true
+
+				// Interpolate new vertex.
+				var side = currentVertex.subtract(previousVertex);
+				var d_current = Math.abs(currentVertex.z - near);
+				var d_previous = Math.abs(previousVertex.z - near);
+				var interpolationFactor = d_previous / (d_previous + d_current);
+				var scaledSide = side.clone();
+				scaledSide.scaleBy(interpolationFactor);
+				var interpolatedVertex = previousVertex.clone();
+				interpolatedVertex = interpolatedVertex.add(scaledSide);
+				outgoingVertices.push(interpolatedVertex);
+			}
+			if (currentVertexIsInside && i != incomingVertices.length - 1) { // add the original vertex if its inside
+				outgoingVertices.push(currentVertex);
+				numOriginalVerticesInside++;
+			}
+			previousVertex = currentVertex;
+			previousVertexIsInside = currentVertexIsInside;
+		}
+
+		// Project the resulting vertices as triangles.
+		if (numOriginalVerticesInside == 3) { // no clipping
+			this._projectTriangle(p0, p1, p2, v0, v1, v2);
+		}
+		else if (numOriginalVerticesInside == 2) { // quad clip (triangle is converted into a quad)
+			this._projectTriangle(outgoingVertices[0].clone(), outgoingVertices[1].clone(), outgoingVertices[2].clone(), v0, v1, v2);
+			this._projectTriangle(outgoingVertices[0], outgoingVertices[2], outgoingVertices[3], v0, v1, v2);
+		}
+		else if (numOriginalVerticesInside == 1) { // simple clip (triangle is reduced in size)
+			this._projectTriangle(outgoingVertices[0], outgoingVertices[1], outgoingVertices[2], v0, v1, v2);
+		}
+		else if (numOriginalVerticesInside == 0) { // full clipping (do nothing)
+		}
+	}
+
+	private _projectTriangle(p0:Vector3D, p1:Vector3D, p2:Vector3D, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array) {
+
+		// Apply projection.
 		p0.scaleBy(1 / p0.w);
 		p1.scaleBy(1 / p1.w);
 		p2.scaleBy(1 / p2.w);
 
+		// Transform into screen space.
 		var project:Vector3D = new Vector3D(p0.w, p1.w, p2.w);
 		p0 = this._screenMatrix.transformVector(p0);
 		p1 = this._screenMatrix.transformVector(p1);
 		p2 = this._screenMatrix.transformVector(p2);
 		var depth:Vector3D = new Vector3D(p0.z, p1.z, p2.z);
+
+		// Prepare rasterization bounds.
 
 		this._bboxMin.x = 1000000;
 		this._bboxMin.y = 1000000;
@@ -464,9 +535,10 @@ export class ContextSoftware implements IContextGL
 		this._bboxMax.x = Math.floor(this._bboxMax.x);
 		this._bboxMax.y = Math.floor(this._bboxMax.y);
 
-		for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++)
+		// Rasterize.
+		for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
 			for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
-				
+
 				var screen:Vector3D = this._barycentric(p0, p1, p2, x, y);
 				if (screen.x < 0 || screen.y < 0 || screen.z < 0)
 					continue;
@@ -486,7 +558,7 @@ export class ContextSoftware implements IContextGL
 				var index:number = (x % this._backBufferWidth) + y*this._backBufferWidth;
 
 				var fragDepth:number = depth.x*screen.x + depth.y*screen.y + depth.z*screen.z;
-				
+
 				if (!DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._zbuffer[index]))
 					continue;
 
@@ -509,12 +581,9 @@ export class ContextSoftware implements IContextGL
 
 				this._putPixel(x, y, source, dest);
 			}
+		}
 	}
 
-	private _sx:Vector3D = new Vector3D();
-	private _sy:Vector3D = new Vector3D();
-	private _u:Vector3D = new Vector3D();
-	
 	private _barycentric(a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number):Vector3D
 	{
 		this._sx.x = c.x - a.x;
