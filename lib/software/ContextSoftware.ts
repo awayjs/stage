@@ -431,11 +431,6 @@ export class ContextSoftware implements IContextGL
 
 	private _clipTriangle(p0:Vector3D, p1:Vector3D, p2:Vector3D, v0:Float32Array, v1:Float32Array, v2:Float32Array) {
 
-		// Transform into clip space.
-		p0.z = p0.z * 2 - p0.w;
-		p1.z = p1.z * 2 - p1.w;
-		p2.z = p2.z * 2 - p2.w;
-
 		// Check if the vertices are behind the near plane and interpolate
 		// new vertices whenever one vertex in a side is in front of the camera AND the other is behind it.
 		var near = 0; // TODO: use real camera near plane value
@@ -452,7 +447,7 @@ export class ContextSoftware implements IContextGL
 		for (var i:number = 0; i < incomingVertices.length; i++) {
 			var currentVertex = incomingVertices[i];
 			var currentVertexIsInside = currentVertex.z > near;
-			if (currentVertexIsInside ^ previousVertexIsInside) { // if one and only one is true
+			if (currentVertexIsInside != previousVertexIsInside) { // if one and only one is true
 
 				// Interpolate new vertex.
 				var side = currentVertex.subtract(previousVertex);
@@ -461,6 +456,7 @@ export class ContextSoftware implements IContextGL
 				var interpolationFactor = d_previous / (d_previous + d_current);
 				var scaledSide = side.clone();
 				scaledSide.scaleBy(interpolationFactor);
+				scaledSide.w *= interpolationFactor;
 				var interpolatedVertex = previousVertex.clone();
 				interpolatedVertex = interpolatedVertex.add(scaledSide);
 				outgoingVertices.push(interpolatedVertex);
@@ -489,6 +485,10 @@ export class ContextSoftware implements IContextGL
 	}
 
 	private _projectTriangle(p0:Vector3D, p1:Vector3D, p2:Vector3D, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array) {
+
+		p0.z = p0.z * 2 - p0.w;
+		p1.z = p1.z * 2 - p1.w;
+		p2.z = p2.z * 2 - p2.w;
 
 		// Apply projection.
 		p0.scaleBy(1 / p0.w);
