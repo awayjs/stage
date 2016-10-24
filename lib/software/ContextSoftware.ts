@@ -36,6 +36,7 @@ export class ContextSoftware implements IContextGL
 	private _backBufferColor:BitmapImage2D;
 	private _frontBuffer:BitmapImage2D;
 	private _activeBuffer:BitmapImage2D;
+	private _activeTexture:TextureSoftware;
 
 	private _zbuffer:Float32Array;
 	private _zbufferClear:Float32Array;
@@ -61,6 +62,7 @@ export class ContextSoftware implements IContextGL
 
 	public _samplerStates:SoftwareSamplerState[] = [];
 	public _textures:Array<ITextureBaseSoftware> = [];
+	private _textureBuffers:Array<BitmapImage2D>;
 	public _vertexBuffers:Array<VertexBufferSoftware> = [];
 	public _vertexBufferOffsets:Array<number> = [];
 	public _vertexBufferFormats:Array<number> = [];
@@ -83,6 +85,8 @@ export class ContextSoftware implements IContextGL
 		this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
 		this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
 		this._activeBuffer = this._backBufferColor;
+
+		this._textureBuffers = new Array<BitmapImage2D>()
 
 		if (document && document.body) 
 			document.body.appendChild(this._frontBuffer.getCanvas());
@@ -352,6 +356,12 @@ export class ContextSoftware implements IContextGL
 				this._triangle(incomingVertices, outgoingVertices, incomingVaryings, outgoingVaryings);
 			}
 		}
+
+		// Transfer buffer data to texture.
+		if (this._activeBuffer != this._backBufferColor) {
+			this._activeBuffer.unlock();
+			this._activeTexture.uploadFromData(this._activeBuffer.getImageData());
+		}
 	}
 
 	public drawVertices(mode:string, firstVertex:number, numVertices:number):void
@@ -378,19 +388,24 @@ export class ContextSoftware implements IContextGL
 
 	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)
 	{
-		// TODO: consider transparency prop
-		// TODO: consider fill color prop
-		// TODO: consider powerOfTwo prop
+		this._activeTexture = target;
 
-		var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0, false);
+		// Create texture buffer if needed.
+		var textureBuffer = this._textureBuffers[surfaceSelector];
+		if (textureBuffer == null) {
 
-		// TODO: consider mip levels
-		var rect = textureBuffer.rect;
-		var data:number[] = target.getData(0);
+			// TODO: consider transparency prop
+			// TODO: consider fill color prop
+			// TODO: consider powerOfTwo prop
+			var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0, false);
+			this._textureBuffers[surfaceSelector] = textureBuffer;
 
-		textureBuffer.setArray(rect, data);
+			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
+			target.uploadFromData(textureBuffer.getImageData());
+		}
 
 		this._activeBuffer = textureBuffer;
+		this._activeBuffer.lock();
 	}
 
 	public setRenderToBackBuffer():void
@@ -407,19 +422,6 @@ export class ContextSoftware implements IContextGL
 
 		BlendModeSoftware[this._blendDestination](dest, dest, source);
 		BlendModeSoftware[this._blendSource](source, dest, source);
-
-		// TODO: remove
-		// if (this._activeBuffer != this._backBufferColor) {
-			// argb[3] = (<number>(argb[2]) / 255.0);
-			// argb[2] = (<number>(argb[1]) / 255.0);
-			// argb[1] = (<number>(argb[0]) / 255.0);
-			// argb[3] = 255;
-			// argb[0] = 120;
-			// argb[1] = 120;
-			// argb[2] = 120;
-			// argb[3] = 255;
-			// console.log("depth: " + x + ", " + y + " - " + argb)
-		// }
 
 		this._activeBuffer.setPixelData(x, y, argb);
 	}
@@ -619,7 +621,7 @@ export class ContextSoftware implements IContextGL
 				source[3] = fragmentVO.outputColor[3]*255;
 
 				//set dest
-				this._backBufferColor.getPixelData(x, y, dest);
+				this._activeBuffer.getPixelData(x, y, dest);
 
 				this._putPixel(x, y, source, dest);
 			}

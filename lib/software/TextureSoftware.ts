@@ -29,13 +29,6 @@ export class TextureSoftware implements ITexture, ITextureBaseSoftware
 	{
 		this._width = width;
 		this._height = height;
-
-		this._mipLevels[0] = [];
-		var num = width * height;
-		// TODO: there's probably a faster way of doing this
-		for (var i = 0; i < num; i++) {
-			this._mipLevels[0].push(0);
-		}
 	}
 	
 	public dispose():void
