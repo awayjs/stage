@@ -33,8 +33,6 @@ export class ContextSoftware implements IContextGL
 	public static MAX_SAMPLERS:number = 8;
 
 	private _backBufferRect:Rectangle = new Rectangle();
-	private _backBufferWidth:number = 100;
-	private _backBufferHeight:number = 100;
 	private _backBufferColor:BitmapImage2D;
 	private _frontBuffer:BitmapImage2D;
 	private _activeBuffer:BitmapImage2D;
@@ -88,11 +86,11 @@ export class ContextSoftware implements IContextGL
 
 		this._canvas = canvas;
 
-		this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
-		this._frontBuffer = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, true, 0, false);
+		this._backBufferColor = new BitmapImage2D(100, 100, false, 0, false);
+		this._frontBuffer = new BitmapImage2D(100, 100, true, 0, false);
 		this._activeBuffer = this._backBufferColor;
 
-		this._textureBuffers = new Array<BitmapImage2D>()
+		this._textureBuffers = new Array<BitmapImage2D>();
 
 		if (document && document.body)
 			document.body.appendChild(this._frontBuffer.getCanvas());
@@ -110,11 +108,11 @@ export class ContextSoftware implements IContextGL
 
 		this._frontBuffer._setSize(width, height);
 
-		this._backBufferWidth = width*this._antialias;
-		this._backBufferHeight = height*this._antialias;
+		var backBufferWidth = width*this._antialias;
+		var backBufferHeight = height*this._antialias;
 
 		//double buffer for fast clearing
-		var len:number = this._backBufferWidth*this._backBufferHeight;
+		var len:number = backBufferWidth * backBufferHeight;
 		var zbufferBytes:ArrayBuffer = new ArrayBuffer(len*8);
 		this._zbuffer = new Float32Array(zbufferBytes, 0, len);
 		this._zbufferClear = new Float32Array(zbufferBytes, len*4, len);
@@ -125,22 +123,30 @@ export class ContextSoftware implements IContextGL
 
 		this._colorClearUint8 = new Uint8ClampedArray(colorClearBuffer);
 		this._colorClearUint32 = new Uint32Array(colorClearBuffer);
-		this._backBufferRect.width = this._backBufferWidth;
-		this._backBufferRect.height = this._backBufferHeight;
+		this._backBufferRect.width = backBufferWidth;
+		this._backBufferRect.height = backBufferHeight;
 
-		this._backBufferColor._setSize(this._backBufferWidth, this._backBufferHeight);
+		this._backBufferColor._setSize(backBufferWidth, backBufferHeight);
+
+		this.activateScreenMatrix(this._backBufferRect.width, this._backBufferRect.height);
+
+		this._frontBufferMatrix = new Matrix();
+		this._frontBufferMatrix.scale(1/this._antialias, 1/this._antialias);
+	}
+
+	private activateScreenMatrix(width:number, height:number) {
 
 		var raw:Float32Array = this._screenMatrix._rawData;
 
-		raw[0] = this._backBufferWidth /2;
+		raw[0] = width / 2;
 		raw[1] = 0;
 		raw[2] = 0;
-		raw[3] = this._backBufferWidth/2;
+		raw[3] = width / 2;
 
 		raw[4] = 0;
-		raw[5] = -this._backBufferHeight/2;
+		raw[5] = -height / 2;
 		raw[6] = 0;
-		raw[7] = this._backBufferHeight/2;
+		raw[7] = height / 2;
 
 		raw[8] = 0;
 		raw[9] = 0;
@@ -153,27 +159,26 @@ export class ContextSoftware implements IContextGL
 		raw[15] = 0;
 
 		this._screenMatrix.transpose();
-
-		this._frontBufferMatrix = new Matrix();
-		this._frontBufferMatrix.scale(1/this._antialias, 1/this._antialias);
 	}
 
 	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)  {
-		this._activeTexture = target;
 
-		// Create texture buffer if needed.
+		// Create texture buffer and screen matrix if needed.
 		var textureBuffer = this._textureBuffers[surfaceSelector];
 		if (textureBuffer == null) {
 
 			// TODO: consider transparency prop
 			// TODO: consider fill color prop
 			// TODO: consider powerOfTwo prop
-			var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0, false);
+			var textureBuffer = new BitmapImage2D(target.width, target.height, true, 0xFF0000, false);
 			this._textureBuffers[surfaceSelector] = textureBuffer;
 
 			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
 			target.uploadFromData(textureBuffer.getImageData());
 		}
+
+		this.activateScreenMatrix(target.width, target.height);
+		this._activeTexture = target;
 
 		this._activeBuffer = textureBuffer;
 		this._activeBuffer.lock();
@@ -181,6 +186,7 @@ export class ContextSoftware implements IContextGL
 
 	public setRenderToBackBuffer():void  {
 		this._activeBuffer = this._backBufferColor;
+		this.activateScreenMatrix(this._backBufferColor.width, this._backBufferColor.height);
 	}
 
 	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void  {
@@ -252,6 +258,18 @@ export class ContextSoftware implements IContextGL
 		// Transfer buffer data to texture.
 		if (this._activeBuffer != this._backBufferColor) {
 			this._activeBuffer.unlock();
+
+			// TODO: remove (used only to study the incoming data)
+			// var imageData:ImageData = this._activeBuffer.getImageData();
+			// var len:number = imageData.width * imageData.height * 4;
+			// for (var compIndex:number = 0; compIndex < len; compIndex++) {
+			// 	var comp = imageData.data[compIndex];
+			// 	if (comp != 0) {
+			// 		var a = 1;
+			// 	}
+			// }
+			// this._activeTexture.uploadFromData(imageData);
+
 			this._activeTexture.uploadFromData(this._activeBuffer.getImageData());
 		}
 	}
@@ -365,8 +383,8 @@ export class ContextSoftware implements IContextGL
 		this._bboxMax.x = -1000000;
 		this._bboxMax.y = -1000000;
 
-		this._clamp.x = this._backBufferWidth - 1;
-		this._clamp.y = this._backBufferHeight - 1;
+		this._clamp.x = this._activeBuffer.width - 1;
+		this._clamp.y = this._activeBuffer.height - 1;
 
 		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p0.x));
 		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p0.y));
@@ -411,7 +429,7 @@ export class ContextSoftware implements IContextGL
 				var clipBottom:Vector3D = new Vector3D(screenBottom.x/project.x, screenBottom.y/project.y, screenBottom.z/project.z);
 				clipBottom.scaleBy(1/(clipBottom.x + clipBottom.y + clipBottom.z));
 
-				var index:number = (x % this._backBufferWidth) + y*this._backBufferWidth;
+				var index:number = (x % this._activeBuffer.width) + y*this._activeBuffer.width;
 
 				var fragDepth:number = depth.x*screen.x + depth.y*screen.y + depth.z*screen.z;
 
