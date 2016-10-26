@@ -76,6 +76,10 @@ export class ContextSoftware implements IContextGL
 	private _sy:Vector3D = new Vector3D();
 	private _u:Vector3D = new Vector3D();
 
+	private _rgba:Uint8ClampedArray = new Uint8ClampedArray(4);
+	private _source:Uint8ClampedArray = new Uint8ClampedArray(4);
+	private _dest:Uint8ClampedArray = new Uint8ClampedArray(4);
+
 	//public static _drawCallback:Function = null;
 
 	private _antialias:number = 0;
@@ -417,15 +421,15 @@ export class ContextSoftware implements IContextGL
 
 	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
 	{
-		rgba[0] = 0;
-		rgba[1] = 0;
-		rgba[2] = 0;
-		rgba[3] = 0;
+		this._rgba[0] = 0;
+		this._rgba[1] = 0;
+		this._rgba[2] = 0;
+		this._rgba[3] = 0;
 
 		BlendModeSoftware[this._blendDestination](dest, dest, source);
-		BlendModeSoftware[this._blendSource](rgba, dest, source);
+		BlendModeSoftware[this._blendSource](this._rgba, dest, source);
 
-		this._activeBuffer.setPixelData(x, y, rgba);
+		this._activeBuffer.setPixelData(x, y, this._rgba);
 	}
 
 	public clamp(value:number, min:number = 0, max:number = 1):number
@@ -617,15 +621,15 @@ export class ContextSoftware implements IContextGL
 					this._zbuffer[index] = fragDepth;//todo: fragmentVO.outputDepth?
 
 				//set source
-				source[0] = fragmentVO.outputColor[0]*255;
-				source[1] = fragmentVO.outputColor[1]*255;
-				source[2] = fragmentVO.outputColor[2]*255;
-				source[3] = fragmentVO.outputColor[3]*255;
+				this._source[0] = fragmentVO.outputColor[0]*255;
+				this._source[1] = fragmentVO.outputColor[1]*255;
+				this._source[2] = fragmentVO.outputColor[2]*255;
+				this._source[3] = fragmentVO.outputColor[3]*255;
 
 				//set dest
-				this._activeBuffer.getPixelData(x, y, dest);
+				this._activeBuffer.getPixelData(x, y, this._dest);
 
-				this._putPixel(x, y, source, dest);
+				this._putPixel(x, y, this._source, this._dest);
 			}
 		}
 	}
@@ -648,7 +652,3 @@ export class ContextSoftware implements IContextGL
 		return new Vector3D(-1, 1, 1);
 	}
 }
-
-var rgba:Uint8ClampedArray = new Uint8ClampedArray(4);
-var source:Uint8ClampedArray = new Uint8ClampedArray(4);
-var dest:Uint8ClampedArray = new Uint8ClampedArray(4);
