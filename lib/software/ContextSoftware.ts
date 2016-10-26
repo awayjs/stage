@@ -170,7 +170,7 @@ export class ContextSoftware implements IContextGL
 			// TODO: consider transparency prop
 			// TODO: consider fill color prop
 			// TODO: consider powerOfTwo prop
-			var textureBuffer = new BitmapImage2D(target.width, target.height, true, 0xFF0000, false);
+			var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0x0, false);
 			this._textureBuffers[surfaceSelector] = textureBuffer;
 
 			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
@@ -260,17 +260,20 @@ export class ContextSoftware implements IContextGL
 			this._activeBuffer.unlock();
 
 			// TODO: remove (used only to study the incoming data)
-			// var imageData:ImageData = this._activeBuffer.getImageData();
-			// var len:number = imageData.width * imageData.height * 4;
-			// for (var compIndex:number = 0; compIndex < len; compIndex++) {
-			// 	var comp = imageData.data[compIndex];
-			// 	if (comp != 0) {
-			// 		var a = 1;
-			// 	}
-			// }
-			// this._activeTexture.uploadFromData(imageData);
+			var imageData:ImageData = this._activeBuffer.getImageData();
+			var len:number = imageData.width * imageData.height * 4;
+			for (var compIndex:number = 0; compIndex < len; compIndex += 4) {
+				var cr = imageData.data[compIndex];
+				var cg = imageData.data[compIndex + 1];
+				var cb = imageData.data[compIndex + 2];
+				var ca = imageData.data[compIndex + 3];
+				if (cr != 0 || cg != 0 || cb != 0) {
+					console.log("color: " + cr, ", " + cb + ", " + cb + ", " + ca);
+				}
+			}
+			this._activeTexture.uploadFromData(imageData);
 
-			this._activeTexture.uploadFromData(this._activeBuffer.getImageData());
+			// this._activeTexture.uploadFromData(this._activeBuffer.getImageData());
 		}
 	}
 
