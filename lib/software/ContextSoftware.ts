@@ -84,8 +84,8 @@ export class ContextSoftware implements IContextGL
 
 	private _antialias:number = 0;
 
-	constructor(canvas:HTMLCanvasElement)
-	{
+	constructor(canvas:HTMLCanvasElement)  {
+
 		this._canvas = canvas;
 
 		this._backBufferColor = new BitmapImage2D(this._backBufferWidth, this._backBufferHeight, false, 0, false);
@@ -98,43 +98,8 @@ export class ContextSoftware implements IContextGL
 			document.body.appendChild(this._frontBuffer.getCanvas());
 	}
 
-	public enableStencil(){
+	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean):void  {
 
-	}
-	public disableStencil(){
-
-	}
-	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
-	{
-
-	}
-	public get frontBuffer():BitmapImage2D
-	{
-		return this._frontBuffer;
-	}
-
-	public get container():HTMLElement
-	{
-		return this._canvas;
-	}
-
-	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void
-	{
-		this._backBufferColor.lock();
-
-		if (mask & ContextGLClearMask.COLOR) {
-			this._colorClearUint32.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
-			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
-		}
-
-		//TODO: mask & ContextGLClearMask.STENCIL
-
-		if (mask & ContextGLClearMask.DEPTH)
-			this._zbuffer.set(this._zbufferClear); //fast memcpy
-	}
-
-	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean):void
-	{
 		this._antialias = antiAlias;
 
 		if (this._antialias % 2 != 0)
@@ -193,112 +158,33 @@ export class ContextSoftware implements IContextGL
 		this._frontBufferMatrix.scale(1/this._antialias, 1/this._antialias);
 	}
 
-	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture
-	{
-		return new CubeTextureSoftware(size);
+	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)  {
+		this._activeTexture = target;
+
+		// Create texture buffer if needed.
+		var textureBuffer = this._textureBuffers[surfaceSelector];
+		if (textureBuffer == null) {
+
+			// TODO: consider transparency prop
+			// TODO: consider fill color prop
+			// TODO: consider powerOfTwo prop
+			var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0, false);
+			this._textureBuffers[surfaceSelector] = textureBuffer;
+
+			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
+			target.uploadFromData(textureBuffer.getImageData());
+		}
+
+		this._activeBuffer = textureBuffer;
+		this._activeBuffer.lock();
 	}
 
-	public createIndexBuffer(numIndices:number):IIndexBuffer {
-		return new IndexBufferSoftware(numIndices);
+	public setRenderToBackBuffer():void  {
+		this._activeBuffer = this._backBufferColor;
 	}
 
-	public createProgram():ProgramSoftware {
-		return new ProgramSoftware();
-	}
+	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void  {
 
-	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):TextureSoftware
-	{
-		return new TextureSoftware(width, height);
-	}
-
-	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferSoftware
-	{
-		return new VertexBufferSoftware(numVertices, dataPerVertex);
-	}
-
-	public dispose():void
-	{
-	}
-
-	public setBlendFactors(sourceFactor:string, destinationFactor:string):void
-	{
-		this._blendSource = sourceFactor;
-		this._blendDestination = destinationFactor;
-	}
-
-	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void
-	{
-		this._colorMaskR = red;
-		this._colorMaskG = green;
-		this._colorMaskB = blue;
-		this._colorMaskA = alpha;
-	}
-
-	public setStencilActions(triangleFace:string, compareMode:string, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string, coordinateSystem:string):void
-	{
-		//TODO:
-	}
-
-	public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number):void
-	{
-		//TODO:
-	}
-
-	public setCulling(triangleFaceToCull:string, coordinateSystem:string):void
-	{
-		//TODO: CoordinateSystem.RIGHT_HAND
-		this._cullingMode = triangleFaceToCull;
-	}
-
-	public setDepthTest(depthMask:boolean, passCompareMode:string):void
-	{
-		this._writeDepth = depthMask;
-		this._depthCompareMode = passCompareMode;
-	}
-
-	public setProgram(program:ProgramSoftware):void
-	{
-		this._program = program;
-	}
-
-	public setProgramConstantsFromArray(programType:number, data:Float32Array):void
-	{
-		var target:Float32Array;
-		if (programType == ContextGLProgramType.VERTEX)
-			target = this._vertexConstants = new Float32Array(data.length);
-		else if (programType == ContextGLProgramType.FRAGMENT)
-			target = this._fragmentConstants = new Float32Array(data.length);
-
-		target.set(data);
-	}
-
-	public setTextureAt(sampler:number, texture:TextureSoftware):void
-	{
-		this._textures[sampler] = texture;
-	}
-
-	public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number):void
-	{
-		this._vertexBuffers[index] = buffer;
-		this._vertexBufferOffsets[index] = bufferOffset;
-		this._vertexBufferFormats[index] = format;
-	}
-
-	public present():void
-	{
-		this._backBufferColor.unlock();
-
-		this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
-		this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
-	}
-
-	public drawToBitmapImage2D(destination:BitmapImage2D):void
-	{
-		// TODO:
-	}
-
-	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void
-	{
 		if (!this._program)
 			return;
 
@@ -368,78 +254,6 @@ export class ContextSoftware implements IContextGL
 			this._activeBuffer.unlock();
 			this._activeTexture.uploadFromData(this._activeBuffer.getImageData());
 		}
-	}
-
-	public drawVertices(mode:string, firstVertex:number, numVertices:number):void
-	{
-		//TODO:
-	}
-
-	public setScissorRectangle(rectangle:Rectangle):void
-	{
-		//TODO:
-	}
-
-	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
-	{
-		var state:SoftwareSamplerState = this._samplerStates[sampler];
-
-		if (!state)
-			state = this._samplerStates[sampler] = new SoftwareSamplerState();
-
-		state.wrap = wrap;
-		state.filter = filter;
-		state.mipfilter = mipfilter;
-	}
-
-	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)
-	{
-		this._activeTexture = target;
-
-		// Create texture buffer if needed.
-		var textureBuffer = this._textureBuffers[surfaceSelector];
-		if (textureBuffer == null) {
-
-			// TODO: consider transparency prop
-			// TODO: consider fill color prop
-			// TODO: consider powerOfTwo prop
-			var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0, false);
-			this._textureBuffers[surfaceSelector] = textureBuffer;
-
-			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
-			target.uploadFromData(textureBuffer.getImageData());
-		}
-
-		this._activeBuffer = textureBuffer;
-		this._activeBuffer.lock();
-	}
-
-	public setRenderToBackBuffer():void
-	{
-		this._activeBuffer = this._backBufferColor;
-	}
-
-	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
-	{
-		this._rgba[0] = 0;
-		this._rgba[1] = 0;
-		this._rgba[2] = 0;
-		this._rgba[3] = 0;
-
-		BlendModeSoftware[this._blendDestination](dest, dest, source);
-		BlendModeSoftware[this._blendSource](this._rgba, dest, source);
-
-		this._activeBuffer.setPixelData(x, y, this._rgba);
-	}
-
-	public clamp(value:number, min:number = 0, max:number = 1):number
-	{
-		return Math.max(min, Math.min(value, max));
-	}
-
-	public interpolate(min:number, max:number, gradient:number):number
-	{
-		return min + (max - min)*this.clamp(gradient);
 	}
 
 	private _triangle(incomingVertices:Array<Float32Array>, outgoingVertices:Array<Float32Array>, incomingVaryings:Array<Float32Array>, outgoingVaryings:Array<Float32Array>):void  {
@@ -512,14 +326,6 @@ export class ContextSoftware implements IContextGL
 		}
 		// else if (numOriginalVerticesInside == 0) { // full clipping (do nothing)
 		// }
-	}
-
-	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array) {
-
-		for (var i:number = 0; i < v0.length; i++) {
-			var delta = v0[i] - v1[i];
-			result[i] = v1[i] + delta * factor;
-		}
 	}
 
 	private _projectTriangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array) {
@@ -634,8 +440,108 @@ export class ContextSoftware implements IContextGL
 		}
 	}
 
-	private _barycentric(a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number):Vector3D
-	{
+	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void  {
+		this._rgba[0] = 0;
+		this._rgba[1] = 0;
+		this._rgba[2] = 0;
+		this._rgba[3] = 0;
+
+		BlendModeSoftware[this._blendDestination](dest, dest, source);
+		BlendModeSoftware[this._blendSource](this._rgba, dest, source);
+
+		this._activeBuffer.setPixelData(x, y, this._rgba);
+	}
+
+	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture  {
+		return new CubeTextureSoftware(size);
+	}
+
+	public createIndexBuffer(numIndices:number):IIndexBuffer {
+		return new IndexBufferSoftware(numIndices);
+	}
+
+	public createProgram():ProgramSoftware {
+		return new ProgramSoftware();
+	}
+
+	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):TextureSoftware {
+		return new TextureSoftware(width, height);
+	}
+
+	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferSoftware  {
+		return new VertexBufferSoftware(numVertices, dataPerVertex);
+	}
+
+	public dispose():void {
+	}
+
+	public setBlendFactors(sourceFactor:string, destinationFactor:string):void  {
+		this._blendSource = sourceFactor;
+		this._blendDestination = destinationFactor;
+	}
+
+	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void  {
+		this._colorMaskR = red;
+		this._colorMaskG = green;
+		this._colorMaskB = blue;
+		this._colorMaskA = alpha;
+	}
+
+	public setStencilActions(triangleFace:string, compareMode:string, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string, coordinateSystem:string):void  {
+		//TODO:
+	}
+
+	public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number):void {
+		//TODO:
+	}
+
+	public setCulling(triangleFaceToCull:string, coordinateSystem:string):void  {
+		//TODO: CoordinateSystem.RIGHT_HAND
+		this._cullingMode = triangleFaceToCull;
+	}
+
+	public setDepthTest(depthMask:boolean, passCompareMode:string):void  {
+		this._writeDepth = depthMask;
+		this._depthCompareMode = passCompareMode;
+	}
+
+	public setProgram(program:ProgramSoftware):void  {
+		this._program = program;
+	}
+
+	public setProgramConstantsFromArray(programType:number, data:Float32Array):void  {
+		var target:Float32Array;
+		if (programType == ContextGLProgramType.VERTEX)
+			target = this._vertexConstants = new Float32Array(data.length);
+		else if (programType == ContextGLProgramType.FRAGMENT)
+			target = this._fragmentConstants = new Float32Array(data.length);
+
+		target.set(data);
+	}
+
+	public setTextureAt(sampler:number, texture:TextureSoftware):void  {
+		this._textures[sampler] = texture;
+	}
+
+	public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number):void  {
+		this._vertexBuffers[index] = buffer;
+		this._vertexBufferOffsets[index] = bufferOffset;
+		this._vertexBufferFormats[index] = format;
+	}
+
+	public present():void  {
+		this._backBufferColor.unlock();
+
+		this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
+		this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
+	}
+
+	public drawToBitmapImage2D(destination:BitmapImage2D):void  {
+		// TODO:
+	}
+
+	private _barycentric(a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number):Vector3D {
+
 		this._sx.x = c.x - a.x;
 		this._sx.y = b.x - a.x;
 		this._sx.z = a.x - x;
@@ -650,5 +556,74 @@ export class ContextSoftware implements IContextGL
 			return new Vector3D(1 - (this._u.x + this._u.y)/this._u.z, this._u.y/this._u.z, this._u.x/this._u.z);
 		
 		return new Vector3D(-1, 1, 1);
+	}
+
+	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array) {
+
+		for (var i:number = 0; i < v0.length; i++) {
+			var delta = v0[i] - v1[i];
+			result[i] = v1[i] + delta * factor;
+		}
+	}
+
+	public clamp(value:number, min:number = 0, max:number = 1):number  {
+		return Math.max(min, Math.min(value, max));
+	}
+
+	public interpolate(min:number, max:number, gradient:number):number  {
+		return min + (max - min)*this.clamp(gradient);
+	}
+
+	public drawVertices(mode:string, firstVertex:number, numVertices:number):void  {
+		//TODO:
+	}
+
+	public setScissorRectangle(rectangle:Rectangle):void  {
+		//TODO:
+	}
+
+	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void  {
+		var state:SoftwareSamplerState = this._samplerStates[sampler];
+
+		if (!state)
+			state = this._samplerStates[sampler] = new SoftwareSamplerState();
+
+		state.wrap = wrap;
+		state.filter = filter;
+		state.mipfilter = mipfilter;
+	}
+
+	public enableStencil() {
+
+	}
+
+	public disableStencil() {
+
+	}
+
+	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded") {
+
+	}
+
+	public get frontBuffer():BitmapImage2D {
+		return this._frontBuffer;
+	}
+
+	public get container():HTMLElement {
+		return this._canvas;
+	}
+
+	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void {
+		this._backBufferColor.lock();
+
+		if (mask & ContextGLClearMask.COLOR) {
+			this._colorClearUint32.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
+			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
+		}
+
+		//TODO: mask & ContextGLClearMask.STENCIL
+
+		if (mask & ContextGLClearMask.DEPTH)
+			this._zbuffer.set(this._zbufferClear); //fast memcpy
 	}
 }
