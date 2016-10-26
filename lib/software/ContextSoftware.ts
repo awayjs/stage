@@ -88,7 +88,7 @@ export class ContextSoftware implements IContextGL
 
 		this._textureBuffers = new Array<BitmapImage2D>()
 
-		if (document && document.body) 
+		if (document && document.body)
 			document.body.appendChild(this._frontBuffer.getCanvas());
 	}
 
@@ -415,15 +415,15 @@ export class ContextSoftware implements IContextGL
 
 	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
 	{
-		argb[0] = 0;
-		argb[1] = 0;
-		argb[2] = 0;
-		argb[3] = 0;
+		rgba[0] = 0;
+		rgba[1] = 0;
+		rgba[2] = 0;
+		rgba[3] = 0;
 
 		BlendModeSoftware[this._blendDestination](dest, dest, source);
 		BlendModeSoftware[this._blendSource](source, dest, source);
 
-		this._activeBuffer.setPixelData(x, y, argb);
+		this._activeBuffer.setPixelData(x, y, rgba);
 	}
 
 	public clamp(value:number, min:number = 0, max:number = 1):number
@@ -651,19 +651,19 @@ export class BlendModeSoftware
 {
 	public static destinationAlpha(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*dest[0]/0xFF;
-		argb[1] += result[1]*dest[0]/0xFF;
-		argb[2] += result[2]*dest[0]/0xFF;
-		argb[3] += result[3]*dest[0]/0xFF;
+		rgba[0] += result[0]*dest[3]/0xFF;
+		rgba[1] += result[1]*dest[3]/0xFF;
+		rgba[2] += result[2]*dest[3]/0xFF;
+		rgba[3] += result[3]*dest[3]/0xFF;
 	}
 
 
 	public static destinationColor(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*dest[0]/0xFF;
-		argb[1] += result[1]*dest[1]/0xFF;
-		argb[2] += result[2]*dest[2]/0xFF;
-		argb[3] += result[3]*dest[3]/0xFF;
+		rgba[0] += result[0]*dest[0]/0xFF;
+		rgba[1] += result[1]*dest[1]/0xFF;
+		rgba[2] += result[2]*dest[2]/0xFF;
+		rgba[3] += result[3]*dest[3]/0xFF;
 	}
 
 	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
@@ -672,58 +672,58 @@ export class BlendModeSoftware
 
 	public static one(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0];
-		argb[1] += result[1];
-		argb[2] += result[2];
-		argb[3] += result[3];
+		rgba[0] += result[0];
+		rgba[1] += result[1];
+		rgba[2] += result[2];
+		rgba[3] += result[3];
 	}
 
 	public static oneMinusDestinationAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*(1 - dest[0]/0xFF);
-		argb[1] += result[1]*(1 - dest[0]/0xFF);
-		argb[2] += result[2]*(1 - dest[0]/0xFF);
-		argb[3] += result[3]*(1 - dest[0]/0xFF);
+		rgba[0] += result[0]*(1 - dest[3]/0xFF);
+		rgba[1] += result[1]*(1 - dest[3]/0xFF);
+		rgba[2] += result[2]*(1 - dest[3]/0xFF);
+		rgba[3] += result[3]*(1 - dest[3]/0xFF);
 	}
 
 	public static oneMinusDestinationColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*(1 - dest[0]/0xFF);
-		argb[1] += result[1]*(1 - dest[1]/0xFF);
-		argb[2] += result[2]*(1 - dest[2]/0xFF);
-		argb[3] += result[3]*(1 - dest[3]/0xFF);
+		rgba[0] += result[0]*(1 - dest[0]/0xFF);
+		rgba[1] += result[1]*(1 - dest[1]/0xFF);
+		rgba[2] += result[2]*(1 - dest[2]/0xFF);
+		rgba[3] += result[3]*(1 - dest[3]/0xFF);
 	}
 
 	public static oneMinusSourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*(1 - source[0]/0xFF);
-		argb[1] += result[1]*(1 - source[0]/0xFF);
-		argb[2] += result[2]*(1 - source[0]/0xFF);
-		argb[3] += result[3]*(1 - source[0]/0xFF);
+		rgba[0] += result[0]*(1 - source[3]/0xFF);
+		rgba[1] += result[1]*(1 - source[3]/0xFF);
+		rgba[2] += result[2]*(1 - source[3]/0xFF);
+		rgba[3] += result[3]*(1 - source[3]/0xFF);
 	}
 
 	public static oneMinusSourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*(1 - source[0]/0xFF);
-		argb[1] += result[1]*(1 - source[1]/0xFF);
-		argb[2] += result[2]*(1 - source[2]/0xFF);
-		argb[3] += result[3]*(1 - source[3]/0xFF);
+		rgba[0] += result[0]*(1 - source[0]/0xFF);
+		rgba[1] += result[1]*(1 - source[1]/0xFF);
+		rgba[2] += result[2]*(1 - source[2]/0xFF);
+		rgba[3] += result[3]*(1 - source[3]/0xFF);
 	}
 
 	public static sourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*source[0]/0xFF;
-		argb[1] += result[1]*source[0]/0xFF;
-		argb[2] += result[2]*source[0]/0xFF;
-		argb[3] += result[3]*source[0]/0xFF;
+		rgba[0] += result[0]*source[3]/0xFF;
+		rgba[1] += result[1]*source[3]/0xFF;
+		rgba[2] += result[2]*source[3]/0xFF;
+		rgba[3] += result[3]*source[3]/0xFF;
 	}
 
 	public static sourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
 	{
-		argb[0] += result[0]*source[0]/0xFF;
-		argb[1] += result[1]*source[1]/0xFF;
-		argb[2] += result[2]*source[2]/0xFF;
-		argb[3] += result[3]*source[3]/0xFF;
+		rgba[0] += result[0]*source[0]/0xFF;
+		rgba[1] += result[1]*source[1]/0xFF;
+		rgba[2] += result[2]*source[2]/0xFF;
+		rgba[3] += result[3]*source[3]/0xFF;
 	}
 }
 
@@ -771,6 +771,6 @@ export class DepthCompareModeSoftware
 	}
 }
 
-var argb:Uint8ClampedArray = new Uint8ClampedArray(4);
+var rgba:Uint8ClampedArray = new Uint8ClampedArray(4);
 var source:Uint8ClampedArray = new Uint8ClampedArray(4);
 var dest:Uint8ClampedArray = new Uint8ClampedArray(4);
