@@ -23,6 +23,8 @@ import {CubeTextureSoftware}			from "./CubeTextureSoftware";
 import {ProgramSoftware}				from "./ProgramSoftware";
 import {ProgramVOSoftware}			from "./ProgramVOSoftware";
 import {SoftwareSamplerState}			from "./SoftwareSamplerState";
+import {BlendModeSoftware}			from "./BlendModeSoftware";
+import {DepthCompareModeSoftware}			from "./DepthCompareModeSoftware";
 
 export class ContextSoftware implements IContextGL
 {
@@ -421,7 +423,7 @@ export class ContextSoftware implements IContextGL
 		rgba[3] = 0;
 
 		BlendModeSoftware[this._blendDestination](dest, dest, source);
-		BlendModeSoftware[this._blendSource](source, dest, source);
+		BlendModeSoftware[this._blendSource](rgba, dest, source);
 
 		this._activeBuffer.setPixelData(x, y, rgba);
 	}
@@ -644,130 +646,6 @@ export class ContextSoftware implements IContextGL
 			return new Vector3D(1 - (this._u.x + this._u.y)/this._u.z, this._u.y/this._u.z, this._u.x/this._u.z);
 		
 		return new Vector3D(-1, 1, 1);
-	}
-}
-
-export class BlendModeSoftware
-{
-	public static destinationAlpha(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*dest[3]/0xFF;
-		rgba[1] += result[1]*dest[3]/0xFF;
-		rgba[2] += result[2]*dest[3]/0xFF;
-		rgba[3] += result[3]*dest[3]/0xFF;
-	}
-
-
-	public static destinationColor(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*dest[0]/0xFF;
-		rgba[1] += result[1]*dest[1]/0xFF;
-		rgba[2] += result[2]*dest[2]/0xFF;
-		rgba[3] += result[3]*dest[3]/0xFF;
-	}
-
-	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-	}
-
-	public static one(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0];
-		rgba[1] += result[1];
-		rgba[2] += result[2];
-		rgba[3] += result[3];
-	}
-
-	public static oneMinusDestinationAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*(1 - dest[3]/0xFF);
-		rgba[1] += result[1]*(1 - dest[3]/0xFF);
-		rgba[2] += result[2]*(1 - dest[3]/0xFF);
-		rgba[3] += result[3]*(1 - dest[3]/0xFF);
-	}
-
-	public static oneMinusDestinationColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*(1 - dest[0]/0xFF);
-		rgba[1] += result[1]*(1 - dest[1]/0xFF);
-		rgba[2] += result[2]*(1 - dest[2]/0xFF);
-		rgba[3] += result[3]*(1 - dest[3]/0xFF);
-	}
-
-	public static oneMinusSourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*(1 - source[3]/0xFF);
-		rgba[1] += result[1]*(1 - source[3]/0xFF);
-		rgba[2] += result[2]*(1 - source[3]/0xFF);
-		rgba[3] += result[3]*(1 - source[3]/0xFF);
-	}
-
-	public static oneMinusSourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*(1 - source[0]/0xFF);
-		rgba[1] += result[1]*(1 - source[1]/0xFF);
-		rgba[2] += result[2]*(1 - source[2]/0xFF);
-		rgba[3] += result[3]*(1 - source[3]/0xFF);
-	}
-
-	public static sourceAlpha(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*source[3]/0xFF;
-		rgba[1] += result[1]*source[3]/0xFF;
-		rgba[2] += result[2]*source[3]/0xFF;
-		rgba[3] += result[3]*source[3]/0xFF;
-	}
-
-	public static sourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void
-	{
-		rgba[0] += result[0]*source[0]/0xFF;
-		rgba[1] += result[1]*source[1]/0xFF;
-		rgba[2] += result[2]*source[2]/0xFF;
-		rgba[3] += result[3]*source[3]/0xFF;
-	}
-}
-
-
-export class DepthCompareModeSoftware
-{
-	public static always(fragDepth:number, currentDepth:number):boolean
-	{
-		return true;
-	}
-
-	public static equal(fragDepth:number, currentDepth:number):boolean
-	{
-		return fragDepth == currentDepth;
-	}
-
-	public static greater(fragDepth:number, currentDepth:number):boolean
-	{
-		return fragDepth > currentDepth;
-	}
-
-	public static greaterEqual(fragDepth:number, currentDepth:number):boolean
-	{
-		return fragDepth >= currentDepth;
-	}
-
-	public static less(fragDepth:number, currentDepth:number):boolean
-	{
-		return fragDepth < currentDepth;
-	}
-
-	public static lessEqual(fragDepth:number, currentDepth:number):boolean
-	{
-		return fragDepth <= currentDepth;
-	}
-
-	public static never(fragDepth:number, currentDepth:number):boolean
-	{
-		return false;
-	}
-
-	public static notEqual(fragDepth:number, currentDepth:number):boolean
-	{
-		return fragDepth != currentDepth;
 	}
 }
 
