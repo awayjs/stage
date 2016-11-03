@@ -1,4 +1,5 @@
-import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
+import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+
 import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
 import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
 import {Point}						from "@awayjs/core/lib/geom/Point";
