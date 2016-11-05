@@ -1,7 +1,8 @@
-import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
 import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
 import {Byte32Array}				from "@awayjs/core/lib/utils/Byte32Array";
 import {GLESConnector}					from "./GLESConnector";
+
+import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
 
 import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
 import {ContextGLDrawMode}			from "../base/ContextGLDrawMode";

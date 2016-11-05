@@ -1,6 +1,7 @@
 import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
 import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
+
+import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
 
 import {ICubeTexture}					from "../base/ICubeTexture";
 import {IIndexBuffer}					from "../base/IIndexBuffer";
