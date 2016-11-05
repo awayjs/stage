@@ -268,7 +268,7 @@ export class ContextWebGL implements IContextGL
 
 	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
-		var pixels:Uint8ClampedArray = new Uint8ClampedArray(destination.width*destination.height*4);
+		var pixels:Uint8Array = new Uint8Array(destination.width*destination.height*4);
 
 		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
 
