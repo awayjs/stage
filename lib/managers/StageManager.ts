@@ -1,22 +1,22 @@
-import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
-import ArgumentError				= require("awayjs-core/lib/errors/ArgumentError");
+import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
+import {ArgumentError}				from "@awayjs/core/lib/errors/ArgumentError";
 
-import Stage						= require("awayjs-stagegl/lib/base/Stage");
-import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
+import {Stage}						from "../base/Stage";
+import {StageEvent}					from "../events/StageEvent";
 
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.
  *
  * @see away.base.Stage
  */
-class StageManager extends EventDispatcher
+export class StageManager extends EventDispatcher
 {
 	private static STAGE_MAX_QUANTITY:number = 8;
 	private _stages:Array<Stage>;
 
 	private static _instance:StageManager;
 	private static _numStages:number = 0;
-	private _onContextCreatedDelegate:(event:Event) => void;
+	private _onContextCreatedDelegate:(event:StageEvent) => void;
 
 	/**
 	 * Creates a new StageManager class.
@@ -29,7 +29,7 @@ class StageManager extends EventDispatcher
 
 		this._stages = new Array<Stage>(StageManager.STAGE_MAX_QUANTITY);
 
-		this._onContextCreatedDelegate = (event:Event) => this.onContextCreated(event);
+		this._onContextCreatedDelegate = (event:StageEvent) => this.onContextCreated(event);
 	}
 
 	/**
@@ -61,9 +61,11 @@ class StageManager extends EventDispatcher
 		if (!this._stages[index]) {
 			StageManager._numStages++;
 
-			var canvas:HTMLCanvasElement = document.createElement("canvas");
-			canvas.id = "stage" + index;
-			document.body.appendChild(canvas);
+			if(document) {
+				var canvas:HTMLCanvasElement = document.createElement("canvas");
+				canvas.id = "stage" + index;
+				document.body.appendChild(canvas);
+			}
 			var stage:Stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
 			stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
 			stage.requestContext(forceSoftware, profile, mode);
@@ -77,7 +79,7 @@ class StageManager extends EventDispatcher
 	 * @param stage
 	 * @private
 	 */
-	public iRemoveStage(stage:Stage)
+	public iRemoveStage(stage:Stage):void
 	{
 		StageManager._numStages--;
 
@@ -142,11 +144,9 @@ class StageManager extends EventDispatcher
 		return this._stages.length;
 	}
 
-	private onContextCreated(event:Event):void
+	private onContextCreated(event:StageEvent):void
 	{
 		//var stage:Stage = <Stage> e.target;
 		//document.body.appendChild(stage.canvas)
 	}
 }
-
-export = StageManager;

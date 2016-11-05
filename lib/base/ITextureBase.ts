@@ -1,6 +1,6 @@
-interface ITextureBase
+export interface ITextureBase
 {
 	dispose();
-}
 
-export = ITextureBase;
+	generateMipmaps();
+}

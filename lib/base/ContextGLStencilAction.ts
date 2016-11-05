@@ -1,4 +1,4 @@
-class ContextGLStencilAction
+export class ContextGLStencilAction
 {
 	public static DECREMENT_SATURATE:string = "decrementSaturate";
 	public static DECREMENT_WRAP:string = "decrementWrap";
@@ -9,5 +9,3 @@ class ContextGLStencilAction
 	public static SET:string = "set";
 	public static ZERO:string = "zero";
 }
-
-export = ContextGLStencilAction;

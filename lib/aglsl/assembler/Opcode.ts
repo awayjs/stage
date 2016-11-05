@@ -1,10 +1,10 @@
-import Flags				= require("awayjs-stagegl/lib/aglsl/assembler/Flags");
-import FS					= require("awayjs-stagegl/lib/aglsl/assembler/FS");
+import {Flags}				from "../../aglsl/assembler/Flags";
+import {FS}					from "../../aglsl/assembler/FS";
 
 /**
  *
  */
-class Opcode
+export class Opcode
 {
 	public dest:string;
 	public a:FS;
@@ -30,5 +30,3 @@ class Opcode
 		this.flags.matrix = matrix;
 	}
 }
-
-export = Opcode;

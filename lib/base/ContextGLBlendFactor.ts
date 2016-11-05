@@ -1,4 +1,4 @@
-class ContextGLBlendFactor
+export class ContextGLBlendFactor
 {
 	public static DESTINATION_ALPHA:string = "destinationAlpha";
 	public static DESTINATION_COLOR:string = "destinationColor";
@@ -11,5 +11,3 @@ class ContextGLBlendFactor
 	public static SOURCE_COLOR:string = "sourceColor";
 	public static ZERO:string = "zero";
 }
-
-export = ContextGLBlendFactor;

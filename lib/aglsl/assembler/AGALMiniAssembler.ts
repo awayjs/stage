@@ -1,12 +1,12 @@
-import Sampler					= require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
-import Opcode					= require("awayjs-stagegl/lib/aglsl/assembler/Opcode");
-import OpcodeMap				= require("awayjs-stagegl/lib/aglsl/assembler/OpcodeMap");
-import Part						= require("awayjs-stagegl/lib/aglsl/assembler/Part");
-import RegMap					= require("awayjs-stagegl/lib/aglsl/assembler/RegMap");
-import SamplerMap				= require("awayjs-stagegl/lib/aglsl/assembler/SamplerMap");
+import {Sampler}					from "../../aglsl/assembler/Sampler";
+import {Opcode}					from "../../aglsl/assembler/Opcode";
+import {OpcodeMap}				from "../../aglsl/assembler/OpcodeMap";
+import {Part}						from "../../aglsl/assembler/Part";
+import {RegMap}					from "../../aglsl/assembler/RegMap";
+import {SamplerMap}				from "../../aglsl/assembler/SamplerMap";
 
 
-class AGALMiniAssembler
+export class AGALMiniAssembler
 {
 	public r:Object;
 	public cur:Part;
@@ -17,7 +17,7 @@ class AGALMiniAssembler
 		this.cur = new Part();
 	}
 
-	public assemble(source:string, ext_part = null, ext_version = null)
+	public assemble(source:string, ext_part = null, ext_version = null):Object
 	{
 		if (!ext_version) {
 			ext_version = 1;
@@ -36,7 +36,7 @@ class AGALMiniAssembler
 		return this.r;
 	}
 
-	private processLine(line, linenr)
+	private processLine(line, linenr):void
 	{
 		var startcomment:number = line.search("//");  // remove comments
 		if (startcomment != -1) {
@@ -121,7 +121,7 @@ class AGALMiniAssembler
 		}
 	}
 
-	public emitHeader(pr:Part)
+	public emitHeader(pr:Part):void
 	{
 		pr.data.writeUnsignedByte(0xa0); 	// tag version
 		pr.data.writeUnsignedInt(pr.version);
@@ -145,24 +145,24 @@ class AGALMiniAssembler
 		}
 	}
 
-	public emitOpcode(pr:Part, opcode)
+	public emitOpcode(pr:Part, opcode):void
 	{
 		pr.data.writeUnsignedInt(opcode);
 		//console.log ( "Emit opcode: ", opcode ); 
 	}
 
-	public emitZeroDword(pr:Part)
+	public emitZeroDword(pr:Part):void
 	{
 		pr.data.writeUnsignedInt(0);
 	}
 
-	public emitZeroQword(pr)
+	public emitZeroQword(pr):void
 	{
 		pr.data.writeUnsignedInt(0);
 		pr.data.writeUnsignedInt(0);
 	}
 
-	public emitDest(pr, token, opdest)
+	public emitDest(pr, token, opdest):boolean
 	{
 
 		//console.log( 'AGALMiniAssembler' , 'emitDest' , 'RegMap.map' , RegMap.map);
@@ -183,7 +183,7 @@ class AGALMiniAssembler
 	public stringToMask(s:string):number
 	{
 		if (!s) return 0xf;
-		var r = 0;
+		var r:number = 0;
 		if (s.indexOf("x") != -1) r |= 1;
 		if (s.indexOf("y") != -1) r |= 2;
 		if (s.indexOf("z") != -1) r |= 4;
@@ -191,13 +191,13 @@ class AGALMiniAssembler
 		return r;
 	}
 
-	public stringToSwizzle(s)
+	public stringToSwizzle(s):number
 	{
 		if (!s) {
 			return 0xe4;
 		}
 		var chartoindex = { x:0, y:1, z:2, w:3 };
-		var sw = 0;
+		var sw:number = 0;
 
 		if (s.charAt(0) != ".") {
 			throw "Missing . for swizzle";
@@ -228,7 +228,7 @@ class AGALMiniAssembler
 		return sw;
 	}
 
-	public emitSampler(pr:Part, token, opsrc, opts)
+	public emitSampler(pr:Part, token, opsrc, opts):boolean
 	{
 		var reg:string[] = token.match(/fs(\d*)/i); // g1:regnum
 		if (!reg || !reg[1]) {
@@ -266,7 +266,7 @@ class AGALMiniAssembler
 		return true;
 	}
 
-	public emitSource(pr, token, opsrc)
+	public emitSource(pr, token, opsrc):boolean
 	{
 		var indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([\+\-]\d+)?\](\.[xyzw]{1,4})?/i); // g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
 		var reg;
@@ -301,7 +301,7 @@ class AGALMiniAssembler
 		return true;
 	}
 
-	public addHeader(partname, version)
+	public addHeader(partname, version):void
 	{
 		if (!version) {
 			version = 1;
@@ -315,5 +315,3 @@ class AGALMiniAssembler
 		this.cur = this.r[partname];
 	}
 }
-
-export = AGALMiniAssembler;

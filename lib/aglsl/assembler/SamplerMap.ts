@@ -1,6 +1,6 @@
-import Sampler				= require("awayjs-stagegl/lib/aglsl/assembler/Sampler");
+import {Sampler}				from "../../aglsl/assembler/Sampler";
 
-class SamplerMap
+export class SamplerMap
 {
 
 	private static _map:Object[];
@@ -119,5 +119,3 @@ class SamplerMap
 	{
 	}
 }
-
-export = SamplerMap;

@@ -1,4 +1,4 @@
-class ContextGLCompareMode
+export class ContextGLCompareMode
 {
 	public static ALWAYS:string = "always";
 	public static EQUAL:string = "equal";
@@ -9,5 +9,3 @@ class ContextGLCompareMode
 	public static NEVER:string = "never";
 	public static NOT_EQUAL:string = "notEqual";
 }
-
-export = ContextGLCompareMode;

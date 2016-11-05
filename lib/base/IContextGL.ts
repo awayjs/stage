@@ -1,15 +1,15 @@
-import BitmapImage2D					= require("awayjs-core/lib/data/BitmapImage2D");
-import Matrix3D						= require("awayjs-core/lib/geom/Matrix3D");
-import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
+import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
+import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {BitmapImage2D}				from "@awayjs/core/lib/image/BitmapImage2D";
 
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
-import IProgram						= require("awayjs-stagegl/lib/base/IProgram");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
+import {ICubeTexture}					from "../base/ICubeTexture";
+import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {IProgram}						from "../base/IProgram";
+import {ITexture}						from "../base/ITexture";
+import {ITextureBase}					from "../base/ITextureBase";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
 
-interface IContextGL
+export interface IContextGL
 {
 	container:HTMLElement;
 
@@ -50,10 +50,8 @@ interface IContextGL
 	setDepthTest(depthMask:boolean, passCompareMode:string);
 
 	setProgram(program:IProgram);
-
-	setProgramConstantsFromMatrix(programType:number, firstRegister:number, matrix:Matrix3D, transposedMatrix?:boolean);
-
-	setProgramConstantsFromArray(programType:number, firstRegister:number, data:Float32Array, numRegisters?:number);
+	
+	setProgramConstantsFromArray(programType:number, data:Float32Array);
 
 	setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string);
 
@@ -66,6 +64,11 @@ interface IContextGL
 	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number);
 
 	setRenderToBackBuffer();
-}
 
-export = IContextGL;
+	enableStencil();
+
+	disableStencil();
+	
+	setStencilActionsMasks(compareMode:string, referenceValue:number, writeMask:number, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string);
+
+}

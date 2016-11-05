@@ -1,34 +1,29 @@
-import AttributesBuffer				= require("awayjs-core/lib/attributes/AttributesBuffer");
-import ImageBase					= require("awayjs-core/lib/data/ImageBase");
-import Rectangle					= require("awayjs-core/lib/geom/Rectangle");
-import Event						= require("awayjs-core/lib/events/Event");
-import EventDispatcher				= require("awayjs-core/lib/events/EventDispatcher");
-import CSS							= require("awayjs-core/lib/utils/CSS");
+import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
+import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {ImageBase}					from "@awayjs/core/lib/image/ImageBase";
+import {AbstractionBase}				from "@awayjs/core/lib/library/AbstractionBase";
+import {IAsset}						from "@awayjs/core/lib/library/IAsset";
+import {IAssetClass}					from "@awayjs/core/lib/library/IAssetClass";
+import {IAbstractionPool}				from "@awayjs/core/lib/library/IAbstractionPool";
+import {CSS}							from "@awayjs/core/lib/utils/CSS";
 
-import ContextMode					= require("awayjs-stagegl/lib/base/ContextMode");
-import ContextGLMipFilter			= require("awayjs-stagegl/lib/base/ContextGLMipFilter");
-import ContextGLTextureFilter		= require("awayjs-stagegl/lib/base/ContextGLTextureFilter");
-import ContextGLVertexBufferFormat	= require("awayjs-stagegl/lib/base/ContextGLVertexBufferFormat");
-import ContextGLWrapMode			= require("awayjs-stagegl/lib/base/ContextGLWrapMode");
-import ContextStage3D				= require("awayjs-stagegl/lib/base/ContextStage3D");
-import ContextWebGL					= require("awayjs-stagegl/lib/base/ContextWebGL");
-import ContextSoftware				= require("awayjs-stagegl/lib/base/ContextSoftware");
-import IContextGL					= require("awayjs-stagegl/lib/base/IContextGL");
-import ICubeTexture					= require("awayjs-stagegl/lib/base/ICubeTexture");
-import IIndexBuffer					= require("awayjs-stagegl/lib/base/IIndexBuffer");
-import IVertexBuffer				= require("awayjs-stagegl/lib/base/IVertexBuffer");
-import ITexture						= require("awayjs-stagegl/lib/base/ITexture");
-import ITextureBase					= require("awayjs-stagegl/lib/base/ITextureBase");
-import StageEvent					= require("awayjs-stagegl/lib/events/StageEvent");
-import Image2DObject				= require("awayjs-stagegl/lib/pool/Image2DObject");
-import ImageCubeObject				= require("awayjs-stagegl/lib/pool/ImageCubeObject");
-import ImageObjectBase				= require("awayjs-stagegl/lib/pool/ImageObjectBase");
-import ImageObjectPool				= require("awayjs-stagegl/lib/pool/ImageObjectPool");
-import ProgramData					= require("awayjs-stagegl/lib/pool/ProgramData");
-import ProgramDataPool				= require("awayjs-stagegl/lib/pool/ProgramDataPool");
-import StageManager					= require("awayjs-stagegl/lib/managers/StageManager");
-import AttributesBufferVO			= require("awayjs-stagegl/lib/vos/AttributesBufferVO");
-import AttributesBufferVOPool		= require("awayjs-stagegl/lib/vos/AttributesBufferVOPool");
+import {ContextMode}					from "../base/ContextMode";
+import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
+import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
+import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
+import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
+import {IContextGL}					from "../base/IContextGL";
+import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {StageEvent}					from "../events/StageEvent";
+import {GL_ImageBase}					from "../image/GL_ImageBase";
+import {GL_IAssetClass}				from "../library/GL_IAssetClass";
+import {ProgramData}					from "../image/ProgramData";
+import {ProgramDataPool}				from "../image/ProgramDataPool";
+import {StageManager}					from "../managers/StageManager";
+import {ContextGLES}					from "../gles/ContextGLES";
+import {ContextWebGL}					from "../webgl/ContextWebGL";
+import {ContextFlash}				from "../flash/ContextFlash";
+import {ContextSoftware}				from "../software/ContextSoftware";
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -38,11 +33,13 @@ import AttributesBufferVOPool		= require("awayjs-stagegl/lib/vos/AttributesBuffe
  * @see away.managers.StageManager
  *
  */
-class Stage extends EventDispatcher
+export class Stage extends EventDispatcher implements IAbstractionPool
 {
+	private static _abstractionClassPool:Object = new Object();
+
+	private _abstractionPool:Object = new Object();
+
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
-	private _imageObjectPool:ImageObjectPool;
-	private _attributesBufferVOPool:AttributesBufferVOPool;
 	private _programDataPool:ProgramDataPool;
 	private _context:IContextGL;
 	private _container:HTMLElement;
@@ -51,7 +48,7 @@ class Stage extends EventDispatcher
 	private _x:number = 0;
 	private _y:number = 0;
 
-	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver / request animation frame
+	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver/request animation frame
 
 	private _stageIndex:number = -1;
 
@@ -70,8 +67,6 @@ class Stage extends EventDispatcher
 	private _color:number;
 	private _backBufferDirty:boolean;
 	private _viewPort:Rectangle;
-	private _enterFrame:Event;
-	private _exitFrame:Event;
 	private _viewportUpdated:StageEvent;
 	private _viewportDirty:boolean;
 	private _bufferClear:boolean;
@@ -84,17 +79,21 @@ class Stage extends EventDispatcher
 
 	private _bufferFormatDictionary:Array<Array<number>> = new Array<Array<number>>(5);
 
+	public globalDisableMipmap:boolean = false;
+
+	public globalDisableSmooth:boolean = false;
+	
 	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:string = "baseline")
 	{
 		super();
 
-		this._imageObjectPool = new ImageObjectPool(this);
-		this._attributesBufferVOPool = new AttributesBufferVOPool(this);
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
-		this._container.addEventListener("webglcontextlost", (event) => this.onContextLost(event));
-		this._container.addEventListener("webglcontextrestored", (event) => this.onContextRestored(event));
+		if(this._container) {
+			this._container.addEventListener("webglcontextlost", (event) => this.onContextLost(event));
+			this._container.addEventListener("webglcontextrestored", (event) => this.onContextRestored(event));
+		}
 
 		this._stageIndex = stageIndex;
 
@@ -108,12 +107,32 @@ class Stage extends EventDispatcher
 		CSS.setElementY(this._container, 0);
 
 		this._bufferFormatDictionary[1] = new Array<number>(5);
-		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTES_4;
+		this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat.BYTE_1;
+		this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat.BYTE_2;
+		this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat.BYTE_3;
+		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTE_4;
+		this._bufferFormatDictionary[2] = new Array<number>(5);
+		this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat.SHORT_1;
+		this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat.SHORT_2;
+		this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat.SHORT_3;
+		this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat.SHORT_4;
 		this._bufferFormatDictionary[4] = new Array<number>(5);
 		this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
 		this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
 		this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
 		this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
+		this._bufferFormatDictionary[5] = new Array<number>(5);
+		this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_1;
+		this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_2;
+		this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_3;
+		this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_4;
+		this._bufferFormatDictionary[6] = new Array<number>(5);
+		this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_1;
+		this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_2;
+		this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_3;
+		this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
+
+
 
 		this.visible = true;
 	}
@@ -123,7 +142,7 @@ class Stage extends EventDispatcher
 		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
-	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0)
+	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0):void
 	{
 		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
 			return;
@@ -132,27 +151,40 @@ class Stage extends EventDispatcher
 		this._renderSurfaceSelector = surfaceSelector;
 		this._enableDepthAndStencil = enableDepthAndStencil;
 		if (target) {
-			this._context.setRenderToTexture(this.getImageObject(target).getTexture(this._context), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+			this._context.setRenderToTexture((<GL_ImageBase> this.getAbstraction(target)).texture, enableDepthAndStencil, this._antiAlias, surfaceSelector);
 		} else {
 			this._context.setRenderToBackBuffer();
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
 		}
 	}
 
-	public getImageObject(image:ImageBase):ImageObjectBase
+	public getAbstraction(asset:IAsset):AbstractionBase
 	{
-		return this._imageObjectPool.getItem(image);
+		return (this._abstractionPool[asset.id] || (this._abstractionPool[asset.id] = new (<GL_IAssetClass> Stage._abstractionClassPool[asset.assetType])(asset, this)));
 	}
 
-	public getAttributesBufferVO(attributesBuffer:AttributesBuffer):AttributesBufferVO
+	/**
+	 *
+	 * @param image
+	 */
+	public clearAbstraction(asset:IAsset):void
 	{
-		return this._attributesBufferVOPool.getItem(attributesBuffer);
+		this._abstractionPool[asset.id] = null;
+	}
+
+	/**
+	 *
+	 * @param imageObjectClass
+	 */
+	public static registerAbstraction(gl_assetClass:GL_IAssetClass, assetClass:IAssetClass):void
+	{
+		Stage._abstractionClassPool[assetClass.assetType] = gl_assetClass;
 	}
 
 	/**
 	 * Requests a Context object to attach to the managed gl canvas.
 	 */
-	public requestContext(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto")
+	public requestContext(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):void
 	{
 		// If forcing software, we can be certain that the
 		// returned Context will be running software mode.
@@ -166,20 +198,22 @@ class Stage extends EventDispatcher
 
 		try {
 			if (mode == ContextMode.FLASH)
-				new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
-			else if(mode == ContextMode.SOFTWARE)
+				new ContextFlash(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+			else if (mode == ContextMode.SOFTWARE)
 				this._context = new ContextSoftware(<HTMLCanvasElement> this._container);
+			else if (mode == ContextMode.GLES)
+				this._context = new ContextGLES(<HTMLCanvasElement> this._container);
 			else
 				this._context = new ContextWebGL(<HTMLCanvasElement> this._container);
 
 		} catch (e) {
 			try {
 				if (mode == ContextMode.AUTO)
-					new ContextStage3D(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+					new ContextFlash(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
 				else
-					this.dispatchEvent(new Event(Event.ERROR));
+					this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 			} catch (e) {
-				this.dispatchEvent(new Event(Event.ERROR));
+				this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 			}
 
 		}
@@ -191,7 +225,7 @@ class Stage extends EventDispatcher
 	/**
 	 * The width of the gl canvas
 	 */
-	public get width()
+	public get width():number
 	{
 		return this._width;
 	}
@@ -213,7 +247,7 @@ class Stage extends EventDispatcher
 	/**
 	 * The height of the gl canvas
 	 */
-	public get height()
+	public get height():number
 	{
 		return this._height;
 	}
@@ -235,7 +269,7 @@ class Stage extends EventDispatcher
 	/**
 	 * The x position of the gl canvas
 	 */
-	public get x()
+	public get x():number
 	{
 		return this._x;
 	}
@@ -255,7 +289,7 @@ class Stage extends EventDispatcher
 	/**
 	 * The y position of the gl canvas
 	 */
-	public get y()
+	public get y():number
 	{
 		return this._y;
 	}
@@ -277,7 +311,7 @@ class Stage extends EventDispatcher
 		CSS.setElementVisibility(this._container, val);
 	}
 
-	public get visible()
+	public get visible():boolean
 	{
 		return CSS.getElementVisibility(this._container);
 	}
@@ -295,43 +329,14 @@ class Stage extends EventDispatcher
 		return this._context;
 	}
 
-	private notifyViewportUpdated()
+	private notifyViewportUpdated():void
 	{
 		if (this._viewportDirty)
 			return;
 
 		this._viewportDirty = true;
 
-		//if (!this.hasEventListener(StageEvent.VIEWPORT_UPDATED))
-		//return;
-
-		//if (!_viewportUpdated)
-		this._viewportUpdated = new StageEvent(StageEvent.VIEWPORT_UPDATED);
-
-		this.dispatchEvent(this._viewportUpdated);
-	}
-
-	private notifyEnterFrame()
-	{
-		//if (!hasEventListener(Event.ENTER_FRAME))
-		//return;
-
-		if (!this._enterFrame)
-			this._enterFrame = new Event(Event.ENTER_FRAME);
-
-		this.dispatchEvent(this._enterFrame);
-
-	}
-
-	private notifyExitFrame()
-	{
-		//if (!hasEventListener(Event.EXIT_FRAME))
-		//return;
-
-		if (!this._exitFrame)
-			this._exitFrame = new Event(Event.EXIT_FRAME);
-
-		this.dispatchEvent(this._exitFrame);
+		this.dispatchEvent(new StageEvent(StageEvent.VIEWPORT_UPDATED, this));
 	}
 
 	public get profile():string
@@ -342,8 +347,13 @@ class Stage extends EventDispatcher
 	/**
 	 * Disposes the Stage object, freeing the Context attached to the Stage.
 	 */
-	public dispose()
+	public dispose():void
 	{
+		for (var id in this._abstractionPool)
+			this._abstractionPool[id].clear();
+
+		this._abstractionPool = null;
+
 		this._stageManager.iRemoveStage(this);
 		this.freeContext();
 		this._stageManager = null;
@@ -357,7 +367,7 @@ class Stage extends EventDispatcher
 	 * @param antiAlias The amount of anti-aliasing to use.
 	 * @param enableDepthAndStencil Indicates whether the back buffer contains a depth and stencil buffer.
 	 */
-	public configureBackBuffer(backBufferWidth:number, backBufferHeight:number, antiAlias:number, enableDepthAndStencil:boolean)
+	public configureBackBuffer(backBufferWidth:number, backBufferHeight:number, antiAlias:number, enableDepthAndStencil:boolean):void
 	{
 		this.width = backBufferWidth;
 		this.height = backBufferHeight;
@@ -396,7 +406,7 @@ class Stage extends EventDispatcher
 	/*
 	 * Clear and reset the back buffer when using a shared context
 	 */
-	public clear()
+	public clear():void
 	{
 		if (!this._context)
 			return;
@@ -412,62 +422,6 @@ class Stage extends EventDispatcher
 								this._color & 0xff);
 
 		this._bufferClear = true;
-	}
-
-	/**
-	 * Registers an event listener object with an EventDispatcher object so that the listener receives notification of an event. Special case for enterframe and exitframe events - will switch StageProxy into automatic render mode.
-	 * You can register event listeners on all nodes in the display list for a specific type of event, phase, and priority.
-	 *
-	 * @param type The type of event.
-	 * @param listener The listener function that processes the event.
-	 * @param useCapture Determines whether the listener works in the capture phase or the target and bubbling phases. If useCapture is set to true, the listener processes the event only during the capture phase and not in the target or bubbling phase. If useCapture is false, the listener processes the event only during the target or bubbling phase. To listen for the event in all three phases, call addEventListener twice, once with useCapture set to true, then again with useCapture set to false.
-	 * @param priority The priority level of the event listener. The priority is designated by a signed 32-bit integer. The higher the number, the higher the priority. All listeners with priority n are processed before listeners of priority n-1. If two or more listeners share the same priority, they are processed in the order in which they were added. The default priority is 0.
-	 * @param useWeakReference Determines whether the reference to the listener is strong or weak. A strong reference (the default) prevents your listener from being garbage-collected. A weak reference does not.
-	 */
-	public addEventListener(type:string, listener:Function)
-	{
-		super.addEventListener(type, listener);
-
-		//away.Debug.throwPIR( 'StageProxy' , 'addEventListener' ,  'EnterFrame, ExitFrame');
-
-		//if ((type == Event.ENTER_FRAME || type == Event.EXIT_FRAME) ){//&& ! this._frameEventDriver.hasEventListener(Event.ENTER_FRAME)){
-
-		//_frameEventDriver.addEventListener(Event.ENTER_FRAME, onEnterFrame, useCapture, priority, useWeakReference);
-
-		//}
-
-		/* Original code
-		 if ((type == Event.ENTER_FRAME || type == Event.EXIT_FRAME) && ! _frameEventDriver.hasEventListener(Event.ENTER_FRAME)){
-
-		 _frameEventDriver.addEventListener(Event.ENTER_FRAME, onEnterFrame, useCapture, priority, useWeakReference);
-
-
-		 }
-		 */
-	}
-
-	/**
-	 * Removes a listener from the EventDispatcher object. Special case for enterframe and exitframe events - will switch StageProxy out of automatic render mode.
-	 * If there is no matching listener registered with the EventDispatcher object, a call to this method has no effect.
-	 *
-	 * @param type The type of event.
-	 * @param listener The listener object to remove.
-	 * @param useCapture Specifies whether the listener was registered for the capture phase or the target and bubbling phases. If the listener was registered for both the capture phase and the target and bubbling phases, two calls to removeEventListener() are required to remove both, one call with useCapture() set to true, and another call with useCapture() set to false.
-	 */
-	public removeEventListener(type:string, listener:Function)
-	{
-		super.removeEventListener(type, listener);
-
-		/*
-		 // Remove the main rendering listener if no EnterFrame listeners remain
-		 if (    ! this.hasEventListener(Event.ENTER_FRAME , this.onEnterFrame , this )
-		 &&  ! this.hasEventListener(Event.EXIT_FRAME , this.onEnterFrame , this) ) //&& _frameEventDriver.hasEventListener(Event.ENTER_FRAME))
-		 {
-
-		 //_frameEventDriver.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame, this );
-
-		 }
-		 */
 	}
 
 	public get scissorRect():Rectangle
@@ -551,7 +505,7 @@ class Stage extends EventDispatcher
 	}
 
 
-	public registerProgram(programData:ProgramData)
+	public registerProgram(programData:ProgramData):void
 	{
 		var i:number = 0;
 		while (this._programData[i] != null)
@@ -561,46 +515,21 @@ class Stage extends EventDispatcher
 		programData.id = i;
 	}
 
-	public unRegisterProgram(programData:ProgramData)
+	public unRegisterProgram(programData:ProgramData):void
 	{
 		this._programData[programData.id] = null;
 		programData.id = -1;
 	}
 
-	/*
-	 * Access to fire mouseevents across multiple layered view3D instances
-	 */
-	//		public get mouse3DManager():Mouse3DManager
-	//		{
-	//			return this._mouse3DManager;
-	//		}
-	//
-	//		public set mouse3DManager(value:Mouse3DManager)
-	//		{
-	//			this._mouse3DManager = value;
-	//		}
-
-	/* TODO: implement dependency Touch3DManager
-	 public get touch3DManager():Touch3DManager
-	 {
-	 return _touch3DManager;
-	 }
-
-	 public set touch3DManager(value:Touch3DManager)
-	 {
-	 _touch3DManager = value;
-	 }
-	 */
-
 	/**
 	 * Frees the Context associated with this StageProxy.
 	 */
-	private freeContext()
+	private freeContext():void
 	{
 		if (this._context) {
 			this._context.dispose();
 
-			this.dispatchEvent(new StageEvent(StageEvent.CONTEXT_DISPOSED));
+			this.dispatchEvent(new StageEvent(StageEvent.CONTEXT_DISPOSED, this));
 		}
 
 		this._context = null;
@@ -608,32 +537,12 @@ class Stage extends EventDispatcher
 		this._initialised = false;
 	}
 
-	/**
-	 * The Enter_Frame handler for processing the proxy.ENTER_FRAME and proxy.EXIT_FRAME event handlers.
-	 * Typically the proxy.ENTER_FRAME listener would render the layers for this Stage instance.
-	 */
-	private onEnterFrame(event:Event)
-	{
-		if (!this._context)
-			return;
-
-		// Clear the stage instance
-		this.clear();
-		//notify the enterframe listeners
-		this.notifyEnterFrame();
-		// Call the present() to render the frame
-		if (!this._context)
-			this._context.present();
-		//notify the exitframe listeners
-		this.notifyExitFrame();
-	}
-
-	private onContextLost(event)
+	private onContextLost(event):void
 	{
 
 	}
 
-	private onContextRestored(event)
+	private onContextRestored(event):void
 	{
 
 	}
@@ -658,7 +567,7 @@ class Stage extends EventDispatcher
 
 	}
 
-	private _callback(context:IContextGL)
+	private _callback(context:IContextGL):void
 	{
 		this._context = context;
 
@@ -672,24 +581,22 @@ class Stage extends EventDispatcher
 
 		// Dispatch the appropriate event depending on whether context was
 		// created for the first time or recreated after a device loss.
-		this.dispatchEvent(new StageEvent(this._initialised? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED));
+		this.dispatchEvent(new StageEvent(this._initialised? StageEvent.CONTEXT_RECREATED : StageEvent.CONTEXT_CREATED, this));
 
 		this._initialised = true;
 	}
 
-	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number)
+	public setVertexBuffer(index:number, buffer:IVertexBuffer, size:number, dimensions:number, offset:number, unsigned:boolean = false):void
 	{
-		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[size][dimensions]);
+		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned? size + 4 : size][dimensions]);
 	}
 
-	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean)
+	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean):void
 	{
 		var wrap:string = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
-		var filter:string = smooth? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
-		var mipfilter:string = mipmap? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+		var filter:string = (smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
+		var mipfilter:string = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
 
 		this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
 	}
 }
-
-export = Stage;

@@ -1,6 +1,6 @@
-import Opcode					= require("awayjs-stagegl/lib/aglsl/assembler/Opcode");
+import {Opcode}					from "../../aglsl/assembler/Opcode";
 
-class OpcodeMap
+export class OpcodeMap
 {
 	// dest:					  					   string,  aformat, asize, bformat,   bsize, opcode, simple, horizontal, fragonly   matrix
 	/*
@@ -106,5 +106,3 @@ class OpcodeMap
 	{
 	}
 }
-
-export = OpcodeMap;

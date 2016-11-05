@@ -1,4 +1,4 @@
-class Sampler
+export class Sampler
 {
 	public shift:number;
 	public mask:number;
@@ -11,5 +11,3 @@ class Sampler
 		this.value = value;
 	}
 }
-
-export = Sampler;

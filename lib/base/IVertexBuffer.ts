@@ -1,4 +1,4 @@
-interface IVertexBuffer
+export interface IVertexBuffer
 {
 	numVertices:number;
 
@@ -10,5 +10,3 @@ interface IVertexBuffer
 
 	dispose();
 }
-
-export = IVertexBuffer;

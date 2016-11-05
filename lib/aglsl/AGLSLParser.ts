@@ -1,10 +1,15 @@
-import Description				= require("awayjs-stagegl/lib/aglsl/Description");
-import Mapping					= require("awayjs-stagegl/lib/aglsl/Mapping");
-import ContextStage3D			= require("awayjs-stagegl/lib/base/ContextStage3D");
+import {Description}				from "../aglsl/Description";
+import {Mapping}					from "../aglsl/Mapping";
 
-class AGLSLParser
+export class AGLSLParser
 {
-	public parse(desc:Description)
+	public static maxvertexconstants:number = 128;
+	public static maxfragconstants:number = 28;
+	public static maxtemp:number = 8;
+	public static maxstreams:number = 8;
+	public static maxtextures:number = 8;
+	
+	public parse(desc:Description):string
 	{
 		var header:string = "";
 		var body:string = "";
@@ -16,15 +21,20 @@ class AGLSLParser
 		if (desc.header.type == "vertex") {
 			header += "uniform float yflip;\n";
 		}
-		if (!desc.hasindirect) {
-			for (var i:number = 0; i < desc.regread[0x1].length; i++) {
-				if (desc.regread[0x1][i]) {
-					header += "uniform vec4 " + tag + "c" + i + ";\n";
-				}
-			}
-		} else {
-			header += "uniform vec4 " + tag + "carrr[" + ContextStage3D.maxvertexconstants + "];\n";                // use max const count instead
-		}
+		// if (!desc.hasindirect) {
+		// 	for (var i:number = 0; i < desc.regread[0x1].length; i++) {
+		// 		if (desc.regread[0x1][i]) {
+		// 			header += "uniform vec4 " + tag + "c" + i + ";\n";
+		// 		}
+		// 	}
+		// } else {
+		// 	header += "uniform vec4 " + tag + "carrr[" + AGLSLParser.maxvertexconstants + "];\n";                // use max const count instead
+		// }
+
+		var constcount:number = desc.regread[0x1].length;
+
+		if (constcount > 0)
+			header += "uniform vec4 " + tag + "c[" + constcount + "];\n";
 
 		// declare temps
 		for (var i = 0; i < desc.regread[0x2].length || i < desc.regwrite[0x2].length; i++) {
@@ -183,17 +193,19 @@ class AGLSLParser
 		return header + body;
 	}
 
-	public regtostring(regtype:number, regnum:number, desc:Description, tag)
+	public regtostring(regtype:number, regnum:number, desc:Description, tag):string
 	{
 		switch (regtype) {
 			case 0x0:
 				return "va" + regnum;
 			case 0x1:
-				if (desc.hasindirect && desc.header.type == "vertex") {
-					return "vcarrr[" + regnum + "]";
-				} else {
-					return tag + "c" + regnum;
-				}
+				return desc.header.type[0] + "c[" + regnum + "]";
+			// case 0x1:
+			// 	if (desc.hasindirect && desc.header.type == "vertex") {
+			// 		return "vcarrr[" + regnum + "]";
+			// 	} else {
+			// 		return tag + "c" + regnum;
+			// 	}
 			case 0x2:
 				return tag + "t" + regnum;
 			case 0x3:
@@ -248,5 +260,3 @@ class AGLSLParser
 		return r;
 	}
 }
-
-export = AGLSLParser;
