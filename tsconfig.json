@@ -7,7 +7,8 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@awayjs/core*": ["./node_modules/@awayjs/core/dist*"]
+      "@awayjs/core*": ["./node_modules/@awayjs/core/dist*"],
+      "@awayjs/graphics*": ["./node_modules/@awayjs/graphics/dist*"]
     }
   },
   "files": [
