@@ -42,7 +42,6 @@ export class ContextGLES implements IContextGL
 	private _vertexBufferPropertiesDictionary:Array<VertexBufferProperties> = [];
 
 	public _cmdBytes:Byte32Array;
-	public _constantBytes:Byte32Array;
 	public _createBytes:Byte32Array;
 	public sendBytes:Byte32Array;
 	private _container:HTMLElement;
@@ -96,7 +95,6 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes=new Byte32Array();
 		this._createBytes=new Byte32Array();
 		this.sendBytes=new Byte32Array();
-		this._constantBytes = new Byte32Array();
 
 		this._blendFactorDictionary[ContextGLBlendFactor.ONE] = 0;
 		this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = 1;
@@ -327,9 +325,8 @@ export class ContextGLES implements IContextGL
 	{
 		this._cmdBytes.writeInt(OpCodes.setProgramConstant|programType<<8);
 		this._cmdBytes.writeInt(data.length);
-		this._cmdBytes.writeInt(this._constantBytes.bytePosition);
+		this._cmdBytes.writeFloat32Array(data);
 
-		this._constantBytes.writeFloat32Array(data);
 	}
 
 	public setScissorRectangle(rectangle:Rectangle):void
@@ -434,15 +431,6 @@ export class ContextGLES implements IContextGL
 			this.sendBytes.writeByte32Array(this._createBytes);
 			this._createBytes.byteLength=0;
 			this._createBytes.bytePosition=0;
-		}
-		else{
-			this.sendBytes.writeUnsignedInt(0);
-		}
-		if(this._constantBytes.byteLength>0){
-			this.sendBytes.writeUnsignedInt(this._constantBytes.byteLength);
-			this.sendBytes.writeByte32Array(this._constantBytes);
-			this._constantBytes.byteLength=0;
-			this._constantBytes.bytePosition=0;
 		}
 		else{
 			this.sendBytes.writeUnsignedInt(0);
