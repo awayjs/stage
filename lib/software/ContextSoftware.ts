@@ -71,10 +71,6 @@ export class ContextSoftware implements IContextGL
 	public _fragmentConstants:Float32Array;
 	public _vertexConstants:Float32Array;
 
-	private _sx:Vector3D = new Vector3D();
-	private _sy:Vector3D = new Vector3D();
-	private _u:Vector3D = new Vector3D();
-
 	private _rgba:Uint8ClampedArray = new Uint8ClampedArray(4);
 	private _source:Uint8ClampedArray = new Uint8ClampedArray(4);
 	private _dest:Uint8ClampedArray = new Uint8ClampedArray(4);
@@ -347,32 +343,45 @@ export class ContextSoftware implements IContextGL
 	private _projectTriangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array) {
 
 		// Wrap the vertex transformed positions in Vector3D objects.
-		var p0:Vector3D = new Vector3D(position0[0], position0[1], position0[2], position0[3]);
-		var p1:Vector3D = new Vector3D(position1[0], position1[1], position1[2], position1[3]);
-		var p2:Vector3D = new Vector3D(position2[0], position2[1], position2[2], position2[3]);
+		this._p0.x = position0[0];
+		this._p0.y = position0[1];
+		this._p0.z = position0[2];
+		this._p0.w = position0[3];
+		this._p1.x = position1[0];
+		this._p1.y = position1[1];
+		this._p1.z = position1[2];
+		this._p1.w = position1[3];
+		this._p2.x = position2[0];
+		this._p2.y = position2[1];
+		this._p2.z = position2[2];
+		this._p2.w = position2[3];
 
 		// Reject any invalid vertices.
-		if (!p0 || !p1 || !p2) { return; }
-		if (p0.w == 0 || p1.w == 0 || p2.w == 0) { return; } // w = 0 represent direction vectors and we want positions
-		if ( isNaN(p0.x) || isNaN(p0.y) || isNaN(p0.z) || isNaN(p0.w) ) { return; }
-		if ( isNaN(p1.x) || isNaN(p1.y) || isNaN(p1.z) || isNaN(p1.w) ) { return; }
-		if ( isNaN(p2.x) || isNaN(p2.y) || isNaN(p2.z) || isNaN(p2.w) ) { return; }
+		if (!this._p0 || !this._p1 || !this._p2) { return; }
+		if (this._p0.w == 0 || this._p1.w == 0 || this._p2.w == 0) { return; } // w = 0 represent direction vectors and we want positions
+		if ( isNaN(this._p0.x) || isNaN(this._p0.y) || isNaN(this._p0.z) || isNaN(this._p0.w) ) { return; }
+		if ( isNaN(this._p1.x) || isNaN(this._p1.y) || isNaN(this._p1.z) || isNaN(this._p1.w) ) { return; }
+		if ( isNaN(this._p2.x) || isNaN(this._p2.y) || isNaN(this._p2.z) || isNaN(this._p2.w) ) { return; }
 
-		p0.z = p0.z * 2 - p0.w;
-		p1.z = p1.z * 2 - p1.w;
-		p2.z = p2.z * 2 - p2.w;
+		this._p0.z = this._p0.z * 2 - this._p0.w;
+		this._p1.z = this._p1.z * 2 - this._p1.w;
+		this._p2.z = this._p2.z * 2 - this._p2.w;
 
 		// Apply projection.
-		p0.scaleBy(1 / p0.w);
-		p1.scaleBy(1 / p1.w);
-		p2.scaleBy(1 / p2.w);
+		this._p0.scaleBy(1 / this._p0.w);
+		this._p1.scaleBy(1 / this._p1.w);
+		this._p2.scaleBy(1 / this._p2.w);
 
 		// Transform into screen space.
-		var project:Vector3D = new Vector3D(p0.w, p1.w, p2.w);
-		p0 = this._screenMatrix.transformVector(p0);
-		p1 = this._screenMatrix.transformVector(p1);
-		p2 = this._screenMatrix.transformVector(p2);
-		var depth:Vector3D = new Vector3D(p0.z, p1.z, p2.z);
+		this._project.x = this._p0.w;
+		this._project.y = this._p1.w;
+		this._project.z = this._p2.w;
+		this._p0 = this._screenMatrix.transformVector(this._p0);
+		this._p1 = this._screenMatrix.transformVector(this._p1);
+		this._p2 = this._screenMatrix.transformVector(this._p2);
+		this._depth.x = this._p0.z;
+		this._depth.y = this._p1.z;
+		this._depth.z = this._p2.z;
 
 		// Prepare rasterization bounds.
 
@@ -384,57 +393,64 @@ export class ContextSoftware implements IContextGL
 		this._clamp.x = this._activeBuffer.width - 1;
 		this._clamp.y = this._activeBuffer.height - 1;
 
-		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p0.x));
-		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p0.y));
+		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, this._p0.x));
+		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, this._p0.y));
 
-		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p1.x));
-		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p1.y));
+		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, this._p1.x));
+		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, this._p1.y));
 
-		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, p2.x));
-		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, p2.y));
+		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, this._p2.x));
+		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, this._p2.y));
 
-		this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p0.x));
-		this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p0.y));
+		this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, this._p0.x));
+		this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, this._p0.y));
 
-		this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p1.x));
-		this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p1.y));
+		this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, this._p1.x));
+		this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, this._p1.y));
 
-		this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, p2.x));
-		this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, p2.y));
+		this._bboxMax.x = Math.min(this._clamp.x, Math.max(this._bboxMax.x, this._p2.x));
+		this._bboxMax.y = Math.min(this._clamp.y, Math.max(this._bboxMax.y, this._p2.y));
 
 		this._bboxMin.x = Math.floor(this._bboxMin.x);
 		this._bboxMin.y = Math.floor(this._bboxMin.y);
 		this._bboxMax.x = Math.floor(this._bboxMax.x);
 		this._bboxMax.y = Math.floor(this._bboxMax.y);
 
+		var area:number = this._simpleTriangleCross(this._p0, this._p1, this._p2.x, this._p2.y);
+
 		// Rasterize.
 		for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
 			for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
 
-				var screen:Vector3D = this._barycentric(p0, p1, p2, x, y);
-				if (screen.x < 0 || screen.y < 0 || screen.z < 0)
+				// this._screen = this._barycentric(this._p0, this._p1, this._p2, x, y);
+				this._barycentric(this._screen, this._p0, this._p1, this._p2, x, y);
+				if (this._screen.x < 0 || this._screen.y < 0 || this._screen.z < 0)
 					continue;
+				this._screen.x = this._screen.x / area;
+				this._screen.y = this._screen.y / area;
+				this._screen.z = this._screen.z / area;
+				// this._screen.scaleBy(1.0 / area);
 
-				var screenRight:Vector3D = this._barycentric(p0, p1, p2, x + 1, y);
-				var screenBottom:Vector3D = this._barycentric(p0, p1, p2, x, y + 1);
+				// screenRight = this._barycentric(p0, p1, p2, x + 1, y);
+				// screenBottom = this._barycentric(p0, p1, p2, x, y + 1);
 
-				var clip:Vector3D = new Vector3D(screen.x/project.x, screen.y/project.y, screen.z/project.z);
-				clip.scaleBy(1/(clip.x + clip.y + clip.z));
+				this._clip = new Vector3D(this._screen.x/this._project.x, this._screen.y/this._project.y, this._screen.z/this._project.z);
+				this._clip.scaleBy(1/(this._clip.x + this._clip.y + this._clip.z));
 
-				var clipRight:Vector3D = new Vector3D(screenRight.x/project.x, screenRight.y/project.y, screenRight.z/project.z);
-				clipRight.scaleBy(1/(clipRight.x + clipRight.y + clipRight.z));
+				// clipRight = new Vector3D(screenRight.x/project.x, screenRight.y/project.y, screenRight.z/project.z);
+				// clipRight.scaleBy(1/(clipRight.x + clipRight.y + clipRight.z));
 
-				var clipBottom:Vector3D = new Vector3D(screenBottom.x/project.x, screenBottom.y/project.y, screenBottom.z/project.z);
-				clipBottom.scaleBy(1/(clipBottom.x + clipBottom.y + clipBottom.z));
+				// clipBottom = new Vector3D(screenBottom.x/project.x, screenBottom.y/project.y, screenBottom.z/project.z);
+				// clipBottom.scaleBy(1/(clipBottom.x + clipBottom.y + clipBottom.z));
 
 				var index:number = (x % this._activeBuffer.width) + y*this._activeBuffer.width;
 
-				var fragDepth:number = depth.x*screen.x + depth.y*screen.y + depth.z*screen.z;
+				var fragDepth:number = this._depth.x * this._screen.x + this._depth.y * this._screen.y + this._depth.z * this._screen.z;
 
 				if (this._activeBuffer == this._backBufferColor && !DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._zbuffer[index]))
 					continue;
 
-				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, clip, clipRight, clipBottom, varying0, varying1, varying2, fragDepth);
+				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, this._clip, this._clipRight, this._clipBottom, varying0, varying1, varying2, fragDepth);
 
 				if (fragmentVO.discard)
 					continue;
@@ -452,14 +468,60 @@ export class ContextSoftware implements IContextGL
 				this._activeBuffer.getPixelData(x, y, this._dest);
 
 				// depth map appears to be inverted in Y for renderToTexture
-				var outY = y;
-				if (this._activeBuffer != this._backBufferColor) {
-					outY = this._activeBuffer.height - outY;
-				}
+				// var outY = y;
+				// if (this._activeBuffer != this._backBufferColor) {
+				// 	outY = this._activeBuffer.height - outY;
+				// }
 
-				this._putPixel(x, outY, this._source, this._dest);
+				this._putPixel(x, /*outY*/y, this._source, this._dest);
 			}
 		}
+	}
+
+	private _p0:Vector3D = new Vector3D();
+	private _p1:Vector3D = new Vector3D();
+	private _p2:Vector3D = new Vector3D();
+
+	private _project:Vector3D = new Vector3D();
+	private _depth:Vector3D = new Vector3D();
+
+	private _screen:Vector3D = new Vector3D(); // TODO: rename, screen not approrpiate
+	private _screenRight:Vector3D = new Vector3D();
+	private _screenBottom:Vector3D = new Vector3D();
+
+	private _clip:Vector3D = new Vector3D();
+	private _clipRight:Vector3D = new Vector3D();
+	private _clipBottom:Vector3D = new Vector3D();
+
+	// private _sx:Vector3D = new Vector3D();
+	// private _sy:Vector3D = new Vector3D();
+	// private _u:Vector3D = new Vector3D();
+
+	private _barycentric(out:Vector3D, a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number) {
+
+		out.x = this._simpleTriangleCross(b, a, x, y);
+		out.y = this._simpleTriangleCross(c, b, x, y);
+		out.z = this._simpleTriangleCross(a, c, x, y);
+
+		// this._sx.x = c.x - a.x;
+		// this._sx.y = b.x - a.x;
+		// this._sx.z = a.x - x;
+		//
+		// this._sy.x = c.y - a.y;
+		// this._sy.y = b.y - a.y;
+		// this._sy.z = a.y - y;
+		//
+		// this._u = this._sx.crossProduct(this._sy, this._u);
+		//
+		// if (this._u.z < 0.01)
+		// 	return new Vector3D(1 - (this._u.x + this._u.y)/this._u.z, this._u.y/this._u.z, this._u.x/this._u.z);
+		//
+		// return new Vector3D(-1, 1, 1);
+	}
+
+	// Returns the z magnitude of the cross product between sides ba and ca, ignoring their z coordinate (c = 2D[x, y]).
+	private _simpleTriangleCross(a:Vector3D, b:Vector3D, x:number, y:number):number {
+		return (b.x - a.x) * (a.y - y) - (a.y - b.y) * (x - a.x)
 	}
 
 	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void  {
@@ -566,24 +628,6 @@ export class ContextSoftware implements IContextGL
 
 			destination.setPixels(destination.rect, this._activeBuffer.getImageData().data);
 		}
-	}
-
-	private _barycentric(a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number):Vector3D {
-
-		this._sx.x = c.x - a.x;
-		this._sx.y = b.x - a.x;
-		this._sx.z = a.x - x;
-		
-		this._sy.x = c.y - a.y;
-		this._sy.y = b.y - a.y;
-		this._sy.z = a.y - y;
-
-		this._u = this._sx.crossProduct(this._sy, this._u);
-		
-		if (this._u.z < 0.01)
-			return new Vector3D(1 - (this._u.x + this._u.y)/this._u.z, this._u.y/this._u.z, this._u.x/this._u.z);
-		
-		return new Vector3D(-1, 1, 1);
 	}
 
 	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array) {
