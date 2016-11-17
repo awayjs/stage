@@ -340,34 +340,47 @@ export class ContextSoftware implements IContextGL
 		// }
 	}
 
+	private _p0:Vector3D = new Vector3D();
+	private _p1:Vector3D = new Vector3D();
+	private _p2:Vector3D = new Vector3D();
+
+	private _project:Vector3D = new Vector3D();
+
+	private _barycentric:Vector3D = new Vector3D();
+	private _barycentricRight:Vector3D = new Vector3D();
+	private _barycentricBottom:Vector3D = new Vector3D();
+
 	private _projectTriangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array) {
 
 		// Wrap the vertex transformed positions in Vector3D objects.
+
 		this._p0.x = position0[0];
 		this._p0.y = position0[1];
 		this._p0.z = position0[2];
 		this._p0.w = position0[3];
+
 		this._p1.x = position1[0];
 		this._p1.y = position1[1];
 		this._p1.z = position1[2];
 		this._p1.w = position1[3];
+
 		this._p2.x = position2[0];
 		this._p2.y = position2[1];
 		this._p2.z = position2[2];
 		this._p2.w = position2[3];
 
 		// Reject any invalid vertices.
-		if (!this._p0 || !this._p1 || !this._p2) { return; }
 		if (this._p0.w == 0 || this._p1.w == 0 || this._p2.w == 0) { return; } // w = 0 represent direction vectors and we want positions
 		if ( isNaN(this._p0.x) || isNaN(this._p0.y) || isNaN(this._p0.z) || isNaN(this._p0.w) ) { return; }
 		if ( isNaN(this._p1.x) || isNaN(this._p1.y) || isNaN(this._p1.z) || isNaN(this._p1.w) ) { return; }
 		if ( isNaN(this._p2.x) || isNaN(this._p2.y) || isNaN(this._p2.z) || isNaN(this._p2.w) ) { return; }
 
+		// Clip space.
 		this._p0.z = this._p0.z * 2 - this._p0.w;
 		this._p1.z = this._p1.z * 2 - this._p1.w;
 		this._p2.z = this._p2.z * 2 - this._p2.w;
 
-		// Apply projection.
+		// Perspective divide.
 		this._p0.scaleBy(1 / this._p0.w);
 		this._p1.scaleBy(1 / this._p1.w);
 		this._p2.scaleBy(1 / this._p2.w);
@@ -379,9 +392,6 @@ export class ContextSoftware implements IContextGL
 		this._p0 = this._screenMatrix.transformVector(this._p0);
 		this._p1 = this._screenMatrix.transformVector(this._p1);
 		this._p2 = this._screenMatrix.transformVector(this._p2);
-		this._depth.x = this._p0.z;
-		this._depth.y = this._p1.z;
-		this._depth.z = this._p2.z;
 
 		// Prepare rasterization bounds.
 
@@ -416,112 +426,93 @@ export class ContextSoftware implements IContextGL
 		this._bboxMax.x = Math.floor(this._bboxMax.x);
 		this._bboxMax.y = Math.floor(this._bboxMax.y);
 
-		var area:number = this._simpleTriangleCross(this._p0, this._p1, this._p2.x, this._p2.y);
+		/*
+			NOTE:
+			'simplified cross' product calculations below are inlined cross product calculations that ignore the z value and just use the output z value.
+		 */
+
+		// Barycentric pre-calculations.
+		var area:number = (this._p1.x - this._p0.x) * (this._p2.y - this._p0.y) - (this._p1.y - this._p0.y) * (this._p2.x - this._p0.x); // simplified cross
+		if (area < 0) { return; }
+
+		// Pre-calculate barycentric weights.
+		var weight:number[];
+		var x:number;
+		var y:number;
+		var w:number = this._bboxMax.x - this._bboxMin.x;
+		var h:number = this._bboxMax.y - this._bboxMin.y;
+		if (w <= 0 || h <= 0) { return; }
+		var weights:number[][][] = new Array(w);
+		for (x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
+			weights[x - this._bboxMin.x] = new Array(h);
+			for (y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
+
+				// Calculate the barycentric weights of the pixel.
+				var w0:number = (this._p2.x - this._p1.x) * (y - this._p1.y) - (this._p2.y - this._p1.y) * (x - this._p1.x); // simplified cross
+				var w1:number = (this._p0.x - this._p2.x) * (y - this._p2.y) - (this._p0.y - this._p2.y) * (x - this._p2.x); // simplified cross
+				var w2:number = (this._p1.x - this._p0.x) * (y - this._p0.y) - (this._p1.y - this._p0.y) * (x - this._p0.x); // simplified cross
+				weights[x - this._bboxMin.x][y - this._bboxMin.y] = [w0 / area, w1 / area, w2 / area];
+			}
+		}
 
 		// Rasterize.
-		for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
-			for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
+		for (x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
+			for (y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
 
-				// this._screen = this._barycentric(this._p0, this._p1, this._p2, x, y);
-				this._barycentric(this._screen, this._p0, this._p1, this._p2, x, y);
-				if (this._screen.x < 0 || this._screen.y < 0 || this._screen.z < 0)
+				// Calculate the barycentric weights of the pixel.
+				weight = weights[x - this._bboxMin.x][y - this._bboxMin.y];
+				this._barycentric.x = weight[0];
+				this._barycentric.y = weight[1];
+				this._barycentric.z = weight[2];
+
+				// Skip pixel if its not inside the triangle.
+				if (this._barycentric.x < 0 || this._barycentric.y < 0 || this._barycentric.z < 0)
 					continue;
-				this._screen.x = this._screen.x / area;
-				this._screen.y = this._screen.y / area;
-				this._screen.z = this._screen.z / area;
-				// this._screen.scaleBy(1.0 / area);
 
-				// screenRight = this._barycentric(p0, p1, p2, x + 1, y);
-				// screenBottom = this._barycentric(p0, p1, p2, x, y + 1);
+				// Calculate derivative (neighbor) weights.
+				if (x != this._bboxMax.x) {
+					weight = weights[x - this._bboxMin.x + 1][y - this._bboxMin.y];
+					this._barycentricRight.x = weight[0];
+					this._barycentricRight.y = weight[1];
+					this._barycentricRight.z = weight[2];
+				}
+				if (y != this._bboxMax.y) {
+					weight = weights[x - this._bboxMin.x][y - this._bboxMin.y + 1];
+					this._barycentricBottom.x = weight[0];
+					this._barycentricBottom.y = weight[1];
+					this._barycentricBottom.z = weight[2];
+				}
 
-				this._clip = new Vector3D(this._screen.x/this._project.x, this._screen.y/this._project.y, this._screen.z/this._project.z);
-				this._clip.scaleBy(1/(this._clip.x + this._clip.y + this._clip.z));
+				// Interpolate frag depth.
+				var index:number = (x % this._activeBuffer.width) + y * this._activeBuffer.width;
+				var fragDepth:number = this._barycentric.x * this._p0.z + this._barycentric.y * this._p1.z + this._barycentric.z * this._p2.z;
 
-				// clipRight = new Vector3D(screenRight.x/project.x, screenRight.y/project.y, screenRight.z/project.z);
-				// clipRight.scaleBy(1/(clipRight.x + clipRight.y + clipRight.z));
-
-				// clipBottom = new Vector3D(screenBottom.x/project.x, screenBottom.y/project.y, screenBottom.z/project.z);
-				// clipBottom.scaleBy(1/(clipBottom.x + clipBottom.y + clipBottom.z));
-
-				var index:number = (x % this._activeBuffer.width) + y*this._activeBuffer.width;
-
-				var fragDepth:number = this._depth.x * this._screen.x + this._depth.y * this._screen.y + this._depth.z * this._screen.z;
-
+				// Depth test.
 				if (this._activeBuffer == this._backBufferColor && !DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._zbuffer[index]))
 					continue;
 
-				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, this._clip, this._clipRight, this._clipBottom, varying0, varying1, varying2, fragDepth);
+				// Write z buffer.
+				if (this._writeDepth)
+					this._zbuffer[index] = fragDepth; // TODO: fragmentVO.outputDepth?
 
+				// Process fragment shader.
+				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, this._barycentric, this._barycentricRight, this._barycentricBottom, varying0, varying1, varying2, fragDepth);
 				if (fragmentVO.discard)
 					continue;
 
-				if (this._writeDepth)
-					this._zbuffer[index] = fragDepth;//todo: fragmentVO.outputDepth?
+				// Write to source and transform color space.
+				this._source[0] = fragmentVO.outputColor[0] * 255;
+				this._source[1] = fragmentVO.outputColor[1] * 255;
+				this._source[2] = fragmentVO.outputColor[2] * 255;
+				this._source[3] = fragmentVO.outputColor[3] * 255;
 
-				//set source
-				this._source[0] = fragmentVO.outputColor[0]*255;
-				this._source[1] = fragmentVO.outputColor[1]*255;
-				this._source[2] = fragmentVO.outputColor[2]*255;
-				this._source[3] = fragmentVO.outputColor[3]*255;
-
-				//set dest
+				// Read dest.
 				this._activeBuffer.getPixelData(x, y, this._dest);
 
-				// depth map appears to be inverted in Y for renderToTexture
-				// var outY = y;
-				// if (this._activeBuffer != this._backBufferColor) {
-				// 	outY = this._activeBuffer.height - outY;
-				// }
-
-				this._putPixel(x, /*outY*/y, this._source, this._dest);
+				// Write to color buffer.
+				this._putPixel(x, y, this._source, this._dest);
 			}
 		}
-	}
-
-	private _p0:Vector3D = new Vector3D();
-	private _p1:Vector3D = new Vector3D();
-	private _p2:Vector3D = new Vector3D();
-
-	private _project:Vector3D = new Vector3D();
-	private _depth:Vector3D = new Vector3D();
-
-	private _screen:Vector3D = new Vector3D(); // TODO: rename, screen not approrpiate
-	private _screenRight:Vector3D = new Vector3D();
-	private _screenBottom:Vector3D = new Vector3D();
-
-	private _clip:Vector3D = new Vector3D();
-	private _clipRight:Vector3D = new Vector3D();
-	private _clipBottom:Vector3D = new Vector3D();
-
-	// private _sx:Vector3D = new Vector3D();
-	// private _sy:Vector3D = new Vector3D();
-	// private _u:Vector3D = new Vector3D();
-
-	private _barycentric(out:Vector3D, a:Vector3D, b:Vector3D, c:Vector3D, x:number, y:number) {
-
-		out.x = this._simpleTriangleCross(b, a, x, y);
-		out.y = this._simpleTriangleCross(c, b, x, y);
-		out.z = this._simpleTriangleCross(a, c, x, y);
-
-		// this._sx.x = c.x - a.x;
-		// this._sx.y = b.x - a.x;
-		// this._sx.z = a.x - x;
-		//
-		// this._sy.x = c.y - a.y;
-		// this._sy.y = b.y - a.y;
-		// this._sy.z = a.y - y;
-		//
-		// this._u = this._sx.crossProduct(this._sy, this._u);
-		//
-		// if (this._u.z < 0.01)
-		// 	return new Vector3D(1 - (this._u.x + this._u.y)/this._u.z, this._u.y/this._u.z, this._u.x/this._u.z);
-		//
-		// return new Vector3D(-1, 1, 1);
-	}
-
-	// Returns the z magnitude of the cross product between sides ba and ca, ignoring their z coordinate (c = 2D[x, y]).
-	private _simpleTriangleCross(a:Vector3D, b:Vector3D, x:number, y:number):number {
-		return (b.x - a.x) * (a.y - y) - (a.y - b.y) * (x - a.x)
 	}
 
 	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void  {
