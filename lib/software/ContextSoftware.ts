@@ -431,39 +431,41 @@ export class ContextSoftware implements IContextGL
 			'simplified cross' product calculations below are inlined cross product calculations that ignore the z value and just use the output z value.
 		 */
 
-		// Barycentric pre-calculations.
-		var area:number = (this._p1.x - this._p0.x) * (this._p2.y - this._p0.y) - (this._p1.y - this._p0.y) * (this._p2.x - this._p0.x); // simplified cross
-		if (area < 0) { return; }
-
-		// Pre-calculate barycentric weights.
-		var weight:number[];
-		var x:number;
-		var y:number;
+		// Skip invalid bounds.
 		var w:number = this._bboxMax.x - this._bboxMin.x;
 		var h:number = this._bboxMax.y - this._bboxMin.y;
 		if (w <= 0 || h <= 0) { return; }
-		var weights:number[][][] = new Array(w);
-		for (x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
-			weights[x - this._bboxMin.x] = new Array(h);
-			for (y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
 
-				// Calculate the barycentric weights of the pixel.
-				var w0:number = (this._p2.x - this._p1.x) * (y - this._p1.y) - (this._p2.y - this._p1.y) * (x - this._p1.x); // simplified cross
-				var w1:number = (this._p0.x - this._p2.x) * (y - this._p2.y) - (this._p0.y - this._p2.y) * (x - this._p2.x); // simplified cross
-				var w2:number = (this._p1.x - this._p0.x) * (y - this._p0.y) - (this._p1.y - this._p0.y) * (x - this._p0.x); // simplified cross
-				weights[x - this._bboxMin.x][y - this._bboxMin.y] = [w0 / area, w1 / area, w2 / area];
-			}
-		}
+		// Calculate the area division for all barycentric coordinates.
+		var area:number = (this._p1.x - this._p0.x) * (this._p2.y - this._p0.y) - (this._p1.y - this._p0.y) * (this._p2.x - this._p0.x); // simplified cross
+		if (area < 0) { return; } // skip null areas.
+
+		// Pre-calculate barycentric x and y derivatives (steps).
+		var w0_dx:number = -(this._p2.y - this._p1.y) / area;
+		var w1_dx:number = -(this._p0.y - this._p2.y) / area;
+		var w2_dx:number = -(this._p1.y - this._p0.y) / area;
+		var w0_dy:number = (this._p2.x - this._p1.x) / area;
+		var w1_dy:number = (this._p0.x - this._p2.x) / area;
+		var w2_dy:number = (this._p1.x - this._p0.x) / area;
+
+		// Calculate top left barycentric coordinate.
+		var w0:number = ((this._p2.x - this._p1.x) * (this._bboxMin.y - this._p1.y) - (this._p2.y - this._p1.y) * (this._bboxMin.x - this._p1.x)) / area; // simplified cross
+		var w1:number = ((this._p0.x - this._p2.x) * (this._bboxMin.y - this._p2.y) - (this._p0.y - this._p2.y) * (this._bboxMin.x - this._p2.x)) / area; // simplified cross
+		var w2:number = ((this._p1.x - this._p0.x) * (this._bboxMin.y - this._p0.y) - (this._p1.y - this._p0.y) * (this._bboxMin.x - this._p0.x)) / area; // simplified cross
 
 		// Rasterize.
-		for (x = this._bboxMin.x; x <= this._bboxMax.x; x++) {
-			for (y = this._bboxMin.y; y <= this._bboxMax.y; y++) {
+		var cx:number = 0;
+		var cy:number = 0;
+		for (var x:number = this._bboxMin.x; x <= this._bboxMax.x; x++) {
+			for (var y:number = this._bboxMin.y; y <= this._bboxMax.y; y++) {
 
 				// Calculate the barycentric weights of the pixel.
-				weight = weights[x - this._bboxMin.x][y - this._bboxMin.y];
-				this._barycentric.x = weight[0];
-				this._barycentric.y = weight[1];
-				this._barycentric.z = weight[2];
+				this._barycentric.x = w0 + w0_dx * cx + w0_dy * cy;
+				this._barycentric.y = w1 + w1_dx * cx + w1_dy * cy;
+				this._barycentric.z = w2 + w2_dx * cx + w2_dy * cy;
+
+				// Step y.
+				cy += 1;
 
 				// Skip pixel if its not inside the triangle.
 				if (this._barycentric.x < 0 || this._barycentric.y < 0 || this._barycentric.z < 0)
@@ -471,16 +473,14 @@ export class ContextSoftware implements IContextGL
 
 				// Calculate derivative (neighbor) weights.
 				if (x != this._bboxMax.x) {
-					weight = weights[x - this._bboxMin.x + 1][y - this._bboxMin.y];
-					this._barycentricRight.x = weight[0];
-					this._barycentricRight.y = weight[1];
-					this._barycentricRight.z = weight[2];
+					this._barycentricRight.x = this._barycentric.x + w0_dx;
+					this._barycentricRight.y = this._barycentric.x + w1_dx;
+					this._barycentricRight.z = this._barycentric.x + w2_dx;
 				}
 				if (y != this._bboxMax.y) {
-					weight = weights[x - this._bboxMin.x][y - this._bboxMin.y + 1];
-					this._barycentricBottom.x = weight[0];
-					this._barycentricBottom.y = weight[1];
-					this._barycentricBottom.z = weight[2];
+					this._barycentricBottom.x = this._barycentric.x + w0_dy;
+					this._barycentricBottom.y = this._barycentric.x + w1_dy;
+					this._barycentricBottom.z = this._barycentric.x + w2_dy;
 				}
 
 				// Interpolate frag depth.
@@ -512,6 +512,10 @@ export class ContextSoftware implements IContextGL
 				// Write to color buffer.
 				this._putPixel(x, y, this._source, this._dest);
 			}
+
+			// Step x.
+			cy = 0;
+			cx += 1;
 		}
 	}
 
