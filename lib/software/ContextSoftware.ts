@@ -473,14 +473,14 @@ export class ContextSoftware implements IContextGL
 
 				// Calculate derivative (neighbor) weights.
 				if (x != this._bboxMax.x) {
-					this._barycentricRight.x = this._barycentric.x + w0_dx * 2;
-					this._barycentricRight.y = this._barycentric.y + w1_dx * 2;
-					this._barycentricRight.z = this._barycentric.z + w2_dx * 2;
+					this._barycentricRight.x = this._barycentric.x + w0_dx;
+					this._barycentricRight.y = this._barycentric.y + w1_dx;
+					this._barycentricRight.z = this._barycentric.z + w2_dx;
 				}
 				if (y != this._bboxMax.y) {
-					this._barycentricBottom.x = this._barycentric.x + w0_dy * 2;
-					this._barycentricBottom.y = this._barycentric.y + w1_dy * 2;
-					this._barycentricBottom.z = this._barycentric.z + w2_dy * 2;
+					this._barycentricBottom.x = this._barycentric.x + w0_dy;
+					this._barycentricBottom.y = this._barycentric.y + w1_dy;
+					this._barycentricBottom.z = this._barycentric.z + w2_dy;
 				}
 
 				// Interpolate frag depth.
