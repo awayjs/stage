@@ -1,24 +1,23 @@
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
-import {ArgumentError}					from "@awayjs/core/lib/errors/ArgumentError";
+import {Vector3D, ByteArray, ArgumentError} from "@awayjs/core";
 
-import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
-import {IProgram}						from "../base/IProgram";
-import {Description}					from "../aglsl/Description";
-import {Token}						from "../aglsl/Token";
-import {Destination}					from "../aglsl/Destination";
-import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
-import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
-import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
-import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
+import {ContextGLVertexBufferFormat} from "../base/ContextGLVertexBufferFormat";
+import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
+import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
+import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {IProgram} from "../base/IProgram";
 
-import {ProgramVOSoftware}			from "./ProgramVOSoftware";
-import {ContextSoftware}				from "./ContextSoftware";
-import {VertexBufferSoftware}			from "./VertexBufferSoftware";
-import {TextureSoftware}				from "./TextureSoftware";
-import {CubeTextureSoftware}				from "./CubeTextureSoftware";
-import {ITextureBaseSoftware}				from "./ITextureBaseSoftware";
-import {SoftwareSamplerState}			from "./SoftwareSamplerState";
+import {AGALTokenizer} from "../aglsl/AGALTokenizer";
+import {Description} from "../aglsl/Description";
+import {Token} from "../aglsl/Token";
+import {Destination} from "../aglsl/Destination";
+
+import {ProgramVOSoftware} from "./ProgramVOSoftware";
+import {ContextSoftware} from "./ContextSoftware";
+import {VertexBufferSoftware} from "./VertexBufferSoftware";
+import {TextureSoftware} from "./TextureSoftware";
+import {CubeTextureSoftware} from "./CubeTextureSoftware";
+import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
+import {SoftwareSamplerState} from "./SoftwareSamplerState";
 
 export class ProgramSoftware implements IProgram
 {

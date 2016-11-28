@@ -1,4 +1,4 @@
-import {Opcode}					from "../../aglsl/assembler/Opcode";
+import {Opcode} from "../../aglsl/assembler/Opcode";
 
 export class OpcodeMap
 {

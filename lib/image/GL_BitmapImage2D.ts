@@ -1,10 +1,9 @@
-import {AssetEvent}					from "@awayjs/core/lib/events/AssetEvent";
+import {AssetEvent} from "@awayjs/core";
 
-import {MipmapGenerator}				from "@awayjs/graphics/lib/utils/MipmapGenerator";
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+import {MipmapGenerator, BitmapImage2D} from "@awayjs/graphics";
 
-import {GL_Image2D}					from "../image/GL_Image2D";
-import {ITexture}						from "../base/ITexture";
+import {ITexture} from "../base/ITexture";
+import {GL_Image2D} from "../image/GL_Image2D";
 
 /**
  *

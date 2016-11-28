@@ -1,30 +1,28 @@
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {Byte32Array}				from "@awayjs/core/lib/utils/Byte32Array";
-import {GLESConnector}					from "./GLESConnector";
+import {Rectangle, Byte32Array} from "@awayjs/core";
 
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+import {BitmapImage2D} from "@awayjs/graphics";
 
-import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
-import {ContextGLDrawMode}			from "../base/ContextGLDrawMode";
-import {ContextGLClearMask}			from "../base/ContextGLClearMask";
-import {ContextGLCompareMode}			from "../base/ContextGLCompareMode";
-import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
-import {ContextGLProgramType}			from "../base/ContextGLProgramType";
-import {ContextGLStencilAction}		from "../base/ContextGLStencilAction";
-import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
-import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
-import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
-import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
-import {IContextGL}				    from "../base/IContextGL"
-import {SamplerState}					from "../base/SamplerState";
+import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
+import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
+import {ContextGLClearMask} from "../base/ContextGLClearMask";
+import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
+import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
+import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
+import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
+import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {IContextGL} from "../base/IContextGL"
+import {SamplerState} from "../base/SamplerState";
+import {OpCodes} from "../flash/OpCodes";
 
-import {CubeTextureGLES}				from "./CubeTextureGLES";
-import {IndexBufferGLES}				from "./IndexBufferGLES";
-import {ProgramGLES}					from "./ProgramGLES";
-import {TextureBaseGLES}				from "./TextureBaseGLES";
-import {TextureGLES}					from "./TextureGLES";
-import {VertexBufferGLES}			from "./VertexBufferGLES";
-import {OpCodes}						from "../flash/OpCodes";
+import {CubeTextureGLES} from "./CubeTextureGLES";
+import {IndexBufferGLES} from "./IndexBufferGLES";
+import {ProgramGLES} from "./ProgramGLES";
+import {TextureBaseGLES} from "./TextureBaseGLES";
+import {TextureGLES} from "./TextureGLES";
+import {VertexBufferGLES} from "./VertexBufferGLES";
+
+import {GLESConnector} from "./GLESConnector";
 
 export class ContextGLES implements IContextGL
 {

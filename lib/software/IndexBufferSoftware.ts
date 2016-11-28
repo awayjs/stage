@@ -1,4 +1,4 @@
-import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {IIndexBuffer} from "../base/IIndexBuffer";
 
 export class IndexBufferSoftware implements IIndexBuffer
 {

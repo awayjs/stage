@@ -1,5 +1,5 @@
-import {Flags}				from "../../aglsl/assembler/Flags";
-import {FS}					from "../../aglsl/assembler/FS";
+import {Flags} from "../../aglsl/assembler/Flags";
+import {FS} from "../../aglsl/assembler/FS";
 
 /**
  *

@@ -1,7 +1,9 @@
-import {ITextureBaseSoftware}				from "../software/ITextureBaseSoftware";
-import {ITextureBaseSoftwareClass}				from "../software/ITextureBaseSoftwareClass";
-import {ICubeTexture}						from "../base/ICubeTexture";
-import {ByteArray}							from "@awayjs/core/lib/utils/ByteArray"
+import {ByteArray} from "@awayjs/core";
+
+import {ICubeTexture} from "../base/ICubeTexture";
+
+import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
+import {ITextureBaseSoftwareClass} from "./ITextureBaseSoftwareClass";
 
 export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 {

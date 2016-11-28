@@ -1,4 +1,4 @@
-import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {IVertexBuffer} from "../base/IVertexBuffer";
 
 export class VertexBufferSoftware implements IVertexBuffer
 {

@@ -1,8 +1,8 @@
-import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {IVertexBuffer} from "../base/IVertexBuffer";
 
-import {ContextFlash}				from "./ContextFlash";
-import {OpCodes}						from "./OpCodes";
-import {ResourceBaseFlash}			from "./ResourceBaseFlash";
+import {ContextFlash} from "./ContextFlash";
+import {OpCodes} from "./OpCodes";
+import {ResourceBaseFlash} from "./ResourceBaseFlash";
 
 export class VertexBufferFlash extends ResourceBaseFlash implements IVertexBuffer
 {

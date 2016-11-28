@@ -1,6 +1,6 @@
-import {EventBase}				from "@awayjs/core/lib/events/EventBase";
+import {EventBase} from "@awayjs/core";
 
-import {Stage}					from "../base/Stage";
+import {Stage} from "../Stage";
 
 export class StageEvent extends EventBase
 {

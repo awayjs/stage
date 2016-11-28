@@ -1,9 +1,9 @@
-import {ByteArray}				from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {Description}				from "../aglsl/Description";
-import {Header}					from "../aglsl/Header";
-import {Mapping}					from "../aglsl/Mapping";
-import {Token}					from "../aglsl/Token";
+import {Description} from "../aglsl/Description";
+import {Header} from "../aglsl/Header";
+import {Mapping} from "../aglsl/Mapping";
+import {Token} from "../aglsl/Token";
 
 export class AGALTokenizer
 {

@@ -1,8 +1,8 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {ICubeTexture}					from "../base/ICubeTexture";
+import {ICubeTexture} from "../base/ICubeTexture";
 
-import {TextureBaseWebGL}				from "./TextureBaseWebGL";
+import {TextureBaseWebGL} from "./TextureBaseWebGL";
 
 export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 {

@@ -1,14 +1,13 @@
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+import {BitmapImage2D} from "@awayjs/graphics";
 
-import {ICubeTexture}					from "../base/ICubeTexture";
-import {IIndexBuffer}					from "../base/IIndexBuffer";
-import {IProgram}						from "../base/IProgram";
-import {ITexture}						from "../base/ITexture";
-import {ITextureBase}					from "../base/ITextureBase";
-import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {ICubeTexture} from "./ICubeTexture";
+import {IIndexBuffer} from "./IIndexBuffer";
+import {IProgram} from "./IProgram";
+import {ITexture} from "./ITexture";
+import {ITextureBase} from "./ITextureBase";
+import {IVertexBuffer} from "./IVertexBuffer";
 
 export interface IContextGL
 {

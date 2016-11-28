@@ -1,8 +1,8 @@
-import {IIndexBuffer}					from "../base/IIndexBuffer";
+import {IIndexBuffer} from "../base/IIndexBuffer";
 
-import {ContextFlash}				from "./ContextFlash";
-import {OpCodes}						from "./OpCodes";
-import {ResourceBaseFlash}			from "./ResourceBaseFlash";
+import {ContextFlash} from "./ContextFlash";
+import {OpCodes} from "./OpCodes";
+import {ResourceBaseFlash} from "./ResourceBaseFlash";
 
 export class IndexBufferFlash extends ResourceBaseFlash implements IIndexBuffer
 {

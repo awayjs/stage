@@ -1,4 +1,4 @@
-import {Destination}				from "../aglsl/Destination";
+import {Destination} from "../aglsl/Destination";
 
 export class Token
 {

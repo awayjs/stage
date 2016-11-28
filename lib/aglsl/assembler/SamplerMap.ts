@@ -1,4 +1,4 @@
-import {Sampler}				from "../../aglsl/assembler/Sampler";
+import {Sampler} from "../../aglsl/assembler/Sampler";
 
 export class SamplerMap
 {

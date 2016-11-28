@@ -1,6 +1,5 @@
+import {ContextGLES} from "./ContextGLES";
 
-
-import {ContextGLES}					from "./ContextGLES";
 export class GLESAssetBase
 {
 

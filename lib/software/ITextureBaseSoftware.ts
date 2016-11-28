@@ -1,5 +1,6 @@
-import {ITextureBase}						from "../base/ITextureBase";
-import {ITextureBaseSoftwareClass}				from "../software/ITextureBaseSoftwareClass";
+import {ITextureBase} from "../base/ITextureBase";
+
+import {ITextureBaseSoftwareClass} from "./ITextureBaseSoftwareClass";
 
 export interface ITextureBaseSoftware extends ITextureBase
 {

@@ -1,19 +1,19 @@
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+import {BitmapImage2D} from "@awayjs/graphics";
 
-//import {swfobject}					from "../swfobject";
-import {ContextGLClearMask}			from "../base/ContextGLClearMask";
-import {ContextGLProgramType}			from "../base/ContextGLProgramType";
-import {IContextGL}					from "../base/IContextGL";
+//import {swfobject} from "../swfobject";
+import {ContextGLClearMask} from "../base/ContextGLClearMask";
+import {ContextGLProgramType} from "../base/ContextGLProgramType";
+import {IContextGL} from "../base/IContextGL";
 
-import {CubeTextureFlash}				from "./CubeTextureFlash";
-import {IndexBufferFlash}				from "./IndexBufferFlash";
-import {OpCodes}						from "./OpCodes";
-import {ProgramFlash}					from "./ProgramFlash";
-import {TextureFlash}					from "./TextureFlash";
-import {ResourceBaseFlash}			from "./ResourceBaseFlash";
-import {VertexBufferFlash}			from "./VertexBufferFlash";
+import {CubeTextureFlash} from "./CubeTextureFlash";
+import {IndexBufferFlash} from "./IndexBufferFlash";
+import {OpCodes} from "./OpCodes";
+import {ProgramFlash} from "./ProgramFlash";
+import {TextureFlash} from "./TextureFlash";
+import {ResourceBaseFlash} from "./ResourceBaseFlash";
+import {VertexBufferFlash} from "./VertexBufferFlash";
 
 export class ContextFlash implements IContextGL
 {

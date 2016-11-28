@@ -1,7 +1,8 @@
-import {IIndexBuffer}					from "../base/IIndexBuffer";
-import {GLESAssetBase}					from "./GLESAssetBase";
-import {GLESConnector}					from "./GLESConnector";
-import {ContextGLES}					from "./ContextGLES";
+import {IIndexBuffer} from "../base/IIndexBuffer";
+
+import {GLESAssetBase} from "./GLESAssetBase";
+import {ContextGLES} from "./ContextGLES";
+
 export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer
 {
 

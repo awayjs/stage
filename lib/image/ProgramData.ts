@@ -1,6 +1,7 @@
-import {ProgramDataPool}				from "../image/ProgramDataPool";
-import {IProgram}						from "../base/IProgram";
-import {Stage}						from "../base/Stage";
+import {IProgram} from "../base/IProgram";
+import {ProgramDataPool} from "../image/ProgramDataPool";
+
+import {Stage} from "../Stage";
 
 /**
  *

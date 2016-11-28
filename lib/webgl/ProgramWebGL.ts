@@ -1,8 +1,8 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {AGALTokenizer}				from "../aglsl/AGALTokenizer";
-import {AGLSLParser}					from "../aglsl/AGLSLParser";
-import {IProgram}						from "../base/IProgram";
+import {AGALTokenizer} from "../aglsl/AGALTokenizer";
+import {AGLSLParser} from "../aglsl/AGLSLParser";
+import {IProgram} from "../base/IProgram";
 
 export class ProgramWebGL implements IProgram
 {

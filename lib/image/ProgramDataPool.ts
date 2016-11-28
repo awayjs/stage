@@ -1,5 +1,6 @@
-import {Stage}						from "../base/Stage";
-import {ProgramData}					from "../image/ProgramData";
+import {ProgramData} from "../image/ProgramData";
+
+import {Stage} from "../Stage";
 
 /**
  * @class away.pool.ProgramDataPool

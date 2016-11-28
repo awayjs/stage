@@ -1,4 +1,4 @@
-import {OpLUT}					from "../aglsl/OpLUT";
+import {OpLUT} from "../aglsl/OpLUT";
 
 export class Mapping
 {

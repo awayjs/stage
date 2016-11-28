@@ -1,8 +1,8 @@
-import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
-import {ArgumentError}				from "@awayjs/core/lib/errors/ArgumentError";
+import {EventDispatcher, ArgumentError} from "@awayjs/core";
 
-import {Stage}						from "../base/Stage";
 import {StageEvent}					from "../events/StageEvent";
+
+import {Stage}						from "../Stage";
 
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.

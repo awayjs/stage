@@ -1,7 +1,7 @@
-import {ImageCube}					from "@awayjs/graphics/lib/image/ImageCube";
+import {ImageCube} from "@awayjs/graphics";
 
-import {ContextGLTextureFormat}		from "../base/ContextGLTextureFormat";
-import {GL_ImageBase}					from "../image/GL_ImageBase";
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+import {GL_ImageBase} from "../image/GL_ImageBase";
 
 /**
  *

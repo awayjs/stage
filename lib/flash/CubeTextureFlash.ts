@@ -1,11 +1,10 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
-import {ByteArrayBase}				from "@awayjs/core/lib/utils/ByteArrayBase";
+import {ByteArray, ByteArrayBase} from "@awayjs/core";
 
-import {ICubeTexture}					from "../base/ICubeTexture";
+import {ICubeTexture} from "../base/ICubeTexture";
 
-import {ContextFlash}				from "./ContextFlash";
-import {OpCodes}						from "./OpCodes";
-import {ResourceBaseFlash}			from "./ResourceBaseFlash";
+import {ContextFlash} from "./ContextFlash";
+import {OpCodes} from "./OpCodes";
+import {ResourceBaseFlash} from "./ResourceBaseFlash";
 
 export class CubeTextureFlash extends ResourceBaseFlash implements ICubeTexture
 {

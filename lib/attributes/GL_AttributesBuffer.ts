@@ -1,10 +1,9 @@
-import {AttributesBuffer}				from "@awayjs/core/lib/attributes/AttributesBuffer";
-import {AssetEvent}					from "@awayjs/core/lib/events/AssetEvent";
-import {AbstractionBase}				from "@awayjs/core/lib/library/AbstractionBase";
+import {AttributesBuffer, AssetEvent, AbstractionBase} from "@awayjs/core";
 
-import {Stage}						from "../base/Stage";
-import {IIndexBuffer}					from "../base/IIndexBuffer";
-import {IVertexBuffer}				from "../base/IVertexBuffer";
+import {IIndexBuffer} from "../base/IIndexBuffer";
+import {IVertexBuffer} from "../base/IVertexBuffer";
+
+import {Stage} from "../Stage";
 
 /**
  *

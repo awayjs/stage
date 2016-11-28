@@ -1,27 +1,27 @@
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+import {BitmapImage2D} from "@awayjs/graphics";
 
-import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
-import {ContextGLDrawMode}			from "../base/ContextGLDrawMode";
-import {ContextGLClearMask}			from "../base/ContextGLClearMask";
-import {ContextGLCompareMode}			from "../base/ContextGLCompareMode";
-import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
-import {ContextGLProgramType}			from "../base/ContextGLProgramType";
-import {ContextGLStencilAction}		from "../base/ContextGLStencilAction";
-import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
-import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
-import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
-import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
-import {IContextGL}				    from "../base/IContextGL"
-import {SamplerState}					from "../base/SamplerState";
+import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
+import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
+import {ContextGLClearMask} from "../base/ContextGLClearMask";
+import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
+import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
+import {ContextGLProgramType} from "../base/ContextGLProgramType";
+import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
+import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
+import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {ContextGLVertexBufferFormat} from "../base/ContextGLVertexBufferFormat";
+import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {IContextGL} from "../base/IContextGL"
+import {SamplerState} from "../base/SamplerState";
 
-import {CubeTextureWebGL}				from "./CubeTextureWebGL";
-import {IndexBufferWebGL}				from "./IndexBufferWebGL";
-import {ProgramWebGL}					from "./ProgramWebGL";
-import {TextureBaseWebGL}				from "./TextureBaseWebGL";
-import {TextureWebGL}					from "./TextureWebGL";
-import {VertexBufferWebGL}			from "./VertexBufferWebGL";
+import {CubeTextureWebGL} from "./CubeTextureWebGL";
+import {IndexBufferWebGL} from "./IndexBufferWebGL";
+import {ProgramWebGL} from "./ProgramWebGL";
+import {TextureBaseWebGL} from "./TextureBaseWebGL";
+import {TextureWebGL} from "./TextureWebGL";
+import {VertexBufferWebGL} from "./VertexBufferWebGL";
 
 export class ContextWebGL implements IContextGL
 {
@@ -269,7 +269,7 @@ export class ContextWebGL implements IContextGL
 
 	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
-		var pixels:Uint8Array = new Uint8Array(destination.width*destination.height*4);
+		var pixels:Uint8ClampedArray = new Uint8ClampedArray(destination.width*destination.height*4);
 
 		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
 

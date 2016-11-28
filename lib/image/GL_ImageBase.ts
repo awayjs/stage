@@ -1,10 +1,8 @@
-import {AbstractMethodError}			from "@awayjs/core/lib/errors/AbstractMethodError";
-import {AssetEvent}					from "@awayjs/core/lib/events/AssetEvent";
-import {IAsset}						from "@awayjs/core/lib/library/IAsset";
-import {AbstractionBase}				from "@awayjs/core/lib/library/AbstractionBase";
+import {AbstractMethodError, AssetEvent, IAsset, AbstractionBase} from "@awayjs/core";
 
-import {Stage}						from "../base/Stage";
-import {ITextureBase}					from "../base/ITextureBase";
+import {ITextureBase} from "../base/ITextureBase";
+
+import {Stage} from "../Stage";
 
 /**
  *

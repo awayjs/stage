@@ -1,12 +1,9 @@
-import {IAssetClass}					from "@awayjs/core/lib/library/IAssetClass";
-import {AssetEvent}					from "@awayjs/core/lib/events/AssetEvent";
+import {AssetEvent} from "@awayjs/core";
 
-import {BitmapImageCube}				from "@awayjs/graphics/lib/image/BitmapImageCube";
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
-import {MipmapGenerator}				from "@awayjs/graphics/lib/utils/MipmapGenerator";
+import {BitmapImageCube, BitmapImage2D, MipmapGenerator} from "@awayjs/graphics";
 
-import {GL_ImageCube}					from "../image/GL_ImageCube";
-import {ICubeTexture}					from "../base/ICubeTexture";
+import {ICubeTexture} from "../base/ICubeTexture";
+import {GL_ImageCube} from "../image/GL_ImageCube";
 
 /**
  *

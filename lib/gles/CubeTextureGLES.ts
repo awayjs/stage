@@ -1,10 +1,9 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {ICubeTexture}					from "../base/ICubeTexture";
+import {ICubeTexture} from "../base/ICubeTexture";
 
-import {TextureBaseGLES}				from "./TextureBaseGLES";
-import {GLESConnector}					from "./GLESConnector";
-import {ContextGLES}					from "./ContextGLES";
+import {TextureBaseGLES} from "./TextureBaseGLES";
+import {ContextGLES} from "./ContextGLES";
 
 export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 {

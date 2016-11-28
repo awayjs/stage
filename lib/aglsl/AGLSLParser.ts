@@ -1,5 +1,5 @@
-import {Description}				from "../aglsl/Description";
-import {Mapping}					from "../aglsl/Mapping";
+import {Description} from "../aglsl/Description";
+import {Mapping} from "../aglsl/Mapping";
 
 export class AGLSLParser
 {

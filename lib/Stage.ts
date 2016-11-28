@@ -1,30 +1,24 @@
-import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {AbstractionBase}				from "@awayjs/core/lib/library/AbstractionBase";
-import {IAsset}						from "@awayjs/core/lib/library/IAsset";
-import {IAssetClass}					from "@awayjs/core/lib/library/IAssetClass";
-import {IAbstractionPool}				from "@awayjs/core/lib/library/IAbstractionPool";
-import {CSS}							from "@awayjs/core/lib/utils/CSS";
+import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, CSS} from "@awayjs/core";
 
-import {ImageBase}					from "@awayjs/graphics/lib/image/ImageBase";
+import {ImageBase} from "@awayjs/graphics";
 
-import {ContextMode}					from "../base/ContextMode";
-import {ContextGLMipFilter}			from "../base/ContextGLMipFilter";
-import {ContextGLTextureFilter}		from "../base/ContextGLTextureFilter";
-import {ContextGLVertexBufferFormat}	from "../base/ContextGLVertexBufferFormat";
-import {ContextGLWrapMode}			from "../base/ContextGLWrapMode";
-import {IContextGL}					from "../base/IContextGL";
-import {IVertexBuffer}				from "../base/IVertexBuffer";
-import {StageEvent}					from "../events/StageEvent";
-import {GL_ImageBase}					from "../image/GL_ImageBase";
-import {GL_IAssetClass}				from "../library/GL_IAssetClass";
-import {ProgramData}					from "../image/ProgramData";
-import {ProgramDataPool}				from "../image/ProgramDataPool";
-import {StageManager}					from "../managers/StageManager";
-import {ContextGLES}					from "../gles/ContextGLES";
-import {ContextWebGL}					from "../webgl/ContextWebGL";
-import {ContextFlash}				from "../flash/ContextFlash";
-import {ContextSoftware}				from "../software/ContextSoftware";
+import {ContextMode} from "./base/ContextMode";
+import {ContextGLMipFilter} from "./base/ContextGLMipFilter";
+import {ContextGLTextureFilter} from "./base/ContextGLTextureFilter";
+import {ContextGLVertexBufferFormat} from "./base/ContextGLVertexBufferFormat";
+import {ContextGLWrapMode} from "./base/ContextGLWrapMode";
+import {IContextGL} from "./base/IContextGL";
+import {IVertexBuffer} from "./base/IVertexBuffer";
+import {StageEvent} from "./events/StageEvent";
+import {ContextFlash} from "./flash/ContextFlash";
+import {ContextGLES} from "./gles/ContextGLES";
+import {GL_ImageBase} from "./image/GL_ImageBase";
+import {ProgramData} from "./image/ProgramData";
+import {ProgramDataPool} from "./image/ProgramDataPool";
+import {GL_IAssetClass} from "./library/GL_IAssetClass";
+import {StageManager} from "./managers/StageManager";
+import {ContextSoftware} from "./software/ContextSoftware";
+import {ContextWebGL} from "./webgl/ContextWebGL";
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context

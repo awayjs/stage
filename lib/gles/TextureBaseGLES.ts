@@ -1,8 +1,8 @@
+import {OpCodes} from "../flash/OpCodes";
 
-import {GLESAssetBase}					from "./GLESAssetBase";
-import {GLESConnector}					from "./GLESConnector";
-import {ContextGLES}					from "./ContextGLES";
-import {OpCodes}						from "../flash/OpCodes";
+import {GLESAssetBase} from "./GLESAssetBase";
+import {ContextGLES} from "./ContextGLES";
+
 export class TextureBaseGLES extends GLESAssetBase
 {
 	public textureType:string = "";

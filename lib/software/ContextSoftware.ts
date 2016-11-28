@@ -1,31 +1,26 @@
-import {BitmapImage2D}				from "@awayjs/graphics/lib/image/BitmapImage2D";
+import {Matrix3D, Matrix, Point, Vector3D, Rectangle, ColorUtils} from "@awayjs/core";
 
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
-import {Point}						from "@awayjs/core/lib/geom/Point";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {ColorUtils}					from "@awayjs/core/lib/utils/ColorUtils";
+import {BitmapImage2D} from "@awayjs/graphics";
 
-import {ContextGLBlendFactor}			from "../base/ContextGLBlendFactor";
-import {ContextGLClearMask}			from "../base/ContextGLClearMask";
-import {ContextGLCompareMode}			from "../base/ContextGLCompareMode";
-import {ContextGLProgramType}			from "../base/ContextGLProgramType";
-import {ContextGLTriangleFace}		from "../base/ContextGLTriangleFace";
-import {IContextGL}					from "../base/IContextGL";
-import {IIndexBuffer}					from "../base/IIndexBuffer";
-import {ICubeTexture}					from "../base/ICubeTexture";
+import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
+import {ContextGLClearMask} from "../base/ContextGLClearMask";
+import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
+import {ContextGLProgramType} from "../base/ContextGLProgramType";
+import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {IContextGL} from "../base/IContextGL";
+import {IIndexBuffer} from "../base/IIndexBuffer";
+import {ICubeTexture} from "../base/ICubeTexture";
 
-import {ITextureBaseSoftware}			from "./ITextureBaseSoftware";
-import {IndexBufferSoftware}			from "./IndexBufferSoftware";
-import {VertexBufferSoftware}			from "./VertexBufferSoftware";
-import {TextureSoftware}				from "./TextureSoftware";
-import {CubeTextureSoftware}			from "./CubeTextureSoftware";
-import {ProgramSoftware}				from "./ProgramSoftware";
-import {ProgramVOSoftware}			from "./ProgramVOSoftware";
-import {SoftwareSamplerState}			from "./SoftwareSamplerState";
-import {BlendModeSoftware}			from "./BlendModeSoftware";
-import {DepthCompareModeSoftware}			from "./DepthCompareModeSoftware";
+import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
+import {IndexBufferSoftware} from "./IndexBufferSoftware";
+import {VertexBufferSoftware} from "./VertexBufferSoftware";
+import {TextureSoftware} from "./TextureSoftware";
+import {CubeTextureSoftware} from "./CubeTextureSoftware";
+import {ProgramSoftware} from "./ProgramSoftware";
+import {ProgramVOSoftware} from "./ProgramVOSoftware";
+import {SoftwareSamplerState} from "./SoftwareSamplerState";
+import {BlendModeSoftware} from "./BlendModeSoftware";
+import {DepthCompareModeSoftware} from "./DepthCompareModeSoftware";
 
 export class ContextSoftware implements IContextGL
 {

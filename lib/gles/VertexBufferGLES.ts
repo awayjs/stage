@@ -1,10 +1,9 @@
-import {IVertexBuffer}				from "../base/IVertexBuffer";
-import {GLESAssetBase}					from "./GLESAssetBase";
-import {GLESConnector}					from "./GLESConnector";
-import {ContextGLES}					from "./ContextGLES";
-import {ParserUtils}					from "@awayjs/core/lib/parsers/ParserUtils";
+import {IVertexBuffer} from "../base/IVertexBuffer";
+import {OpCodes} from "../flash/OpCodes";
 
-import {OpCodes}						from "../flash/OpCodes";
+import {GLESAssetBase} from "./GLESAssetBase";
+import {ContextGLES} from "./ContextGLES";
+
 export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 {
 

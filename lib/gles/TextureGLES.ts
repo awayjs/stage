@@ -1,11 +1,10 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
-import {ByteArrayBase}				from "@awayjs/core/lib/utils/ByteArrayBase";
-import {ITexture}						from "../base/ITexture";
+import {ByteArray} from "@awayjs/core";
 
-import {TextureBaseGLES}				from "./TextureBaseGLES";
-import {GLESConnector}					from "./GLESConnector";
-import {ContextGLES}					from "./ContextGLES";
-import {OpCodes}						from "../flash/OpCodes";
+import {ITexture} from "../base/ITexture";
+import {OpCodes} from "../flash/OpCodes";
+
+import {TextureBaseGLES} from "./TextureBaseGLES";
+import {ContextGLES} from "./ContextGLES";
 
 export class TextureGLES extends TextureBaseGLES implements ITexture
 {

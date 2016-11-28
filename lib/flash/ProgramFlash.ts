@@ -1,10 +1,10 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {IProgram}						from "../base/IProgram";
+import {IProgram} from "../base/IProgram";
 
-import {ContextFlash}				from "./ContextFlash";
-import {OpCodes}						from "./OpCodes";
-import {ResourceBaseFlash}			from "./ResourceBaseFlash";
+import {ContextFlash} from "./ContextFlash";
+import {OpCodes} from "./OpCodes";
+import {ResourceBaseFlash} from "./ResourceBaseFlash";
 
 export class ProgramFlash extends ResourceBaseFlash implements IProgram
 {

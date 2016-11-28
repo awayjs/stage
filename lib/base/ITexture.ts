@@ -1,4 +1,4 @@
-import {ITextureBase}					from "../base/ITextureBase";
+import {ITextureBase} from "./ITextureBase";
 
 export interface ITexture extends ITextureBase
 {

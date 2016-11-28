@@ -1,6 +1,7 @@
-import {ITexture}						from "../base/ITexture";
-import {ITextureBaseSoftware}				from "../software/ITextureBaseSoftware";
-import {ITextureBaseSoftwareClass}				from "../software/ITextureBaseSoftwareClass";
+import {ITexture} from "../base/ITexture";
+
+import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
+import {ITextureBaseSoftwareClass} from "./ITextureBaseSoftwareClass";
 
 export class TextureSoftware implements ITexture, ITextureBaseSoftware
 {

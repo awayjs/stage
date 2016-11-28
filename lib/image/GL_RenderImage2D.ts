@@ -1,4 +1,4 @@
-import {GL_Image2D}					from "../image/GL_Image2D";
+import {GL_Image2D} from "../image/GL_Image2D";
 
 /**
  *

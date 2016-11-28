@@ -1,5 +1,5 @@
-import {Header}					from "../aglsl/Header";
-import {Token}					from "../aglsl/Token";
+import {Header} from "../aglsl/Header";
+import {Token} from "../aglsl/Token";
 
 export class Description
 {

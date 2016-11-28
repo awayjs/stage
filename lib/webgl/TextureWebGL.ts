@@ -1,8 +1,8 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {ITexture}						from "../base/ITexture";
+import {ITexture} from "../base/ITexture";
 
-import {TextureBaseWebGL}				from "./TextureBaseWebGL";
+import {TextureBaseWebGL} from "./TextureBaseWebGL";
 
 export class TextureWebGL extends TextureBaseWebGL implements ITexture
 {

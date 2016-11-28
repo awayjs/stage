@@ -1,6 +1,6 @@
-import {ByteArray}					from "@awayjs/core/lib/utils/ByteArray";
+import {ByteArray} from "@awayjs/core";
 
-import {ITextureBase}					from "../base/ITextureBase";
+import {ITextureBase} from "./ITextureBase";
 
 export interface ICubeTexture extends ITextureBase
 {

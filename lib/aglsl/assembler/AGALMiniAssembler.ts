@@ -1,9 +1,9 @@
-import {Sampler}					from "../../aglsl/assembler/Sampler";
-import {Opcode}					from "../../aglsl/assembler/Opcode";
-import {OpcodeMap}				from "../../aglsl/assembler/OpcodeMap";
-import {Part}						from "../../aglsl/assembler/Part";
-import {RegMap}					from "../../aglsl/assembler/RegMap";
-import {SamplerMap}				from "../../aglsl/assembler/SamplerMap";
+import {Sampler} from "../../aglsl/assembler/Sampler";
+import {Opcode} from "../../aglsl/assembler/Opcode";
+import {OpcodeMap} from "../../aglsl/assembler/OpcodeMap";
+import {Part} from "../../aglsl/assembler/Part";
+import {RegMap} from "../../aglsl/assembler/RegMap";
+import {SamplerMap} from "../../aglsl/assembler/SamplerMap";
 
 
 export class AGALMiniAssembler

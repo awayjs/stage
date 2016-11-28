@@ -1,8 +1,10 @@
-import {IAsset}						from "@awayjs/core/lib/library/IAsset";
-import {VideoSourceImage2D}			from "@awayjs/graphics/lib/image/VideoSourceImage2D";
+import {IAsset} from "@awayjs/core";
+
+import {VideoSourceImage2D} from "@awayjs/graphics";
 
 import {GL_Image2D}					from "../image/GL_Image2D";
-import {Stage}						from "../base/Stage";
+
+import {Stage}						from "../Stage";
 
 /**
  *

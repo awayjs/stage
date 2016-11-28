@@ -1,10 +1,10 @@
-import {ByteArrayBase}				from "@awayjs/core/lib/utils/ByteArrayBase";
+import {ByteArrayBase} from "@awayjs/core";
 
-import {ITexture}						from "../base/ITexture";
+import {ITexture} from "../base/ITexture";
 
-import {ContextFlash}				from "./ContextFlash";
-import {OpCodes}						from "./OpCodes";
-import {ResourceBaseFlash}			from "./ResourceBaseFlash";
+import {ContextFlash} from "./ContextFlash";
+import {OpCodes} from "./OpCodes";
+import {ResourceBaseFlash} from "./ResourceBaseFlash";
 
 export class TextureFlash extends ResourceBaseFlash implements ITexture
 {

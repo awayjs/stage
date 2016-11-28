@@ -1,7 +1,8 @@
-import {SamplerCube}					from "@awayjs/graphics/lib/image/SamplerCube";
+import {SamplerCube} from "@awayjs/graphics";
 
-import {Stage}						from "../base/Stage";
-import {GL_SamplerBase}				from "../image/GL_SamplerBase";
+import {GL_SamplerBase} from "../image/GL_SamplerBase";
+
+import {Stage} from "../Stage";
 
 /**
  *
