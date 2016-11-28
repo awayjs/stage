@@ -469,14 +469,27 @@ export class ContextSoftware implements IContextGL
 				// Calculate derivative (neighbor) weights.
 				if (x != this._bboxMax.x) {
 					this._barycentricRight.x = this._barycentric.x + w0_dx;
-					this._barycentricRight.y = this._barycentric.x + w1_dx;
-					this._barycentricRight.z = this._barycentric.x + w2_dx;
+					this._barycentricRight.y = this._barycentric.y + w1_dx;
+					this._barycentricRight.z = this._barycentric.z + w2_dx;
+					this._barycentricRight.x /= this._project.x;
+					this._barycentricRight.y /= this._project.y;
+					this._barycentricRight.z /= this._project.z;
+					this._barycentricRight.scaleBy( 1 / (this._barycentricRight.x + this._barycentricRight.y + this._barycentricRight.z) );
 				}
 				if (y != this._bboxMax.y) {
 					this._barycentricBottom.x = this._barycentric.x + w0_dy;
-					this._barycentricBottom.y = this._barycentric.x + w1_dy;
-					this._barycentricBottom.z = this._barycentric.x + w2_dy;
+					this._barycentricBottom.y = this._barycentric.y + w1_dy;
+					this._barycentricBottom.z = this._barycentric.z + w2_dy;
+					this._barycentricBottom.x /= this._project.x;
+					this._barycentricBottom.y /= this._project.y;
+					this._barycentricBottom.z /= this._project.z;
+					this._barycentricBottom.scaleBy( 1 / (this._barycentricBottom.x + this._barycentricBottom.y + this._barycentricBottom.z) );
 				}
+
+				this._barycentric.x /= this._project.x;
+				this._barycentric.y /= this._project.y;
+				this._barycentric.z /= this._project.z;
+				this._barycentric.scaleBy( 1 / (this._barycentric.x + this._barycentric.y + this._barycentric.z) );
 
 				// Interpolate frag depth.
 				var index:number = (x % this._activeBuffer.width) + y * this._activeBuffer.width;
