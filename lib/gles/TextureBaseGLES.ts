@@ -18,7 +18,7 @@ export class TextureBaseGLES extends GLESAssetBase
 
 	public dispose():void
 	{
-		console.log("dispose texturedata "+this.id);
+		//console.log("dispose texturedata "+this.id);
 		///this._context.addStream(String.fromCharCode(OpCodes.disposeTexture) + this.id.toString() + "#END");
 		this._context._createBytes.writeInt(OpCodes.disposeTexture);
 		this._context._createBytes.writeInt(this.id);

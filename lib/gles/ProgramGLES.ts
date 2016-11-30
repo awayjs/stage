@@ -25,7 +25,7 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 	constructor(context:ContextGLES, gl:WebGLRenderingContext, id:number)
 	{
 		super(context, id);
-		console.log("awayjs created program with id "+ id);
+		//console.log("awayjs created program with id "+ id);
 		// this._gl = gl;
 		// this._program = this._gl.createProgram();
 	}

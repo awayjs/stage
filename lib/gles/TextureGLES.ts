@@ -133,7 +133,7 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		}*/
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadBytesTexture) + this.id.toString() + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," +base64ArrayBuffer(data.data.buffer)+"#END");
 
-		console.log("upload texturedata "+this.id);
+		//console.log("upload texturedata "+this.id);
 		this._context._createBytes.writeInt(OpCodes.uploadBytesTexture | miplevel<<8);
 		this._context._createBytes.writeInt(this.id);
 		this._context._createBytes.writeFloat(this._width);

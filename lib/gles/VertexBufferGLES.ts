@@ -93,7 +93,7 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 		*/
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.uploadArrayVertexBuffer) + this.id + "," + startVertex +  "," + numVertices + ","+base64ArrayBuffer(data)+"#END");
 
-		console.log("upload vertexdata "+this.id);
+		//console.log("upload vertexdata "+this.id);
 		this._context._createBytes.writeInt(OpCodes.uploadArrayVertexBuffer);
 		this._context._createBytes.writeInt(this.id);
 		this._context._createBytes.writeInt(startVertex);
@@ -127,7 +127,7 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 
 	public dispose():void
 	{
-		console.log("dispose vertexdata "+this.id);
+		//console.log("dispose vertexdata "+this.id);
 		//this._context.addCreateStream(String.fromCharCode(OpCodes.disposeVertexBuffer) + this.id+"#END");
 		this._context._createBytes.writeInt(OpCodes.disposeVertexBuffer);
 		this._context._createBytes.writeInt(this.id);
