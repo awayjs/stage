@@ -692,6 +692,7 @@ export class ContextSoftware implements IContextGL
 		this._backBufferColor.lock();
 
 		if (mask & ContextGLClearMask.COLOR) {
+			this._colorClearUint8.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
 			this._colorClearUint32.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
 			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
 		}
