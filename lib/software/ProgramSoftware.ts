@@ -420,8 +420,8 @@ export class ProgramSoftware implements IProgram
 		var source1Reg:number = 4*source1.regnum;
 		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
 
-		var u:number = source1Target[((source1.swizzle >> 0) & 3)];
-		var v:number = source1Target[((source1.swizzle >> 2) & 3)];
+		var u:number = source1Target[source1Reg + ((source1.swizzle >> 0) & 3)];
+		var v:number = source1Target[source1Reg + ((source1.swizzle >> 2) & 3)];
 
 		if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
 			return new Float32Array([1, u, v, 0]);
@@ -1260,7 +1260,7 @@ export class ProgramSoftware implements IProgram
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
-		var source2Reg:number = 4*source1.regnum;
+		var source2Reg:number = 4*source2.regnum;
 		
 		var target:Float32Array = ProgramSoftware.getDestTarget(vo, desc, dest);
 
@@ -1297,7 +1297,7 @@ export class ProgramSoftware implements IProgram
 	{
 		var targetReg:number = 4*dest.regnum;
 		var source1Reg:number = 4*source1.regnum;
-		var source2Reg:number = 4*source1.regnum;
+		var source2Reg:number = 4*source2.regnum;
 		
 		var target:Float32Array = ProgramSoftware.getDestTarget(vo, desc, dest);
 
