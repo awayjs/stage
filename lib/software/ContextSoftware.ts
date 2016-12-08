@@ -28,14 +28,16 @@ export class ContextSoftware implements IContextGL
 
 	public static MAX_SAMPLERS:number = 8;
 
+	private _yflip:boolean;
 	private _backBufferRect:Rectangle = new Rectangle();
 	private _backBufferColor:BitmapImage2D;
 	private _frontBuffer:BitmapImage2D;
-	private _activeBuffer:BitmapImage2D;
+	private _activeBufferColor:BitmapImage2D;
+	private _activeBufferZ:Float32Array;
 	private _activeTexture:TextureSoftware;
 
-	private _zbuffer:Float32Array;
-	private _zbufferClear:Float32Array;
+	private _backBufferZ:Float32Array;
+	private _backBufferZClear:Float32Array;
 	private _colorClearUint8:Uint8ClampedArray;
 	private _colorClearUint32:Uint32Array;
 	private _cullingMode:string = ContextGLTriangleFace.BACK;
@@ -58,7 +60,9 @@ export class ContextSoftware implements IContextGL
 
 	public _samplerStates:SoftwareSamplerState[] = [];
 	public _textures:Array<ITextureBaseSoftware> = [];
-	private _textureBuffers:Array<BitmapImage2D>;
+	private textureBuffersColor:Array<BitmapImage2D> = [];
+	private textureBuffersZ:Array<Float32Array> = [];
+	private textureBuffersZClear:Array<Float32Array> = [];
 	public _vertexBuffers:Array<VertexBufferSoftware> = [];
 	public _vertexBufferOffsets:Array<number> = [];
 	public _vertexBufferFormats:Array<number> = [];
@@ -80,9 +84,16 @@ export class ContextSoftware implements IContextGL
 
 		this._backBufferColor = new BitmapImage2D(100, 100, false, 0, false);
 		this._frontBuffer = new BitmapImage2D(100, 100, true, 0, false);
-		this._activeBuffer = this._backBufferColor;
+		this._activeBufferColor = this._backBufferColor;
 
-		this._textureBuffers = new Array<BitmapImage2D>();
+		var len:number = 100 * 100;
+		var zbufferBytes:ArrayBuffer = new ArrayBuffer(len*8);
+		this._backBufferZ = new Float32Array(zbufferBytes, 0, len);
+		this._backBufferZClear = new Float32Array(zbufferBytes, len*4, len);
+		for (var i:number = 0; i < len; i++)
+			this._backBufferZClear[i] = 10000000;
+
+		this._activeBufferZ = this._backBufferZ;
 
 		if (document && document.body) {
 			var frontCanvas = this._frontBuffer.getCanvas();
@@ -112,10 +123,13 @@ export class ContextSoftware implements IContextGL
 		//double buffer for fast clearing
 		var len:number = backBufferWidth * backBufferHeight;
 		var zbufferBytes:ArrayBuffer = new ArrayBuffer(len*8);
-		this._zbuffer = new Float32Array(zbufferBytes, 0, len);
-		this._zbufferClear = new Float32Array(zbufferBytes, len*4, len);
+		this._backBufferZ = new Float32Array(zbufferBytes, 0, len);
+		this._backBufferZClear = new Float32Array(zbufferBytes, len*4, len);
 		for (var i:number = 0; i < len; i++)
-			this._zbufferClear[i] = 10000000;
+			this._backBufferZClear[i] = 10000000;
+
+		if (this._activeBufferColor == this._backBufferColor)
+			this._activeBufferZ = this._backBufferZ;
 
 		var colorClearBuffer:ArrayBuffer = new ArrayBuffer(len*4);
 
@@ -126,68 +140,86 @@ export class ContextSoftware implements IContextGL
 
 		this._backBufferColor._setSize(backBufferWidth, backBufferHeight);
 
-		this.activateScreenMatrix(this._backBufferRect.width, this._backBufferRect.height);
+		this.activateScreenMatrix(this._backBufferRect.width, this._backBufferRect.height, true);
 
 		this._frontBufferMatrix = new Matrix();
 		this._frontBufferMatrix.scale(1/this._antialias, 1/this._antialias);
 	}
 
-	private activateScreenMatrix(width:number, height:number) {
+	private activateScreenMatrix(width:number, height:number, yflip:boolean) {
 
 		var raw:Float32Array = this._screenMatrix._rawData;
 
 		raw[0] = width / 2;
 		raw[1] = 0;
 		raw[2] = 0;
-		raw[3] = width / 2;
+		raw[3] = 0;
 
 		raw[4] = 0;
-		raw[5] = -height / 2;
+		raw[5] = yflip? -height / 2 : height / 2;
 		raw[6] = 0;
-		raw[7] = height / 2;
+		raw[7] = 0;
 
 		raw[8] = 0;
 		raw[9] = 0;
 		raw[10] = 1;
 		raw[11] = 0;
 
-		raw[12] = 0;
-		raw[13] = 0;
+		raw[12] = width / 2;
+		raw[13] = height / 2;
 		raw[14] = 0;
 		raw[15] = 0;
 
-		this._screenMatrix.transpose();
+		this._yflip = yflip;
 	}
 
 	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)  {
 
 		// Create texture buffer and screen matrix if needed.
-		var textureBuffer = this._textureBuffers[surfaceSelector];
-		if (textureBuffer == null) {
+		var textureBufferColor:BitmapImage2D = this.textureBuffersColor[surfaceSelector];
+		if (textureBufferColor == null) {
 
 			// TODO: consider transparency prop
 			// TODO: consider fill color prop
 			// TODO: consider powerOfTwo prop
-			var textureBuffer = new BitmapImage2D(target.width, target.height, false, 0xFFFFFF, true);
-			this._textureBuffers[surfaceSelector] = textureBuffer;
+			textureBufferColor = this.textureBuffersColor[surfaceSelector] = new BitmapImage2D(target.width, target.height, false, 0xFFFFFF, true);
 
 			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
-			target.uploadFromData(textureBuffer.getImageData());
+			target.uploadFromData(textureBufferColor.getImageData());
 		}
 		else {
-			textureBuffer.fillRect(textureBuffer.rect, 0xFFFFFF);
+			textureBufferColor.fillRect(textureBufferColor.rect, 0xFFFFFF);
 		}
 
-		this.activateScreenMatrix(target.width, target.height);
-		this._activeTexture = target;
+		this._activeBufferColor = textureBufferColor;
+		this._activeBufferColor.lock();
 
-		this._activeBuffer = textureBuffer;
-		this._activeBuffer.lock();
+		var textureBufferZ:Float32Array = this.textureBuffersZ[surfaceSelector];
+		var textureBufferZClear:Float32Array = this.textureBuffersZClear[surfaceSelector];
+		if (textureBufferZ == null) {
+
+			//double buffer for fast clearing
+			var len:number = target.width * target.height;
+			var zbufferBytes:ArrayBuffer = new ArrayBuffer(len*8);
+			textureBufferZ = this.textureBuffersZ[surfaceSelector] = new Float32Array(zbufferBytes, 0, len);
+			textureBufferZClear = this.textureBuffersZClear[surfaceSelector] = new Float32Array(zbufferBytes, len*4, len);
+			for (var i:number = 0; i < len; i++)
+				textureBufferZClear[i] = 10000000;
+		}
+
+		textureBufferZ.set(textureBufferZClear); //fast memcpy
+
+
+		this._activeBufferZ = textureBufferZ;
+
+		this.activateScreenMatrix(target.width, target.height, false);
+		this._activeTexture = target;
 	}
 
 	public setRenderToBackBuffer():void  {
-		this._activeBuffer = this._backBufferColor;
-		this.activateScreenMatrix(this._backBufferColor.width, this._backBufferColor.height);
+		this._activeBufferColor = this._backBufferColor;
+		this._activeBufferZ = this._backBufferZ;
+		this.activateScreenMatrix(this._backBufferColor.width, this._backBufferColor.height, true);
 	}
 
 	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void  {
@@ -229,14 +261,14 @@ export class ContextSoftware implements IContextGL
 
 		// Sweep triangles according to culling mode and process thru vertex shader.
 
-		if (this._cullingMode == ContextGLTriangleFace.BACK) {
+		if (this._yflip && this._cullingMode == ContextGLTriangleFace.BACK || !this._yflip && this._cullingMode == ContextGLTriangleFace.FRONT) {
 			for (var i:number = firstIndex; i < numIndices; i += 3) {
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i], position0, varying0);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position2, varying2);
 				this._triangle(incomingVertices, outgoingVertices, incomingVaryings, outgoingVaryings);
 			}
-		} else if (this._cullingMode == ContextGLTriangleFace.FRONT) {
+		} else if (this._yflip && this._cullingMode == ContextGLTriangleFace.FRONT || !this._yflip && this._cullingMode == ContextGLTriangleFace.BACK) {
 			for (var i:number = firstIndex; i < numIndices; i += 3) {
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 2], position0, varying0);
 				this._program.vertex(this, indexBuffer.data[indexBuffer.startOffset + i + 1], position1, varying1);
@@ -257,9 +289,9 @@ export class ContextSoftware implements IContextGL
 		}
 
 		// Transfer buffer data to texture.
-		if (this._activeBuffer != this._backBufferColor) {
-			this._activeBuffer.unlock();
-			this._activeTexture.uploadFromData(this._activeBuffer.getImageData());
+		if (this._activeBufferColor != this._backBufferColor) {
+			this._activeBufferColor.unlock();
+			this._activeTexture.uploadFromData(this._activeBufferColor.getImageData());
 		}
 	}
 
@@ -395,8 +427,8 @@ export class ContextSoftware implements IContextGL
 		this._bboxMax.x = -1000000;
 		this._bboxMax.y = -1000000;
 
-		this._clamp.x = this._activeBuffer.width - 1;
-		this._clamp.y = this._activeBuffer.height - 1;
+		this._clamp.x = this._activeBufferColor.width - 1;
+		this._clamp.y = this._activeBufferColor.height - 1;
 
 		this._bboxMin.x = Math.max(0, Math.min(this._bboxMin.x, this._p0.x));
 		this._bboxMin.y = Math.max(0, Math.min(this._bboxMin.y, this._p0.y));
@@ -486,22 +518,22 @@ export class ContextSoftware implements IContextGL
 					this._barycentricBottom.scaleBy( 1 / (this._barycentricBottom.x + this._barycentricBottom.y + this._barycentricBottom.z) );
 				}
 
+				// Interpolate frag depth.
+				var index:number = (x % this._activeBufferColor.width) + y * this._activeBufferColor.width;
+				var fragDepth:number = (this._barycentric.x * this._p0.z + this._barycentric.y * this._p1.z + this._barycentric.z * this._p2.z)/ (this._barycentric.x + this._barycentric.y + this._barycentric.z);
+
 				this._barycentric.x /= this._project.x;
 				this._barycentric.y /= this._project.y;
 				this._barycentric.z /= this._project.z;
 				this._barycentric.scaleBy( 1 / (this._barycentric.x + this._barycentric.y + this._barycentric.z) );
 
-				// Interpolate frag depth.
-				var index:number = (x % this._activeBuffer.width) + y * this._activeBuffer.width;
-				var fragDepth:number = this._barycentric.x * this._p0.z + this._barycentric.y * this._p1.z + this._barycentric.z * this._p2.z;
-
 				// Depth test.
-				if (this._activeBuffer == this._backBufferColor && !DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._zbuffer[index]))
+				if (!DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._activeBufferZ[index]))
 					continue;
 
 				// Write z buffer.
 				if (this._writeDepth)
-					this._zbuffer[index] = fragDepth; // TODO: fragmentVO.outputDepth?
+					this._activeBufferZ[index] = fragDepth; // TODO: fragmentVO.outputDepth?
 
 				// Process fragment shader.
 				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, this._barycentric, this._barycentricRight, this._barycentricBottom, varying0, varying1, varying2, fragDepth);
@@ -515,7 +547,7 @@ export class ContextSoftware implements IContextGL
 				this._source[3] = fragmentVO.outputColor[3] * 255;
 
 				// Read dest.
-				this._activeBuffer.getPixelData(x, y, this._dest);
+				this._activeBufferColor.getPixelData(x, y, this._dest);
 
 				// Write to color buffer.
 				this._putPixel(x, y, this._source, this._dest);
@@ -536,7 +568,7 @@ export class ContextSoftware implements IContextGL
 		BlendModeSoftware[this._blendDestination](dest, dest, source);
 		BlendModeSoftware[this._blendSource](this._rgba, dest, source);
 
-		this._activeBuffer.setPixelData(x, y, this._rgba);
+		this._activeBufferColor.setPixelData(x, y, this._rgba);
 	}
 
 	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture  {
@@ -623,14 +655,9 @@ export class ContextSoftware implements IContextGL
 		this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
 	}
 
-	public drawToBitmapImage2D(destination:BitmapImage2D):void  {
-
-		// TODO: remove software renderToTexture
-		// This is just a hack used to debug depth maps.
-		if (this._activeBuffer != this._backBufferColor) {
-
-			destination.setPixels(destination.rect, this._activeBuffer.getImageData().data);
-		}
+	public drawToBitmapImage2D(destination:BitmapImage2D):void
+	{
+			destination.setPixels(this._activeBufferColor.rect, this._activeBufferColor.getImageData().data);
 	}
 
 	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array) {
@@ -700,6 +727,6 @@ export class ContextSoftware implements IContextGL
 		//TODO: mask & ContextGLClearMask.STENCIL
 
 		if (mask & ContextGLClearMask.DEPTH)
-			this._zbuffer.set(this._zbufferClear); //fast memcpy
+			this._backBufferZ.set(this._backBufferZClear); //fast memcpy
 	}
 }
