@@ -31,9 +31,9 @@ export class GL_BitmapImage2D extends GL_Image2D
 		if (this._invalid) {
 			this._invalid = false;
 
-			(<ITexture> this._texture).uploadFromData((<BitmapImage2D> this._asset).getImageData(), 0);
+			(<ITexture> this._texture).uploadFromImage(<BitmapImage2D> this._asset, 0);
 
-			if (mipmap)
+			if (mipmap) //todo: allow for non-generated mipmaps
 				this._texture.generateMipmaps();
 		}
 		// if (this._invalid) {

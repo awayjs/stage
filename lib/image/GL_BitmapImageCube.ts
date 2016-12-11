@@ -30,19 +30,29 @@ export class GL_BitmapImageCube extends GL_ImageCube
 
 		if (this._invalid) {
 			this._invalid = false;
-			for (var i:number = 0; i < 6; ++i) {
-				if (mipmap) {
-					var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array<BitmapImage2D>());
 
-					MipmapGenerator._generateMipMaps((<BitmapImageCube> this._asset).getCanvas(i), mipmapData, true);
-					var len:number = mipmapData.length;
-					for (var j:number = 0; j < len; j++)
-						(<ICubeTexture> this._texture).uploadFromData(mipmapData[j].getImageData(), i, j);
-				} else {
-					(<ICubeTexture> this._texture).uploadFromData((<BitmapImageCube> this._asset).getImageData(i), i, 0);
-				}
-			}
+			for (var i:number = 0; i < 6; ++i)
+				(<ICubeTexture> this._texture).uploadFromImage(<BitmapImageCube> this._asset, i, 0);
+
+			if (mipmap) //todo: allow for non-generated mipmaps
+				this._texture.generateMipmaps();
 		}
+
+		// if (this._invalid) {
+		// 	this._invalid = false;
+		// 	for (var i:number = 0; i < 6; ++i) {
+		// 		if (mipmap) {
+		// 			var mipmapData:Array<BitmapImage2D> = this._mipmapDataArray[i] || (this._mipmapDataArray[i] = new Array<BitmapImage2D>());
+		//
+		// 			MipmapGenerator._generateMipMaps((<BitmapImageCube> this._asset).getCanvas(i), mipmapData, true);
+		// 			var len:number = mipmapData.length;
+		// 			for (var j:number = 0; j < len; j++)
+		// 				(<ICubeTexture> this._texture).uploadFromImage(mipmapData[j], i, j);
+		// 		} else {
+		// 			(<ICubeTexture> this._texture).uploadFromImage(<BitmapImageCube> this._asset, i, 0);
+		// 		}
+		// 	}
+		// }
 
 		super.activate(index, mipmap);
 	}

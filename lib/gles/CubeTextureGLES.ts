@@ -1,5 +1,7 @@
 import {ByteArray} from "@awayjs/core";
 
+import {ImageCube} from "@awayjs/graphics";
+
 import {ICubeTexture} from "../base/ICubeTexture";
 
 import {TextureBaseGLES} from "./TextureBaseGLES";
@@ -28,9 +30,7 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 		// this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
-	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
-	public uploadFromData(data:any, side:number, miplevel:number = 0):void
+	public uploadFromImage(imageCube:ImageCube, side:number, miplevel:number = 0):void
 	{
 		//todo
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);

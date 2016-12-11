@@ -1,5 +1,8 @@
 import {ByteArrayBase} from "@awayjs/core";
 
+import {Image2D} from "@awayjs/graphics";
+
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
 import {ITexture} from "../base/ITexture";
 
 import {ContextFlash} from "./ContextFlash";
@@ -22,7 +25,7 @@ export class TextureFlash extends ResourceBaseFlash implements ITexture
 		return this._height;
 	}
 
-	constructor(context:ContextFlash, width:number, height:number, format:string, forRTT:boolean, streaming:boolean = false)
+	constructor(context:ContextFlash, width:number, height:number, format:ContextGLTextureFormat, forRTT:boolean, streaming:boolean = false)
 	{
 		super();
 
@@ -44,22 +47,11 @@ export class TextureFlash extends ResourceBaseFlash implements ITexture
 		this._context = null;
 	}
 
-	public uploadFromData(image:HTMLImageElement, miplevel?:number);
-	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0):void
+	public uploadFromImage(image2D:Image2D, miplevel:number = 0):void
 	{
-		if (data instanceof HTMLImageElement) {
-			var can = document.createElement("canvas");
-			var w = data.width;
-			var h = data.height;
-			can.width = w;
-			can.height = h;
-			var ctx = can.getContext("2d");
-			ctx.drawImage(data, 0, 0);
-			data = ctx.getImageData(0, 0, w, h).data;
-		}
+		var data:Uint8ClampedArray = image2D.getImageData().data;
 
-		var pos = 0;
+		var pos:number = 0;
 		var bytes = ByteArrayBase.internalGetBase64String(data.length, function () {
 			return data[pos++];
 		}, null);

@@ -1,5 +1,7 @@
 import {ByteArray} from "@awayjs/core";
 
+import {Image2D} from "@awayjs/graphics";
+
 import {ITexture} from "../base/ITexture";
 
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
@@ -56,12 +58,10 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		return this._frameBuffer;
 	}
 
-	public uploadFromData(image:HTMLImageElement, miplevel?:number);
-	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0):void
+	public uploadFromImage(imageData:Image2D, miplevel:number = 0):void
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
+		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, imageData.getImageData());
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
@@ -69,5 +69,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	{
 		var ext:Object = this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
 		//this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)
+	}
+
+	public generateMipmaps():void
+	{
+		this._gl.bindTexture( this._gl.TEXTURE_2D, this._glTexture );
+		this._gl.generateMipmap(this._gl.TEXTURE_2D);
+		//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
 	}
 }

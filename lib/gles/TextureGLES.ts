@@ -1,5 +1,7 @@
 import {ByteArray} from "@awayjs/core";
 
+import {Image2D} from "@awayjs/graphics";
+
 import {ITexture} from "../base/ITexture";
 import {OpCodes} from "../flash/OpCodes";
 
@@ -65,9 +67,7 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		return this._frameBuffer;
 	}
 
-	public uploadFromData(image:HTMLImageElement, miplevel?:number);
-	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0):void
+	public uploadFromImage(image2D:Image2D, miplevel:number = 0):void
 	{
 		/*
 		var pos = 0;
@@ -138,8 +138,8 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		this._context._createBytes.writeInt(this.id);
 		this._context._createBytes.writeFloat(this._width);
 		this._context._createBytes.writeFloat(this._height);
-		this._context._createBytes.writeInt(data.data.buffer.byteLength);
-		this._context._createBytes.writeInt32Array(new Int32Array(data.data.buffer));
+		this._context._createBytes.writeInt(image2D.getImageData().data.buffer.byteLength);
+		this._context._createBytes.writeInt32Array(new Int32Array(image2D.getImageData().data.buffer));
 
 		//GLESConnector.gles.uploadTextureFromData(this.id, data, miplevel);
 		// this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);

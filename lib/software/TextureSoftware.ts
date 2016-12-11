@@ -1,3 +1,5 @@
+import {Image2D} from "@awayjs/graphics";
+
 import {ITexture} from "../base/ITexture";
 
 import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
@@ -9,7 +11,7 @@ export class TextureSoftware implements ITexture, ITextureBaseSoftware
 
 	private _width:number;
 	private _height:number;
-	private _mipLevels:number[][] = [];
+	private _mipLevels:Uint8ClampedArray[] = [];
 
 	public get textureType():string
 	{
@@ -43,14 +45,12 @@ export class TextureSoftware implements ITexture, ITextureBaseSoftware
 	}
 	
 
-	public uploadFromData(image:HTMLImageElement, miplevel?:number);
-	public uploadFromData(imageData:ImageData, miplevel?:number);
-	public uploadFromData(data:any, miplevel:number = 0):void
+	public uploadFromImage(image2D:Image2D, miplevel:number = 0):void
 	{
-		this._mipLevels[miplevel] = data.data;
+		this._mipLevels[miplevel] = image2D.getImageData().data;
 	}
 
-	public getData(miplevel:number):number[]
+	public getData(miplevel:number):Uint8ClampedArray
 	{
 		return this._mipLevels[miplevel];
 	}

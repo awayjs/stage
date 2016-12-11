@@ -1,5 +1,7 @@
 import {ByteArray} from "@awayjs/core";
 
+import {ImageCube} from "@awayjs/graphics";
+
 import {ICubeTexture} from "../base/ICubeTexture";
 
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
@@ -26,12 +28,10 @@ export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 		this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromData(image:HTMLImageElement, side:number, miplevel?:number);
-	public uploadFromData(imageData:ImageData, side:number, miplevel?:number);
-	public uploadFromData(data:any, side:number, miplevel:number = 0):void
+	public uploadFromImage(imageCube:ImageCube, side:number, miplevel:number = 0):void
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
-		this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
+		this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, imageCube.getImageData(side));
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 	}
 
@@ -43,5 +43,12 @@ export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 	public get size():number
 	{
 		return this._size;
+	}
+
+	public generateMipmaps():void
+	{
+		this._gl.bindTexture( this._gl.TEXTURE_CUBE_MAP, this._glTexture );
+		this._gl.generateMipmap(this._gl.TEXTURE_CUBE_MAP);
+		//this._gl.bindTexture( this._gl.TEXTURE_CUBE_MAP, null );
 	}
 }

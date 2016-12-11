@@ -1,3 +1,5 @@
+import {AbstractMethodError} from "@awayjs/core";
+
 export class TextureBaseWebGL
 {
 	public textureType:string = "";
@@ -22,8 +24,6 @@ export class TextureBaseWebGL
 
 	public generateMipmaps():void
 	{
-		this._gl.bindTexture( this._gl.TEXTURE_2D, this._glTexture );
-		this._gl.generateMipmap(this._gl.TEXTURE_2D);
-		//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
+		throw new AbstractMethodError();
 	}
 }
