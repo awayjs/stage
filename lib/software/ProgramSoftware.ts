@@ -72,6 +72,11 @@ export class ProgramSoftware implements IProgram
 		ProgramSoftware.sne
 	];
 
+	private static _colorValue0:Float32Array = new Float32Array(4);
+	private static _colorValue1:Float32Array = new Float32Array(4);
+	private static _colorInterpolated0:Float32Array = new Float32Array(4);
+	private static _colorInterpolated1:Float32Array = new Float32Array(4);
+
 	private _vertexDescr:Description;
 	private _vertexVO:ProgramVOSoftware;
 	private _numVarying:number = 0;
@@ -330,15 +335,13 @@ export class ProgramSoftware implements IProgram
 	private static sample(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array
 	{
 		var texture:ITextureBaseSoftware = context._textures[textureIndex];
-		if (texture.isTexture(TextureSoftware)) {
+		if (texture.isTexture(TextureSoftware))
 			return ProgramSoftware.sampleSimpleTexture(vo, desc, context, source1, textureIndex);
-		}
-		else if (texture.isTexture(CubeTextureSoftware)) {
+
+		if (texture.isTexture(CubeTextureSoftware))
 			return ProgramSoftware.sampleCubeTexture(vo, desc, context, source1, textureIndex);
-		}
-		else {
-			throw new ArgumentError("ArgumentError, cannot sample provided texture.");
-		}
+
+		throw new ArgumentError("Cannot sample provided texture type");
 	}
 
 	private static sampleCubeTexture(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array {
@@ -354,7 +357,7 @@ export class ProgramSoftware implements IProgram
 		// Determine which of the 6 cube sides to sample,
 		// depending on the largest abs value of the direction vector.
 		// Once determined, translate to uv within this side.
-		var texIndex:number = 0;
+		var side:number = 0;
 		var u:number = 0;
 		var v:number = 0;
 		var absx:number = Math.abs(x);
@@ -363,59 +366,56 @@ export class ProgramSoftware implements IProgram
 		var absmax:number = Math.max(absx, absy, absz);
 		if (absmax == absx) {
 			if (x >= 0) {
-				texIndex = 0;
+				side = 0;
 				u = 0.5 - 0.5 * (z / x);
 				v = 0.5 - 0.5 * (y / x);
 			}
 			else {
-				texIndex = 1;
+				side = 1;
 				u = 0.5 - 0.5 * (z / x);
 				v = 0.5 + 0.5 * (y / x);
 			}
 		}
 		else if (absmax == absy) {
 			if (y >= 0) {
-				texIndex = 2;
+				side = 2;
 				u = 0.5 + 0.5 * (x / y);
 				v = 0.5 + 0.5 * (z / y);
 			}
 			else {
-				texIndex = 3;
+				side = 3;
 				u = 0.5 - 0.5 * (x / y);
 				v = 0.5 + 0.5 * (z / y);
 			}
 		}
 		else if (absmax == absz) {
 			if (z >= 0) {
-				texIndex = 4;
+				side = 4;
 				u = 0.5 + 0.5 * (x / z);
 				v = 0.5 - 0.5 * (y / z);
 			}
 			else {
-				texIndex = 5;
+				side = 5;
 				u = 0.5 + 0.5 * (x / z);
 				v = 0.5 + 0.5 * (y / z);
 			}
 		}
 
-		var texture:CubeTextureSoftware = context._textures[textureIndex] as CubeTextureSoftware;
+		var texture:CubeTextureSoftware = <CubeTextureSoftware> context._textures[textureIndex];
 		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
 
 		var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
 		var mipmap:boolean = state.mipfilter == ContextGLMipFilter.MIPLINEAR;
 		// TODO: implement mip mapping?
 
-		var result:Float32Array;
-		var data:number[] = texture.getData(texIndex);
-		if (state.filter == ContextGLTextureFilter.LINEAR) {
-			result = ProgramSoftware.sampleBilinear(u, v, data, texture.size, texture.size, repeat);
-		} else {
-			result = ProgramSoftware.sampleNearest(u, v, data, texture.size, texture.size, repeat);
-		}
-		return result;
+		if (state.filter == ContextGLTextureFilter.LINEAR)
+			return ProgramSoftware.sampleBilinear(u, v, texture.getData(side), texture.size, texture.size, repeat, ProgramSoftware._colorValue0);
+
+		return ProgramSoftware.sampleNearest(u, v, texture.getData(side), texture.size, texture.size, repeat, ProgramSoftware._colorValue0);
 	}
 
-	private static sampleSimpleTexture(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array {
+	private static sampleSimpleTexture(vo:ProgramVOSoftware, desc:Description, context:ContextSoftware, source1:Destination, textureIndex:number):Float32Array
+	{
 
 		var source1Reg:number = 4*source1.regnum;
 		var source1Target:Float32Array = ProgramSoftware.getSourceTarget(vo, desc, source1, context);
@@ -424,9 +424,9 @@ export class ProgramSoftware implements IProgram
 		var v:number = source1Target[source1Reg + ((source1.swizzle >> 2) & 3)];
 
 		if (textureIndex >= context._textures.length || context._textures[textureIndex] == null)
-			return new Float32Array([1, u, v, 0]);
+			throw new ArgumentError("textureIndex contains no texture");
 
-		var texture:TextureSoftware = context._textures[textureIndex] as TextureSoftware;
+		var texture:TextureSoftware = <TextureSoftware> context._textures[textureIndex];
 		var state:SoftwareSamplerState = context._samplerStates[textureIndex] || this._defaultSamplerState;
 
 		var repeat:boolean = state.wrap == ContextGLWrapMode.REPEAT;
@@ -453,40 +453,33 @@ export class ProgramSoftware implements IProgram
 
 				var mipblend:number = lambda - Math.floor(lambda);
 
-				var resultLow:Float32Array;
-				var resultHigh:Float32Array;
 
-
-				var dataLow:number[] = texture.getData(miplevelLow);
+				var dataLow:Uint8ClampedArray = texture.getData(miplevelLow);
 				var dataLowWidth:number = texture.width / Math.pow(2, miplevelLow);
 				var dataLowHeight:number = texture.height / Math.pow(2, miplevelLow);
-				var dataHigh:number[] = texture.getData(miplevelHigh);
+				var dataHigh:Uint8ClampedArray = texture.getData(miplevelHigh);
 				var dataHighWidth:number = texture.width / Math.pow(2, miplevelHigh);
 				var dataHighHeight:number = texture.height / Math.pow(2, miplevelHigh);
 
 				if (state.filter == ContextGLTextureFilter.LINEAR) {
-					resultLow = ProgramSoftware.sampleBilinear(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
-					resultHigh = ProgramSoftware.sampleBilinear(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
+					ProgramSoftware.sampleBilinear(u, v, dataLow, dataLowWidth, dataLowHeight, repeat, ProgramSoftware._colorValue0);
+					ProgramSoftware.sampleBilinear(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat, ProgramSoftware._colorValue1);
 				} else {
-					resultLow = ProgramSoftware.sampleNearest(u, v, dataLow, dataLowWidth, dataLowHeight, repeat);
-					resultHigh = ProgramSoftware.sampleNearest(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat);
+					ProgramSoftware.sampleNearest(u, v, dataLow, dataLowWidth, dataLowHeight, repeat, ProgramSoftware._colorValue0);
+					ProgramSoftware.sampleNearest(u, v, dataHigh, dataHighWidth, dataHighHeight, repeat, ProgramSoftware._colorValue1);
 				}
 
-				return ProgramSoftware.interpolateColor(resultLow, resultHigh, mipblend);
+				return ProgramSoftware.interpolateColor(ProgramSoftware._colorValue0, ProgramSoftware._colorValue1, mipblend, ProgramSoftware._colorValue0);
 			}
 		}
 
-		var result:Float32Array;
-		var data:number[] = texture.getData(0);
-		if (state.filter == ContextGLTextureFilter.LINEAR) {
-			result = ProgramSoftware.sampleBilinear(u, v, data, texture.width, texture.height, repeat);
-		} else {
-			result = ProgramSoftware.sampleNearest(u, v, data, texture.width, texture.height, repeat);
-		}
-		return result;
+		if (state.filter == ContextGLTextureFilter.LINEAR)
+			return ProgramSoftware.sampleBilinear(u, v, texture.getData(0), texture.width, texture.height, repeat, ProgramSoftware._colorValue0);
+
+		return ProgramSoftware.sampleNearest(u, v, texture.getData(0), texture.width, texture.height, repeat, ProgramSoftware._colorValue0);
 	}
 
-	private static sampleNearest(u:number, v:number, textureData:number[], textureWidth:number, textureHeight:number, repeat:boolean):Float32Array
+	private static sampleNearest(u:number, v:number, textureData:Uint8ClampedArray, textureWidth:number, textureHeight:number, repeat:boolean, output:Float32Array):Float32Array
 	{
 		u *= textureWidth;
 		v *= textureHeight;
@@ -510,47 +503,54 @@ export class ProgramSoftware implements IProgram
 		v = Math.floor(v);
 
 		var pos:number = (u + v*textureWidth)*4;
-		var r:number = textureData[pos]/255;
-		var g:number = textureData[pos + 1]/255;
-		var b:number = textureData[pos + 2]/255;
-		var a:number = textureData[pos + 3]/255;
+		output[0] = textureData[pos]/255;
+		output[1] = textureData[pos + 1]/255;
+		output[2] = textureData[pos + 2]/255;
+		output[3] = textureData[pos + 3]/255;
 
-		return new Float32Array([a, r, g, b]);
+		return output;
 	}
 
-	private static sampleBilinear(u:number, v:number, textureData:number[], textureWidth:number, textureHeight:number, repeat:boolean):Float32Array
+	private static sampleBilinear(u:number, v:number, textureData:Uint8ClampedArray, textureWidth:number, textureHeight:number, repeat:boolean, output:Float32Array):Float32Array
 	{
 		var texelSizeX:number = 1/textureWidth;
 		var texelSizeY:number = 1/textureHeight;
 		u -= texelSizeX/2;
 		v -= texelSizeY/2;
 
-		var color00:Float32Array = ProgramSoftware.sampleNearest(u, v, textureData, textureWidth, textureHeight, repeat);
-		var color10:Float32Array = ProgramSoftware.sampleNearest(u + texelSizeX, v, textureData, textureWidth, textureHeight, repeat);
-
-		var color01:Float32Array = ProgramSoftware.sampleNearest(u, v + texelSizeY, textureData, textureWidth, textureHeight, repeat);
-		var color11:Float32Array = ProgramSoftware.sampleNearest(u + texelSizeX, v + texelSizeY, textureData, textureWidth, textureHeight, repeat);
-
 		var a:number = u*textureWidth;
 		a = a - Math.floor(a);
 
-		var interColor0:Float32Array = ProgramSoftware.interpolateColor(color00, color10, a);
-		var interColor1:Float32Array = ProgramSoftware.interpolateColor(color01, color11, a);
-
 		var b:number = v*textureHeight;
 		b = b - Math.floor(b);
-		return ProgramSoftware.interpolateColor(interColor0, interColor1, b);
+
+		return ProgramSoftware.interpolateColor(
+			ProgramSoftware.interpolateColor(
+				ProgramSoftware.sampleNearest(u, v, textureData, textureWidth, textureHeight, repeat, ProgramSoftware._colorInterpolated0),
+				ProgramSoftware.sampleNearest(u + texelSizeX, v, textureData, textureWidth, textureHeight, repeat, ProgramSoftware._colorValue0),
+				a,
+				ProgramSoftware._colorInterpolated0
+			),
+			ProgramSoftware.interpolateColor(
+				ProgramSoftware.sampleNearest(u, v + texelSizeY, textureData, textureWidth, textureHeight, repeat, ProgramSoftware._colorInterpolated1),
+				ProgramSoftware.sampleNearest(u + texelSizeX, v + texelSizeY, textureData, textureWidth, textureHeight, repeat, ProgramSoftware._colorValue0),
+				a,
+				ProgramSoftware._colorInterpolated1
+			),
+			b,
+			output
+		);
 	}
 
 
-	private static interpolateColor(source:Float32Array, target:Float32Array, a:number):Float32Array
+	private static interpolateColor(source:Float32Array, target:Float32Array, a:number, output:Float32Array):Float32Array
 	{
-		var result:Float32Array = new Float32Array(4);
-		result[0] = source[0] + (target[0] - source[0])*a;
-		result[1] = source[1] + (target[1] - source[1])*a;
-		result[2] = source[2] + (target[2] - source[2])*a;
-		result[3] = source[3] + (target[3] - source[3])*a;
-		return result;
+		output[0] = source[0] + (target[0] - source[0])*a;
+		output[1] = source[1] + (target[1] - source[1])*a;
+		output[2] = source[2] + (target[2] - source[2])*a;
+		output[3] = source[3] + (target[3] - source[3])*a;
+
+		return output;
 	}
 
 	public static tex(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
@@ -564,16 +564,16 @@ export class ProgramSoftware implements IProgram
 		var mask:number = dest.mask;
 		
 		if (mask & 1)
-			target[targetReg] = color[1];
+			target[targetReg] = color[0];
 
 		if (mask & 2)
-			target[targetReg + 1] = color[2];
+			target[targetReg + 1] = color[1];
 		
 		if (mask & 4)
-			target[targetReg + 2] = color[3];
+			target[targetReg + 2] = color[2];
 
 		if (mask & 8)
-			target[targetReg + 3] = color[0];
+			target[targetReg + 3] = color[3];
 	}
 
 	public static add(vo:ProgramVOSoftware, desc:Description, dest:Destination, source1:Destination, source2:Destination, context:ContextSoftware):void
