@@ -1,4 +1,4 @@
-import {Matrix3D, Matrix, Point, Vector3D, Rectangle, ColorUtils} from "@awayjs/core";
+import {Matrix3D, Matrix, Point, Vector3D, Rectangle, ColorUtils, CoordinateSystem} from "@awayjs/core";
 
 import {BitmapImage2D} from "@awayjs/graphics";
 
@@ -7,6 +7,12 @@ import {ContextGLClearMask} from "../base/ContextGLClearMask";
 import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
 import {ContextGLProgramType} from "../base/ContextGLProgramType";
 import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
+import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
+import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
 import {IContextGL} from "../base/IContextGL";
 import {IIndexBuffer} from "../base/IIndexBuffer";
 import {ICubeTexture} from "../base/ICubeTexture";
@@ -40,15 +46,17 @@ export class ContextSoftware implements IContextGL
 	private _backBufferZClear:Float32Array;
 	private _colorClearUint8:Uint8ClampedArray;
 	private _colorClearUint32:Uint32Array;
-	private _cullingMode:string = ContextGLTriangleFace.BACK;
-	private _blendSource:string = ContextGLBlendFactor.ONE;
-	private _blendDestination:string = ContextGLBlendFactor.ZERO;
+	private _cullingMode:ContextGLTriangleFace = ContextGLTriangleFace.BACK;
+	private _blendSource:ContextGLBlendFactor = ContextGLBlendFactor.ONE;
+	private _blendDestination:ContextGLBlendFactor = ContextGLBlendFactor.ZERO;
 	private _colorMaskR:boolean = true;
 	private _colorMaskG:boolean = true;
 	private _colorMaskB:boolean = true;
 	private _colorMaskA:boolean = true;
 	private _writeDepth:boolean = true;
-	private _depthCompareMode:string = ContextGLCompareMode.LESS;
+	private _depthCompareMode:ContextGLCompareMode = ContextGLCompareMode.LESS;
+	private _depthCompareModeSoftware:(fragDepth:number, currentDepth:number) => void[] = (fragDepth:number, currentDepth:number) => void[];
+	private _blendModeSoftware:(result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray) => void[] = (result:Uint8ClampedArray, dest:Uint8ClampedArray, source:Uint8ClampedArray) => void[];
 	private _program:ProgramSoftware;
 
 	private _screenMatrix:Matrix3D = new Matrix3D();
@@ -78,7 +86,8 @@ export class ContextSoftware implements IContextGL
 
 	private _antialias:number = 0;
 
-	constructor(canvas:HTMLCanvasElement)  {
+	constructor(canvas:HTMLCanvasElement)
+	{
 
 		this._canvas = canvas;
 
@@ -103,9 +112,32 @@ export class ContextSoftware implements IContextGL
 
 			document.body.appendChild(frontCanvas);
 		}
+
+		this._depthCompareModeSoftware[ContextGLCompareMode.ALWAYS] = DepthCompareModeSoftware.always;
+		this._depthCompareModeSoftware[ContextGLCompareMode.EQUAL] = DepthCompareModeSoftware.equal;
+		this._depthCompareModeSoftware[ContextGLCompareMode.GREATER] = DepthCompareModeSoftware.greaterEqual;
+		this._depthCompareModeSoftware[ContextGLCompareMode.GREATER_EQUAL] = DepthCompareModeSoftware.greater;
+		this._depthCompareModeSoftware[ContextGLCompareMode.LESS] = DepthCompareModeSoftware.less;
+		this._depthCompareModeSoftware[ContextGLCompareMode.LESS_EQUAL] = DepthCompareModeSoftware.lessEqual;
+		this._depthCompareModeSoftware[ContextGLCompareMode.NEVER] = DepthCompareModeSoftware.never;
+		this._depthCompareModeSoftware[ContextGLCompareMode.NOT_EQUAL] = DepthCompareModeSoftware.notEqual;
+
+		this._blendModeSoftware[ContextGLBlendFactor.DESTINATION_ALPHA] = BlendModeSoftware.destinationAlpha;
+		this._blendModeSoftware[ContextGLBlendFactor.DESTINATION_COLOR] = BlendModeSoftware.destinationColor;
+		this._blendModeSoftware[ContextGLBlendFactor.ONE] = BlendModeSoftware.one;
+		this._blendModeSoftware[ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA] = BlendModeSoftware.oneMinusDestinationAlpha;
+		this._blendModeSoftware[ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR] = BlendModeSoftware.oneMinusDestinationColor;
+		this._blendModeSoftware[ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA] = BlendModeSoftware.oneMinusSourceAlpha;
+		this._blendModeSoftware[ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR] = BlendModeSoftware.oneMinusSourceColor;
+		this._blendModeSoftware[ContextGLBlendFactor.SOURCE_ALPHA] = BlendModeSoftware.sourceAlpha;
+		this._blendModeSoftware[ContextGLBlendFactor.SOURCE_COLOR] = BlendModeSoftware.sourceColor;
+		this._blendModeSoftware[ContextGLBlendFactor.ZERO] = BlendModeSoftware.zero;
+
+
 	}
 
-	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean):void  {
+	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean):void
+	{
 
 		this._antialias = antiAlias;
 
@@ -146,7 +178,8 @@ export class ContextSoftware implements IContextGL
 		this._frontBufferMatrix.scale(1/this._antialias, 1/this._antialias);
 	}
 
-	private activateScreenMatrix(width:number, height:number, yflip:boolean) {
+	private activateScreenMatrix(width:number, height:number, yflip:boolean):void
+	{
 
 		var raw:Float32Array = this._screenMatrix._rawData;
 
@@ -173,7 +206,8 @@ export class ContextSoftware implements IContextGL
 		this._yflip = yflip;
 	}
 
-	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number)  {
+	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number):void
+	{
 
 		// Create texture buffer and screen matrix if needed.
 		var textureBufferColor:BitmapImage2D = this.textureBuffersColor[surfaceSelector];
@@ -185,7 +219,7 @@ export class ContextSoftware implements IContextGL
 			textureBufferColor = this.textureBuffersColor[surfaceSelector] = new BitmapImage2D(target.width, target.height, false, 0xFFFFFF, true);
 
 			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
-			target.uploadFromData(textureBufferColor.getImageData());
+			target.uploadFromImage(textureBufferColor);
 		}
 		else {
 			textureBufferColor.fillRect(textureBufferColor.rect, 0xFFFFFF);
@@ -216,13 +250,15 @@ export class ContextSoftware implements IContextGL
 		this._activeTexture = target;
 	}
 
-	public setRenderToBackBuffer():void  {
+	public setRenderToBackBuffer():void
+	{
 		this._activeBufferColor = this._backBufferColor;
 		this._activeBufferZ = this._backBufferZ;
 		this.activateScreenMatrix(this._backBufferColor.width, this._backBufferColor.height, true);
 	}
 
-	public drawIndices(mode:string, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void  {
+	public drawIndices(mode:ContextGLDrawMode, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void
+	{
 
 		if (!this._program)
 			return;
@@ -291,11 +327,12 @@ export class ContextSoftware implements IContextGL
 		// Transfer buffer data to texture.
 		if (this._activeBufferColor != this._backBufferColor) {
 			this._activeBufferColor.unlock();
-			this._activeTexture.uploadFromData(this._activeBufferColor.getImageData());
+			this._activeTexture.uploadFromImage(this._activeBufferColor);
 		}
 	}
 
-	private _triangle(incomingVertices:Array<Float32Array>, outgoingVertices:Array<Float32Array>, incomingVaryings:Array<Float32Array>, outgoingVaryings:Array<Float32Array>):void  {
+	private _triangle(incomingVertices:Array<Float32Array>, outgoingVertices:Array<Float32Array>, incomingVaryings:Array<Float32Array>, outgoingVaryings:Array<Float32Array>):void
+	{
 
 		var numOriginalVerticesInside:number = 0;
 		var numInterpolations:number = 0;
@@ -377,7 +414,8 @@ export class ContextSoftware implements IContextGL
 	private _barycentricRight:Vector3D = new Vector3D();
 	private _barycentricBottom:Vector3D = new Vector3D();
 
-	private _projectTriangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array) {
+	private _projectTriangle(position0:Float32Array, position1:Float32Array, position2:Float32Array, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array):void
+	{
 
 		// Wrap the vertex transformed positions in Vector3D objects.
 
@@ -416,9 +454,9 @@ export class ContextSoftware implements IContextGL
 		this._project.x = this._p0.w;
 		this._project.y = this._p1.w;
 		this._project.z = this._p2.w;
-		this._p0 = this._screenMatrix.transformVector(this._p0);
-		this._p1 = this._screenMatrix.transformVector(this._p1);
-		this._p2 = this._screenMatrix.transformVector(this._p2);
+		this._p0 = this._screenMatrix.transformVector(this._p0, this._p0);
+		this._p1 = this._screenMatrix.transformVector(this._p1, this._p1);
+		this._p2 = this._screenMatrix.transformVector(this._p2, this._p2);
 
 		// Prepare rasterization bounds.
 
@@ -528,7 +566,7 @@ export class ContextSoftware implements IContextGL
 				this._barycentric.scaleBy( 1 / (this._barycentric.x + this._barycentric.y + this._barycentric.z) );
 
 				// Depth test.
-				if (!DepthCompareModeSoftware[this._depthCompareMode](fragDepth, this._activeBufferZ[index]))
+				if (!this._depthCompareModeSoftware[this._depthCompareMode](fragDepth, this._activeBufferZ[index]))
 					continue;
 
 				// Write z buffer.
@@ -559,76 +597,91 @@ export class ContextSoftware implements IContextGL
 		}
 	}
 
-	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void  {
+	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
+	{
 		this._rgba[0] = 0;
 		this._rgba[1] = 0;
 		this._rgba[2] = 0;
 		this._rgba[3] = 0;
 
-		BlendModeSoftware[this._blendDestination](dest, dest, source);
-		BlendModeSoftware[this._blendSource](this._rgba, dest, source);
+		this._blendModeSoftware[this._blendDestination](dest, dest, source);
+		this._blendModeSoftware[this._blendSource](this._rgba, dest, source);
 
 		this._activeBufferColor.setPixelData(x, y, this._rgba);
 	}
 
-	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture  {
+	public createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number):ICubeTexture
+	{
 		return new CubeTextureSoftware(size);
 	}
 
-	public createIndexBuffer(numIndices:number):IIndexBuffer {
+	public createIndexBuffer(numIndices:number):IIndexBuffer
+	{
 		return new IndexBufferSoftware(numIndices);
 	}
 
-	public createProgram():ProgramSoftware {
+	public createProgram():ProgramSoftware
+	{
 		return new ProgramSoftware();
 	}
 
-	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number):TextureSoftware {
+	public createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number):TextureSoftware
+	{
 		return new TextureSoftware(width, height);
 	}
 
-	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferSoftware  {
+	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferSoftware
+	{
 		return new VertexBufferSoftware(numVertices, dataPerVertex);
 	}
 
-	public dispose():void {
+	public dispose():void
+	{
 	}
 
-	public setBlendFactors(sourceFactor:string, destinationFactor:string):void  {
+	public setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor):void
+	{
 		this._blendSource = sourceFactor;
 		this._blendDestination = destinationFactor;
 	}
 
-	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void  {
+	public setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean):void
+	{
 		this._colorMaskR = red;
 		this._colorMaskG = green;
 		this._colorMaskB = blue;
 		this._colorMaskA = alpha;
 	}
 
-	public setStencilActions(triangleFace:string, compareMode:string, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string, coordinateSystem:string):void  {
+	public setStencilActions(triangleFace:ContextGLTriangleFace = ContextGLTriangleFace.FRONT_AND_BACK, compareMode:ContextGLCompareMode = ContextGLCompareMode.ALWAYS, actionOnBothPass:ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthFail:ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthPassStencilFail:ContextGLStencilAction = ContextGLStencilAction.KEEP, coordinateSystem:CoordinateSystem = CoordinateSystem.LEFT_HANDED):void
+	{
 		//TODO:
 	}
 
-	public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number):void {
+	public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number):void
+	{
 		//TODO:
 	}
 
-	public setCulling(triangleFaceToCull:string, coordinateSystem:string):void  {
+	public setCulling(triangleFaceToCull:ContextGLTriangleFace, coordinateSystem:CoordinateSystem):void
+	{
 		//TODO: CoordinateSystem.RIGHT_HAND
 		this._cullingMode = triangleFaceToCull;
 	}
 
-	public setDepthTest(depthMask:boolean, passCompareMode:string):void  {
+	public setDepthTest(depthMask:boolean, passCompareMode:ContextGLCompareMode):void
+	{
 		this._writeDepth = depthMask;
 		this._depthCompareMode = passCompareMode;
 	}
 
-	public setProgram(program:ProgramSoftware):void  {
+	public setProgram(program:ProgramSoftware):void
+	{
 		this._program = program;
 	}
 
-	public setProgramConstantsFromArray(programType:number, data:Float32Array):void  {
+	public setProgramConstantsFromArray(programType:number, data:Float32Array):void
+	{
 		var target:Float32Array;
 		if (programType == ContextGLProgramType.VERTEX)
 			target = this._vertexConstants = new Float32Array(data.length);
@@ -638,17 +691,20 @@ export class ContextSoftware implements IContextGL
 		target.set(data);
 	}
 
-	public setTextureAt(sampler:number, texture:TextureSoftware):void  {
+	public setTextureAt(sampler:number, texture:TextureSoftware):void
+	{
 		this._textures[sampler] = texture;
 	}
 
-	public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number):void  {
+	public setVertexBufferAt(index:number, buffer:VertexBufferSoftware, bufferOffset:number, format:number):void
+	{
 		this._vertexBuffers[index] = buffer;
 		this._vertexBufferOffsets[index] = bufferOffset;
 		this._vertexBufferFormats[index] = format;
 	}
 
-	public present():void  {
+	public present():void
+	{
 		this._backBufferColor.unlock();
 
 		this._frontBuffer.fillRect(this._frontBuffer.rect, ColorUtils.ARGBtoFloat32(0, 0, 0, 0));
@@ -660,7 +716,8 @@ export class ContextSoftware implements IContextGL
 			destination.setPixels(this._activeBufferColor.rect, this._activeBufferColor.getImageData().data);
 	}
 
-	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array) {
+	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array):void
+	{
 
 		for (var i:number = 0; i < v0.length; i++) {
 			var delta = v0[i] - v1[i];
@@ -668,23 +725,28 @@ export class ContextSoftware implements IContextGL
 		}
 	}
 
-	public clamp(value:number, min:number = 0, max:number = 1):number  {
+	public clamp(value:number, min:number = 0, max:number = 1):number
+	{
 		return Math.max(min, Math.min(value, max));
 	}
 
-	public interpolate(min:number, max:number, gradient:number):number  {
+	public interpolate(min:number, max:number, gradient:number):number
+	{
 		return min + (max - min)*this.clamp(gradient);
 	}
 
-	public drawVertices(mode:string, firstVertex:number, numVertices:number):void  {
+	public drawVertices(mode:ContextGLDrawMode, firstVertex:number, numVertices:number):void
+	{
 		//TODO:
 	}
 
-	public setScissorRectangle(rectangle:Rectangle):void  {
+	public setScissorRectangle(rectangle:Rectangle):void
+	{
 		//TODO:
 	}
 
-	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void  {
+	public setSamplerStateAt(sampler:number, wrap:ContextGLWrapMode, filter:ContextGLTextureFilter, mipfilter:ContextGLMipFilter):void
+	{
 		var state:SoftwareSamplerState = this._samplerStates[sampler];
 
 		if (!state)
@@ -695,31 +757,31 @@ export class ContextSoftware implements IContextGL
 		state.mipfilter = mipfilter;
 	}
 
-	public enableStencil() {
+	public enableStencil():void
+	{
 
 	}
 
-	public disableStencil() {
+	public disableStencil():void
+	{
 
 	}
 
-	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded") {
-
-	}
-
-	public get frontBuffer():BitmapImage2D {
+	public get frontBuffer():BitmapImage2D
+	{
 		return this._frontBuffer;
 	}
 
-	public get container():HTMLElement {
+	public get container():HTMLElement
+	{
 		return this._canvas;
 	}
 
-	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void {
+	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:number = ContextGLClearMask.ALL):void
+	{
 		this._backBufferColor.lock();
 
 		if (mask & ContextGLClearMask.COLOR) {
-			this._colorClearUint8.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
 			this._colorClearUint32.fill(((alpha*0xFF << 24) | (red*0xFF << 16) | (green*0xFF << 8) | blue*0xFF));
 			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
 		}

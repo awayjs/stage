@@ -1,5 +1,5 @@
-export class ContextGLWrapMode
+export enum ContextGLWrapMode
 {
-	public static CLAMP:string = "clamp";
-	public static REPEAT:string = "repeat";
+	CLAMP,
+	REPEAT
 }

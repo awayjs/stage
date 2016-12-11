@@ -9,8 +9,8 @@ import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
 export class SoftwareSamplerState
 {
 	public type:string;
-	public wrap:string = ContextGLWrapMode.REPEAT;
-	public filter:string = ContextGLTextureFilter.LINEAR;
-	public mipfilter:string = ContextGLMipFilter.MIPLINEAR;
+	public wrap:ContextGLWrapMode = ContextGLWrapMode.REPEAT;
+	public filter:ContextGLTextureFilter = ContextGLTextureFilter.LINEAR;
+	public mipfilter:ContextGLMipFilter = ContextGLMipFilter.MIPLINEAR;
 }
 export default SoftwareSamplerState;

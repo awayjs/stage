@@ -1,5 +1,5 @@
-export class ContextGLTextureFilter
+export enum ContextGLTextureFilter
 {
-	public static LINEAR:string = "linear";
-	public static NEAREST:string = "nearest";
+	LINEAR,
+	NEAREST
 }

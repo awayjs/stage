@@ -1,7 +1,7 @@
-export class ContextGLClearMask
+export enum ContextGLClearMask
 {
-	static COLOR:number = 1;
-	static DEPTH:number = 2;
-	static STENCIL:number = 4;
-	static ALL:number = ContextGLClearMask.COLOR | ContextGLClearMask.DEPTH | ContextGLClearMask.STENCIL;
+	COLOR = 1,
+	DEPTH = 2,
+	STENCIL = 4,
+	ALL = ContextGLClearMask.COLOR | ContextGLClearMask.DEPTH | ContextGLClearMask.STENCIL
 }

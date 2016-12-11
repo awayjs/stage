@@ -1,4 +1,4 @@
-import {Rectangle, Byte32Array} from "@awayjs/core";
+import {Rectangle, Byte32Array, CoordinateSystem} from "@awayjs/core";
 
 import {BitmapImage2D} from "@awayjs/graphics";
 
@@ -10,6 +10,7 @@ import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
 import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
 import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
 import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
 import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
 import {IContextGL} from "../base/IContextGL"
 import {SamplerState} from "../base/SamplerState";
@@ -182,7 +183,7 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeFloat(height);
 	}
 
-	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureGLES
+	public createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureGLES
 	{
 		// todo: cubetextures not finished / tested for opengl yet
 		return new CubeTextureGLES(this, this._gl, size, this._cubeTextureCnt++);
@@ -199,7 +200,7 @@ export class ContextGLES implements IContextGL
 		return new ProgramGLES(this, this._gl, this._programCnt++);
 	}
 
-	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureGLES
+	public createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureGLES
 	{
 		//TODO streaming
 		return new TextureGLES(this, this._gl, width, height, this._textureCnt++);
@@ -226,7 +227,7 @@ export class ContextGLES implements IContextGL
 		// destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), pixels);
 	}
 
-	public drawIndices(mode:string, indexBuffer:IndexBufferGLES, firstIndex:number = 0, numIndices:number = -1):void
+	public drawIndices(mode:ContextGLDrawMode, indexBuffer:IndexBufferGLES, firstIndex:number = 0, numIndices:number = -1):void
 	{
 		//todo (not needed for icycle)
 		//GLESConnector.gles.drawIndices(mode, indexBuffer.id, firstIndex, numIndices);
@@ -238,7 +239,7 @@ export class ContextGLES implements IContextGL
 		// this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
 	}
 
-	public drawVertices(mode:string, firstVertex:number = 0, numVertices:number = -1):void
+	public drawVertices(mode:ContextGLDrawMode, firstVertex:number = 0, numVertices:number = -1):void
 	{
 		// if (!this._drawing)
 		// 	throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
@@ -252,7 +253,7 @@ export class ContextGLES implements IContextGL
 		this.execute();
 	}
 
-	public setBlendFactors(sourceFactor:string, destinationFactor:string):void
+	public setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor):void
 	{
 		this._blendEnabled = true;		
 		this._blendSourceFactor = this._blendFactorDictionary[sourceFactor];		
@@ -267,7 +268,7 @@ export class ContextGLES implements IContextGL
 
 	}
 
-	public setCulling(triangleFaceToCull:string, coordinateSystem:string = "leftHanded"):void
+	public setCulling(triangleFaceToCull:ContextGLTriangleFace, coordinateSystem:CoordinateSystem = CoordinateSystem.LEFT_HANDED):void
 	{
 		if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
 			//this.addStream(String.fromCharCode(OpCodes.disableCulling) + "#END");
@@ -278,7 +279,7 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeInt(OpCodes.setCulling | faceCulling<<8);
 	}
 
-	public setDepthTest(depthMask:boolean, passCompareMode:string):void
+	public setDepthTest(depthMask:boolean, passCompareMode:ContextGLCompareMode):void
 	{
 		this._cmdBytes.writeInt(OpCodes.setDepthTest | (depthMask?1:0)<<8 | this._compareModeDictionary[passCompareMode]<<16);
 
@@ -294,7 +295,8 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeInt(referenceValue);
 		this._cmdBytes.writeInt(writeMask | fail<<8 | zFail<<16 | pass<<24);
 	}
-    public setStencilActions(triangleFace:string = "frontAndBack", compareMode:string = "always", actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
+
+	public setStencilActions(triangleFace:ContextGLTriangleFace = ContextGLTriangleFace.FRONT_AND_BACK, compareMode:ContextGLCompareMode = ContextGLCompareMode.ALWAYS, actionOnBothPass:ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthFail:ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthPassStencilFail:ContextGLStencilAction = ContextGLStencilAction.KEEP, coordinateSystem:CoordinateSystem = CoordinateSystem.LEFT_HANDED):void
     {
 		var compareModeGL = this._compareModeDictionary[compareMode];
 		var triangleFaceGL = this.stencilTriangleFace[triangleFace];
@@ -350,7 +352,7 @@ export class ContextGLES implements IContextGL
 		}
 	}
 
-	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
+	public setSamplerStateAt(sampler:number, wrap:ContextGLWrapMode, filter:ContextGLTextureFilter, mipfilter:ContextGLMipFilter):void
 	{
 		this._cmdBytes.writeInt(OpCodes.setSamplerStateAt | sampler<<8);
 		this._cmdBytes.writeInt(this._wrapDictionary[wrap] | this._filterDictionary[filter]<<8 | this._mipmapFilterDictionary[filter][mipfilter]<<16);
@@ -404,13 +406,13 @@ export class ContextGLES implements IContextGL
 		}
 	}
 
-	private translateTriangleFace(triangleFace:string, coordinateSystem:string)
+	private translateTriangleFace(triangleFace:ContextGLTriangleFace, coordinateSystem:CoordinateSystem)
 	{
 		switch (triangleFace) {
 			case ContextGLTriangleFace.BACK:
-				return (coordinateSystem == "leftHanded")? 2 : 1;
+				return (coordinateSystem == CoordinateSystem.LEFT_HANDED)? 2 : 1;
 			case ContextGLTriangleFace.FRONT:
-				return (coordinateSystem == "leftHanded")? 1 : 2;
+				return (coordinateSystem == CoordinateSystem.LEFT_HANDED)? 1 : 2;
 			case ContextGLTriangleFace.FRONT_AND_BACK:
 				return 0;
 			default:

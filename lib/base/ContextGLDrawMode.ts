@@ -1,5 +1,5 @@
-export class ContextGLDrawMode
+export enum ContextGLDrawMode
 {
-	public static TRIANGLES:string = "triangles";
-	public static LINES:string = "lines";
+	TRIANGLES,
+	LINES
 }

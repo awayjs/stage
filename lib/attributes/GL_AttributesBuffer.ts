@@ -2,6 +2,7 @@ import {AttributesBuffer, AssetEvent, AbstractionBase} from "@awayjs/core";
 
 import {IIndexBuffer} from "../base/IIndexBuffer";
 import {IVertexBuffer} from "../base/IVertexBuffer";
+import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
 
 import {Stage} from "../Stage";
 
@@ -57,7 +58,7 @@ export class GL_AttributesBuffer extends AbstractionBase
 		this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset, unsigned);
 	}
 
-	public draw(mode:string, firstIndex:number, numIndices:number):void
+	public draw(mode:ContextGLDrawMode, firstIndex:number, numIndices:number):void
 	{
 		this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
 	}

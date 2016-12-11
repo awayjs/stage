@@ -7,6 +7,7 @@ import {ContextGLMipFilter} from "./base/ContextGLMipFilter";
 import {ContextGLTextureFilter} from "./base/ContextGLTextureFilter";
 import {ContextGLVertexBufferFormat} from "./base/ContextGLVertexBufferFormat";
 import {ContextGLWrapMode} from "./base/ContextGLWrapMode";
+import {ContextGLProfile} from "./base/ContextGLProfile";
 import {IContextGL} from "./base/IContextGL";
 import {IVertexBuffer} from "./base/IVertexBuffer";
 import {StageEvent} from "./events/StageEvent";
@@ -48,7 +49,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	private _stageIndex:number = -1;
 
 	private _usesSoftwareRendering:boolean;
-	private _profile:string;
+	private _profile:ContextGLProfile;
 	private _stageManager:StageManager;
 	private _antiAlias:number = 0;
 	private _enableDepthAndStencil:boolean;
@@ -78,7 +79,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public globalDisableSmooth:boolean = false;
 	
-	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:string = "baseline")
+	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE)
 	{
 		super();
 
@@ -179,7 +180,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * Requests a Context object to attach to the managed gl canvas.
 	 */
-	public requestContext(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):void
+	public requestContext(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO):void
 	{
 		// If forcing software, we can be certain that the
 		// returned Context will be running software mode.
@@ -334,7 +335,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this.dispatchEvent(new StageEvent(StageEvent.VIEWPORT_UPDATED, this));
 	}
 
-	public get profile():string
+	public get profile():ContextGLProfile
 	{
 		return this._profile;
 	}
@@ -588,9 +589,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean):void
 	{
-		var wrap:string = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
-		var filter:string = (smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
-		var mipfilter:string = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+		var wrap:ContextGLWrapMode = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
+		var filter:ContextGLTextureFilter = (smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
+		var mipfilter:ContextGLMipFilter = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
 
 		this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
 	}

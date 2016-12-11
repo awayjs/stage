@@ -1,8 +1,9 @@
 import {EventDispatcher, ArgumentError} from "@awayjs/core";
 
-import {StageEvent}					from "../events/StageEvent";
-
-import {Stage}						from "../Stage";
+import {ContextMode} from "../base/ContextMode";
+import {ContextGLProfile} from "../base/ContextGLProfile";
+import {StageEvent} from "../events/StageEvent";
+import {Stage} from "../Stage";
 
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.
@@ -53,7 +54,7 @@ export class StageManager extends EventDispatcher
 	 * @param profile The compatibility profile, an enumeration of ContextProfile
 	 * @return The Stage for the given index.
 	 */
-	public getStageAt(index:number, forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):Stage
+	public getStageAt(index:number, forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO):Stage
 	{
 		if (index < 0 || index >= StageManager.STAGE_MAX_QUANTITY)
 			throw new ArgumentError("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
@@ -94,7 +95,7 @@ export class StageManager extends EventDispatcher
 	 * @param profile The compatibility profile, an enumeration of ContextProfile
 	 * @return The allocated stage
 	 */
-	public getFreeStage(forceSoftware:boolean = false, profile:string = "baseline", mode:string = "auto"):Stage
+	public getFreeStage(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO):Stage
 	{
 		var i:number = 0;
 		var len:number = this._stages.length;

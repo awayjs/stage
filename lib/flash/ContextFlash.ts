@@ -1,10 +1,19 @@
-import {Rectangle} from "@awayjs/core";
+import {Rectangle, CoordinateSystem} from "@awayjs/core";
 
 import {BitmapImage2D} from "@awayjs/graphics";
 
 //import {swfobject} from "../swfobject";
+import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
 import {ContextGLClearMask} from "../base/ContextGLClearMask";
 import {ContextGLProgramType} from "../base/ContextGLProgramType";
+import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
+import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
+import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
+import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
 import {IContextGL} from "../base/IContextGL";
 
 import {CubeTextureFlash} from "./CubeTextureFlash";
@@ -43,10 +52,7 @@ export class ContextFlash implements IContextGL
 	public disableStencil(){
 
 	}
-	public setStencilActionsMasks( compareMode:string = "always", referenceValue:number, writeMask:number, actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded")
-	{
 
-	}
 	public get container():HTMLElement
 	{
 		return this._container;
@@ -130,13 +136,13 @@ export class ContextFlash implements IContextGL
 		this._resources.splice(this._resources.indexOf(resource));
 	}
 
-	public createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureFlash
+	public createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureFlash
 	{
 		//TODO:streaming
 		return new TextureFlash(this, width, height, format, optimizeForRenderToTexture);
 	}
 
-	public createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureFlash
+	public createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureFlash
 	{
 		//TODO:streaming
 		return new CubeTextureFlash(this, size, format, optimizeForRenderToTexture);
@@ -155,12 +161,12 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string):void
+	public setSamplerStateAt(sampler:number, wrap:ContextGLWrapMode, filter:ContextGLTextureFilter, mipfilter:ContextGLMipFilter):void
 	{
 		//nothing to do here
 	}
 
-	public setStencilActions(triangleFace:string = "frontAndBack", compareMode:string = "always", actionOnBothPass:string = "keep", actionOnDepthFail:string = "keep", actionOnDepthPassStencilFail:string = "keep", coordinateSystem:string = "leftHanded"):void
+	public setStencilActions(triangleFace:ContextGLTriangleFace = ContextGLTriangleFace.FRONT_AND_BACK, compareMode:ContextGLCompareMode = ContextGLCompareMode.ALWAYS, actionOnBothPass:ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthFail:ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthPassStencilFail:ContextGLStencilAction = ContextGLStencilAction.KEEP, coordinateSystem:CoordinateSystem = CoordinateSystem.LEFT_HANDED):void
 	{
 		this.addStream(String.fromCharCode(OpCodes.setStencilActions) + triangleFace + "$" + compareMode + "$" + actionOnBothPass + "$" + actionOnDepthFail + "$" + actionOnDepthPassStencilFail + "$");
 
@@ -168,7 +174,7 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public setStencilReferenceValue(referenceValue:number, readMask:number = 255, writeMask:number = 255):void
+	public setStencilReferenceValue(referenceValue:number, readMask:number = 0xFF, writeMask:number = 0xFF):void
 	{
 		this.addStream(String.fromCharCode(OpCodes.setStencilReferenceValue, referenceValue + OpCodes.intMask, readMask + OpCodes.intMask, writeMask + OpCodes.intMask));
 
@@ -176,7 +182,7 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public setCulling(triangleFaceToCull:string, coordinateSystem:string = "leftHanded"):void
+	public setCulling(triangleFaceToCull:ContextGLTriangleFace, coordinateSystem:CoordinateSystem = CoordinateSystem.LEFT_HANDED):void
 	{
 		//TODO implement coordinateSystem option
 		this.addStream(String.fromCharCode(OpCodes.setCulling) + triangleFaceToCull + "$");
@@ -185,7 +191,7 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public drawIndices(mode:string, indexBuffer:IndexBufferFlash, firstIndex:number = 0, numIndices:number = -1):void
+	public drawIndices(mode:ContextGLDrawMode, indexBuffer:IndexBufferFlash, firstIndex:number = 0, numIndices:number = -1):void
 	{
 		firstIndex = firstIndex || 0;
 		if (!numIndices || numIndices < 0)
@@ -198,7 +204,7 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public drawVertices(mode:string, firstVertex:number = 0, numVertices:number = -1):void
+	public drawVertices(mode:ContextGLDrawMode, firstVertex:number = 0, numVertices:number = -1):void
 	{
 		//can't be done in Stage3D
 	}
@@ -288,7 +294,7 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public setBlendFactors(sourceFactor:string, destinationFactor:string):void
+	public setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor):void
 	{
 		this.addStream(String.fromCharCode(OpCodes.setBlendFactors) + sourceFactor + "$" + destinationFactor + "$");
 
@@ -329,7 +335,7 @@ export class ContextFlash implements IContextGL
 			this.execute();
 	}
 
-	public setDepthTest(depthMask:boolean, passCompareMode:string):void
+	public setDepthTest(depthMask:boolean, passCompareMode:ContextGLCompareMode):void
 	{
 		this.addStream(String.fromCharCode(OpCodes.setDepthTest, depthMask? OpCodes.trueValue : OpCodes.falseValue) + passCompareMode + "$");
 

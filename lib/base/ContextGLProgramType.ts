@@ -1,6 +1,6 @@
-export class ContextGLProgramType
+export enum ContextGLProgramType
 {
-	static FRAGMENT:number = 0;
-	static SAMPLER:number = 1;
-	static VERTEX:number = 2;
+	FRAGMENT,
+	SAMPLER,
+	VERTEX
 }

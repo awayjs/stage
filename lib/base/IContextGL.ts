@@ -1,6 +1,18 @@
-import {Rectangle} from "@awayjs/core";
+import {Rectangle, CoordinateSystem} from "@awayjs/core";
 
 import {BitmapImage2D} from "@awayjs/graphics";
+
+import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
+import {ContextGLClearMask} from "../base/ContextGLClearMask";
+import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
+import {ContextGLProgramType} from "../base/ContextGLProgramType";
+import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
+import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
+import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
+import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
 
 import {ICubeTexture} from "./ICubeTexture";
 import {IIndexBuffer} from "./IIndexBuffer";
@@ -17,13 +29,13 @@ export interface IContextGL
 
 	configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil?:boolean);
 
-	createCubeTexture(size:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels?:number):ICubeTexture;
+	createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels?:number):ICubeTexture;
 
 	createIndexBuffer(numIndices:number):IIndexBuffer;
 
 	createProgram():IProgram;
 
-	createTexture(width:number, height:number, format:string, optimizeForRenderToTexture:boolean, streamingLevels?:number):ITexture;
+	createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels?:number):ITexture;
 
 	createVertexBuffer(numVertices:number, dataPerVertex:number):IVertexBuffer;
 
@@ -31,29 +43,29 @@ export interface IContextGL
 
 	drawToBitmapImage2D(destination:BitmapImage2D);
 
-	drawIndices(mode:string, indexBuffer:IIndexBuffer, firstIndex?:number, numIndices?:number);
+	drawIndices(mode:ContextGLDrawMode, indexBuffer:IIndexBuffer, firstIndex?:number, numIndices?:number);
 
-	drawVertices(mode:string, firstVertex?:number, numVertices?:number);
+	drawVertices(mode:ContextGLDrawMode, firstVertex?:number, numVertices?:number);
 
 	present();
 
-	setBlendFactors(sourceFactor:string, destinationFactor:string);
+	setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor);
 
 	setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean);
 
-    setStencilActions(triangleFace?:string, compareMode?:string, actionOnBothPass?:string, actionOnDepthFail?:string, actionOnDepthPassStencilFail?:string, coordinateSystem?:string);
+    setStencilActions(triangleFace?:ContextGLTriangleFace, compareMode?:ContextGLCompareMode, actionOnBothPass?:ContextGLStencilAction, actionOnDepthFail?:ContextGLStencilAction, actionOnDepthPassStencilFail?:ContextGLStencilAction, coordinateSystem?:CoordinateSystem);
 
     setStencilReferenceValue(referenceValue:number, readMask?:number, writeMask?:number);
 
-	setCulling(triangleFaceToCull:string, coordinateSystem?:string);
+	setCulling(triangleFaceToCull:ContextGLTriangleFace, coordinateSystem?:CoordinateSystem)
 
-	setDepthTest(depthMask:boolean, passCompareMode:string);
+	setDepthTest(depthMask:boolean, passCompareMode:ContextGLCompareMode);
 
 	setProgram(program:IProgram);
 	
 	setProgramConstantsFromArray(programType:number, data:Float32Array);
 
-	setSamplerStateAt(sampler:number, wrap:string, filter:string, mipfilter:string);
+	setSamplerStateAt(sampler:number, wrap:ContextGLWrapMode, filter:ContextGLTextureFilter, mipfilter:ContextGLMipFilter);
 
 	setScissorRectangle(rectangle:Rectangle);
 
@@ -68,7 +80,4 @@ export interface IContextGL
 	enableStencil();
 
 	disableStencil();
-	
-	setStencilActionsMasks(compareMode:string, referenceValue:number, writeMask:number, actionOnBothPass:string, actionOnDepthFail:string, actionOnDepthPassStencilFail:string);
-
 }

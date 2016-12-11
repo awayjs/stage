@@ -1,7 +1,6 @@
-export class ContextGLProfile
+export enum ContextGLProfile
 {
-	public static BASELINE:string = "baseline";
-	public static BASELINE_CONSTRAINED:string = "baselineConstrained";
-	public static BASELINE_EXTENDED:string = "baselineExtended";
+	BASELINE,
+	BASELINE_CONSTRAINED,
+	BASELINE_EXTENDED
 }
-export default ContextGLProfile;
