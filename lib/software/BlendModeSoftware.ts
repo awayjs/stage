@@ -15,9 +15,6 @@ export class BlendModeSoftware
 		result[3] += source[3]*dest[3]/0xFF;
 	}
 
-	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void {
-	}
-
 	public static one(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void {
 		result[0] += source[0];
 		result[1] += source[1];
@@ -57,7 +54,7 @@ export class BlendModeSoftware
 		result[0] += dest[0]*source[3]/0xFF;
 		result[1] += dest[1]*source[3]/0xFF;
 		result[2] += dest[2]*source[3]/0xFF;
-		result[3] += dest[3]*source[3]/0xFF;
+		result[3] += 0xFF;
 	}
 
 	public static sourceColor(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void {
@@ -65,5 +62,8 @@ export class BlendModeSoftware
 		result[1] += dest[1]*source[1]/0xFF;
 		result[2] += dest[2]*source[2]/0xFF;
 		result[3] += dest[3]*source[3]/0xFF;
+	}
+
+	public static zero(result: Uint8ClampedArray, dest: Uint8ClampedArray, source: Uint8ClampedArray):void {
 	}
 }
