@@ -81,6 +81,8 @@ export class ContextSoftware implements IContextGL
 	private _rgba:Uint8ClampedArray = new Uint8ClampedArray(4);
 	private _source:Uint8ClampedArray = new Uint8ClampedArray(4);
 	private _dest:Uint8ClampedArray = new Uint8ClampedArray(4);
+	private _destComp:Uint8ClampedArray = new Uint8ClampedArray(4);
+	private _sourceComp:Uint8ClampedArray = new Uint8ClampedArray(4);
 
 	//public static _drawCallback:Function = null;
 
@@ -91,7 +93,7 @@ export class ContextSoftware implements IContextGL
 
 		this._canvas = canvas;
 
-		this._backBufferColor = new BitmapImage2D(100, 100, false, 0, false);
+		this._backBufferColor = new BitmapImage2D(100, 100, true, 0, false);
 		this._frontBuffer = new BitmapImage2D(100, 100, true, 0, false);
 		this._activeBufferColor = this._backBufferColor;
 
@@ -579,16 +581,16 @@ export class ContextSoftware implements IContextGL
 					continue;
 
 				// Write to source and transform color space.
-				this._source[0] = fragmentVO.outputColor[0] * 255;
-				this._source[1] = fragmentVO.outputColor[1] * 255;
-				this._source[2] = fragmentVO.outputColor[2] * 255;
-				this._source[3] = fragmentVO.outputColor[3] * 255;
+				this._source[0] = fragmentVO.outputColor[0] * 0xFF;
+				this._source[1] = fragmentVO.outputColor[1] * 0xFF;
+				this._source[2] = fragmentVO.outputColor[2] * 0xFF;
+				this._source[3] = fragmentVO.outputColor[3] * 0xFF;
 
 				// Read dest.
 				this._activeBufferColor.getPixelData(x, y, this._dest);
 
 				// Write to color buffer.
-				this._putPixel(x, y, this._source, this._dest);
+				this._putPixel(x, y);
 			}
 
 			// Step x.
@@ -597,15 +599,15 @@ export class ContextSoftware implements IContextGL
 		}
 	}
 
-	private _putPixel(x:number, y:number, source:Uint8ClampedArray, dest:Uint8ClampedArray):void
+	private _putPixel(x:number, y:number):void
 	{
-		this._rgba[0] = 0;
-		this._rgba[1] = 0;
-		this._rgba[2] = 0;
-		this._rgba[3] = 0;
+		this._blendModeSoftware[this._blendDestination](this._destComp, this._dest, this._dest, this._source);
+		this._blendModeSoftware[this._blendSource](this._sourceComp, this._source, this._dest, this._source);
 
-		this._blendModeSoftware[this._blendDestination](this._rgba, dest, source);
-		this._blendModeSoftware[this._blendSource](this._rgba, source, source);
+		this._rgba[0] = this._sourceComp[0] + this._destComp[0];
+		this._rgba[1] = this._sourceComp[1] + this._destComp[1];
+		this._rgba[2] = this._sourceComp[2] + this._destComp[2];
+		this._rgba[3] = this._sourceComp[3] + this._destComp[3];
 
 		this._activeBufferColor.setPixelData(x, y, this._rgba);
 	}
@@ -781,7 +783,7 @@ export class ContextSoftware implements IContextGL
 		this._backBufferColor.lock();
 
 		if (mask & ContextGLClearMask.COLOR) {
-			var color:number = ColorUtils.ARGBtoFloat32(alpha * 0xFF, red *  0xFF, green * 0xFF, blue * 0xFF);
+			var color:number = ColorUtils.ARGBtoFloat32(alpha * 0xFF, blue *  0xFF, green * 0xFF, red * 0xFF);
 			this._colorClearUint32.fill(color);
 			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
 		}
