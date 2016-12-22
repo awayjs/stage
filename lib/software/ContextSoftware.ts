@@ -607,7 +607,7 @@ export class ContextSoftware implements IContextGL
 		this._rgba[0] = this._sourceComp[0] + this._destComp[0];
 		this._rgba[1] = this._sourceComp[1] + this._destComp[1];
 		this._rgba[2] = this._sourceComp[2] + this._destComp[2];
-		this._rgba[3] = this._sourceComp[3] + this._destComp[3];
+		this._rgba[3] = 0xFF;
 
 		this._activeBufferColor.setPixelData(x, y, this._rgba);
 	}
@@ -714,7 +714,7 @@ export class ContextSoftware implements IContextGL
 
 	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
-			destination.setPixels(this._activeBufferColor.rect, this._activeBufferColor.getImageData().data);
+		destination.setPixels(this._activeBufferColor.rect, this._activeBufferColor.getImageData().data);
 	}
 
 	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array):void
