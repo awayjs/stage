@@ -44,8 +44,6 @@ export class ContextSoftware implements IContextGL
 
 	private _backBufferZ:Float32Array;
 	private _backBufferZClear:Float32Array;
-	private _colorClearUint8:Uint8ClampedArray;
-	private _colorClearUint32:Uint32Array;
 	private _cullingMode:ContextGLTriangleFace = ContextGLTriangleFace.BACK;
 	private _blendSource:ContextGLBlendFactor = ContextGLBlendFactor.ONE;
 	private _blendDestination:ContextGLBlendFactor = ContextGLBlendFactor.ZERO;
@@ -93,8 +91,8 @@ export class ContextSoftware implements IContextGL
 
 		this._canvas = canvas;
 
-		this._backBufferColor = new BitmapImage2D(100, 100, true, 0, false);
-		this._frontBuffer = new BitmapImage2D(100, 100, true, 0, false);
+		this._backBufferColor = new BitmapImage2D(100, 100, false, 0, false);
+		this._frontBuffer = new BitmapImage2D(100, 100, false, 0, false);
 		this._activeBufferColor = this._backBufferColor;
 
 		var len:number = 100 * 100;
@@ -165,10 +163,6 @@ export class ContextSoftware implements IContextGL
 		if (this._activeBufferColor == this._backBufferColor)
 			this._activeBufferZ = this._backBufferZ;
 
-		var colorClearBuffer:ArrayBuffer = new ArrayBuffer(len*4);
-
-		this._colorClearUint8 = new Uint8ClampedArray(colorClearBuffer);
-		this._colorClearUint32 = new Uint32Array(colorClearBuffer);
 		this._backBufferRect.width = backBufferWidth;
 		this._backBufferRect.height = backBufferHeight;
 
@@ -607,7 +601,7 @@ export class ContextSoftware implements IContextGL
 		this._rgba[0] = this._sourceComp[0] + this._destComp[0];
 		this._rgba[1] = this._sourceComp[1] + this._destComp[1];
 		this._rgba[2] = this._sourceComp[2] + this._destComp[2];
-		this._rgba[3] = 0xFF;
+		this._rgba[3] = this._sourceComp[3] + this._destComp[3];
 
 		this._activeBufferColor.setPixelData(x, y, this._rgba);
 	}
@@ -782,11 +776,8 @@ export class ContextSoftware implements IContextGL
 	{
 		this._backBufferColor.lock();
 
-		if (mask & ContextGLClearMask.COLOR) {
-			var color:number = ColorUtils.ARGBtoFloat32(alpha * 0xFF, blue *  0xFF, green * 0xFF, red * 0xFF);
-			this._colorClearUint32.fill(color);
-			this._backBufferColor.setPixels(this._backBufferRect, this._colorClearUint8);
-		}
+		if (mask & ContextGLClearMask.COLOR)
+			this._backBufferColor.fillRect(this._backBufferRect, ColorUtils.ARGBtoFloat32(alpha * 0xFF, red *  0xFF, green * 0xFF, blue * 0xFF))
 
 		//TODO: mask & ContextGLClearMask.STENCIL
 
