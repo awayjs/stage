@@ -118,9 +118,10 @@ export class ContextGLES implements IContextGL
 		this._compareModeDictionary[ContextGLCompareMode.NEVER] = 6;
 		this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = 7;
 
-		this.stencilTriangleFace["frontAndBack"]=0;
-		this.stencilTriangleFace["front"]=1;
-		this.stencilTriangleFace["back"]=2;
+		this.stencilTriangleFace[ContextGLTriangleFace.BACK]=2;
+		this.stencilTriangleFace[ContextGLTriangleFace.FRONT]=1;
+		this.stencilTriangleFace[ContextGLTriangleFace.FRONT_AND_BACK]=0;
+
 		//
         this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = 0;
         this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = 1;
@@ -307,7 +308,7 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeInt(compareModeGL | fail<<8 | zFail<<16 | pass<<24);
     }
 
-    public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number)
+    public setStencilReferenceValue(referenceValue:number, readMask:number = 0xFF, writeMask:number = 0xFF)
     {
 		this._cmdBytes.writeInt(OpCodes.setStencilReferenceValue);
 		this._cmdBytes.writeInt(referenceValue);
