@@ -42,7 +42,7 @@ export class ContextGLES implements IContextGL
 
 	public _cmdBytes:Byte32Array;
 	public _createBytes:Byte32Array;
-	public sendBytes:Byte32Array;
+	
 	private _container:HTMLElement;
 	private _width:number;
 	private _height:number;
@@ -93,7 +93,9 @@ export class ContextGLES implements IContextGL
 		this._container = canvas;
 		this._cmdBytes=new Byte32Array();
 		this._createBytes=new Byte32Array();
-		this.sendBytes=new Byte32Array();
+
+		this._cmdBytes.writeUnsignedInt(0);//id for sending cmd data
+		this._createBytes.writeUnsignedInt(1);//id for sending create data
 
 		this._blendFactorDictionary[ContextGLBlendFactor.ONE] = 0;
 		this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = 1;
@@ -425,31 +427,25 @@ export class ContextGLES implements IContextGL
 
 	public execute():void
 	{
-		this.sendBytes.byteLength=0;
-		this.sendBytes.bytePosition=0;
-		if(this._createBytes.byteLength>0){
-			this.sendBytes.writeUnsignedInt(this._createBytes.byteLength);
-			this.sendBytes.writeByte32Array(this._createBytes);
-			this._createBytes.byteLength=0;
-			this._createBytes.bytePosition=0;
-		}
-		else{
-			this.sendBytes.writeUnsignedInt(0);
-		}
-		if(this._cmdBytes.byteLength>0){
-			this.sendBytes.writeUnsignedInt(this._cmdBytes.byteLength);
-			this.sendBytes.writeByte32Array(this._cmdBytes);
-			this._cmdBytes.byteLength=0;
-			this._cmdBytes.bytePosition=0;
-		}
-		else{
-			this.sendBytes.writeUnsignedInt(0);
+		if (this._createBytes.byteLength > 0) {
+			this._createBytes.bytePosition = 0;
+			var localInt32View1 = new Int32Array(this._createBytes.byteLength / 4);
+			this._createBytes.readInt32Array(localInt32View1);
+			GLESConnector.gles.sendGLESCommands(localInt32View1.buffer);
+			this._createBytes.byteLength = 0;
+			this._createBytes.bytePosition = 0;
+			this._createBytes.writeUnsignedInt(1); // make sure first int in bytearray is the id (1 for create bytes)
 		}
 
-		this.sendBytes.bytePosition=0;
-		var localInt32View = new Int32Array(this.sendBytes.byteLength/4);
-		this.sendBytes.readInt32Array(localInt32View);
-		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
+		if (this._cmdBytes.byteLength > 0) {
+			this._cmdBytes.bytePosition = 0;
+			var localInt32View = new Int32Array(this._cmdBytes.byteLength/4);
+			this._cmdBytes.readInt32Array(localInt32View);
+			GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
+			this._cmdBytes.byteLength = 0;
+			this._cmdBytes.bytePosition = 0;
+			this._cmdBytes.writeUnsignedInt(0); // make sure first int in bytearray is the id (0 for cmd bytes)
+		}
 	}
 }
 
