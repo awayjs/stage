@@ -79,11 +79,17 @@ export class ContextWebGL implements IContextGL
 	{
 		this._container = canvas;
 
+		var props:WebGLContextAttributes = {
+			premultipliedAlpha:false,
+			alpha:false,
+			stencil:true
+		};
+
 		try {
-			this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", { premultipliedAlpha:false, alpha:false, stencil:true });
+			this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", props);
 
 			if (!this._gl)
-				this._gl = <WebGLRenderingContext> canvas.getContext("webgl", { premultipliedAlpha:false, alpha:false, stencil:true });
+				this._gl = <WebGLRenderingContext> canvas.getContext("webgl", props);
 		} catch (e) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 		}

@@ -42,7 +42,7 @@ export class ContextGLES implements IContextGL
 
 	public _cmdBytes:Byte32Array;
 	public _createBytes:Byte32Array;
-	public sendBytes:Byte32Array;
+	
 	private _container:HTMLElement;
 	private _width:number;
 	private _height:number;
@@ -93,7 +93,9 @@ export class ContextGLES implements IContextGL
 		this._container = canvas;
 		this._cmdBytes=new Byte32Array();
 		this._createBytes=new Byte32Array();
-		this.sendBytes=new Byte32Array();
+
+		this._cmdBytes.writeUnsignedInt(0);//id for sending cmd data
+		this._createBytes.writeUnsignedInt(1);//id for sending create data
 
 		this._blendFactorDictionary[ContextGLBlendFactor.ONE] = 0;
 		this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = 1;
@@ -118,9 +120,10 @@ export class ContextGLES implements IContextGL
 		this._compareModeDictionary[ContextGLCompareMode.NEVER] = 6;
 		this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = 7;
 
-		this.stencilTriangleFace["frontAndBack"]=0;
-		this.stencilTriangleFace["front"]=1;
-		this.stencilTriangleFace["back"]=2;
+		this.stencilTriangleFace[ContextGLTriangleFace.BACK]=2;
+		this.stencilTriangleFace[ContextGLTriangleFace.FRONT]=1;
+		this.stencilTriangleFace[ContextGLTriangleFace.FRONT_AND_BACK]=0;
+
 		//
         this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = 0;
         this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = 1;
@@ -307,7 +310,7 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeInt(compareModeGL | fail<<8 | zFail<<16 | pass<<24);
     }
 
-    public setStencilReferenceValue(referenceValue:number, readMask:number, writeMask:number)
+    public setStencilReferenceValue(referenceValue:number, readMask:number = 0xFF, writeMask:number = 0xFF)
     {
 		this._cmdBytes.writeInt(OpCodes.setStencilReferenceValue);
 		this._cmdBytes.writeInt(referenceValue);
@@ -424,31 +427,25 @@ export class ContextGLES implements IContextGL
 
 	public execute():void
 	{
-		this.sendBytes.byteLength=0;
-		this.sendBytes.bytePosition=0;
-		if(this._createBytes.byteLength>0){
-			this.sendBytes.writeUnsignedInt(this._createBytes.byteLength);
-			this.sendBytes.writeByte32Array(this._createBytes);
-			this._createBytes.byteLength=0;
-			this._createBytes.bytePosition=0;
-		}
-		else{
-			this.sendBytes.writeUnsignedInt(0);
-		}
-		if(this._cmdBytes.byteLength>0){
-			this.sendBytes.writeUnsignedInt(this._cmdBytes.byteLength);
-			this.sendBytes.writeByte32Array(this._cmdBytes);
-			this._cmdBytes.byteLength=0;
-			this._cmdBytes.bytePosition=0;
-		}
-		else{
-			this.sendBytes.writeUnsignedInt(0);
+		if (this._createBytes.byteLength > 0) {
+			this._createBytes.bytePosition = 0;
+			var localInt32View1 = new Int32Array(this._createBytes.byteLength / 4);
+			this._createBytes.readInt32Array(localInt32View1);
+			GLESConnector.gles.sendGLESCommands(localInt32View1.buffer);
+			this._createBytes.byteLength = 0;
+			this._createBytes.bytePosition = 0;
+			this._createBytes.writeUnsignedInt(1); // make sure first int in bytearray is the id (1 for create bytes)
 		}
 
-		this.sendBytes.bytePosition=0;
-		var localInt32View = new Int32Array(this.sendBytes.byteLength/4);
-		this.sendBytes.readInt32Array(localInt32View);
-		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
+		if (this._cmdBytes.byteLength > 0) {
+			this._cmdBytes.bytePosition = 0;
+			var localInt32View = new Int32Array(this._cmdBytes.byteLength/4);
+			this._cmdBytes.readInt32Array(localInt32View);
+			GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
+			this._cmdBytes.byteLength = 0;
+			this._cmdBytes.bytePosition = 0;
+			this._cmdBytes.writeUnsignedInt(0); // make sure first int in bytearray is the id (0 for cmd bytes)
+		}
 	}
 }
 

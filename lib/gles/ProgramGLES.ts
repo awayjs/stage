@@ -8,6 +8,8 @@ import {OpCodes} from "../flash/OpCodes";
 import {ContextGLES} from "./ContextGLES";
 import {GLESAssetBase} from "./GLESAssetBase";
 
+import {GLESConnector} from "./GLESConnector";
+import {Byte32Array} from "@awayjs/core";
 export class ProgramGLES extends GLESAssetBase implements IProgram
 {
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
@@ -35,37 +37,18 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 		var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram));
 		var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram));
 		//(String.fromCharCode(OpCodes.uploadProgram)+""+this.id + "###"+vertexString +  "###" + fragmentString + "#END");
-		this._context._createBytes.writeInt(OpCodes.uploadProgram);
-		this._context._createBytes.writeInt(this.id);
-		this._context._createBytes.writeUTFBytes(vertexString);
-		this._context._createBytes.writeUTFBytes(fragmentString);
-		//
-		// this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
-		// this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
-		//
-		// this._gl.shaderSource(this._vertexShader, vertexString);
-		// this._gl.compileShader(this._vertexShader);
-		//
-		// if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS))
-		// 	throw new Error(this._gl.getShaderInfoLog(this._vertexShader));
-		//
-		// this._gl.shaderSource(this._fragmentShader, fragmentString);
-		// this._gl.compileShader(this._fragmentShader);
-		//
-		// if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS))
-		// 	throw new Error(this._gl.getShaderInfoLog(this._fragmentShader));
-		//
-		// this._gl.attachShader(this._program, this._vertexShader);
-		// this._gl.attachShader(this._program, this._fragmentShader);
-		// this._gl.linkProgram(this._program);
-		//
-		// if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS))
-		// 	throw new Error(this._gl.getProgramInfoLog(this._program));
-		//
-		// this._uniforms[0].length = 0;
-		// this._uniforms[1].length = 0;
-		// this._uniforms[2].length = 0;
-		// this._attribs.length = 0;
+
+		var newSendbytes=new Byte32Array();
+		newSendbytes.writeInt(1);//tells cpp that this is a create-bytes chunk
+		newSendbytes.writeInt(OpCodes.uploadProgram);
+		newSendbytes.writeInt(this.id);
+		newSendbytes.writeUTFBytes(vertexString);
+		newSendbytes.writeUTFBytes(fragmentString);
+		newSendbytes.bytePosition = 0;
+		var localInt32View = new Int32Array(newSendbytes.byteLength/4);
+		newSendbytes.readInt32Array(localInt32View);
+		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
+		
 	}
 
 	public getUniformLocation(programType:number, index:number = -1):WebGLUniformLocation
