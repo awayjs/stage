@@ -1,4 +1,4 @@
-import {ByteArrayBase} from "@awayjs/core";
+import {ByteArrayBase, URLRequest} from "@awayjs/core";
 
 import {Image2D} from "@awayjs/graphics";
 
@@ -58,5 +58,11 @@ export class TextureFlash extends ResourceBaseFlash implements ITexture
 
 		this._context.addStream(String.fromCharCode(OpCodes.uploadBytesTexture) + this._pId + "," + miplevel + "," + (this._width >> miplevel) + "," + (this._height >> miplevel) + "," + bytes + "%");
 		this._context.execute();
+	}
+
+
+	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
+	{
+
 	}
 }

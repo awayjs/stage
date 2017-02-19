@@ -62,6 +62,7 @@ export {TextureGLES} from "./lib/gles/TextureGLES";
 export {VertexBufferGLES} from "./lib/gles/VertexBufferGLES";
 
 export {GL_BitmapImage2D} from "./lib/image/GL_BitmapImage2D";
+export {GL_ExternalImage2D} from "./lib/image/GL_ExternalImage2D";
 export {GL_BitmapImageCube} from "./lib/image/GL_BitmapImageCube";
 export {GL_Image2D} from "./lib/image/GL_Image2D";
 export {GL_ImageBase} from "./lib/image/GL_ImageBase";

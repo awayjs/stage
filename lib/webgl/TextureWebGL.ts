@@ -1,6 +1,6 @@
-import {ByteArray} from "@awayjs/core";
+import {ByteArray, URLRequest} from "@awayjs/core";
 
-import {Image2D} from "@awayjs/graphics";
+import {Image2D, DefaultMaterialManager} from "@awayjs/graphics";
 
 import {ITexture} from "../base/ITexture";
 
@@ -62,6 +62,14 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, imageData.getImageData());
+		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+	}
+
+	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
+	{
+		//dummy code for testing
+		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
+		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, DefaultMaterialManager.getDefaultImage2D().getImageData());
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 

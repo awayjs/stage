@@ -1,4 +1,4 @@
-import {ByteArray} from "@awayjs/core";
+import {ByteArray, URLRequest} from "@awayjs/core";
 
 import {Image2D} from "@awayjs/graphics";
 
@@ -83,6 +83,11 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		var localInt32View = new Int32Array(newSendbytes.byteLength/4);
 		newSendbytes.readInt32Array(localInt32View);
 		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
+	}
+
+	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
+	{
+		//TODO:
 	}
 
 	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
