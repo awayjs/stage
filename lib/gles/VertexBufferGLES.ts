@@ -37,7 +37,7 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number):void
 	{
 		var newSendbytes=new Byte32Array();
-		newSendbytes.writeInt(2);//send vertex_data
+		newSendbytes.writeInt(1);//send create bytes
 		newSendbytes.writeInt(OpCodes.uploadArrayVertexBuffer);
 		newSendbytes.writeInt(this.id);
 		newSendbytes.writeInt(startVertex);

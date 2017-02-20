@@ -55,5 +55,10 @@ export class OpCodes
 	public static enableStencil:number = 88;
 	public static disableStencil:number = 89;
 	public static setStencilActionsMasks:number = 90;
+	//public static passBitmapToCpp:number = 91; //reserved for java message
+	public static uploadTextureFromURL:number = 92;
+	public static startSound:number = 101;
+	public static stopSound:number = 102;
+	public static updateSound:number = 103;
 
 }

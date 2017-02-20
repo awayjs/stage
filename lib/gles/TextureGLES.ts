@@ -87,7 +87,17 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 
 	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
 	{
-		//TODO:
+		var newSendbytes=new Byte32Array();
+		newSendbytes.writeInt(1);//tells cpp that this is a create-bytes chunk
+		newSendbytes.writeInt(OpCodes.uploadTextureFromURL | miplevel<<8);
+		newSendbytes.writeInt(this.id);
+		var myURLString= urlRequest.url.replace(/[^a-zA-Z0-9]/g, '');
+		console.log("urlRequest.url "+myURLString);
+		newSendbytes.writeUTFBytes(myURLString);
+		newSendbytes.bytePosition = 0;
+		var localInt32View = new Int32Array(newSendbytes.byteLength/4);
+		newSendbytes.readInt32Array(localInt32View);
+		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
 	}
 
 	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
