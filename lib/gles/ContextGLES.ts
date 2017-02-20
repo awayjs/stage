@@ -42,6 +42,31 @@ export class ContextGLES implements IContextGL
 
 	public _cmdBytes:Byte32Array;
 	public _createBytes:Byte32Array;
+	public static _soundBytes:Byte32Array;
+
+	// soundcommands are excuted on @away/player/AS2SoundAdapter, and stored here as binary data
+	// when context is executed, they get send to java along woth the oother data
+
+	public static startSound(name:string, id:number, volume:number, loop:boolean):void
+	{
+		ContextGLES._soundBytes.writeInt(OpCodes.startSound | ((loop?1:0) << 8));
+		ContextGLES._soundBytes.writeFloat(volume);
+		ContextGLES._soundBytes.writeInt(id);
+		ContextGLES._soundBytes.writeUTFBytes(name);
+	}
+
+	public static stopSound(id:number):void
+	{
+		ContextGLES._soundBytes.writeInt(OpCodes.stopSound);
+		ContextGLES._soundBytes.writeInt(id);
+	}
+
+	public static updateSound(id:number, volume:number, loop:boolean):void
+	{
+		ContextGLES._soundBytes.writeInt(OpCodes.updateSound | ((loop?1:0) << 8));
+		ContextGLES._soundBytes.writeFloat(volume);
+		ContextGLES._soundBytes.writeInt(id);
+	}
 	
 	private _container:HTMLElement;
 	private _width:number;
@@ -94,6 +119,9 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes=new Byte32Array();
 		this._createBytes=new Byte32Array();
 
+		ContextGLES._soundBytes=new Byte32Array();
+		ContextGLES._soundBytes.writeUnsignedInt(100);//id for sending sound data
+		
 		this._cmdBytes.writeUnsignedInt(0);//id for sending cmd data
 		this._createBytes.writeUnsignedInt(1);//id for sending create data
 
@@ -445,6 +473,16 @@ export class ContextGLES implements IContextGL
 			this._cmdBytes.byteLength = 0;
 			this._cmdBytes.bytePosition = 0;
 			this._cmdBytes.writeUnsignedInt(0); // make sure first int in bytearray is the id (0 for cmd bytes)
+		}
+		if(ContextGLES._soundBytes.byteLength>4){
+			ContextGLES._soundBytes.bytePosition = 0;
+			var localInt32View2 = new Int32Array(ContextGLES._soundBytes.byteLength/4);
+			ContextGLES._soundBytes.readInt32Array(localInt32View2);
+			GLESConnector.gles.sendGLESCommands(localInt32View2.buffer);
+			ContextGLES._soundBytes.byteLength = 0;
+			ContextGLES._soundBytes.bytePosition = 0;
+			ContextGLES._soundBytes.writeUnsignedInt(100); // make sure first int in bytearray is the id (100 for cmd soundbytes)
+
 		}
 	}
 }
