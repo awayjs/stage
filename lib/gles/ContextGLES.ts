@@ -455,7 +455,7 @@ export class ContextGLES implements IContextGL
 
 	public execute():void
 	{
-		if (this._createBytes.byteLength > 0) {
+		if (this._createBytes.bytePosition > 4) {
 			this._createBytes.bytePosition = 0;
 			var localInt32View1 = new Int32Array(this._createBytes.byteLength / 4);
 			this._createBytes.readInt32Array(localInt32View1);
@@ -465,7 +465,7 @@ export class ContextGLES implements IContextGL
 			this._createBytes.writeUnsignedInt(1); // make sure first int in bytearray is the id (1 for create bytes)
 		}
 
-		if (this._cmdBytes.byteLength > 0) {
+		if (this._cmdBytes.bytePosition > 4) {
 			this._cmdBytes.bytePosition = 0;
 			var localInt32View = new Int32Array(this._cmdBytes.byteLength/4);
 			this._cmdBytes.readInt32Array(localInt32View);
@@ -474,7 +474,7 @@ export class ContextGLES implements IContextGL
 			this._cmdBytes.bytePosition = 0;
 			this._cmdBytes.writeUnsignedInt(0); // make sure first int in bytearray is the id (0 for cmd bytes)
 		}
-		if(ContextGLES._soundBytes.byteLength>4){
+		if(ContextGLES._soundBytes.bytePosition > 4){
 			ContextGLES._soundBytes.bytePosition = 0;
 			var localInt32View2 = new Int32Array(ContextGLES._soundBytes.byteLength/4);
 			ContextGLES._soundBytes.readInt32Array(localInt32View2);
