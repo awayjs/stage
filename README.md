@@ -1,8 +1,8 @@
-# Awayjs Stage
+# AwayJS Stage
 
 Interface for graphics module providing various outputs options to render. Contains context implementations for WebGL and Software (js) outputs, as well as a bridge option for external (native) rendering.
 
-## Awayjs Dependencies
+## AwayJS Dependencies
 
 * core
 * graphics
