@@ -1,4 +1,5 @@
 # AwayJS Stage
+[![Build Status](https://travis-ci.org/awayjs/stage.svg?branch=dev)](https://travis-ci.org/awayjs/stage)
 
 Interface for graphics module providing various outputs options to render. Contains context implementations for WebGL and Software (js) outputs, as well as a bridge option for external (native) rendering.
 
