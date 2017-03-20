@@ -16,6 +16,11 @@ export {Mapping} from "./lib/aglsl/Mapping";
 export {OpLUT} from "./lib/aglsl/OpLUT";
 export {Token} from "./lib/aglsl/Token";
 
+export {AnimationRegisterData} from "./lib/animators/data/AnimationRegisterData";
+export {IAnimationState} from "./lib/animators/states/IAnimationState";
+export {AnimationSetBase} from "./lib/animators/AnimationSetBase";
+export {AnimatorBase} from "./lib/animators/AnimatorBase";
+
 export {GL_AttributesBuffer} from "./lib/attributes/GL_AttributesBuffer";
 
 export {ContextGLBlendFactor} from "./lib/base/ContextGLBlendFactor";
@@ -41,7 +46,16 @@ export {ITextureBase} from "./lib/base/ITextureBase";
 export {IVertexBuffer} from "./lib/base/IVertexBuffer";
 export {SamplerState} from "./lib/base/SamplerState";
 
+export {GL_ElementsBase} from "./lib/elements/GL_ElementsBase";
+export {GL_TriangleElements} from "./lib/elements/GL_TriangleElements";
+export {IElementsClassGL} from "./lib/elements/IElementsClassGL";
+
+export {AnimationSetError} from "./lib/errors/AnimationSetError";
+
 export {StageEvent} from "./lib/events/StageEvent";
+export {AnimatorEvent} from "./lib/events/AnimatorEvent";
+export {PassEvent} from "./lib/events/PassEvent";
+
 export {ContextFlash} from "./lib/flash/ContextFlash";
 export {CubeTextureFlash} from "./lib/flash/CubeTextureFlash";
 export {IndexBufferFlash} from "./lib/flash/IndexBufferFlash";
@@ -79,6 +93,28 @@ export {GL_IAssetClass} from "./lib/library/GL_IAssetClass";
 
 export {StageManager} from "./lib/managers/StageManager";
 
+export {BasicMaterialPass} from "./lib/materials/passes/BasicMaterialPass";
+export {IPass} from "./lib/materials/passes/IPass";
+export {PassBase} from "./lib/materials/passes/PassBase";
+export {GL_BasicMaterial} from "./lib/materials/GL_BasicMaterial";
+export {GL_MaterialBase} from "./lib/materials/GL_MaterialBase";
+export {GL_MaterialPassBase} from "./lib/materials/GL_MaterialPassBase";
+export {IMaterialClassGL} from "./lib/materials/IMaterialClassGL";
+export {MaterialGroupBase} from "./lib/materials/MaterialGroupBase";
+export {MaterialPool} from "./lib/materials/MaterialPool";
+
+export {GL_ShapeRenderable} from "./lib/renderables/GL_ShapeRenderable";
+export {GL_RenderableBase} from "./lib/renderables/GL_RenderableBase";
+export {IRenderableClassGL} from "./lib/renderables/IRenderableClassGL";
+export {RenderablePool} from "./lib/renderables/RenderablePool";
+
+export {CompilerBase} from "./lib/shaders/compilers/CompilerBase";
+export {RegisterPool} from "./lib/shaders/RegisterPool";
+export {ShaderBase} from "./lib/shaders/ShaderBase";
+export {ShaderRegisterCache} from "./lib/shaders/ShaderRegisterCache";
+export {ShaderRegisterData} from "./lib/shaders/ShaderRegisterData";
+export {ShaderRegisterElement} from "./lib/shaders/ShaderRegisterElement";
+
 export {ContextSoftware} from "./lib/software/ContextSoftware";
 export {IndexBufferSoftware} from "./lib/software/IndexBufferSoftware";
 export {ProgramSoftware} from "./lib/software/ProgramSoftware";
@@ -86,6 +122,10 @@ export {ProgramVOSoftware} from "./lib/software/ProgramVOSoftware";
 export {SoftwareSamplerState} from "./lib/software/SoftwareSamplerState";
 export {TextureSoftware} from "./lib/software/TextureSoftware";
 export {VertexBufferSoftware} from "./lib/software/VertexBufferSoftware";
+
+export {GL_Single2DTexture} from "./lib/textures/GL_Single2DTexture";
+export {GL_SingleCubeTexture} from "./lib/textures/GL_SingleCubeTexture";
+export {GL_TextureBase} from "./lib/textures/GL_TextureBase";
 
 export {ContextWebGL} from "./lib/webgl/ContextWebGL";
 export {CubeTextureWebGL} from "./lib/webgl/CubeTextureWebGL";
