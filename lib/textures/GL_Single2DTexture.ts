@@ -58,9 +58,8 @@ export class GL_Single2DTexture extends GL_TextureBase
 		var temp:ShaderRegisterElement;
 
 		//modify depending on mapping mode
-		if (this._single2DTexture.mappingMode == MappingMode.RADIAL_GRADIENT) {
+		if (this._single2DTexture.mappingMode == MappingMode.RADIAL) {
 			temp = regCache.getFreeFragmentVectorTemp();
-			code += "mul " + temp + ".xy, " + inputReg + ", " + inputReg + "\n";
 			code += "mul " + temp + ".xy, " + inputReg + ", " + inputReg + "\n";
 			code += "add " + temp + ".x, " + temp + ".x, " + temp + ".y\n";
 			code += "sub " + temp + ".y, " + temp + ".y, " + temp + ".y\n";
@@ -89,12 +88,12 @@ export class GL_Single2DTexture extends GL_TextureBase
 		return code;
 	}
 
-	public activate(render:GL_MaterialBase):void
+	public activate():void
 	{
-		var sampler:GL_Sampler2D = <GL_Sampler2D> render.samplers[this._imageIndex];
+		var sampler:GL_Sampler2D = <GL_Sampler2D> this._shader.pass.samplers[this._imageIndex];
 		sampler.activate(this._textureIndex);
 
-		var image:GL_Image2D = render.images[this._imageIndex];
+		var image:GL_Image2D = this._shader.pass.images[this._imageIndex];
 		image.activate(this._textureIndex, sampler._sampler.mipmap);
 
 		if (this._shader.useImageRect) {

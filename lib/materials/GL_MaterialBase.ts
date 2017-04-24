@@ -1,6 +1,6 @@
 import {AssetEvent, AbstractionBase} from "@awayjs/core";
 
-import {ImageBase, SamplerBase, IMaterial, MaterialEvent, IEntity, MaterialBase, DefaultMaterialManager, TextureBase} from "@awayjs/graphics";
+import {ImageBase, SamplerBase, IMaterial, MaterialEvent, IEntity, MaterialBase, DefaultMaterialManager, TextureBase, Style} from "@awayjs/graphics";
 
 import {AnimatorBase} from "../animators/AnimatorBase";
 import {IElementsClassGL} from "../elements/IElementsClassGL";
@@ -49,7 +49,13 @@ export class GL_MaterialBase extends AbstractionBase
 	public materialID:number;
 
 	public images:Array<GL_ImageBase> = new Array<GL_ImageBase>();
+
 	public samplers:Array<GL_SamplerBase> = new Array<GL_SamplerBase>();
+
+	public get style():Style
+	{
+		return this._material.style;
+	}
 
 	/**
 	 * Indicates whether or not the renderable requires alpha blending during rendering.

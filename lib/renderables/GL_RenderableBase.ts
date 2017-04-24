@@ -90,12 +90,25 @@ export class GL_RenderableBase extends AbstractionBase
 	 */
 	public renderable:IRenderable;
 
+	/**
+	 *
+	 */
 	public uvMatrix:Matrix;
-	
+
+	/**
+	 *
+	 */
 	public images:Array<GL_ImageBase> = new Array<GL_ImageBase>();
 
+	/**
+	 *
+	 */
 	public samplers:Array<GL_SamplerBase> = new Array<GL_SamplerBase>();
 
+	/**
+	 *
+	 * @returns {GL_ElementsBase}
+	 */
 	public get elementsGL():GL_ElementsBase
 	{
 		if (this._elementsDirty)
@@ -104,6 +117,10 @@ export class GL_RenderableBase extends AbstractionBase
 		return this._elementsGL;
 	}
 
+	/**
+	 *
+	 * @returns {GL_MaterialBase}
+	 */
 	public get materialGL():GL_MaterialBase
 	{
 		if (this._materialDirty)
@@ -111,7 +128,6 @@ export class GL_RenderableBase extends AbstractionBase
 
 		return this._materialGL;
 	}
-
 
 	/**
 	 *
@@ -173,12 +189,12 @@ export class GL_RenderableBase extends AbstractionBase
 		this._materialDirty = true;
 	}
 
-	public _pGetElements():GL_ElementsBase
+	protected _getElements():GL_ElementsBase
 	{
 		throw new AbstractMethodError();
 	}
 
-	public _pGetMaterial():GL_MaterialBase
+	protected _getMaterial():GL_MaterialBase
 	{
 		throw new AbstractMethodError();
 	}
@@ -215,14 +231,14 @@ export class GL_RenderableBase extends AbstractionBase
 	 */
 	private _updateElements():void
 	{
-		this._elementsGL = this._pGetElements();
+		this._elementsGL = this._getElements();
 
 		this._elementsDirty = false;
 	}
 
 	private _updateMaterial():void
 	{
-		var materialGL:GL_MaterialBase = this._pGetMaterial();
+		var materialGL:GL_MaterialBase = this._getMaterial();
 
 		if (this._materialGL != materialGL) {
 

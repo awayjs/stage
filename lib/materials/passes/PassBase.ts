@@ -1,9 +1,11 @@
 import {Matrix3D, EventDispatcher, ProjectionBase} from "@awayjs/core";
 
-import {IMaterial, TextureBase} from "@awayjs/graphics";
+import {IMaterial, TextureBase, Style} from "@awayjs/graphics";
 
 import {AnimationSetBase} from "../../animators/AnimationSetBase";
 import {IElementsClassGL} from "../../elements/IElementsClassGL";
+import {GL_SamplerBase} from "../../image/GL_SamplerBase";
+import {GL_ImageBase} from "../../image/GL_ImageBase";
 import {PassEvent} from "../../events/PassEvent";
 import {GL_RenderableBase} from "../../renderables/GL_RenderableBase";
 import {ShaderBase} from "../../shaders/ShaderBase";
@@ -22,8 +24,7 @@ import {IPass} from "./IPass";
  */
 export class PassBase extends EventDispatcher implements IPass
 {
-	public _render:GL_MaterialBase;
-	public _material:IMaterial;
+	public _material:GL_MaterialBase;
 	public _elementsClass:IElementsClassGL;
 	public _stage:Stage;
 	
@@ -37,9 +38,24 @@ export class PassBase extends EventDispatcher implements IPass
 		return this._shader;
 	}
 
+	public get samplers():Array<GL_SamplerBase>
+	{
+		return this._material.samplers;
+	}
+
+	public get images():Array<GL_ImageBase>
+	{
+		return this._material.images;
+	}
+
+	public get style():Style
+	{
+		return this._material.material.style;
+	}
+
 	public get animationSet():AnimationSetBase
 	{
-		return <AnimationSetBase> this._material.animationSet;
+		return <AnimationSetBase> this._material.material.animationSet;
 	}
 
 	/**
@@ -83,11 +99,10 @@ export class PassBase extends EventDispatcher implements IPass
 	/**
 	 * Creates a new PassBase object.
 	 */
-	constructor(render:GL_MaterialBase, material:IMaterial, materialPool:MaterialPool)
+	constructor(material:GL_MaterialBase, materialPool:MaterialPool)
 	{
 		super();
 
-		this._render = render;
 		this._material = material;
 		this._elementsClass = materialPool.elementsClass;
 		this._stage = materialPool.materialGroup.stage;
@@ -95,7 +110,7 @@ export class PassBase extends EventDispatcher implements IPass
 
 	public getImageIndex(texture:TextureBase, index:number = 0):number
 	{
-		return this._render.getImageIndex(texture, index);
+		return this._material.getImageIndex(texture, index);
 	}
 
 	/**
@@ -114,7 +129,6 @@ export class PassBase extends EventDispatcher implements IPass
 	 */
 	public dispose():void
 	{
-		this._render = null;
 		this._material = null;
 		this._elementsClass = null;
 		this._stage = null;
@@ -166,7 +180,7 @@ export class PassBase extends EventDispatcher implements IPass
 
 	public _iIncludeDependencies(shader:ShaderBase):void
 	{
-		this._render._iIncludeDependencies(shader);
+		this._material._iIncludeDependencies(shader);
 		
 		if (this._forceSeparateMVP)
 			shader.globalPosDependencies++;

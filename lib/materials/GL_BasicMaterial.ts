@@ -25,7 +25,7 @@ export class GL_BasicMaterial extends GL_MaterialBase
 
 		this._basicMaterial = material;
 
-		this._pAddPass(this._pass = new BasicMaterialPass(this, material, materialPool));
+		this._pAddPass(this._pass = new BasicMaterialPass(this, materialPool));
 	}
 
 	public onClear(event:AssetEvent):void

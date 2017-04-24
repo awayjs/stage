@@ -1,6 +1,6 @@
 import {AssetEvent} from "@awayjs/core";
 
-import {IEntity, Shape, DefaultMaterialManager} from "@awayjs/graphics";
+import {Shape, DefaultMaterialManager} from "@awayjs/graphics";
 
 import {AnimatorBase} from "../animators/AnimatorBase";
 import {GL_ElementsBase} from "../elements/GL_ElementsBase";
@@ -18,7 +18,6 @@ export class GL_ShapeRenderable extends GL_RenderableBase
 	 *
 	 */
 	public shape:Shape;
-
 
 	/**
 	 * //TODO
@@ -47,17 +46,15 @@ export class GL_ShapeRenderable extends GL_RenderableBase
 	 * @returns {ElementsBase}
 	 * @protected
 	 */
-	public _pGetElements():GL_ElementsBase
+	protected _getElements():GL_ElementsBase
 	{
 		this._offset = this.shape.offset;
 		this._count = this.shape.count;
-
 		
 		return <GL_ElementsBase> this._stage.getAbstraction((this.sourceEntity.animator)? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements);
 	}
 
-
-	public _pGetMaterial():GL_MaterialBase
+	protected _getMaterial():GL_MaterialBase
 	{
 		return this._materialGroup.getMaterialPool(this.elementsGL).getAbstraction(this.shape.material || this.sourceEntity.material || DefaultMaterialManager.getDefaultMaterial(this.renderable));
 	}

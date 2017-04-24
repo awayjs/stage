@@ -52,7 +52,7 @@ export class GL_TextureBase extends AbstractionBase
 		//overidden for state logic
 	}
 
-	public activate(render:GL_MaterialBase):void
+	public activate():void
 	{
 		//overridden for activation logic
 	}

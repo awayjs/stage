@@ -1,9 +1,12 @@
 import {IEventDispatcher, Matrix3D, ProjectionBase} from "@awayjs/core";
 
-import {TextureBase} from "@awayjs/graphics";
+import {TextureBase, Style} from "@awayjs/graphics";
 
 import {GL_RenderableBase} from "../../renderables/GL_RenderableBase";
 import {AnimationSetBase} from "../../animators/AnimationSetBase";
+import {GL_SamplerBase} from "../../image/GL_SamplerBase";
+import {GL_ImageBase} from "../../image/GL_ImageBase";
+import {GL_MaterialBase} from "../../materials/GL_MaterialBase";
 import {ShaderBase} from "../../shaders/ShaderBase";
 import {ShaderRegisterCache} from "../../shaders/ShaderRegisterCache";
 import {ShaderRegisterData} from "../../shaders/ShaderRegisterData";
@@ -15,6 +18,12 @@ import {ShaderRegisterData} from "../../shaders/ShaderRegisterData";
 export interface IPass extends IEventDispatcher
 {
 	shader:ShaderBase;
+
+	images:Array<GL_ImageBase>;
+
+	samplers:Array<GL_SamplerBase>;
+
+	style:Style;
 
 	animationSet:AnimationSetBase;
 	

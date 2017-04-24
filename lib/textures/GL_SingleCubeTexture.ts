@@ -66,15 +66,15 @@ export class GL_SingleCubeTexture extends GL_TextureBase
 	}
 
 
-	public activate(render:GL_MaterialBase):void
+	public activate():void
 	{
-		var sampler:GL_SamplerCube = <GL_SamplerCube> render.samplers[this._imageIndex];
+		var sampler:GL_SamplerCube = <GL_SamplerCube> this._shader.pass.samplers[this._imageIndex];
 
 		if (sampler)
 			sampler.activate(this._textureIndex);
 
-		if (render.images[this._imageIndex])
-			render.images[this._imageIndex].activate(this._textureIndex, sampler._sampler.mipmap);
+		if (this._shader.pass.images[this._imageIndex])
+			this._shader.pass.images[this._imageIndex].activate(this._textureIndex, sampler._sampler.mipmap);
 
 	}
 

@@ -18,11 +18,19 @@ export class RenderablePool implements IAbstractionPool
 	private _entity:IEntity;
 	private _materialGroup:MaterialGroupBase;
 
+	/**
+	 *
+	 * @returns {IEntity}
+	 */
 	public get entity():IEntity
 	{
 		return this._entity;
 	}
 
+	/**
+	 *
+	 * @returns {MaterialGroupBase}
+	 */
 	public get materialGroup():MaterialGroupBase
 	{
 		return this._materialGroup;

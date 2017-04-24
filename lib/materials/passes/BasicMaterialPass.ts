@@ -30,9 +30,9 @@ export class BasicMaterialPass extends PassBase
 
 	private _fragmentConstantsIndex:number;
 
-	constructor(render:GL_MaterialBase, material:IMaterial, materialPool:MaterialPool)
+	constructor(material:GL_MaterialBase, materialPool:MaterialPool)
 	{
-		super(render, material, materialPool);
+		super(material, materialPool);
 
 		this._shader = new ShaderBase(materialPool.elementsClass, this, this._stage);
 
@@ -51,13 +51,13 @@ export class BasicMaterialPass extends PassBase
 	{
 		super.invalidate();
 
-		this._textureVO = this._material.getTextureAt(0)? <GL_TextureBase> this._shader.getAbstraction(this._material.getTextureAt(0)) : null;
+		this._textureVO = this._material.material.getTextureAt(0)? <GL_TextureBase> this._shader.getAbstraction(this._material.material.getTextureAt(0)) : null;
 	}
 
 	public dispose():void
 	{
 		if (this._textureVO) {
-			this._textureVO.onClear(new AssetEvent(AssetEvent.CLEAR, this._material.getTextureAt(0)));
+			this._textureVO.onClear(new AssetEvent(AssetEvent.CLEAR, this._material.material.getTextureAt(0)));
 			this._textureVO = null;
 		}
 
@@ -125,7 +125,7 @@ export class BasicMaterialPass extends PassBase
 		super._iActivate(projection);
 
 		if (this._textureVO != null) {
-			this._textureVO.activate(this._render);
+			this._textureVO.activate();
 
 			if (this._shader.alphaThreshold > 0)
 				this._shader.fragmentConstantData[this._fragmentConstantsIndex] = this._shader.alphaThreshold;

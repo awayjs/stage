@@ -1,4 +1,4 @@
-import {Matrix, Matrix3D, Vector3D, ColorTransform, ArgumentError, IAssetClass, IAbstractionPool, ProjectionBase} from "@awayjs/core";
+import {AssetBase, AbstractionBase, Matrix, Matrix3D, Vector3D, ColorTransform, ArgumentError, IAssetClass, IAbstractionPool, ProjectionBase} from "@awayjs/core";
 
 import {BlendMode, TextureBase} from "@awayjs/graphics";
 
@@ -54,6 +54,11 @@ export class ShaderBase implements IAbstractionPool
 	private _numUsedStreams:number;
 	private _numUsedTextures:number;
 	private _usesAnimation:boolean;
+
+	public get pass():IPass
+	{
+		return this._pass;
+	}
 
 	public get programData():ProgramData
 	{
@@ -354,9 +359,9 @@ export class ShaderBase implements IAbstractionPool
 		this.profile = this._stage.profile;
 	}
 
-	public getAbstraction(texture:TextureBase):GL_TextureBase
+	public getAbstraction(asset:AssetBase):AbstractionBase
 	{
-		return (this._abstractionPool[texture.id] || (this._abstractionPool[texture.id] = new (<GL_IAssetClass> ShaderBase._abstractionClassPool[texture.assetType])(texture, this)));
+		return (this._abstractionPool[asset.id] || (this._abstractionPool[asset.id] = new (<GL_IAssetClass> ShaderBase._abstractionClassPool[asset.assetType])(asset, this)));
 	}
 
 	/**
