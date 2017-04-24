@@ -20,9 +20,9 @@ export interface IElementsClassGL
 	 */
 	new(elements:ElementsBase, stage:Stage):GL_ElementsBase;
 
-	_iIncludeDependencies(shader:ShaderBase);
+	_includeDependencies(shader:ShaderBase);
 
-	_iGetVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 
-	_iGetFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 }

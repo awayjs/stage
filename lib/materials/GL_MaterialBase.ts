@@ -112,9 +112,9 @@ export class GL_MaterialBase extends AbstractionBase
 		this._onPassInvalidateDelegate = (event:PassEvent) => this.onPassInvalidate(event);
 	}
 
-	public _iIncludeDependencies(shader:ShaderBase):void
+	public _includeDependencies(shader:ShaderBase):void
 	{
-		this._elementsClass._iIncludeDependencies(shader);
+		this._elementsClass._includeDependencies(shader);
 
 		shader.alphaThreshold = this._material.alphaThreshold;
 		shader.useImageRect = this._material.imageRect;

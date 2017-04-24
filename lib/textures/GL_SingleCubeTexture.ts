@@ -37,7 +37,7 @@ export class GL_SingleCubeTexture extends GL_TextureBase
 		this._singleCubeTexture = null;
 	}
 
-	public _iIncludeDependencies(includeInput:boolean = true):void
+	public _includeDependencies(includeInput:boolean = true):void
 	{
 		if (includeInput)
 			this._shader.usesPositionFragment = true;
@@ -52,7 +52,7 @@ export class GL_SingleCubeTexture extends GL_TextureBase
 	 * @returns {string}
 	 * @private
 	 */
-	public _iGetFragmentCode(targetReg:ShaderRegisterElement, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData, inputReg:ShaderRegisterElement):string
+	public _getFragmentCode(targetReg:ShaderRegisterElement, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData, inputReg:ShaderRegisterElement):string
 	{
 		var format:string = "";//this.getFormatString(this._singleCubeTexture.imageCube);
 		var filter:string = "linear,miplinear";

@@ -48,7 +48,7 @@ export class GL_Single2DTexture extends GL_TextureBase
 	 * @returns {string}
 	 * @private
 	 */
-	public _iGetFragmentCode(targetReg:ShaderRegisterElement, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData, inputReg:ShaderRegisterElement):string
+	public _getFragmentCode(targetReg:ShaderRegisterElement, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData, inputReg:ShaderRegisterElement):string
 	{
 		var code:string = "";
 		var wrap:string = "wrap";

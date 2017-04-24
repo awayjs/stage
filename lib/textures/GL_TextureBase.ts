@@ -42,7 +42,7 @@ export class GL_TextureBase extends AbstractionBase
 		this._stage = null;
 	}
 
-	public _iGetFragmentCode(targetReg:ShaderRegisterElement, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData, inputReg:ShaderRegisterElement = null):string
+	public _getFragmentCode(targetReg:ShaderRegisterElement, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData, inputReg:ShaderRegisterElement = null):string
 	{
 		throw new AbstractMethodError();
 	}

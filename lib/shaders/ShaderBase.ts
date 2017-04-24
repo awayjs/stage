@@ -387,9 +387,9 @@ export class ShaderBase implements IAbstractionPool
 		return this._pass.getImageIndex(texture, index);
 	}
 
-	public _iIncludeDependencies():void
+	public _includeDependencies():void
 	{
-		this._pass._iIncludeDependencies(this);
+		this._pass._includeDependencies(this);
 
 		//this.usesCommonData = this.usesCurves || this.usesCommonData;
 	}
@@ -518,7 +518,7 @@ export class ShaderBase implements IAbstractionPool
 			this.vertexConstantData[this.cameraPositionIndex + 3] = 1;
 		
 		// init constant data in pass
-		this._pass._iInitConstantData(this);
+		this._pass._initConstantData(this);
 		
 		//init constant data in animation
 		if (this.usesAnimation)
@@ -577,7 +577,7 @@ export class ShaderBase implements IAbstractionPool
 	/**
 	 * @inheritDoc
 	 */
-	public _iActivate(projection:ProjectionBase):void
+	public _activate(projection:ProjectionBase):void
 	{
 		this._stage.context.setCulling(this.useBothSides? ContextGLTriangleFace.NONE : this._defaultCulling, projection.coordinateSystem);
 
@@ -600,7 +600,7 @@ export class ShaderBase implements IAbstractionPool
 	/**
 	 * @inheritDoc
 	 */
-	public _iDeactivate():void
+	public _deactivate():void
 	{
 		//For the love of god don't remove this if you want your multi-material shadows to not flicker like shit
 		this._stage.context.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL);
@@ -706,10 +706,10 @@ export class ShaderBase implements IAbstractionPool
 		var compiler:CompilerBase = this.createCompiler(this._elementsClass, this._pass);
 		compiler.compile();
 
-		this._calcAnimationCode(compiler._pRegisterCache, compiler.shadedTarget, compiler._pSharedRegisters);
+		this._calcAnimationCode(compiler.registerCache, compiler.sharedRegisters.shadedTarget, compiler.sharedRegisters);
 
 		//initialise the required shader constants
-		this.initConstantData(compiler._pRegisterCache);
+		this.initConstantData(compiler.registerCache);
 		
 		var programData:ProgramData = this._stage.getProgramData(this._animationVertexCode + compiler.vertexCode, compiler.fragmentCode + this._animationFragmentCode + compiler.postAnimationFragmentCode);
 

@@ -70,9 +70,9 @@ export class GL_MaterialPassBase extends GL_MaterialBase implements IPass
 	 * @param camera The camera from which the scene is viewed.
 	 * @private
 	 */
-	public _iActivate(projection:ProjectionBase):void
+	public _activate(projection:ProjectionBase):void
 	{
-		this._shader._iActivate(projection);
+		this._shader._activate(projection);
 	}
 
 	/**
@@ -81,42 +81,37 @@ export class GL_MaterialPassBase extends GL_MaterialBase implements IPass
 	 *
 	 * @private
 	 */
-	public _iDeactivate():void
+	public _deactivate():void
 	{
-		this._shader._iDeactivate();
+		this._shader._deactivate();
 	}
 
-	public _iInitConstantData(shader:ShaderBase):void
+	public _initConstantData(shader:ShaderBase):void
 	{
 
 	}
 
-	public _iGetPreLightingVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-	{
-		return "";
-	}
-
-	public _iGetPreLightingFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public _getVertexCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		return "";
 	}
 
-	public _iGetVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public _getFragmentCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		return "";
 	}
 
-	public _iGetFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public _getPostAnimationFragmentCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		return "";
 	}
 
-	public _iGetNormalVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public _getNormalVertexCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		return "";
 	}
 
-	public _iGetNormalFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public _getNormalFragmentCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		return "";
 	}

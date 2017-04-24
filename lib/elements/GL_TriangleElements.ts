@@ -33,11 +33,11 @@ export class GL_TriangleElements extends GL_ElementsBase
 		return GL_TriangleElements;
 	}
 	
-	public static _iIncludeDependencies(shader:ShaderBase):void
+	public static _includeDependencies(shader:ShaderBase):void
 	{
 	}
 
-	public static _iGetVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public static _getVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		var code:string = "";
 		
@@ -64,7 +64,7 @@ export class GL_TriangleElements extends GL_ElementsBase
 		return code;
 	}
 
-	public static _iGetFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
+	public static _getFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
 	{
 		return "";
 	}

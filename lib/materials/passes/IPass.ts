@@ -27,21 +27,19 @@ export interface IPass extends IEventDispatcher
 
 	animationSet:AnimationSetBase;
 	
-	_iIncludeDependencies(shader:ShaderBase);
+	_includeDependencies(shader:ShaderBase);
 
-	_iInitConstantData(shader:ShaderBase);
+	_initConstantData(shader:ShaderBase);
 
-	_iGetPreLightingVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getVertexCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 
-	_iGetPreLightingFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getFragmentCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 
-	_iGetVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getPostAnimationFragmentCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 
-	_iGetFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getNormalVertexCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 
-	_iGetNormalVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
-
-	_iGetNormalFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
+	_getNormalFragmentCode(registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string;
 
 
 	/**
@@ -51,7 +49,7 @@ export interface IPass extends IEventDispatcher
 	 * @param camera The camera from which the scene is viewed.
 	 * @private
 	 */
-	_iActivate(projection:ProjectionBase);
+	_activate(projection:ProjectionBase);
 
 	_setRenderState(renderable:GL_RenderableBase, projection:ProjectionBase)
 
@@ -61,7 +59,7 @@ export interface IPass extends IEventDispatcher
 	 *
 	 * @private
 	 */
-	_iDeactivate();
+	_deactivate();
 
 	invalidate();
 

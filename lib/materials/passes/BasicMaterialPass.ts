@@ -39,9 +39,9 @@ export class BasicMaterialPass extends PassBase
 		this.invalidate();
 	}
 
-	public _iIncludeDependencies(shader:ShaderBase):void
+	public _includeDependencies(shader:ShaderBase):void
 	{
-		super._iIncludeDependencies(shader);
+		super._includeDependencies(shader);
 
 		if (this._textureVO != null)
 			shader.uvDependencies++;
@@ -67,7 +67,7 @@ export class BasicMaterialPass extends PassBase
 	/**
 	 * @inheritDoc
 	 */
-	public _iGetFragmentCode(shader:ShaderBase, regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData):string
+	public _getFragmentCode(regCache:ShaderRegisterCache, sharedReg:ShaderRegisterData):string
 	{
 		var code:string = "";
 
@@ -83,15 +83,15 @@ export class BasicMaterialPass extends PassBase
 
 		if (this._textureVO != null) {
 
-			code += this._textureVO._iGetFragmentCode(targetReg, regCache, sharedReg, sharedReg.uvVarying);
+			code += this._textureVO._getFragmentCode(targetReg, regCache, sharedReg, sharedReg.uvVarying);
 
-			if (shader.alphaThreshold > 0) {
+			if (this._shader.alphaThreshold > 0) {
 				var cutOffReg:ShaderRegisterElement = regCache.getFreeFragmentConstant();
 				this._fragmentConstantsIndex = cutOffReg.index*4;
 
 				code += "sub " + targetReg + ".w, " + targetReg + ".w, " + cutOffReg + ".x\n" + "kil " + targetReg + ".w\n" + "add " + targetReg + ".w, " + targetReg + ".w, " + cutOffReg + ".x\n";
 			}
-		} else if (shader.colorBufferIndex != -1) {
+		} else if (this._shader.colorBufferIndex != -1) {
 
 			code += "mov " + targetReg + ", " + sharedReg.colorVarying + "\n";
 		} else {
@@ -120,9 +120,9 @@ export class BasicMaterialPass extends PassBase
 	/**
 	 * @inheritDoc
 	 */
-	public _iActivate(projection:ProjectionBase):void
+	public _activate(projection:ProjectionBase):void
 	{
-		super._iActivate(projection);
+		super._activate(projection);
 
 		if (this._textureVO != null) {
 			this._textureVO.activate();
