@@ -1,6 +1,6 @@
 {
   "name": "@awayjs/stage",
-  "version": "0.8.56",
+  "version": "0.8.57",
   "description": "Stage for AwayJS",
   "main": "bundle/awayjs-stage.umd.js",
   "types": "dist/index.d.ts",
