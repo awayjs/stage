@@ -442,14 +442,17 @@ export class ContextSoftware implements IContextGL
 		this._p2.z = this._p2.z * 2 - this._p2.w;
 
 		// Perspective divide.
-		this._p0.scaleBy(1 / this._p0.w);
-		this._p1.scaleBy(1 / this._p1.w);
-		this._p2.scaleBy(1 / this._p2.w);
+		this._p0.project();
+		this._p1.project();
+		this._p2.project();
 
 		// Transform into screen space.
 		this._project.x = this._p0.w;
 		this._project.y = this._p1.w;
 		this._project.z = this._p2.w;
+		this._p0.w = 1;
+		this._p1.w = 1;
+		this._p2.w = 1;
 		this._p0 = this._screenMatrix.transformVector(this._p0, this._p0);
 		this._p1 = this._screenMatrix.transformVector(this._p1, this._p1);
 		this._p2 = this._screenMatrix.transformVector(this._p2, this._p2);
