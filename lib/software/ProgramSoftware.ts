@@ -179,6 +179,7 @@ export class ProgramSoftware implements IProgram
 	public fragment(context:ContextSoftware, clip:Vector3D, clipRight:Vector3D, clipBottom:Vector3D, varying0:Float32Array, varying1:Float32Array, varying2:Float32Array, fragDepth:number):ProgramVOSoftware
 	{
 		this._fragmentVO.outputDepth = fragDepth;
+		this._fragmentVO.discard = false;
 
 		//clear temps
 		var temp:Float32Array = this._fragmentVO.temp;
