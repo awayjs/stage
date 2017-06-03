@@ -568,14 +568,14 @@ export class ContextSoftware implements IContextGL
 				if (!this._depthCompareModeSoftware[this._depthCompareMode](fragDepth, this._activeBufferZ[index]))
 					continue;
 
-				// Write z buffer.
-				if (this._writeDepth)
-					this._activeBufferZ[index] = fragDepth; // TODO: fragmentVO.outputDepth?
-
 				// Process fragment shader.
 				var fragmentVO:ProgramVOSoftware = this._program.fragment(this, this._barycentric, this._barycentricRight, this._barycentricBottom, varying0, varying1, varying2, fragDepth);
 				if (fragmentVO.discard)
 					continue;
+
+				// Write z buffer.
+				if (this._writeDepth)
+					this._activeBufferZ[index] = fragDepth; // TODO: fragmentVO.outputDepth?
 
 				// Write to source and transform color space.
 				this._source[0] = fragmentVO.outputColor[0] * 0xFF;
