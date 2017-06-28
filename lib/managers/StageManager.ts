@@ -72,7 +72,7 @@ export class StageManager extends EventDispatcher
 			stage.requestContext(forceSoftware, profile, mode);
 		}
 
-		return stage;
+		return this._stages[index];
 	}
 
 	/**
