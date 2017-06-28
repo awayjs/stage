@@ -40,7 +40,7 @@ export class ContextWebGL implements IContextGL
 	private _container:HTMLElement;
 	private _width:number;
 	private _height:number;
-	private _drawing:boolean;
+	private _drawing:boolean = true;
 	private _blendEnabled:boolean;
 	private _blendSourceFactor:number;
 	private _blendDestinationFactor:number;
@@ -315,7 +315,7 @@ export class ContextWebGL implements IContextGL
 
 	public present():void
 	{
-		this._drawing = false;
+		//this._drawing = false;
 	}
 
 	public setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor):void
@@ -426,7 +426,7 @@ export class ContextWebGL implements IContextGL
 		}
 
 		this._gl.enable(this._gl.SCISSOR_TEST);
-		this._gl.scissor(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+		this._gl.scissor(rectangle.x, this._height - rectangle.y - rectangle.height, rectangle.width, rectangle.height);
 	}
 
 	public setTextureAt(sampler:number, texture:TextureBaseWebGL):void
