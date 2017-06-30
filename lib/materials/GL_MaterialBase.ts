@@ -144,6 +144,9 @@ export class GL_MaterialBase extends AbstractionBase
 	{
 		super.onClear(event);
 
+		this._material.removeEventListener(MaterialEvent.INVALIDATE_ANIMATION, this._onInvalidateAnimationDelegate);
+		this._material.removeEventListener(MaterialEvent.INVALIDATE_PASSES, this._onInvalidatePassesDelegate);
+
 		this._material = null;
 		this._elementsClass = null;
 		this._stage = null;
