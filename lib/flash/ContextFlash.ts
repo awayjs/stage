@@ -30,7 +30,7 @@ export class ContextFlash implements IContextGL
 
 	public _iDriverInfo;
 
-	private _container:HTMLElement;
+	private _container:HTMLCanvasElement;
 	private _width:number;
 	private _height:number;
 	private _cmdStream:string = "";
@@ -53,7 +53,7 @@ export class ContextFlash implements IContextGL
 
 	}
 
-	public get container():HTMLElement
+	public get container():HTMLCanvasElement
 	{
 		return this._container;
 	}
@@ -77,6 +77,11 @@ export class ContextFlash implements IContextGL
 
 		this.addStream(String.fromCharCode(OpCodes.enableErrorChecking, value? OpCodes.trueValue : OpCodes.falseValue));
 		this.execute();
+	}
+
+	public get pixelRatio():number
+	{
+		return 1;
 	}
 
 	//TODO: get rid of hack that fixes including definition file

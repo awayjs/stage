@@ -68,7 +68,7 @@ export class ContextGLES implements IContextGL
 		ContextGLES._soundBytes.writeInt(id);
 	}
 	
-	private _container:HTMLElement;
+	private _container:HTMLCanvasElement;
 	private _width:number;
 	private _height:number;
 	private _drawing:boolean;
@@ -105,7 +105,7 @@ export class ContextGLES implements IContextGL
 	public static modulo:number = 0;
 
 
-	public get container():HTMLElement
+	public get container():HTMLCanvasElement
 	{
 		return this._container;
 	}
@@ -113,6 +113,12 @@ export class ContextGLES implements IContextGL
 	{
 		return this._standardDerivatives;
 	}
+
+	public get pixelRatio():number
+	{
+		return 1;
+	}
+
 	constructor(canvas:HTMLCanvasElement)
 	{
 		this._container = canvas;

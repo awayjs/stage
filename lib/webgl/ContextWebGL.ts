@@ -37,7 +37,7 @@ export class ContextWebGL implements IContextGL
 	private _mipmapFilterDictionary:Object = new Object();
 	private _vertexBufferPropertiesDictionary:Array<VertexBufferProperties> = [];
 
-	private _container:HTMLElement;
+	private _container:HTMLCanvasElement;
 	private _width:number;
 	private _height:number;
 	private _drawing:boolean = true;
@@ -65,16 +65,23 @@ export class ContextWebGL implements IContextGL
     private _stencilReferenceValue : number = 0;
     private _stencilReadMask : number = 0xff;
     private _separateStencil : boolean = false;
+    private _pixelRatio:number;
 
+    public get pixelRatio():number
+	{
+		return this._pixelRatio;
+	}
 
-	public get container():HTMLElement
+	public get container():HTMLCanvasElement
 	{
 		return this._container;
 	}
+
 	public get standardDerivatives():boolean
 	{
 		return this._standardDerivatives;
 	}
+
 	constructor(canvas:HTMLCanvasElement)
 	{
 		this._container = canvas;
@@ -189,6 +196,16 @@ export class ContextWebGL implements IContextGL
             this._stencilCompareMode = this._gl.ALWAYS;
             this._stencilCompareModeBack = this._gl.ALWAYS;
             this._stencilCompareModeFront = this._gl.ALWAYS;
+
+			var dpr:number = window.devicePixelRatio || 1;
+
+			var bsr:number = this._gl["webkitBackingStorePixelRatio"] ||
+				this._gl["mozBackingStorePixelRatio"] ||
+				this._gl["msBackingStorePixelRatio"] ||
+				this._gl["oBackingStorePixelRatio"] ||
+				this._gl["backingStorePixelRatio"] || 1;
+
+            this._pixelRatio = dpr / bsr;
 		} else {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 			alert("WebGL is not available.");
@@ -228,18 +245,18 @@ export class ContextWebGL implements IContextGL
 
 	public configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil:boolean = true):void
 	{
-		this._width = width;
-		this._height = height;
+		this._width = width*this._pixelRatio;
+		this._height = height*this._pixelRatio;
 
 		if (enableDepthAndStencil) {
 			this._gl.enable(this._gl.STENCIL_TEST);
 			this._gl.enable(this._gl.DEPTH_TEST);
 		}
 
-		this._gl.viewport['width'] = width;
-		this._gl.viewport['height'] = height;
+		this._gl.viewport['width'] = this._width;
+		this._gl.viewport['height'] = this._height;
 
-		this._gl.viewport(0, 0, width, height);
+		this._gl.viewport(0, 0, this._width, this._height);
 	}
 
 	public createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureWebGL
@@ -426,7 +443,7 @@ export class ContextWebGL implements IContextGL
 		}
 
 		this._gl.enable(this._gl.SCISSOR_TEST);
-		this._gl.scissor(rectangle.x, this._height - rectangle.y - rectangle.height, rectangle.width, rectangle.height);
+		this._gl.scissor(rectangle.x*this._pixelRatio, this._height - (rectangle.y + rectangle.height)*this._pixelRatio, rectangle.width*this._pixelRatio, rectangle.height*this._pixelRatio);
 	}
 
 	public setTextureAt(sampler:number, texture:TextureBaseWebGL):void

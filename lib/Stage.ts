@@ -38,7 +38,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool:ProgramDataPool;
 	private _context:IContextGL;
-	private _container:HTMLElement;
+	private _container:HTMLCanvasElement;
 	private _width:number;
 	private _height:number;
 	private _x:number = 0;
@@ -194,18 +194,18 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 		try {
 			if (mode == ContextMode.FLASH)
-				new ContextFlash(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+				new ContextFlash(this._container, (context:IContextGL) => this._callback(context));
 			else if (mode == ContextMode.SOFTWARE)
-				this._context = new ContextSoftware(<HTMLCanvasElement> this._container);
+				this._context = new ContextSoftware(this._container);
 			else if (mode == ContextMode.GLES)
-				this._context = new ContextGLES(<HTMLCanvasElement> this._container);
+				this._context = new ContextGLES(this._container);
 			else
-				this._context = new ContextWebGL(<HTMLCanvasElement> this._container);
+				this._context = new ContextWebGL(this._container);
 
 		} catch (e) {
 			try {
 				if (mode == ContextMode.AUTO)
-					new ContextFlash(<HTMLCanvasElement> this._container, (context:IContextGL) => this._callback(context));
+					new ContextFlash(this._container, (context:IContextGL) => this._callback(context));
 				else
 					this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 			} catch (e) {
@@ -231,7 +231,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		if (this._width == val)
 			return;
 
-		CSS.setElementWidth(this._container, val);
+		this._container.style.width = val + "px";
+		this._container.width = val*this._context.pixelRatio;
 
 		this._width = this._viewPort.width = val;
 
@@ -253,7 +254,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		if (this._height == val)
 			return;
 
-		CSS.setElementHeight(this._container, val);
+		this._container.style.height = val + "px";
+		this._container.height = val*this._context.pixelRatio;
 
 		this._height = this._viewPort.height = val;
 

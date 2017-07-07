@@ -86,6 +86,11 @@ export class ContextSoftware implements IContextGL
 
 	private _antialias:number = 0;
 
+	public get pixelRatio():number
+	{
+		return 1;
+	}
+
 	constructor(canvas:HTMLCanvasElement)
 	{
 
@@ -770,7 +775,7 @@ export class ContextSoftware implements IContextGL
 		return this._frontBuffer;
 	}
 
-	public get container():HTMLElement
+	public get container():HTMLCanvasElement
 	{
 		return this._canvas;
 	}

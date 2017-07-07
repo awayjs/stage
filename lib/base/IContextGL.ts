@@ -23,7 +23,9 @@ import {IVertexBuffer} from "./IVertexBuffer";
 
 export interface IContextGL
 {
-	container:HTMLElement;
+	pixelRatio:number;
+
+	container:HTMLCanvasElement;
 
 	clear(red?:number, green?:number, blue?:number, alpha?:number, depth?:number, stencil?:number, mask?:number);
 
