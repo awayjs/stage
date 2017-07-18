@@ -144,13 +144,6 @@ export class GL_MaterialBase extends AbstractionBase
 	{
 		super.onClear(event);
 
-		this._material.removeEventListener(MaterialEvent.INVALIDATE_ANIMATION, this._onInvalidateAnimationDelegate);
-		this._material.removeEventListener(MaterialEvent.INVALIDATE_PASSES, this._onInvalidatePassesDelegate);
-
-		this._material = null;
-		this._elementsClass = null;
-		this._stage = null;
-
 		var len:number = this._passes.length;
 		for (var i:number = 0; i < len; i++) {
 			this._passes[i].removeEventListener(PassEvent.INVALIDATE, this._onPassInvalidateDelegate);
@@ -158,6 +151,13 @@ export class GL_MaterialBase extends AbstractionBase
 		}
 
 		this._passes = null;
+
+		this._material.removeEventListener(MaterialEvent.INVALIDATE_ANIMATION, this._onInvalidateAnimationDelegate);
+		this._material.removeEventListener(MaterialEvent.INVALIDATE_PASSES, this._onInvalidatePassesDelegate);
+
+		this._material = null;
+		this._elementsClass = null;
+		this._stage = null;
 	}
 
 	/**
