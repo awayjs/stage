@@ -327,6 +327,11 @@ export class ContextWebGL implements IContextGL
 		// 	this._gl.drawArrays(this._gl.LINE_LOOP, firstVertex+i, 3);
 		// }
 
+		// todo: this check should not be needed.
+		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
+		if(numVertices==0)
+			return;
+
 		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
 	}
 
