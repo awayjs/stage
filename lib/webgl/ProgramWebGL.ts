@@ -26,8 +26,12 @@ export class ProgramWebGL implements IProgram
 
 	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
-		var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram));
-		var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram));
+		//detect whether highp can be used
+		var vertexPrecision:string = (this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT).precision != 0)? "highp" : "mediump";
+		var fragmentPrecision:string = (this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT).precision != 0)? "highp" : "mediump";
+
+		var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram), vertexPrecision);
+		var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
 
 		this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 		this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
