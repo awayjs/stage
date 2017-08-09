@@ -34,8 +34,12 @@ export class ProgramGLES extends GLESAssetBase implements IProgram
 
 	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
-		var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram));
-		var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram));
+		//detect whether highp can be used
+		var vertexPrecision:string = (this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT).precision != 0)? "highp" : "mediump";
+		var fragmentPrecision:string = (this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT).precision != 0)? "highp" : "mediump";
+
+		var vertexString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(vertexProgram), vertexPrecision);
+		var fragmentString:string = ProgramGLES._aglslParser.parse(ProgramGLES._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
 		//(String.fromCharCode(OpCodes.uploadProgram)+""+this.id + "###"+vertexString +  "###" + fragmentString + "#END");
 
 		var newSendbytes=new Byte32Array();
