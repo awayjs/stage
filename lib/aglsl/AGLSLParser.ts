@@ -9,12 +9,12 @@ export class AGLSLParser
 	public static maxstreams:number = 8;
 	public static maxtextures:number = 8;
 	
-	public parse(desc:Description):string
+	public parse(desc:Description, precision:string):string
 	{
 		var header:string = "";
 		var body:string = "";
 
-		header += "precision highp float;\n";
+		header += "precision " + precision + " float;\n";
 		var tag = desc.header.type[0]; //TODO
 
 		// declare uniforms
