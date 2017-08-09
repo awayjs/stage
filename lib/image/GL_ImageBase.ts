@@ -22,7 +22,7 @@ export class GL_ImageBase extends AbstractionBase
 
 	public _invalidMipmaps:boolean = true;
 
-	private _onInvalidateMipmapsDelegate:(event:AssetEvent) => void;
+	private _onInvalidateMipmapsDelegate:(event:ImageEvent) => void;
 
 	public getTexture():ITextureBase
 	{
@@ -40,7 +40,7 @@ export class GL_ImageBase extends AbstractionBase
 
 		this._stage = stage;
 
-		this._onInvalidateMipmapsDelegate = (event:AssetEvent) => this.onInvalidateMipmaps(event);
+		this._onInvalidateMipmapsDelegate = (event:ImageEvent) => this.onInvalidateMipmaps(event);
 
 		this._asset.addEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
 	}
