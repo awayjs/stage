@@ -1,5 +1,7 @@
 import {AbstractMethodError, AssetEvent, IAsset, AbstractionBase} from "@awayjs/core";
 
+import {ImageEvent} from "@awayjs/graphics";
+
 import {ITextureBase} from "../base/ITextureBase";
 
 import {Stage} from "../Stage";
@@ -18,7 +20,11 @@ export class GL_ImageBase extends AbstractionBase
 
 	public _stage:Stage;
 
-	public get texture():ITextureBase
+	public _invalidMipmaps:boolean = true;
+
+	private _onInvalidateMipmapsDelegate:(event:AssetEvent) => void;
+
+	public getTexture():ITextureBase
 	{
 		if (!this._texture) {
 			this._createTexture();
@@ -33,6 +39,10 @@ export class GL_ImageBase extends AbstractionBase
 		super(asset, stage);
 
 		this._stage = stage;
+
+		this._onInvalidateMipmapsDelegate = (event:AssetEvent) => this.onInvalidateMipmaps(event);
+
+		this._asset.addEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
 	}
 
 	/**
@@ -50,11 +60,19 @@ export class GL_ImageBase extends AbstractionBase
 
 	public activate(index:number, mipmap:boolean):void
 	{
-		this._stage.context.setTextureAt(index, this._texture);
+		this._stage.context.setTextureAt(index, this.getTexture());
 	}
 
 	public _createTexture():void
 	{
 		throw new AbstractMethodError();
+	}
+
+	/**
+	 *
+	 */
+	public onInvalidateMipmaps(event:ImageEvent):void
+	{
+		this._invalidMipmaps = true;
 	}
 }

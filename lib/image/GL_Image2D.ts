@@ -9,6 +9,27 @@ import {GL_ImageBase} from "../image/GL_ImageBase";
  */
 export class GL_Image2D extends GL_ImageBase
 {
+
+	public activate(index:number, mipmap:boolean):void
+	{
+		super.activate(index, mipmap);
+
+		if (mipmap && this._stage.globalDisableMipmap)
+			mipmap = false;
+
+		if (!this._mipmap && mipmap) {
+			this._mipmap = true;
+			this._invalidMipmaps = true;
+		}
+
+		if (this._invalidMipmaps) {
+			this._invalidMipmaps = false;
+
+			if (mipmap) //todo: allow for non-generated mipmaps
+				this._texture.generateMipmaps();
+		}
+	}
+
 	/**
 	 *
 	 * @param context
