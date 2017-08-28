@@ -87,7 +87,6 @@ export class ContextWebGL implements IContextGL
 		this._container = canvas;
 
 		var props:WebGLContextAttributes = {
-			premultipliedAlpha:false,
 			alpha:false,
 			stencil:true
 		};
@@ -252,9 +251,6 @@ export class ContextWebGL implements IContextGL
 			this._gl.enable(this._gl.STENCIL_TEST);
 			this._gl.enable(this._gl.DEPTH_TEST);
 		}
-
-		this._gl.viewport['width'] = this._width;
-		this._gl.viewport['height'] = this._height;
 
 		this._gl.viewport(0, 0, this._width, this._height);
 	}
