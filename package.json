@@ -1,6 +1,6 @@
 {
   "name": "@awayjs/stage",
-  "version": "0.8.67",
+  "version": "0.9.0",
   "description": "Stage for AwayJS",
   "main": "bundle/awayjs-stage.umd.js",
   "types": "dist/index.d.ts",
@@ -36,8 +36,8 @@
   },
   "homepage": "https://github.com/awayjs/stage#readme",
   "dependencies": {
-    "@awayjs/core": "^0.6.0",
-    "@awayjs/graphics": "^0.1.0",
+    "@awayjs/core": "^0.7.0",
+    "@awayjs/graphics": "^0.2.0",
     "tslib": "github:microsoft/tslib"
   },
   "devDependencies": {
