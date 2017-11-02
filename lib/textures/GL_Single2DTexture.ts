@@ -93,7 +93,7 @@ export class GL_Single2DTexture extends GL_TextureBase
 		var sampler:GL_Sampler2D = <GL_Sampler2D> this._shader.pass.samplers[this._imageIndex];
 		sampler.activate(this._textureIndex);
 
-		var image:GL_Image2D = this._shader.pass.images[this._imageIndex];
+		var image:GL_Image2D = <GL_Image2D> this._shader.pass.images[this._imageIndex];
 		image.activate(this._textureIndex, sampler._sampler.mipmap);
 
 		if (this._shader.useImageRect) {
@@ -122,7 +122,7 @@ export class GL_Single2DTexture extends GL_TextureBase
 		if (sampler)
 			sampler.activate(this._textureIndex);
 
-		var image:GL_Image2D = renderable.images[this._imageIndex];
+		var image:GL_Image2D = <GL_Image2D> renderable.images[this._imageIndex];
 
 		if (image)
 			image.activate(this._textureIndex, sampler._sampler.mipmap);
