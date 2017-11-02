@@ -1,6 +1,6 @@
 import {AbstractMethodError, AssetEvent, IAsset, AbstractionBase} from "@awayjs/core";
 
-import {ImageEvent} from "@awayjs/graphics";
+import {ImageEvent, ImageBase, MapperBase} from "@awayjs/graphics";
 
 import {ITextureBase} from "../base/ITextureBase";
 
@@ -12,6 +12,8 @@ import {Stage} from "../Stage";
  */
 export class GL_ImageBase extends AbstractionBase
 {
+	private _mapper:MapperBase;
+
 	public usages:number = 0;
 
 	public _texture:ITextureBase;
@@ -22,7 +24,10 @@ export class GL_ImageBase extends AbstractionBase
 
 	public _invalidMipmaps:boolean = true;
 
+    public _invalidMapper:boolean = true;
+
 	private _onInvalidateMipmapsDelegate:(event:ImageEvent) => void;
+    private _onInvalidateMapperDelegate:(event:ImageEvent) => void;
 
 	public getTexture():ITextureBase
 	{
@@ -39,10 +44,16 @@ export class GL_ImageBase extends AbstractionBase
 		super(asset, stage);
 
 		this._stage = stage;
+        this._mapper = (<ImageBase> this._asset).mapper;
 
-		this._onInvalidateMipmapsDelegate = (event:ImageEvent) => this.onInvalidateMipmaps(event);
+        if (this._mapper)
+            this._stage._addMapper(this._mapper);
+
+		this._onInvalidateMipmapsDelegate = (event:ImageEvent) => this._onInvalidateMipmaps(event);
+        this._onInvalidateMapperDelegate = (event:ImageEvent) => this._onInvalidateMapper(event);
 
 		this._asset.addEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
+        this._asset.addEventListener(ImageEvent.INVALIDATE_MAPPER, this._onInvalidateMapperDelegate);
 	}
 
 	/**
@@ -63,7 +74,7 @@ export class GL_ImageBase extends AbstractionBase
 		this._stage.context.setTextureAt(index, this.getTexture());
 	}
 
-	public _createTexture():void
+	protected _createTexture():void
 	{
 		throw new AbstractMethodError();
 	}
@@ -71,8 +82,22 @@ export class GL_ImageBase extends AbstractionBase
 	/**
 	 *
 	 */
-	public onInvalidateMipmaps(event:ImageEvent):void
+	private _onInvalidateMipmaps(event:ImageEvent):void
 	{
 		this._invalidMipmaps = true;
 	}
+
+    /**
+     *
+     */
+    private _onInvalidateMapper(event:ImageEvent):void
+    {
+    	if (this._mapper)
+        	this._stage._removeMapper(this._mapper);
+
+        this._mapper = (<ImageBase> this._asset).mapper;
+
+        if (this._mapper)
+            this._stage._addMapper(this._mapper);
+    }
 }
