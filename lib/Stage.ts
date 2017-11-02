@@ -1,6 +1,6 @@
-import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, CSS} from "@awayjs/core";
+import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, CSS, ProjectionBase} from "@awayjs/core";
 
-import {ImageBase} from "@awayjs/graphics";
+import {ImageBase, IView, IRenderer, MapperBase} from "@awayjs/graphics";
 
 import {ContextMode} from "./base/ContextMode";
 import {ContextGLMipFilter} from "./base/ContextGLMipFilter";
@@ -34,6 +34,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	private static _abstractionClassPool:Object = new Object();
 
 	private _abstractionPool:Object = new Object();
+	private _mappers:Array<MapperBase> = new Array<MapperBase>();
 
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool:ProgramDataPool;
@@ -166,6 +167,23 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	public clearAbstraction(asset:IAsset):void
 	{
 		this._abstractionPool[asset.id] = null;
+	}
+
+	public _addMapper(mapper:MapperBase)
+	{
+		this._mappers.push(mapper)
+	}
+
+	public _removeMapper(mapper:MapperBase)
+	{
+        this._mappers.splice(this._mappers.indexOf(mapper), 1);
+	}
+
+	public _updateMappers(projection:ProjectionBase, view:IView, rootRenderer:IRenderer)
+	{
+		var len:number = this._mappers.length;
+		for (var i:number = 0; i < len; i++)
+			this._mappers[i].update(projection, view, rootRenderer);
 	}
 
 	/**
