@@ -1,10 +1,12 @@
 import {AssetEvent} from "@awayjs/core";
 
-import {MipmapGenerator, BitmapImage2D} from "@awayjs/graphics";
-
-import {ITextureBase} from "../base/ITextureBase";
+import {ITextureBase} from "../base/ITextureBase"
 import {ITexture} from "../base/ITexture";
-import {GL_Image2D} from "../image/GL_Image2D";
+
+import {BitmapImage2D} from "../image/BitmapImage2D";
+import {MipmapGenerator} from "../utils/MipmapGenerator";
+
+import {GL_Image2D} from "./GL_Image2D";
 
 /**
  *
@@ -19,7 +21,7 @@ export class GL_BitmapImage2D extends GL_Image2D
 		if (this._invalid) {
 			this._invalid = false;
 
-			(<ITexture> this._texture).uploadFromImage(<BitmapImage2D> this._asset, 0);
+			(<ITexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImage2D> this._asset).getImageData().data.buffer), 0);
 
 			this._invalidMipmaps = true;
 		}

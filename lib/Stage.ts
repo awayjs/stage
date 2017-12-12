@@ -1,6 +1,4 @@
-import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, CSS, ProjectionBase} from "@awayjs/core";
-
-import {ImageBase, IView, IRenderer, MapperBase} from "@awayjs/graphics";
+import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, IAbstractionClass, CSS, ProjectionBase} from "@awayjs/core";
 
 import {ContextMode} from "./base/ContextMode";
 import {ContextGLMipFilter} from "./base/ContextGLMipFilter";
@@ -9,14 +7,15 @@ import {ContextGLVertexBufferFormat} from "./base/ContextGLVertexBufferFormat";
 import {ContextGLWrapMode} from "./base/ContextGLWrapMode";
 import {ContextGLProfile} from "./base/ContextGLProfile";
 import {IContextGL} from "./base/IContextGL";
+import {ITextureBase} from "./base/ITextureBase";
 import {IVertexBuffer} from "./base/IVertexBuffer";
 import {StageEvent} from "./events/StageEvent";
-import {ContextFlash} from "./flash/ContextFlash";
 import {ContextGLES} from "./gles/ContextGLES";
+import {ImageBase} from "./image/ImageBase";
+import {ImageSampler} from "./image/ImageSampler";
 import {GL_ImageBase} from "./image/GL_ImageBase";
 import {ProgramData} from "./image/ProgramData";
 import {ProgramDataPool} from "./image/ProgramDataPool";
-import {GL_IAssetClass} from "./library/GL_IAssetClass";
 import {StageManager} from "./managers/StageManager";
 import {ContextSoftware} from "./software/ContextSoftware";
 import {ContextWebGL} from "./webgl/ContextWebGL";
@@ -34,7 +33,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	private static _abstractionClassPool:Object = new Object();
 
 	private _abstractionPool:Object = new Object();
-	private _mappers:Array<MapperBase> = new Array<MapperBase>();
 
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool:ProgramDataPool;
@@ -157,7 +155,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public getAbstraction(asset:IAsset):AbstractionBase
 	{
-		return (this._abstractionPool[asset.id] || (this._abstractionPool[asset.id] = new (<GL_IAssetClass> Stage._abstractionClassPool[asset.assetType])(asset, this)));
+		return (this._abstractionPool[asset.id] || (this._abstractionPool[asset.id] = new (<IAbstractionClass> Stage._abstractionClassPool[asset.assetType])(asset, this)));
 	}
 
 	/**
@@ -169,30 +167,13 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._abstractionPool[asset.id] = null;
 	}
 
-	public _addMapper(mapper:MapperBase)
-	{
-		this._mappers.push(mapper)
-	}
-
-	public _removeMapper(mapper:MapperBase)
-	{
-        this._mappers.splice(this._mappers.indexOf(mapper), 1);
-	}
-
-	public _updateMappers(projection:ProjectionBase, view:IView, rootRenderer:IRenderer)
-	{
-		var len:number = this._mappers.length;
-		for (var i:number = 0; i < len; i++)
-			this._mappers[i].update(projection, view, rootRenderer);
-	}
-
 	/**
 	 *
 	 * @param imageObjectClass
 	 */
-	public static registerAbstraction(gl_assetClass:GL_IAssetClass, assetClass:IAssetClass):void
+	public static registerAbstraction(abstractionClass:IAbstractionClass, assetClass:IAssetClass):void
 	{
-		Stage._abstractionClassPool[assetClass.assetType] = gl_assetClass;
+		Stage._abstractionClassPool[assetClass.assetType] = abstractionClass;
 	}
 
 	/**
@@ -211,25 +192,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._profile = profile;
 
 		try {
-			if (mode == ContextMode.FLASH)
-				new ContextFlash(this._container, (context:IContextGL) => this._callback(context));
-			else if (mode == ContextMode.SOFTWARE)
+			if (mode == ContextMode.SOFTWARE)
 				this._context = new ContextSoftware(this._container);
 			else if (mode == ContextMode.GLES)
 				this._context = new ContextGLES(this._container);
 			else
 				this._context = new ContextWebGL(this._container);
-
 		} catch (e) {
-			try {
-				if (mode == ContextMode.AUTO)
-					new ContextFlash(this._container, (context:IContextGL) => this._callback(context));
-				else
-					this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
-			} catch (e) {
-				this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
-			}
-
+			this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 		}
 
 		if (this._context)
@@ -407,11 +377,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	{
 		this._enableDepthAndStencil = enableDepthAndStencil;
 		this._backBufferDirty = true;
-	}
-
-	public get renderTarget():ImageBase
-	{
-		return this._renderTarget;
 	}
 
 	public get renderSurfaceSelector():number
@@ -607,11 +572,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned? size + 4 : size][dimensions]);
 	}
 
-	public setSamplerState(index:number, repeat:boolean, smooth:boolean, mipmap:boolean):void
+	public setSamplerAt(index:number, sampler:ImageSampler):void
 	{
-		var wrap:ContextGLWrapMode = repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
-		var filter:ContextGLTextureFilter = (smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
-		var mipfilter:ContextGLMipFilter = (mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
+		var wrap:ContextGLWrapMode = sampler.repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
+		var filter:ContextGLTextureFilter = (sampler.smooth && !this.globalDisableSmooth)? ContextGLTextureFilter.LINEAR : ContextGLTextureFilter.NEAREST;
+		var mipfilter:ContextGLMipFilter = (sampler.mipmap && !this.globalDisableMipmap) ? ContextGLMipFilter.MIPLINEAR : ContextGLMipFilter.MIPNONE;
 
 		this._context.setSamplerStateAt(index, wrap, filter, mipfilter);
 	}

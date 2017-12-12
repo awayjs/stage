@@ -1,5 +1,5 @@
 import {IVertexBuffer} from "../base/IVertexBuffer";
-import {OpCodes} from "../flash/OpCodes";
+import {OpCodes} from "./OpCodes";
 import {GLESAssetBase} from "./GLESAssetBase";
 import {ContextGLES} from "./ContextGLES";
 import {GLESConnector} from "./GLESConnector";

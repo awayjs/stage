@@ -1,8 +1,11 @@
 import {AbstractMethodError, AssetEvent, IAsset, AbstractionBase} from "@awayjs/core";
 
-import {ImageEvent, ImageBase, MapperBase} from "@awayjs/graphics";
-
 import {ITextureBase} from "../base/ITextureBase";
+import {ImageEvent} from "../events/ImageEvent";
+import {ImageUtils} from "../utils/ImageUtils";
+
+import {ImageBase} from "./ImageBase";
+import {ImageSampler} from "./ImageSampler";
 
 import {Stage} from "../Stage";
 
@@ -12,8 +15,6 @@ import {Stage} from "../Stage";
  */
 export class GL_ImageBase extends AbstractionBase
 {
-	private _mapper:MapperBase;
-
 	public usages:number = 0;
 
 	public _texture:ITextureBase;
@@ -27,7 +28,6 @@ export class GL_ImageBase extends AbstractionBase
     public _invalidMapper:boolean = true;
 
 	private _onInvalidateMipmapsDelegate:(event:ImageEvent) => void;
-    private _onInvalidateMapperDelegate:(event:ImageEvent) => void;
 
 	public getTexture():ITextureBase
 	{
@@ -39,21 +39,20 @@ export class GL_ImageBase extends AbstractionBase
 		return this._texture;
 	}
 
+	public getType():string
+	{
+		throw new AbstractMethodError();
+	}
+
 	constructor(asset:IAsset, stage:Stage)
 	{
 		super(asset, stage);
 
 		this._stage = stage;
-        this._mapper = (<ImageBase> this._asset).mapper;
-
-        if (this._mapper)
-            this._stage._addMapper(this._mapper);
 
 		this._onInvalidateMipmapsDelegate = (event:ImageEvent) => this._onInvalidateMipmaps(event);
-        this._onInvalidateMapperDelegate = (event:ImageEvent) => this._onInvalidateMapper(event);
 
 		this._asset.addEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
-        this._asset.addEventListener(ImageEvent.INVALIDATE_MAPPER, this._onInvalidateMapperDelegate);
 	}
 
 	/**
@@ -69,9 +68,27 @@ export class GL_ImageBase extends AbstractionBase
 		}
 	}
 
-	public activate(index:number, mipmap:boolean):void
+	public activate(index:number, sampler:ImageSampler = null):void
 	{
-		this._stage.context.setTextureAt(index, this.getTexture());
+        if (!sampler)
+            sampler = ImageUtils.getDefaultSampler();
+
+        var mipmap:boolean = (sampler.mipmap && !this._stage.globalDisableMipmap)? sampler.mipmap : false;
+
+        this._stage.setSamplerAt(index, sampler);
+        this._stage.context.setTextureAt(index, this.getTexture());
+
+        if (!this._mipmap && mipmap) {
+            this._mipmap = true;
+            this._invalidMipmaps = true;
+        }
+
+        if (this._invalidMipmaps) {
+            this._invalidMipmaps = false;
+
+            if (mipmap) //todo: allow for non-generated mipmaps
+                this._texture.generateMipmaps();
+        }
 	}
 
 	protected _createTexture():void
@@ -86,18 +103,4 @@ export class GL_ImageBase extends AbstractionBase
 	{
 		this._invalidMipmaps = true;
 	}
-
-    /**
-     *
-     */
-    private _onInvalidateMapper(event:ImageEvent):void
-    {
-    	if (this._mapper)
-        	this._stage._removeMapper(this._mapper);
-
-        this._mapper = (<ImageBase> this._asset).mapper;
-
-        if (this._mapper)
-            this._stage._addMapper(this._mapper);
-    }
 }

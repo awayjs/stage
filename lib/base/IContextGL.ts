@@ -1,7 +1,6 @@
 import {Rectangle, CoordinateSystem} from "@awayjs/core";
 
-import {BitmapImage2D} from "@awayjs/graphics";
-
+import {BitmapImage2D} from "../image/BitmapImage2D";
 import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
 import {ContextGLClearMask} from "../base/ContextGLClearMask";
 import {ContextGLCompareMode} from "../base/ContextGLCompareMode";

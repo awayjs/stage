@@ -5,7 +5,6 @@ import {ShaderRegisterElement} from "./ShaderRegisterElement";
  */
 export class ShaderRegisterData
 {
-	public uvVarying:ShaderRegisterElement;
 	public secondaryUVVarying:ShaderRegisterElement;
 	public shadowTarget:ShaderRegisterElement;
 	public shadedTarget:ShaderRegisterElement;
@@ -17,6 +16,10 @@ export class ShaderRegisterData
 
 	public curvesInput:ShaderRegisterElement;
 	public curvesVarying:ShaderRegisterElement;
+
+    public uvInput:ShaderRegisterElement;
+    public uvVarying:ShaderRegisterElement;
+    public animatedUV:ShaderRegisterElement;
 
 	public normalInput:ShaderRegisterElement;
 	public animatedNormal:ShaderRegisterElement;
@@ -42,8 +45,6 @@ export class ShaderRegisterData
 
 	public animatableAttributes:Array<ShaderRegisterElement> = new Array<ShaderRegisterElement>();
 	public animationTargetRegisters:Array<ShaderRegisterElement> = new Array<ShaderRegisterElement>();
-	public uvSource:ShaderRegisterElement;
-	public uvTarget:ShaderRegisterElement;
 
 	constructor()
 	{

@@ -1,7 +1,5 @@
 import {ByteArray} from "@awayjs/core";
 
-import {ImageCube} from "@awayjs/graphics";
-
 import {ICubeTexture} from "../base/ICubeTexture";
 
 import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
@@ -40,9 +38,9 @@ export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 		return this.textureType == textureClass.textureType;
 	}
 	
-	public uploadFromImage(imageCube:ImageCube, side:number, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0):void
 	{
-		this._textureSelectorDictionary[side][miplevel] = imageCube.getImageData(side).data;
+		this._textureSelectorDictionary[side][miplevel] = (array instanceof Array)? new Uint8Array(array) : array;
 	}
 
 	public getData(side:number, miplevel:number = 0):Uint8ClampedArray
@@ -60,7 +58,7 @@ export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 		//TODO
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number, async:boolean) {
+	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number, async:boolean) {
 		// TODO
 	}
 }

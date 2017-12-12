@@ -1,6 +1,6 @@
-import {ImageCube} from "@awayjs/graphics";
-
 import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+
+import {ImageCube} from "./ImageCube";
 import {GL_ImageBase} from "../image/GL_ImageBase";
 
 /**
@@ -9,7 +9,12 @@ import {GL_ImageBase} from "../image/GL_ImageBase";
  */
 export class GL_ImageCube extends GL_ImageBase
 {
-	/**
+    public getType():string
+    {
+        return "cube";
+    }
+
+    /**
 	 *
 	 * @param context
 	 * @returns {ITexture}

@@ -1,7 +1,5 @@
 import {ByteArray, URLRequest} from "@awayjs/core";
 
-import {Image2D, DefaultMaterialManager} from "@awayjs/graphics";
-
 import {ITexture} from "../base/ITexture";
 
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
@@ -58,10 +56,16 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		return this._frameBuffer;
 	}
 
-	public uploadFromImage(imageData:Image2D, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
 	{
+        if (array.length != this._width*this._height*4)
+            throw new Error("Array is not the correct length for texture dimensions");
+
+		if (array instanceof Array)
+            array = new Uint8Array(array);
+
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, imageData.getImageData());
+        this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
@@ -69,11 +73,11 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	{
 		//dummy code for testing
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, DefaultMaterialManager.getDefaultImage2D().getImageData());
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
+	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number, async:boolean = false):void
 	{
 		var ext:Object = this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
 		//this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)

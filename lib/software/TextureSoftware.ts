@@ -1,7 +1,5 @@
 import {URLRequest} from "@awayjs/core";
 
-import {Image2D} from "@awayjs/graphics";
-
 import {ITexture} from "../base/ITexture";
 
 import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
@@ -47,9 +45,9 @@ export class TextureSoftware implements ITexture, ITextureBaseSoftware
 	}
 	
 
-	public uploadFromImage(image2D:Image2D, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
 	{
-		this._mipLevels[miplevel] = image2D.getImageData().data;
+        this._mipLevels[miplevel] = (array instanceof Array)? new Uint8Array(array) : array;
 	}
 
 	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void

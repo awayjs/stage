@@ -1,6 +1,5 @@
 import {GL_Image2D} from "../image/GL_Image2D";
-import {ITextureBase} from "../base/ITextureBase";
-import {ITexture} from "../base/ITexture";
+
 /**
  *
  * @class away.pool.ImageObjectBase

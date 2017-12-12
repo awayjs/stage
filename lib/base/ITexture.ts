@@ -1,7 +1,5 @@
 import {URLRequest} from "@awayjs/core";
 
-import {Image2D} from "@awayjs/graphics";
-
 import {ITextureBase} from "./ITextureBase";
 
 export interface ITexture extends ITextureBase
@@ -10,7 +8,7 @@ export interface ITexture extends ITextureBase
 
 	height:number;
 
-	uploadFromImage(image2D:Image2D, miplevel?:number);
+	uploadFromArray(array:Uint8Array | Array<number>, miplevel?:number);
 
 	uploadFromURL(urlRequest:URLRequest, miplevel?:number);
 

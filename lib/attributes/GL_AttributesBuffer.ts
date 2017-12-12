@@ -1,11 +1,11 @@
-import {AttributesBuffer, AssetEvent, AbstractionBase} from "@awayjs/core";
+import {AssetEvent, AbstractionBase} from "@awayjs/core";
 
 import {IIndexBuffer} from "../base/IIndexBuffer";
 import {IVertexBuffer} from "../base/IVertexBuffer";
 import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
-
 import {Stage} from "../Stage";
 
+import {AttributesBuffer} from "./AttributesBuffer";
 /**
  *
  * @class away.pool.GL_AttributesBuffer

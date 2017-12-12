@@ -3,8 +3,8 @@ import {ByteArray} from "@awayjs/core";
 import {AGALTokenizer} from "../aglsl/AGALTokenizer";
 import {AGLSLParser} from "../aglsl/AGLSLParser";
 import {IProgram} from "../base/IProgram";
-import {OpCodes} from "../flash/OpCodes";
 
+import {OpCodes} from "./OpCodes";
 import {ContextGLES} from "./ContextGLES";
 import {GLESAssetBase} from "./GLESAssetBase";
 

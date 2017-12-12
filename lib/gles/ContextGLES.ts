@@ -1,7 +1,6 @@
 import {Rectangle, Byte32Array, CoordinateSystem} from "@awayjs/core";
 
-import {BitmapImage2D} from "@awayjs/graphics";
-
+import {BitmapImage2D} from "../image/BitmapImage2D";
 import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
 import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
 import {ContextGLClearMask} from "../base/ContextGLClearMask";
@@ -14,8 +13,8 @@ import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
 import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
 import {IContextGL} from "../base/IContextGL"
 import {SamplerState} from "../base/SamplerState";
-import {OpCodes} from "../flash/OpCodes";
 
+import {OpCodes} from "./OpCodes";
 import {CubeTextureGLES} from "./CubeTextureGLES";
 import {IndexBufferGLES} from "./IndexBufferGLES";
 import {ProgramGLES} from "./ProgramGLES";

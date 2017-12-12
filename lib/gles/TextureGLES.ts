@@ -1,10 +1,8 @@
 import {ByteArray, URLRequest} from "@awayjs/core";
 
-import {Image2D} from "@awayjs/graphics";
-
 import {ITexture} from "../base/ITexture";
-import {OpCodes} from "../flash/OpCodes";
 
+import {OpCodes} from "./OpCodes";
 import {TextureBaseGLES} from "./TextureBaseGLES";
 import {ContextGLES} from "./ContextGLES";
 
@@ -69,16 +67,22 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		return this._frameBuffer;
 	}
 
-	public uploadFromImage(image2D:Image2D, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
 	{
+        if (array.length != this._width*this._height*4)
+            throw new Error("Array is not the correct length for texture dimensions");
+
+        if (array instanceof Array)
+            array = new Uint8Array(array);
+
 		var newSendbytes=new Byte32Array();
 		newSendbytes.writeInt(1);//tells cpp that this is a create-bytes chunk
 		newSendbytes.writeInt(OpCodes.uploadBytesTexture | miplevel<<8);
 		newSendbytes.writeInt(this.id);
 		newSendbytes.writeFloat(this._width);
 		newSendbytes.writeFloat(this._height);
-		newSendbytes.writeInt(image2D.getImageData().data.buffer.byteLength);
-		newSendbytes.writeInt32Array(new Int32Array(image2D.getImageData().data.buffer));
+		newSendbytes.writeInt(array.buffer.byteLength);
+		newSendbytes.writeInt32Array(new Int32Array(array.buffer));
 		newSendbytes.bytePosition = 0;
 		var localInt32View = new Int32Array(newSendbytes.byteLength/4);
 		newSendbytes.readInt32Array(localInt32View);
@@ -100,9 +104,9 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
+	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number /*uint*/, async:boolean = false):void
 	{
-		//GLESConnector.gles.uploadCompressedTextureFromByteArray(this.id, data, byteArrayOffset, async);
+		//GLESConnector.gles.uploadCompressedTextureFromByteArray(this.id, data, offset, async);
 		// var ext:Object = this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
 		// //this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)
 	}

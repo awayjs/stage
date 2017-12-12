@@ -1,7 +1,5 @@
 import {ByteArray} from "@awayjs/core";
 
-import {ImageCube} from "@awayjs/graphics";
-
 import {ICubeTexture} from "../base/ICubeTexture";
 
 import {TextureBaseGLES} from "./TextureBaseGLES";
@@ -30,15 +28,21 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 		// this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromImage(imageCube:ImageCube, side:number, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0):void
 	{
+        if (array.length != this._size*this._size*4)
+            throw new Error("Array is not the correct length for texture dimensions");
+
+        if (array instanceof Array)
+            array = new Uint8Array(array);
+
 		//todo
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
 		// this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, data);
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 	}
 
-	public uploadCompressedTextureFromByteArray(data:ByteArray, byteArrayOffset:number /*uint*/, async:boolean = false):void
+	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number /*uint*/, async:boolean = false):void
 	{
 		//todo
 
