@@ -82,3 +82,33 @@ export class ImageCube extends ImageBase
 			throw new Error("Invalid dimension: Width and height must be power of 2 and cannot exceed 2048");
 	}
 }
+
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+
+import {_Stage_ImageBase} from "./ImageBase";
+
+import {Stage} from "../Stage";
+
+/**
+ *
+ * @class away.pool.GL_ImageCubeBase
+ */
+export class _Stage_ImageCube extends _Stage_ImageBase
+{
+    public getType():string
+    {
+        return "cube";
+    }
+
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    protected _createTexture():void
+    {
+        this._texture = this._stage.context.createCubeTexture((<ImageCube> this._asset).size, ContextGLTextureFormat.BGRA, false);
+    }
+}
+
+Stage.registerAbstraction(_Stage_ImageCube, ImageCube);

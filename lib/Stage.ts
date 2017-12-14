@@ -13,7 +13,7 @@ import {StageEvent} from "./events/StageEvent";
 import {ContextGLES} from "./gles/ContextGLES";
 import {ImageBase} from "./image/ImageBase";
 import {ImageSampler} from "./image/ImageSampler";
-import {GL_ImageBase} from "./image/GL_ImageBase";
+import {_Stage_ImageBase} from "./image/ImageBase";
 import {ProgramData} from "./image/ProgramData";
 import {ProgramDataPool} from "./image/ProgramDataPool";
 import {StageManager} from "./managers/StageManager";
@@ -146,7 +146,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._renderSurfaceSelector = surfaceSelector;
 		this._enableDepthAndStencil = enableDepthAndStencil;
 		if (target) {
-			this._context.setRenderToTexture((<GL_ImageBase> this.getAbstraction(target)).getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+			this._context.setRenderToTexture((<_Stage_ImageBase> this.getAbstraction(target)).getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector);
 		} else {
 			this._context.setRenderToBackBuffer();
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);

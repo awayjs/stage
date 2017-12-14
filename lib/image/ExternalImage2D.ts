@@ -52,3 +52,38 @@ export class ExternalImage2D extends Image2D
 		return t;
 	}
 }
+
+import {AssetEvent} from "@awayjs/core";
+
+import {ITextureBase} from "../base/ITextureBase"
+import {ITexture} from "../base/ITexture";
+
+import {MipmapGenerator} from "../utils/MipmapGenerator";
+
+import {_Stage_Image2D} from "./Image2D";
+
+import {Stage} from "../Stage";
+
+/**
+ *
+ * @class away.pool.ImageObjectBase
+ */
+export class _Stage_ExternalImage2D extends _Stage_Image2D
+{
+    public getTexture():ITextureBase
+    {
+        super.getTexture();
+
+        if (this._invalid) {
+            this._invalid = false;
+
+            (<ITexture> this._texture).uploadFromURL((<ExternalImage2D> this._asset).urlRequest, 0);
+
+            this._invalidMipmaps = true;
+        }
+
+        return this._texture;
+    }
+}
+
+Stage.registerAbstraction(_Stage_ExternalImage2D, ExternalImage2D);

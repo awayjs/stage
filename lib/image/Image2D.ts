@@ -127,3 +127,34 @@ export class Image2D extends ImageBase
 		throw new AbstractMethodError();
 	}
 }
+
+import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
+
+import {_Stage_ImageBase} from "./ImageBase";
+
+import {Stage} from "../Stage";
+
+/**
+ *
+ * @class away.pool.ImageStateBase
+ */
+export class _Stage_Image2D extends _Stage_ImageBase
+{
+
+    public getType():string
+    {
+        return "2d";
+    }
+
+    /**
+     *
+     * @param context
+     * @returns {ITexture}
+     */
+    protected _createTexture():void
+    {
+        this._texture = this._stage.context.createTexture((<Image2D> this._asset).width, (<Image2D> this._asset).height, ContextGLTextureFormat.BGRA, true);
+    }
+}
+
+Stage.registerAbstraction(_Stage_Image2D, Image2D);

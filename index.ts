@@ -16,18 +16,6 @@ export {Mapping} from "./lib/aglsl/Mapping";
 export {OpLUT} from "./lib/aglsl/OpLUT";
 export {Token} from "./lib/aglsl/Token";
 
-export {AttributesView}					from "./lib/attributes/AttributesView";
-export {AttributesBuffer}				from "./lib/attributes/AttributesBuffer";
-export {Byte4Attributes}				from "./lib/attributes/Byte4Attributes";
-export {Float1Attributes}				from "./lib/attributes/Float1Attributes";
-export {Float2Attributes}				from "./lib/attributes/Float2Attributes";
-export {Float3Attributes}				from "./lib/attributes/Float3Attributes";
-export {Float4Attributes}				from "./lib/attributes/Float4Attributes";
-export {Short2Attributes}				from "./lib/attributes/Short2Attributes";
-export {Short3Attributes}				from "./lib/attributes/Short3Attributes";
-
-export {GL_AttributesBuffer} from "./lib/attributes/GL_AttributesBuffer";
-
 export {ContextGLBlendFactor} from "./lib/base/ContextGLBlendFactor";
 export {ContextGLClearMask} from "./lib/base/ContextGLClearMask";
 export {ContextGLCompareMode} from "./lib/base/ContextGLCompareMode";
@@ -54,30 +42,21 @@ export {SamplerState} from "./lib/base/SamplerState";
 export {ImageEvent} from "./lib/events/ImageEvent";
 export {StageEvent} from "./lib/events/StageEvent";
 
-export {BitmapImage2D} from "./lib/image/BitmapImage2D";
+export {BitmapImage2D, _Stage_BitmapImage2D} from "./lib/image/BitmapImage2D";
 export {BitmapImageChannel} from "./lib/image/BitmapImageChannel";
-export {BitmapImageCube} from "./lib/image/BitmapImageCube";
+export {BitmapImageCube, _Stage_BitmapImageCube} from "./lib/image/BitmapImageCube";
 export {BlendMode} from "./lib/image/BlendMode";
 export {CPUCanvas} from "./lib/image/CPUCanvas";
 export {CPURenderingContext2D} from "./lib/image/CPURenderingContext2D";
-export {ExternalImage2D} from "./lib/image/ExternalImage2D";
+export {ExternalImage2D, _Stage_ExternalImage2D} from "./lib/image/ExternalImage2D";
 export {IImageCanvas} from "./lib/image/IImageCanvas";
-export {Image2D} from "./lib/image/Image2D";
-export {ImageBase} from "./lib/image/ImageBase";
-export {ImageCube} from "./lib/image/ImageCube";
+export {Image2D, _Stage_Image2D} from "./lib/image/Image2D";
+export {ImageBase, _Stage_ImageBase} from "./lib/image/ImageBase";
+export {ImageCube, _Stage_ImageCube} from "./lib/image/ImageCube";
 export {ImageData} from "./lib/image/ImageData";
 export {ImageSampler} from "./lib/image/ImageSampler";
 export {SpecularImage2D} from "./lib/image/SpecularImage2D";
 //export {VideoSourceImage2D} from "./lib/image/VideoSourceImage2D";
-
-export {GL_BitmapImage2D} from "./lib/image/GL_BitmapImage2D";
-export {GL_ExternalImage2D} from "./lib/image/GL_ExternalImage2D";
-export {GL_BitmapImageCube} from "./lib/image/GL_BitmapImageCube";
-export {GL_Image2D} from "./lib/image/GL_Image2D";
-export {GL_ImageBase} from "./lib/image/GL_ImageBase";
-export {GL_ImageCube} from "./lib/image/GL_ImageCube";
-export {GL_RenderImage2D} from "./lib/image/GL_RenderImage2D";
-export {GL_RenderImageCube} from "./lib/image/GL_RenderImageCube";
 
 export {DefaultGraphicsFactory} from "./lib/factories/DefaultGraphicsFactory";
 export {IGraphicsFactory} from "./lib/factories/IGraphicsFactory";
@@ -127,5 +106,15 @@ export {VertexBufferWebGL} from "./lib/webgl/VertexBufferWebGL";
 export {BitmapImageUtils} from "./lib/utils/BitmapImageUtils";
 export {ImageUtils} from "./lib/utils/ImageUtils";
 export {MipmapGenerator} from "./lib/utils/MipmapGenerator";
+
+export {AttributesView} from "./lib/attributes/AttributesView";
+export {AttributesBuffer, _Stage_AttributesBuffer} from "./lib/attributes/AttributesBuffer";
+export {Byte4Attributes} from "./lib/attributes/Byte4Attributes";
+export {Float1Attributes} from "./lib/attributes/Float1Attributes";
+export {Float2Attributes} from "./lib/attributes/Float2Attributes";
+export {Float3Attributes} from "./lib/attributes/Float3Attributes";
+export {Float4Attributes} from "./lib/attributes/Float4Attributes";
+export {Short2Attributes} from "./lib/attributes/Short2Attributes";
+export {Short3Attributes} from "./lib/attributes/Short3Attributes";
 
 export {Stage} from "./lib/Stage";
