@@ -76,14 +76,23 @@ export class ContextWebGL implements IContextGL
 		return this._container;
 	}
 
+	public set container(value:HTMLCanvasElement)
+	{
+		this._container=value;
+		this.initWebGL();
+	}
+
 	public get standardDerivatives():boolean
 	{
 		return this._standardDerivatives;
 	}
 
-	constructor(canvas:HTMLCanvasElement)
-	{
+	constructor(canvas:HTMLCanvasElement) {
 		this._container = canvas;
+		this.initWebGL();
+	}
+
+	private initWebGL(){
 
 		var props:WebGLContextAttributes = {
 			alpha:false,
@@ -91,10 +100,10 @@ export class ContextWebGL implements IContextGL
 		};
 
 		try {
-			this._gl = <WebGLRenderingContext> canvas.getContext("experimental-webgl", props);
+			this._gl = <WebGLRenderingContext> this._container.getContext("experimental-webgl", props);
 
 			if (!this._gl)
-				this._gl = <WebGLRenderingContext> canvas.getContext("webgl", props);
+				this._gl = <WebGLRenderingContext> this._container.getContext("webgl", props);
 		} catch (e) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 		}

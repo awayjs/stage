@@ -302,6 +302,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		return CSS.getElementVisibility(this._container);
 	}
 
+	public set container(value:HTMLElement)
+	{
+		this._container=<HTMLCanvasElement>value;
+		if(this._context){
+			this._context.container=this._container;
+		}
+
+	}
 	public get container():HTMLElement
 	{
 		return this._container;

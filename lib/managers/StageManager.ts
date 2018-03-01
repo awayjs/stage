@@ -15,6 +15,8 @@ export class StageManager extends EventDispatcher
 	private static STAGE_MAX_QUANTITY:number = 8;
 	private _stages:Array<Stage>;
 
+	public static htmlCanvas:HTMLCanvasElement = null;
+
 	private static _instance:StageManager;
 	private static _numStages:number = 0;
 	private _onContextCreatedDelegate:(event:StageEvent) => void;
@@ -62,10 +64,13 @@ export class StageManager extends EventDispatcher
 		if (!this._stages[index]) {
 			StageManager._numStages++;
 
-			if(document) {
+			if(document && StageManager.htmlCanvas==null) {
 				var canvas:HTMLCanvasElement = document.createElement("canvas");
 				canvas.id = "stage" + index;
 				document.body.appendChild(canvas);
+			}
+			else if (StageManager.htmlCanvas){
+				var canvas:HTMLCanvasElement = StageManager.htmlCanvas;
 			}
 			var stage:Stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
 			stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
