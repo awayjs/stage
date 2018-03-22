@@ -164,7 +164,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	 */
 	public clearAbstraction(asset:IAsset):void
 	{
-		this._abstractionPool[asset.id] = null;
+		delete this._abstractionPool[asset.id];
 	}
 
 	/**
