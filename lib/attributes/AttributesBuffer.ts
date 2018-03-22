@@ -137,6 +137,15 @@ export class AttributesBuffer extends AssetBase
 		}
 	}
 
+	public cloneBufferView():AttributesBuffer
+	{
+		var attributesBuffer:AttributesBuffer = new AttributesBuffer(this._stride, this._count);
+		
+		attributesBuffer.bufferView.set(this.bufferView);
+
+		return attributesBuffer;
+	}
+
 	public clone():AttributesBuffer
 	{
 		var attributesBuffer:AttributesBuffer = new AttributesBuffer(this._stride, this._count);
@@ -216,7 +225,7 @@ export class AttributesBuffer extends AssetBase
 			viewVO.view._index = i;
 		}
 
-		this._newStride = viewVO.offset + viewVO.length;
+		this._newStride = len? this._viewVOs[len - 1].offset + this._viewVOs[len - 1].length : 0;
 
 		this.resize();
 	}
@@ -244,22 +253,24 @@ export class AttributesBuffer extends AssetBase
 			var vOffset:number;
 			var vOldOffset:number;
 
-			if (this._stride != this._newStride) {
-				for (i = 0; i < len; i++) {
-					viewVO = this._viewVOs[i];
-					vLength = viewVO.length;
-					vOffset = viewVO.offset;
-					vOldOffset = viewVO.oldOffset;
-					for (j = 0; j < this._count; j++)
-						if (vOldOffset != null)
-							newView.set(new Uint8Array(this._buffer, j*this._stride + vOldOffset, vLength), j*this._newStride + vOffset);
-
-					viewVO.oldOffset = viewVO.offset;
+			if (this._buffer) {
+				if (this._stride != this._newStride) {
+					for (i = 0; i < len; i++) {
+						viewVO = this._viewVOs[i];
+						vLength = viewVO.length;
+						vOffset = viewVO.offset;
+						vOldOffset = viewVO.oldOffset;
+						for (j = 0; j < this._count; j++)
+							if (vOldOffset != null)
+								newView.set(new Uint8Array(this._buffer, j*this._stride + vOldOffset, vLength), j*this._newStride + vOffset);
+	
+						viewVO.oldOffset = viewVO.offset;
+					}
+	
+					this._stride = this._newStride;
+				} else {
+					newView.set(new Uint8Array(this._buffer, 0, Math.min(newLength, this._buffer.byteLength))); //TODO: bypass quantisation of bytearray on instantiation
 				}
-
-				this._stride = this._newStride;
-			} else {
-				newView.set(new Uint8Array(this._buffer, 0, Math.min(newLength, this._buffer.byteLength))); //TODO: bypass quantisation of bytearray on instantiation
 			}
 
 			this._buffer = newBuffer;
