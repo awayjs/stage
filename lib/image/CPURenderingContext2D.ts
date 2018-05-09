@@ -271,7 +271,7 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 			var htmlImageData:ImageData = htmlContext.getImageData(0, 0, htmlImage.width, htmlImage.height);
 
 			var resultBitmap:BitmapImage2D = new BitmapImage2D(htmlImage.width, htmlImage.height, true, 0, false);
-			resultBitmap.getImageData().data = htmlImageData.data;
+			(<any> resultBitmap.getImageData()).data = htmlImageData.data;
 			var passBitmap:any = resultBitmap;
 			this.drawImage(passBitmap, offsetX, offsetY, width, height, canvasOffsetX, canvasOffsetY, canvasImageWidth, canvasImageHeight);
 		} else if (image.constructor.toString().indexOf("CPUCanvas") > -1) {

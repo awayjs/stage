@@ -35,7 +35,7 @@ export class BitmapImageUtils
 		if (source instanceof Uint8Array) {
 			if (clipRect != null) {
 				var imageData:ImageData = context.getImageData(0, 0, clipRect.width, clipRect.height);
-				imageData.data = source;
+				(<any> imageData).data = source;
 				context.putImageData(imageData, 0, 0);
 			}
 			else {
