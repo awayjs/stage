@@ -38,7 +38,7 @@
   "homepage": "https://github.com/awayjs/stage#readme",
   "dependencies": {
     "@awayjs/core": "^0.7.0",
-    "tslib": "github:microsoft/tslib"
+    "tslib": "^1.9.0"
   },
   "devDependencies": {
     "rimraf": "^2.5.2",
