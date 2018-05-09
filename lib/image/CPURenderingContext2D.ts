@@ -10,7 +10,7 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 	public miterLimit:number;
 	public font:string;
 	public globalCompositeOperation:string;
-	public msFillRule:string;
+	public msFillRule:any;
 	public lineCap:string;
 	public msImageSmoothingEnabled:boolean;
 	public mozImageSmoothingEnabled:boolean;
@@ -40,8 +40,12 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 		this.cpuCanvas = cpuCanvas;
 	}
 
-	public drawFocusIfNeeded(element: Element): void{};
+	public drawFocusIfNeeded(element: Element): void;
+	public drawFocusIfNeeded(path: any, element: Element): void;
+	public drawFocusIfNeeded(path: any, element?: any): void
+	{
 
+	}
 	public restore():void
 	{
 		this.matrix = null;
@@ -64,7 +68,9 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 		return undefined;
 	}
 
-	public isPointInPath(x:number, y:number, fillRule:string):boolean {
+	public isPointInPath(x: number, y: number, fillRule?: any): boolean;
+    public isPointInPath(path: any, x: number, y: number, fillRule?: any): boolean;
+	public isPointInPath(path:any, x:any, y?:any, fillRule?:any):boolean {
 		return undefined;
 	}
 
@@ -102,7 +108,7 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 		return undefined;
 	}
 
-	public fill(fillRule:string):void {
+	public fill(fillRule:any):void {
 	}
 
 	public createImageData(imageDataOrSw:any, sh:number):ImageData {
@@ -119,7 +125,7 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 	public rect(x:number, y:number, w:number, h:number):void {
 	}
 
-	public clip(fillRule:string):void {
+	public clip(fillRule:any):void {
 	}
 
 	public clearRect(x:number, y:number, w:number, h:number):void {
@@ -237,7 +243,16 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 	public bezierCurveTo(cp1x:number, cp1y:number, cp2x:number, cp2y:number, x:number, y:number):void {
 	}
 
-	public drawImage(image:HTMLElement, offsetX:number, offsetY:number, width:number, height:number, canvasOffsetX:number, canvasOffsetY:number, canvasImageWidth:number, canvasImageHeight:number):void {
+	public isPointInStroke(x: number, y: number, fillRule?: any): boolean;
+    public isPointInStroke(path: any, x: number, y: number, fillRule?: any): boolean;
+	public isPointInStroke(path:any, x:any, y?:any, fillRule?:any):boolean {
+		return undefined;
+	}
+
+	public drawImage(image: any, dstX: number, dstY: number): void;
+    public drawImage(image: any, dstX: number, dstY: number, dstW: number, dstH: number): void;
+    public drawImage(image: any, srcX: number, srcY: number, srcW: number, srcH: number, dstX: number, dstY: number, dstW: number, dstH: number): void;
+	public drawImage(image:HTMLElement, offsetX:number, offsetY:number, width?:number, height?:number, canvasOffsetX?:number, canvasOffsetY?:number, canvasImageWidth?:number, canvasImageHeight?:number):void {
 		var b:any = image;
 		if (image.constructor.toString().indexOf("BitmapImage2D") > -1) {
 			var bitmap:BitmapImage2D = <BitmapImage2D> b;
