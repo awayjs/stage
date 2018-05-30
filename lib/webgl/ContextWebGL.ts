@@ -23,6 +23,8 @@ import {TextureBaseWebGL} from "./TextureBaseWebGL";
 import {TextureWebGL} from "./TextureWebGL";
 import {VertexBufferWebGL} from "./VertexBufferWebGL";
 
+var awayDebugDrawing:boolean=false;
+
 export class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
@@ -317,11 +319,15 @@ export class ContextWebGL implements IContextGL
 
 		// Note: The 2 code options below are for #1 production and #2 debugging. Pick one and comment the other.
 		// #1
-		this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
-		// #2
-		// for (var i:number = 0; i < numIndices; i+=3) {
-		// 	this._gl.drawElements(this._gl.LINE_LOOP, 3, this._gl.UNSIGNED_SHORT, (firstIndex+i)*2);
-		// }
+		if(!window["awayDebugDrawing"]){
+			this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
+		
+		}	// #2
+		else{
+			for (var i:number = 0; i < numIndices; i+=3) {
+				this._gl.drawElements(this._gl.LINE_LOOP, 3, this._gl.UNSIGNED_SHORT, (firstIndex+i)*2);
+			}
+		}
 	}
 
 	public drawVertices(mode:ContextGLDrawMode, firstVertex:number = 0, numVertices:number = -1):void
@@ -329,17 +335,24 @@ export class ContextWebGL implements IContextGL
 		if (!this._drawing)
 			throw "Need to clear before drawing if the buffer has not been cleared since the last present() call.";
 
+		if(numVertices==0)
+			return;
 		//DEBUG: draws triangle outlines
-		// for (var i:number = 0; i < numVertices; i+=3) {
-		// 	this._gl.drawArrays(this._gl.LINE_LOOP, firstVertex+i, 3);
-		// }
+		if(window["awayDebugDrawing"]){
+			for (var i:number = 0; i < numVertices; i+=3) {
+				this._gl.drawArrays(this._gl.LINE_LOOP, firstVertex+i, 3);
+			}
+		}
+		else{
+			this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
+
+		}
 
 		// todo: this check should not be needed.
 		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
 		if(numVertices==0)
 			return;
 
-		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
 	}
 
 	public present():void
