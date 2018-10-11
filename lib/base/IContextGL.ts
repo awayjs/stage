@@ -26,7 +26,7 @@ export interface IContextGL
 
 	container:HTMLCanvasElement;
 
-	clear(red?:number, green?:number, blue?:number, alpha?:number, depth?:number, stencil?:number, mask?:number);
+	clear(red?:number, green?:number, blue?:number, alpha?:number, depth?:number, stencil?:number, mask?:ContextGLClearMask);
 
 	configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil?:boolean);
 
