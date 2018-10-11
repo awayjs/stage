@@ -19,6 +19,7 @@ import {ProgramDataPool} from "./image/ProgramDataPool";
 import {StageManager} from "./managers/StageManager";
 import {ContextSoftware} from "./software/ContextSoftware";
 import {ContextWebGL} from "./webgl/ContextWebGL";
+import { ContextGLClearMask } from './base/ContextGLClearMask';
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -58,12 +59,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	//private var _activeTextures : Vector.<TextureBase> = new Vector.<TextureBase>(8, true);
 	private _renderTarget:ImageBase = null;
 	private _renderSurfaceSelector:number = 0;
-	private _scissorRect:Rectangle;
 	private _color:number;
 	private _backBufferDirty:boolean;
-	private _viewPort:Rectangle;
-	private _viewportUpdated:StageEvent;
-	private _viewportDirty:boolean;
+	private _sizeDirty:boolean;
 	private _bufferClear:boolean;
 
 
@@ -93,8 +91,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._stageIndex = stageIndex;
 
 		this._stageManager = stageManager;
-
-		this._viewPort = new Rectangle();
 
 		this._enableDepthAndStencil = true;
 
@@ -211,6 +207,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	 */
 	public get width():number
 	{
+		this._sizeDirty = false;
+
 		return this._width;
 	}
 
@@ -222,11 +220,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._container.style.width = val + "px";
 		this._container.width = val*this._context.pixelRatio;
 
-		this._width = this._viewPort.width = val;
+		this._width = val;
 
 		this._backBufferDirty = true;
 
-		this.notifyViewportUpdated();
+		this._invalidateSize();
 	}
 
 	/**
@@ -234,6 +232,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	 */
 	public get height():number
 	{
+		this._sizeDirty = false;
+
 		return this._height;
 	}
 
@@ -245,11 +245,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._container.style.height = val + "px";
 		this._container.height = val*this._context.pixelRatio;
 
-		this._height = this._viewPort.height = val;
+		this._height = val;
 
 		this._backBufferDirty = true;
 
-		this.notifyViewportUpdated();
+		this._invalidateSize();
 	}
 
 	/**
@@ -267,9 +267,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 		CSS.setElementX(this._container, val);
 
-		this._x = this._viewPort.x = val;
-
-		this.notifyViewportUpdated();
+		this._x = val
 	}
 
 	/**
@@ -287,9 +285,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 		CSS.setElementY(this._container, val);
 
-		this._y = this._viewPort.y = val;
-
-		this.notifyViewportUpdated();
+		this._y = val;
 	}
 
 	public set visible(val:boolean)
@@ -323,14 +319,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		return this._context;
 	}
 
-	private notifyViewportUpdated():void
+	private _invalidateSize():void
 	{
-		if (this._viewportDirty)
+		if (this._sizeDirty)
 			return;
 
-		this._viewportDirty = true;
+		this._sizeDirty = true;
 
-		this.dispatchEvent(new StageEvent(StageEvent.VIEWPORT_UPDATED, this));
+		this.dispatchEvent(new StageEvent(StageEvent.INVALIDATE_SIZE, this));
 	}
 
 	public get profile():ContextGLProfile
@@ -383,7 +379,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public set enableDepthAndStencil(enableDepthAndStencil:boolean)
 	{
+		if (this._enableDepthAndStencil == enableDepthAndStencil)
+			return;
+
 		this._enableDepthAndStencil = enableDepthAndStencil;
+
 		this._backBufferDirty = true;
 	}
 
@@ -395,34 +395,20 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	/*
 	 * Clear and reset the back buffer when using a shared context
 	 */
-	public clear():void
+	public clear(red:number = 0, green:number = 0, blue:number = 0, alpha:number = 1, depth:number = 1, stencil:number = 0, mask:ContextGLClearMask = ContextGLClearMask.ALL):void
 	{
 		if (!this._context)
 			return;
 
 		if (this._backBufferDirty) {
-			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
 			this._backBufferDirty = false;
+			
+			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
 		}
 
-		this._context.clear(( this._color & 0xff000000 ) >>> 24, // <--------- Zero-fill right shift
-							  ( this._color & 0xff0000 ) >>> 16, // <-------------|
-							  ( this._color & 0xff00 ) >>> 8, // <----------------|
-								this._color & 0xff);
+		this._context.clear(red, green, blue, alpha, depth, stencil, mask);
 
 		this._bufferClear = true;
-	}
-
-	public get scissorRect():Rectangle
-	{
-		return this._scissorRect;
-	}
-
-	public set scissorRect(value:Rectangle)
-	{
-		this._scissorRect = value;
-
-		this._context.setScissorRectangle(this._scissorRect);
 	}
 
 	/**
@@ -453,18 +439,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public set antiAlias(antiAlias:number)
 	{
+		if (this._antiAlias == antiAlias)
+			return;
+
 		this._antiAlias = antiAlias;
+
 		this._backBufferDirty = true;
-	}
-
-	/**
-	 * A viewPort rectangle equivalent of the Stage size and position.
-	 */
-	public get viewPort():Rectangle
-	{
-		this._viewportDirty = false;
-
-		return this._viewPort;
 	}
 
 	/**
@@ -478,19 +458,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	public set color(color:number)
 	{
 		this._color = color;
-	}
-
-	/**
-	 * The freshly cleared state of the backbuffer before any rendering
-	 */
-	public get bufferClear():boolean
-	{
-		return this._bufferClear;
-	}
-
-	public set bufferClear(newBufferClear:boolean)
-	{
-		this._bufferClear = newBufferClear;
 	}
 
 

@@ -27,7 +27,7 @@ export class StageEvent extends EventBase
 	/**
 	 *
 	 */
-	public static VIEWPORT_UPDATED:string = "viewportUpdated";
+	public static INVALIDATE_SIZE:string = "invalidateSize";
 
 	private _stage:Stage;
 
