@@ -1,4 +1,4 @@
-import { EventDispatcher, ProjectionBase, Vector3D, ProjectionEvent, Matrix3D, Plane3D, Rectangle, AssetEvent, PerspectiveProjection, ErrorBase } from "@awayjs/core";
+import { EventDispatcher, ProjectionBase, Vector3D, ProjectionEvent, Matrix3D, Plane3D, Rectangle, AssetEvent, PerspectiveProjection, ErrorBase, AssetBase } from "@awayjs/core";
 
 import { StageEvent } from './events/StageEvent';
 import { ViewportEvent } from './events/ViewportEvent';
@@ -12,7 +12,7 @@ import { ContextGLProfile } from './base/ContextGLProfile';
 import { ContextMode } from './base/ContextMode';
 import { StageManager } from './managers/StageManager';
 
-export class Viewport extends EventDispatcher
+export class Viewport extends AssetBase
 {
     private _shareContext:boolean;
     private _rect:Rectangle = new Rectangle();
