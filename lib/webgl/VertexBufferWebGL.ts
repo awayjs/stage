@@ -16,14 +16,14 @@ export class VertexBufferWebGL implements IVertexBuffer
 		this._dataPerVertex = dataPerVertex;
 	}
 
-	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number):void
+	public uploadFromArray(array:Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Float32Array, startVertex:number, numVertices:number):void
 	{
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
 
 		if (startVertex)
-			this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex*this._dataPerVertex, new Float32Array(vertices));
+			this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex*this._dataPerVertex, array);
 		else
-			this._gl.bufferData(this._gl.ARRAY_BUFFER, new Float32Array(vertices), this._gl.STATIC_DRAW);
+			this._gl.bufferData(this._gl.ARRAY_BUFFER, array, this._gl.STATIC_DRAW);
 	}
 
 

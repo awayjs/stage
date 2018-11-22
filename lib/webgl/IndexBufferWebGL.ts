@@ -14,14 +14,14 @@ export class IndexBufferWebGL implements IIndexBuffer
 		this._numIndices = numIndices;
 	}
 
-	public uploadFromArray(data:number[], startOffset:number, count:number):void
+	public uploadFromArray(array:Uint16Array, startOffset:number, count:number):void
 	{
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 
 		if (startOffset)
-			this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset*2, new Uint16Array(data));
+			this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset*2, array);
 		else
-			this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
+			this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, array, this._gl.STATIC_DRAW);
 	}
 
 	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void

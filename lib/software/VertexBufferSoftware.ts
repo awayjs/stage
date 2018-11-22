@@ -14,10 +14,10 @@ export class VertexBufferSoftware implements IVertexBuffer
 		this._dataPerVertex = dataPerVertex;
 	}
 
-	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number):void
+	public uploadFromArray(array:Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Float32Array, startVertex:number, numVertices:number):void
 	{
 		//this._dataOffset = startVertex * this._dataPerVertex;
-		this._floatData = new Float32Array(vertices);
+		this._floatData = <Float32Array>array;
 	}
 
 	public uploadFromByteArray(data:ArrayBuffer, startVertex:number, numVertices:number):void

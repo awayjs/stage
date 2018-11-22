@@ -11,10 +11,10 @@ export class IndexBufferSoftware implements IIndexBuffer
 		this._numIndices = numIndices;
 	}
 
-	public uploadFromArray(data:number[], startOffset:number, count:number):void
+	public uploadFromArray(array:Uint16Array, startOffset:number, count:number):void
 	{
 		this._startOffset = startOffset*2;
-		this._data = new Uint16Array(data);
+		this._data = array;
 	}
 
 	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void

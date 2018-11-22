@@ -22,7 +22,7 @@ export class VertexBufferGLES extends GLESAssetBase implements IVertexBuffer
 		this._dataPerVertex = dataPerVertex;
 	}
 
-	public uploadFromArray(vertices:number[], startVertex:number, numVertices:number):void
+	public uploadFromArray(array:Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Float32Array, startVertex:number, numVertices:number):void
 	{
 		//GLESConnector.gles.uploadVertexDataFromArray(this.id, vertices, startVertex, numVertices);
 		// this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);

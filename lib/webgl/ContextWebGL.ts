@@ -344,7 +344,12 @@ export class ContextWebGL implements IContextGL
 			}
 		}
 		else{
-			this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
+			try {
+				this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
+			} catch(e) {
+				console.log(e);
+			}
+			
 
 		}
 

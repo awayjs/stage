@@ -18,7 +18,7 @@ export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer
 		this._numIndices = numIndices;
 	}
 
-	public uploadFromArray(data:number[], startOffset:number, count:number):void
+	public uploadFromArray(array:Uint16Array, startOffset:number, count:number):void
 	{
 		//GLESConnector.gles.uploadIndexDataFromArray(this.id, data, startOffset, count);
 		// this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
