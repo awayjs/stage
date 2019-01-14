@@ -42,7 +42,6 @@ export {SamplerState} from "./lib/base/SamplerState";
 
 export {ImageEvent} from "./lib/events/ImageEvent";
 export {StageEvent} from "./lib/events/StageEvent";
-export {ViewportEvent} from "./lib/events/ViewportEvent";
 
 export {BitmapImage2D, _Stage_BitmapImage2D} from "./lib/image/BitmapImage2D";
 export {BitmapImageChannel} from "./lib/image/BitmapImageChannel";
@@ -120,4 +119,13 @@ export {Short2Attributes} from "./lib/attributes/Short2Attributes";
 export {Short3Attributes} from "./lib/attributes/Short3Attributes";
 
 export {Stage} from "./lib/Stage";
-export {Viewport} from "./lib/Viewport";
+
+import { Loader } from '@awayjs/core';
+
+import {Image2DParser} from "./lib/parsers/Image2DParser";
+import {ImageCubeParser} from "./lib/parsers/ImageCubeParser";
+import {TextureAtlasParser} from "./lib/parsers/TextureAtlasParser";
+
+Loader.enableParser(Image2DParser);
+Loader.enableParser(ImageCubeParser);
+Loader.enableParser(TextureAtlasParser);
