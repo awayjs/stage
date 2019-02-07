@@ -58,14 +58,22 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 
 	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
 	{
-        if (array.length != this._width*this._height*4)
+
+		var width:number=this._width;
+		var height:number=this._width;
+
+		for(var i=0; i<miplevel; i++){
+			width=width*0.5;
+			height=height*0.5;
+		}
+        if (array.length != width*height*4)
             throw new Error("Array is not the correct length for texture dimensions");
 
 		if (array instanceof Array)
             array = new Uint8Array(array);
 
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-        this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
+        this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 

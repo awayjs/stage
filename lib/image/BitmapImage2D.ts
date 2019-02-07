@@ -72,6 +72,18 @@ export class BitmapImage2D extends Image2D
 	private _imageData:ImageData;
 	protected _transparent:boolean;
 	protected _locked:boolean = false;
+	private _customMipLevels:BitmapImage2D[];
+
+	public addMipLevel(newLevel:BitmapImage2D):void
+	{
+		if(!this._customMipLevels)
+			this._customMipLevels=[];
+		this._customMipLevels.push(newLevel);
+	}
+	public get mipLevels():BitmapImage2D[]
+	{
+		return this._customMipLevels;
+	}
 
 	/**
 	 *
@@ -918,7 +930,16 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
 
             (<ITexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImage2D> this._asset).getImageData().data.buffer), 0);
 
-            this._invalidMipmaps = true;
+			var mipLevels:BitmapImage2D[]=(<BitmapImage2D> this._asset).mipLevels;
+			if(mipLevels && mipLevels.length>0){
+				for(var i=0; i<mipLevels.length; i++){
+					(<ITexture> this._texture).uploadFromArray(new Uint8Array(mipLevels[i].getImageData().data.buffer), i+1);
+				}
+			}
+			//this._invalidMipmaps = false;
+			this._invalidMipmaps = true;
+
+			
         }
 
         return this._texture;
