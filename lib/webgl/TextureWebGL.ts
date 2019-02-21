@@ -60,7 +60,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	{
 
 		var width:number=this._width;
-		var height:number=this._width;
+		var height:number=this._height;
 
 		for(var i=0; i<miplevel; i++){
 			width=width*0.5;
