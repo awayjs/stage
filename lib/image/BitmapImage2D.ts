@@ -862,9 +862,16 @@ export class BitmapImage2D extends Image2D
 	 */
 	public getImageData():ImageData
 	{
-		if (!this._imageData)
+		if (!this._imageData){
 			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
-
+			if(this._alphaChannel){
+				if(this._imageData.data.length!=this._alphaChannel.length*4)
+					throw("error when trying to merge the alpha channel into the image. the length of the alpha channel should be 1/4 of the length of the imageData");
+				for(var i:number=0; i<this._alphaChannel.length; i++){
+					this._imageData.data[(i*4)+3]=this._alphaChannel[i];
+				}
+			}
+		}
 		return this._imageData;
 	}
 

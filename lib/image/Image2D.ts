@@ -10,6 +10,8 @@ export class Image2D extends ImageBase
 
 	public _rect:Rectangle;
 
+	protected _alphaChannel:Uint8Array;
+
 	private _powerOfTwo:boolean = true;
 
 	/**
@@ -34,6 +36,15 @@ export class Image2D extends ImageBase
 		this._setSize(this._rect.width, value);
 	}
 
+	public get alphaChannel():Uint8Array
+	{
+		return this._alphaChannel;
+	}
+
+	public set alphaChannel(value:Uint8Array)
+	{
+		this._alphaChannel=value;
+	}
 	/**
 	 * The rectangle that defines the size and location of the bitmap image. The
 	 * top and left of the rectangle are 0; the width and height are equal to the

@@ -18,16 +18,19 @@ export class Image2DParser extends ParserBase
 	private _doneParsing:boolean;
 	private _loadingImage:boolean;
 	private _htmlImageElement:HTMLImageElement;
+	
+	private _alphaChannel:Uint8Array;
 
 	/**
 	 * Creates a new Image2DParser object.
 	 * @param uri The url or id of the data or file to be parsed.
 	 * @param extra The holder for extra contextual data that the parser might need.
 	 */
-	constructor(factory:IGraphicsFactory = null)
+	constructor(factory:IGraphicsFactory = null, alphaChannel:Uint8Array=null)
 	{
 		super(URLLoaderDataFormat.BLOB);
 		this._factory = factory || new DefaultGraphicsFactory();
+		this._alphaChannel=alphaChannel;
 	}
 
 	/**
@@ -81,6 +84,12 @@ export class Image2DParser extends ParserBase
 
 		return false;
 
+	}
+
+	public _pFinalizeAsset(asset:IAsset, fileName:string){
+		if(this._alphaChannel)
+			(<Image2D>asset).alphaChannel=this._alphaChannel;
+		super._pFinalizeAsset(asset, fileName)
 	}
 
 	/**
