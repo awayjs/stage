@@ -339,10 +339,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	 */
 	public dispose():void
 	{
-		for (var id in this._abstractionPool)
-			this._abstractionPool[id].clear();
+		for (var id in this._abstractionPool){
+			if(this._abstractionPool[id].clear)
+				this._abstractionPool[id].clear();
+		}
 
-		this._abstractionPool = null;
+		this._abstractionPool = {};
 
 		this._stageManager.iRemoveStage(this);
 		this.freeContext();
