@@ -1,10 +1,11 @@
 import {ColorTransform, Matrix, Rectangle, Point, ColorUtils} from "@awayjs/core";
 
 import {BlendMode} from "../image/BlendMode";
+import { ICanvasRenderingContext } from '../image/ICanvasRenderingContext';
 
 export class BitmapImageUtils
 {
-	public static _fillRect(context:CanvasRenderingContext2D, rect:Rectangle, color:number, transparent:boolean):void
+	public static _fillRect(context:ICanvasRenderingContext, rect:Rectangle, color:number, transparent:boolean):void
 	{
 		if (( color & 0xff000000 ) >>> 24 != 0xFF && transparent)
 			context.clearRect(rect.x, rect.y, rect.width, rect.height);
@@ -19,13 +20,13 @@ export class BitmapImageUtils
 		context.fillRect(rect.x, rect.y, rect.width, rect.height);
 	}
 
-	public static _copyPixels(context:CanvasRenderingContext2D, bmpd:HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, sourceRect:Rectangle, destPoint:Point):void
+	public static _copyPixels(context:ICanvasRenderingContext, bmpd:HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, sourceRect:Rectangle, destPoint:Point):void
 	{
 		if (sourceRect.width > 0 && sourceRect.height > 0)
 			context.drawImage(bmpd, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height, destPoint.x, destPoint.y, sourceRect.width, sourceRect.height);
 	}
 
-	public static _draw(context:CanvasRenderingContext2D, source:any, matrix:Matrix, colorTransform:ColorTransform, blendMode:BlendMode, clipRect:Rectangle, smoothing:boolean):void
+	public static _draw(context:ICanvasRenderingContext, source:any, matrix:Matrix, colorTransform:ColorTransform, blendMode:BlendMode, clipRect:Rectangle, smoothing:boolean):void
 	{
 		context.save();
 

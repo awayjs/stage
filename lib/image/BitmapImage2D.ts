@@ -5,6 +5,7 @@ import {BitmapImageUtils} from "../utils/BitmapImageUtils";
 import {Image2D} from "./Image2D";
 import {BlendMode} from "./BlendMode";
 import {IImageCanvas} from "./IImageCanvas";
+import {ICanvasRenderingContext} from "./ICanvasRenderingContext";
 import {CPUCanvas} from "./CPUCanvas";
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
@@ -68,7 +69,7 @@ export class BitmapImage2D extends Image2D
 	public static assetType:string = "[image BitmapImage2D]";
 
 	private _imageCanvas:IImageCanvas;
-	private _context:CanvasRenderingContext2D;
+	private _context:ICanvasRenderingContext;
 	private _imageData:ImageData;
 	protected _transparent:boolean;
 	protected _locked:boolean = false;
@@ -911,12 +912,8 @@ export class BitmapImage2D extends Image2D
 	}
 }
 
-import {AssetEvent} from "@awayjs/core";
-
 import {ITextureBase} from "../base/ITextureBase"
 import {ITexture} from "../base/ITexture";
-
-import {MipmapGenerator} from "../utils/MipmapGenerator";
 
 import {_Stage_Image2D} from "./Image2D";
 

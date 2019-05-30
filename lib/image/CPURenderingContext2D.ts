@@ -3,33 +3,12 @@ import {Matrix, Point} from "@awayjs/core";
 import {ImageData} from "./ImageData";
 import {CPUCanvas} from "./CPUCanvas";
 import {BitmapImage2D} from "./BitmapImage2D";
+import {ICanvasRenderingContext} from './ICanvasRenderingContext';
 
 //TODO: implement all methods
-export class CPURenderingContext2D implements CanvasRenderingContext2D
+export class CPURenderingContext2D implements ICanvasRenderingContext
 {
-	public miterLimit:number;
-	public font:string;
-	public globalCompositeOperation:string;
-	public msFillRule:any;
-	public lineCap:string;
-	public msImageSmoothingEnabled:boolean;
-	public mozImageSmoothingEnabled:boolean;
-	public webkitImageSmoothingEnabled:boolean;
-	public oImageSmoothingEnabled:boolean;
-	public lineDashOffset:number;
-	public shadowColor:string;
-	public lineJoin:string;
-	public shadowOffsetX:number;
-	public lineWidth:number;
-	public canvas:HTMLCanvasElement;
-	public strokeStyle:any;
-	public globalAlpha:number;
-	public shadowOffsetY:number;
-	public fillStyle:any;
-	public shadowBlur:number;
-	public textAlign:string;
-	public textBaseline:string;
-	public imageSmoothingEnabled:boolean;
+	public fillStyle:string;
 
 	public cpuCanvas:CPUCanvas;
 
@@ -40,92 +19,22 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 		this.cpuCanvas = cpuCanvas;
 	}
 
-	public drawFocusIfNeeded(element: Element): void;
-	public drawFocusIfNeeded(path: any, element: Element): void;
-	public drawFocusIfNeeded(path: any, element?: any): void
-	{
-
-	}
 	public restore():void
 	{
 		this.matrix = null;
 	}
 
-	public setTransform(m11:number, m12:number, m21:number, m22:number, dx:number, dy:number):void
+	public putImageData(imagedata: ImageData, dx: number, dy: number): void;
+	public putImageData(imagedata: ImageData, dx: number, dy: number, dirtyX: number = null, dirtyY: number = null, dirtyWidth: number = null, dirtyHeight: number = null): void
 	{
-		this.matrix = new Matrix(m11, m12, m21, m22, dx, dy);
 	}
-
 	public save():void
 	{
 	}
 
-	public arc(x:number, y:number, radius:number, startAngle:number, endAngle:number, anticlockwise:boolean):void
+	public setTransform(m11:number, m12:number, m21:number, m22:number, dx:number, dy:number):void
 	{
-	}
-
-	public measureText(text:string):TextMetrics {
-		return undefined;
-	}
-
-	public isPointInPath(x: number, y: number, fillRule?: any): boolean;
-    public isPointInPath(path: any, x: number, y: number, fillRule?: any): boolean;
-	public isPointInPath(path:any, x:any, y?:any, fillRule?:any):boolean {
-		return undefined;
-	}
-
-	public quadraticCurveTo(cpx:number, cpy:number, x:number, y:number):void {
-	}
-
-	public putImageData(imagedata:ImageData, dx:number, dy:number, dirtyX:number, dirtyY:number, dirtyWidth:number, dirtyHeight:number):void {
-	}
-
-	public rotate(angle:number):void {
-	}
-
-	public fillText(text:string, x:number, y:number, maxWidth:number):void {
-	}
-
-	public translate(x:number, y:number):void {
-	}
-
-	public scale(x:number, y:number):void {
-	}
-
-	public createRadialGradient(x0:number, y0:number, r0:number, x1:number, y1:number, r1:number):CanvasGradient {
-		return undefined;
-	}
-
-	public ellipse(x: number, y: number, radiusX: number, radiusY: number, rotation: number, startAngle: number, endAngle: number, anticlockwise?: boolean): void
-	{
-
-	}
-
-	public lineTo(x:number, y:number):void {
-	}
-
-	public getLineDash():number[] {
-		return undefined;
-	}
-
-	public fill(fillRule:any):void {
-	}
-
-	public createImageData(imageDataOrSw:any, sh:number):ImageData {
-		return undefined;
-	}
-
-	public createPattern(image:HTMLElement, repetition:string):CanvasPattern {
-		return undefined;
-	}
-
-	public closePath():void {
-	}
-
-	public rect(x:number, y:number, w:number, h:number):void {
-	}
-
-	public clip(fillRule:any):void {
+		this.matrix = new Matrix(m11, m12, m21, m22, dx, dy);
 	}
 
 	public clearRect(x:number, y:number, w:number, h:number):void {
@@ -238,15 +147,6 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 				}
 			}
 		}
-	}
-
-	public bezierCurveTo(cp1x:number, cp1y:number, cp2x:number, cp2y:number, x:number, y:number):void {
-	}
-
-	public isPointInStroke(x: number, y: number, fillRule?: any): boolean;
-    public isPointInStroke(path: any, x: number, y: number, fillRule?: any): boolean;
-	public isPointInStroke(path:any, x:any, y?:any, fillRule?:any):boolean {
-		return undefined;
 	}
 
 	public drawImage(image: any, dstX: number, dstY: number): void;
@@ -380,31 +280,6 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 				}
 			}
 		}
-	}
-
-	public transform(m11:number, m12:number, m21:number, m22:number, dx:number, dy:number):void {
-	}
-
-	public stroke():void {
-	}
-
-	public strokeRect(x:number, y:number, w:number, h:number):void {
-	}
-
-	public setLineDash(segments:number[]):void {
-	}
-
-	public strokeText(text:string, x:number, y:number, maxWidth:number):void {
-	}
-
-	public beginPath():void {
-	}
-
-	public arcTo(x1:number, y1:number, x2:number, y2:number, radius:number):void {
-	}
-
-	public createLinearGradient(x0:number, y0:number, x1:number, y1:number):CanvasGradient {
-		return undefined;
 	}
 
 	private static sampleBilinear(u:number, v:number, texture:ImageData, texelSizeX:number = 1, texelSizeY:number = 1):number[] {

@@ -98,6 +98,7 @@ export class ContextWebGL implements IContextGL
 
 		var props:WebGLContextAttributes = {
 			alpha:false,
+			//antialias: (/\bCrOS\b/.test(navigator.userAgent))? false : true,
 			stencil:true
 		};
 
@@ -213,6 +214,7 @@ export class ContextWebGL implements IContextGL
 				this._gl["msBackingStorePixelRatio"] ||
 				this._gl["oBackingStorePixelRatio"] ||
 				this._gl["backingStorePixelRatio"] || 1;
+				//this._gl["backingStorePixelRatio"] || (/\bCrOS\b/.test(navigator.userAgent))? 0.5 : 1;
 
             this._pixelRatio = dpr / bsr;
 		} else {

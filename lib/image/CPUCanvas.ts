@@ -1,6 +1,7 @@
 import {IImageCanvas} from "./IImageCanvas";
 import {CPURenderingContext2D} from "./CPURenderingContext2D";
 import {ImageData} from "./ImageData";
+import {ICanvasRenderingContext} from './ICanvasRenderingContext';
 
 export class CPUCanvas implements IImageCanvas {
 	public width:number = 1;
@@ -8,10 +9,7 @@ export class CPUCanvas implements IImageCanvas {
 
 	private imageData:ImageData;
 
-	getContext(contextId: "2d"): CanvasRenderingContext2D;
-	getContext(contextId: "experimental-webgl"): WebGLRenderingContext;
-	getContext(contextId: string, ...args: any[]): CanvasRenderingContext2D | WebGLRenderingContext;
-	getContext(contextId: string, ...args: any[]): any
+	public getContext(contextId: "2d"): ICanvasRenderingContext
 	{
 		return new CPURenderingContext2D(this);
 	}

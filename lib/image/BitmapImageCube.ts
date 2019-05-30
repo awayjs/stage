@@ -75,7 +75,7 @@ export class BitmapImageCube extends ImageCube
 	public static negZ:number = 5;
 
 	private _imageCanvas:Array<IImageCanvas> = new Array<IImageCanvas>(6);
-	private _context:Array<CanvasRenderingContext2D> = new Array<CanvasRenderingContext2D>(6);
+	private _context:Array<ICanvasRenderingContext> = new Array<ICanvasRenderingContext>(6);
 	private _imageData:Array<ImageData> = new Array<ImageData>(6);
 	private _transparent:boolean;
 	private _locked:boolean = false;
@@ -886,6 +886,7 @@ import {ICubeTexture} from "../base/ICubeTexture";
 import {_Stage_ImageCube} from "./ImageCube";
 
 import {Stage} from "../Stage";
+import { ICanvasRenderingContext } from './ICanvasRenderingContext';
 
 /**
  *
