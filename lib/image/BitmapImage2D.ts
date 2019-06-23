@@ -388,8 +388,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public dispose():void
 	{
-		super.dispose();
-
+		this.clear();
+		
 		this._context = null;
 		this._imageCanvas = null;
 		this._imageData = null;
