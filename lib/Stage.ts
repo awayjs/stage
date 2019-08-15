@@ -549,6 +549,17 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._context.setVertexBufferAt(index, buffer, offset, this._bufferFormatDictionary[unsigned? size + 4 : size][dimensions]);
 	}
 
+	public setScissor(rectangle:Rectangle):void
+	{
+		if (this._backBufferDirty) {
+			this._backBufferDirty = false;
+			
+			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+		}
+
+		this._context.setScissorRectangle(rectangle);
+	}
+
 	public setSamplerAt(index:number, sampler:ImageSampler):void
 	{
 		var wrap:ContextGLWrapMode = sampler.repeat? ContextGLWrapMode.REPEAT :ContextGLWrapMode.CLAMP;
