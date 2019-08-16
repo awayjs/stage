@@ -598,22 +598,16 @@ export class BitmapImage2D extends Image2D
 		var b:number;
 		var a:number;
 
-		if (!this._imageData) {
-			var pixelData:ImageData = this._context.getImageData(~~x, ~~y, 1, 1);
+		if (!this._imageData)
+			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-			r = pixelData.data[0];
-			g = pixelData.data[1];
-			b = pixelData.data[2];
-			a = pixelData.data[3];
+		var index:number = (~~x + ~~y*this._imageData.width)*4;
+		var data:Uint8ClampedArray = this._imageData.data;
 
-		} else {
-			var index:number = (~~x + ~~y*this._imageData.width)*4;
-
-			r = this._imageData.data[index + 0];
-			g = this._imageData.data[index + 1];
-			b = this._imageData.data[index + 2];
-			a = this._imageData.data[index + 3];
-		}
+		r = data[index++];
+		g = data[index++];
+		b = data[index++];
+		a = data[index];
 
 		return (a << 24) | (r << 16) | (g << 8) | b;
 	}
@@ -624,11 +618,12 @@ export class BitmapImage2D extends Image2D
 			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
 		var index:number = (x + y*this._imageData.width)*4;
+		var data:Uint8ClampedArray = this._imageData.data;
 
-		imagePixel[0] = this._imageData.data[index + 0];
-		imagePixel[1] = this._imageData.data[index + 1];
-		imagePixel[2] = this._imageData.data[index + 2];
-		imagePixel[3] = this._imageData.data[index + 3];
+		imagePixel[0] = data[index++];
+		imagePixel[1] = data[index++];
+		imagePixel[2] = data[index++];
+		imagePixel[3] = data[index];
 	}
 
 	public setPixelData(x, y, imagePixel:Uint8ClampedArray):void
