@@ -500,19 +500,26 @@ export class BitmapImage2D extends Image2D
 	 */
 	public fillRect(rect:Rectangle, color:number):void
 	{
-		if (this._imageData)
-			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
+		if (!this._imageData)
+			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-		rect.x=Math.ceil(rect.x);
-		rect.y=Math.ceil(rect.y);
-		rect.width=Math.ceil(rect.width);
-		rect.height=Math.ceil(rect.height);
-		BitmapImageUtils._fillRect(this._context, rect, color, this._transparent);
-
-		this._imageData = null;
-
-		if (!this._locked)
-			this.invalidate();
+		var data:Uint32Array = new Uint32Array(this._imageData.data.buffer);
+		var x:number = ~~rect.x, y:number = ~~rect.y, width:number = ~~rect.width, height:number = ~~rect.height;
+		var argb:number = this._transparent? (color & 0xFFFFFFFF) : (color & 0xFFFFFF) + 0xFF000000;
+		
+		//fast path for complete fill
+		if (x == 0 && y == 0 && width == this._rect.width && height == this._rect.height) {
+			data.fill(argb);
+		} else {
+			var j:number;
+			var index:number;
+			for (j = 0; j < height; ++j) {
+			
+				index = x + (j + y)*this._rect.width;
+	
+				data.fill(argb, index, index + width);
+			}
+		}
 	}
 
 	/**
@@ -545,22 +552,16 @@ export class BitmapImage2D extends Image2D
 		var b:number;
 		var a:number;
 
-		if (!this._imageData) {
-			var pixelData:ImageData = this._context.getImageData(x, y, 1, 1);
+		if (!this._imageData)
+			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-			r = pixelData.data[0];
-			g = pixelData.data[1];
-			b = pixelData.data[2];
-			a = pixelData.data[3];
+		var index:number = (~~x + ~~y*this._imageData.width)*4;
+		var data:Uint8ClampedArray = this._imageData.data;
 
-		} else {
-			var index:number = (x + y*this._imageData.width)*4;
-
-			r = this._imageData.data[index + 0];
-			g = this._imageData.data[index + 1];
-			b = this._imageData.data[index + 2];
-			a = this._imageData.data[index + 3];
-		}
+		r = data[index + 0];
+		g = data[index + 1];
+		b = data[index + 2];
+		a = data[index + 3];
 
 		//returns black if fully transparent
 		if (!a)
