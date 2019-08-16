@@ -56,7 +56,7 @@ export class StageManager extends EventDispatcher
 	 * @param profile The compatibility profile, an enumeration of ContextProfile
 	 * @return The Stage for the given index.
 	 */
-	public getStageAt(index:number, forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO):Stage
+	public getStageAt(index:number, forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO, alpha:boolean = false):Stage
 	{
 		if (index < 0 || index >= StageManager.STAGE_MAX_QUANTITY)
 			throw new ArgumentError("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
@@ -74,7 +74,7 @@ export class StageManager extends EventDispatcher
 			}
 			var stage:Stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
 			stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
-			stage.requestContext(forceSoftware, profile, mode);
+			stage.requestContext(forceSoftware, profile, mode, alpha);
 		}
 
 		return this._stages[index];
@@ -100,14 +100,14 @@ export class StageManager extends EventDispatcher
 	 * @param profile The compatibility profile, an enumeration of ContextProfile
 	 * @return The allocated stage
 	 */
-	public getFreeStage(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO):Stage
+	public getFreeStage(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO, alpha:boolean = false):Stage
 	{
 		var i:number = 0;
 		var len:number = this._stages.length;
 
 		while (i < len) {
 			if (!this._stages[i])
-				return this.getStageAt(i, forceSoftware, profile, mode);
+				return this.getStageAt(i, forceSoftware, profile, mode, alpha);
 
 			++i;
 		}

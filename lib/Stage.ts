@@ -175,7 +175,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	/**
 	 * Requests a Context object to attach to the managed gl canvas.
 	 */
-	public requestContext(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO):void
+	public requestContext(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO, alpha:boolean = false):void
 	{
 		// If forcing software, we can be certain that the
 		// returned Context will be running software mode.
@@ -193,7 +193,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 			else if (mode == ContextMode.GLES)
 				this._context = new ContextGLES(this._container);
 			else
-				this._context = new ContextWebGL(this._container);
+				this._context = new ContextWebGL(this._container, alpha);
 		} catch (e) {
 			this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 		}

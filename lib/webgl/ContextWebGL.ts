@@ -89,15 +89,15 @@ export class ContextWebGL implements IContextGL
 		return this._standardDerivatives;
 	}
 
-	constructor(canvas:HTMLCanvasElement) {
+	constructor(canvas:HTMLCanvasElement, alpha:boolean = false) {
 		this._container = canvas;
-		this.initWebGL();
+		this.initWebGL(alpha);
 	}
 
-	private initWebGL(){
+	private initWebGL(alpha:boolean = false){
 
 		var props:WebGLContextAttributes = {
-			alpha:false,
+			alpha:alpha,
 			//antialias: (/\bCrOS\b/.test(navigator.userAgent))? false : true,
 			stencil:true
 		};
