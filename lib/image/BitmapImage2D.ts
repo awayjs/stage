@@ -338,6 +338,47 @@ export class BitmapImage2D extends Image2D
 			this.invalidate();
 	}
 
+	// public copyPixels(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point)
+	// {
+	// 	if (!this._imageData)
+	// 		this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
+
+	// 	var targetWidth:number = this._rect.width;
+	// 	var targetHeight:number = this._rect.height;
+	// 	var x:number = (destPoint.x > targetWidth)? targetWidth : ~~destPoint.x;
+	// 	var y:number = (destPoint.y > targetHeight)? targetHeight : ~~destPoint.y;
+	// 	var sourceData:Uint8ClampedArray = source.getImageData().data;
+	// 	var targetData:Uint8ClampedArray = this._imageData.data;
+
+	// 	//fast path for full imageData
+	// 	if (sourceRect.equals(this._rect) && !x && !y) {
+	// 		targetData.set(sourceData);
+	// 	} else {
+	// 		var inputWidth:number = source.width;
+			
+	// 		var sourceX:number = ~~sourceRect.x;
+	// 		var sourceY:number = ~~sourceRect.y;
+	// 		var sourceWidth:number = (sourceRect.width > targetWidth - x)? targetWidth - x : ~~sourceRect.width;
+	// 		var sourceHeight:number = (sourceRect.height > targetHeight - y)? targetHeight - y :~~sourceRect.height;
+			
+	// 		if (x < 0) {
+	// 			sourceX -= x;
+	// 			sourceWidth += x;
+	// 			x = 0;
+	// 		}
+	// 		if (y < 0) {
+	// 			sourceY -= y;
+	// 			sourceHeight += y;
+	// 			y = 0;
+	// 		}
+	// 		for (var i:number = 0; i < sourceHeight; ++i)
+	// 			targetData.set(sourceData.subarray((sourceX + (i + sourceY)*inputWidth)*4, (sourceX + (i + sourceY)*inputWidth + sourceWidth)*4), (x + (i + y)*targetWidth)*4);
+	// 	}
+
+	// 	if (!this._locked)
+	// 		this.invalidate();
+	// }
+
 	public merge(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, redMultiplier:number, greenMultiplier:number, blueMultiplier:number, alphaMultiplier:number)
 	{
 		if (!this._imageData)
@@ -520,6 +561,9 @@ export class BitmapImage2D extends Image2D
 				data.fill(argb, index, index + width);
 			}
 		}
+
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -567,7 +611,7 @@ export class BitmapImage2D extends Image2D
 		if (!a)
 			return 0x0;
 
-		return (r << 16) | (g << 8) | b;
+		return (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
 	}
 
 	/**
@@ -610,7 +654,10 @@ export class BitmapImage2D extends Image2D
 		b = data[index++];
 		a = data[index];
 
-		return (a << 24) | (r << 16) | (g << 8) | b;
+		if (!a)
+			return 0x0;
+
+		return (a << 24) | (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
 	}
 
 	public getPixelData(x, y, imagePixel:Uint8ClampedArray):void
