@@ -356,10 +356,10 @@ export class BitmapImage2D extends Image2D
 	// 	} else {
 	// 		var inputWidth:number = source.width;
 			
-	// 		var sourceX:number = ~~sourceRect.x;
-	// 		var sourceY:number = ~~sourceRect.y;
-	// 		var sourceWidth:number = (sourceRect.width > targetWidth - x)? targetWidth - x : ~~sourceRect.width;
-	// 		var sourceHeight:number = (sourceRect.height > targetHeight - y)? targetHeight - y :~~sourceRect.height;
+	// 		var sourceX:number = Math.round(sourceRect.x);
+	// 		var sourceY:number = Math.round(sourceRect.y);
+	// 		var sourceWidth:number = (sourceRect.width > targetWidth - x)? targetWidth - x : (sourceRect.width > source.rect.width - sourceX)? source.rect.width - sourceX : Math.round(sourceRect.width);
+	// 		var sourceHeight:number = (sourceRect.height > targetHeight - y)? targetHeight - y : (sourceRect.height > source.rect.height - sourceY)? source.rect.height - sourceY : Math.round(sourceRect.height);
 			
 	// 		if (x < 0) {
 	// 			sourceX -= x;
@@ -370,6 +370,17 @@ export class BitmapImage2D extends Image2D
 	// 			sourceY -= y;
 	// 			sourceHeight += y;
 	// 			y = 0;
+	// 		}
+
+	// 		if (sourceX < 0) {
+	// 			x -= sourceX;
+	// 			sourceWidth += sourceX;
+	// 			sourceX = 0;
+	// 		}
+	// 		if (sourceY < 0) {
+	// 			y -= sourceY;
+	// 			sourceHeight += sourceY;
+	// 			sourceY = 0;
 	// 		}
 	// 		for (var i:number = 0; i < sourceHeight; ++i)
 	// 			targetData.set(sourceData.subarray((sourceX + (i + sourceY)*inputWidth)*4, (sourceX + (i + sourceY)*inputWidth + sourceWidth)*4), (x + (i + y)*targetWidth)*4);
