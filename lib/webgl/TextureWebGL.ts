@@ -66,7 +66,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 			width=width*0.5;
 			height=height*0.5;
 		}
-        if (array.length != width*height*4)
+        if (array.length != Math.floor(width)*Math.floor(height)*4)
             throw new Error("Array is not the correct length for texture dimensions");
 
 		if (array instanceof Array)
