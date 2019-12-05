@@ -51,7 +51,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	private _usesSoftwareRendering:boolean;
 	private _profile:ContextGLProfile;
 	private _stageManager:StageManager;
-	private _antiAlias:number = 0;
+	private _antiAlias:number = 4;
 	private _enableDepthAndStencil:boolean;
 	private _contextRequested:boolean;
 
@@ -59,6 +59,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	//private var _activeTextures : Vector.<TextureBase> = new Vector.<TextureBase>(8, true);
 	private _renderTarget:ImageBase = null;
 	private _renderSurfaceSelector:number = 0;
+	private _renderMipmapSelector:number = 0;
 	private _color:number;
 	private _backBufferDirty:boolean;
 	private _sizeDirty:boolean;
@@ -76,6 +77,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public globalDisableSmooth:boolean = false;
 	
+	public get glVersion():number
+	{
+		return this._context.glVersion;
+	}
+
 	constructor(container:HTMLCanvasElement, stageIndex:number, stageManager:StageManager, forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE)
 	{
 		super();
@@ -133,16 +139,23 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
-	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0):void
+	public setRenderTarget(target:ImageBase, enableDepthAndStencil:boolean = false, surfaceSelector:number = 0, mipmapSelector:number = 0):void
 	{
-		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && this._enableDepthAndStencil == enableDepthAndStencil)
+		if (this._renderTarget === target && surfaceSelector == this._renderSurfaceSelector && mipmapSelector == this._renderMipmapSelector && this._enableDepthAndStencil == enableDepthAndStencil)
 			return;
 
 		this._renderTarget = target;
 		this._renderSurfaceSelector = surfaceSelector;
+		this._renderMipmapSelector = mipmapSelector;
 		this._enableDepthAndStencil = enableDepthAndStencil;
 		if (target) {
-			this._context.setRenderToTexture((<_Stage_ImageBase> this.getAbstraction(target)).getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector);
+			var targetStage:_Stage_ImageBase = <_Stage_ImageBase> this.getAbstraction(target);
+			this._context.setRenderToTexture(targetStage.getTexture(), enableDepthAndStencil, this._antiAlias, surfaceSelector, mipmapSelector);
+
+			if (mipmapSelector != 0 && this._context.glVersion != 1) { //hack to stop auto generated mipmaps
+				targetStage._invalidMipmaps = false;
+				targetStage._mipmap = true;
+			}
 		} else {
 			this._context.setRenderToBackBuffer();
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);

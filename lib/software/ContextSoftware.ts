@@ -85,6 +85,11 @@ export class ContextSoftware implements IContextGL
 
 	private _antialias:number = 0;
 
+	public get glVersion():number
+	{
+		return 1;
+	}
+
 	public get pixelRatio():number
 	{
 		return 1;
@@ -206,7 +211,7 @@ export class ContextSoftware implements IContextGL
 		this._yflip = yflip;
 	}
 
-	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number):void
+	public setRenderToTexture(target:TextureSoftware, enableDepthAndStencil:boolean, antiAlias:number, surfaceSelector:number, mipmapSelector:number):void
 	{
 
 		// Create texture buffer and screen matrix if needed.

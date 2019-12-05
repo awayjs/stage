@@ -53,7 +53,7 @@ export class ContextWebGL implements IContextGL
 	public static MAX_SAMPLERS:number = 8;
 
 	//@protected
-	public _gl:WebGLRenderingContext;
+	public _gl:WebGLRenderingContext | WebGL2RenderingContext;
 
 	//@protected
 	public _currentProgram:ProgramWebGL;
@@ -66,7 +66,14 @@ export class ContextWebGL implements IContextGL
     private _stencilReferenceValue : number = 0;
     private _stencilReadMask : number = 0xff;
     private _separateStencil : boolean = false;
-    private _pixelRatio:number;
+	private _pixelRatio:number;
+	private _glVersion:number;
+	private _renderTarget:TextureWebGL;
+
+	public get glVersion():number
+	{
+		return this._glVersion;
+	}
 
     public get pixelRatio():number
 	{
@@ -103,10 +110,15 @@ export class ContextWebGL implements IContextGL
 		};
 
 		try {
-			this._gl = <WebGLRenderingContext> this._container.getContext("experimental-webgl", props);
+			this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
 
-			if (!this._gl)
-				this._gl = <WebGLRenderingContext> this._container.getContext("webgl", props);
+			if (!this._gl) {
+				this._gl = <WebGLRenderingContext> (this._container.getContext("webgl", props) || this._container.getContext("experimental-webgl", props));
+				this._glVersion = 1;
+			} else {
+				this._glVersion = 2;
+			}
+			
 		} catch (e) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 		}
@@ -544,22 +556,23 @@ export class ContextWebGL implements IContextGL
 		this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
 	}
 
-	public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0):void
+	public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0, mipmapSelector:number = 0):void
 	{
-		var texture:TextureWebGL = <TextureWebGL> target;
-		var frameBuffer:WebGLFramebuffer = texture.frameBuffer;
-		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+		if (this._renderTarget)
+			this._renderTarget.presentFrameBuffer();
 
-		if (enableDepthAndStencil) {
-			this._gl.enable(this._gl.STENCIL_TEST);
-			this._gl.enable(this._gl.DEPTH_TEST);
-		}
+		this._renderTarget = <TextureWebGL> target;
 
-		this._gl.viewport(0, 0, texture.width, texture.height );
+		this._renderTarget.setFrameBuffer(enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
 	public setRenderToBackBuffer():void
 	{
+		if (this._renderTarget) {
+			this._renderTarget.presentFrameBuffer();
+			this._renderTarget = null;
+		}
+
 		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 	}
 

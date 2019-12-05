@@ -113,6 +113,11 @@ export class ContextGLES implements IContextGL
 		return this._standardDerivatives;
 	}
 
+	public get glVersion():number
+	{
+		return 1;
+	}
+
 	public get pixelRatio():number
 	{
 		return 1;
@@ -406,7 +411,7 @@ export class ContextGLES implements IContextGL
 		}
 	}
 
-	public setRenderToTexture(target:TextureBaseGLES, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0):void
+	public setRenderToTexture(target:TextureBaseGLES, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0, mipmapSelector:number = 0):void
 	{
 		if (target === null || target === undefined) {
 			this._cmdBytes.writeInt(OpCodes.clearRenderToTexture);

@@ -22,6 +22,8 @@ import {IVertexBuffer} from "./IVertexBuffer";
 
 export interface IContextGL
 {
+	glVersion:number;
+
 	pixelRatio:number;
 
 	container:HTMLCanvasElement;
@@ -74,7 +76,7 @@ export interface IContextGL
 
 	setVertexBufferAt(index:number, buffer:IVertexBuffer, bufferOffset?:number, format?:number);
 
-	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number);
+	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number, mipmapSelector?:number);
 
 	setRenderToBackBuffer();
 

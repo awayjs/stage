@@ -3,11 +3,11 @@ import {AbstractMethodError} from "@awayjs/core";
 export class TextureBaseWebGL
 {
 	public textureType:string = "";
-	public _gl:WebGLRenderingContext;
+	public _gl:WebGLRenderingContext | WebGL2RenderingContext;
 
 	public _glTexture:WebGLTexture;
 
-	constructor(gl:WebGLRenderingContext)
+	constructor(gl:WebGLRenderingContext | WebGL2RenderingContext)
 	{
 		this._gl = gl;
 	}
