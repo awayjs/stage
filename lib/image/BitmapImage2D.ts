@@ -72,6 +72,7 @@ export class BitmapImage2D extends Image2D
 	private _context:ICanvasRenderingContext;
 	private _imageData:ImageData;
 	protected _transparent:boolean;
+	protected _stage:Stage;
 	protected _locked:boolean = false;
 	private _customMipLevels:BitmapImage2D[];
 
@@ -141,11 +142,12 @@ export class BitmapImage2D extends Image2D
 	 *                    bitmap image area. The default value is
 	 *                    0xFFFFFFFF(solid white).
 	 */
-	constructor(width:number, height:number, transparent:boolean = true, fillColor:number = null, powerOfTwo:boolean = true)
+	constructor(width:number, height:number, transparent:boolean = true, fillColor:number = null, powerOfTwo:boolean = true, stage:Stage = null)
 	{
 		super(width, height, powerOfTwo);
 
 		this._transparent = transparent;
+		this._stage = stage;
 		if(typeof document !== "undefined") {
 			this._imageCanvas = <IImageCanvas> document.createElement("canvas");
 		}else {
