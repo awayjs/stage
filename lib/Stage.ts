@@ -415,7 +415,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		if (!this._context)
 			return;
 
-		if (this._backBufferDirty) {
+		if (this._backBufferDirty && this._renderTarget == null) {
 			this._backBufferDirty = false;
 			
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
@@ -564,7 +564,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public setScissor(rectangle:Rectangle):void
 	{
-		if (this._backBufferDirty) {
+		if (this._backBufferDirty && this._renderTarget == null) {
 			this._backBufferDirty = false;
 			
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
