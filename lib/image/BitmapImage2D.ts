@@ -322,9 +322,9 @@ export class BitmapImage2D extends Image2D
 	 *                         channel, set the value to <code>false</code>.
 	 * @throws TypeError The sourceBitmapImage2D, sourceRect, destPoint are null.
 	 */
-	public copyPixels(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point);
-	public copyPixels(source:HTMLElement, sourceRect:Rectangle, destPoint:Point);
-	public copyPixels(source:any, sourceRect:Rectangle, destPoint:Point):void
+	public copyPixels(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, alphaBitmapData?: BitmapImage2D, alphaPoint?: Point, mergeAlpha?:boolean);
+	public copyPixels(source:HTMLElement, sourceRect:Rectangle, destPoint:Point, alphaBitmapData?: BitmapImage2D, alphaPoint?: Point, mergeAlpha?:boolean);
+	public copyPixels(source:any, sourceRect:Rectangle, destPoint:Point, alphaBitmapData: BitmapImage2D = null, alphaPoint: Point = null, mergeAlpha:boolean = false):void
 	{
 		if (source instanceof BitmapImage2D)
 			source = source.getCanvas();

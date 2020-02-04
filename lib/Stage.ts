@@ -1,4 +1,4 @@
-import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, IAbstractionClass, CSS, ProjectionBase} from "@awayjs/core";
+import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, IAbstractionClass, CSS, ProjectionBase, Point} from "@awayjs/core";
 
 import {ContextMode} from "./base/ContextMode";
 import {ContextGLMipFilter} from "./base/ContextGLMipFilter";
@@ -20,6 +20,14 @@ import {StageManager} from "./managers/StageManager";
 import {ContextSoftware} from "./software/ContextSoftware";
 import {ContextWebGL} from "./webgl/ContextWebGL";
 import { ContextGLClearMask } from './base/ContextGLClearMask';
+import { Image2D } from './image/Image2D';
+import { RTTBufferManager } from './managers/RTTBufferManager';
+import { Filter3DTaskBase } from './filters/tasks/Filter3DTaskBase';
+import { ContextGLDrawMode } from './base/ContextGLDrawMode';
+import { ContextGLBlendFactor } from './base/ContextGLBlendFactor';
+import { IIndexBuffer } from './base/IIndexBuffer';
+import { CopyPixelFilter3D } from './filters/CopyPixelFilter3D';
+import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -64,6 +72,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	private _backBufferDirty:boolean;
 	private _sizeDirty:boolean;
 	private _bufferClear:boolean;
+	private _renderToTextureVertexBuffer:IVertexBuffer;
+	private _indexBuffer:IIndexBuffer;
+
+	private _copyPixelFilter:CopyPixelFilter3D;
+	private _copyPixelSampler:ImageSampler;
 
 
 	//private _mouse3DManager:away.managers.Mouse3DManager;
@@ -159,6 +172,110 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		} else {
 			this._context.setRenderToBackBuffer();
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+		}
+	}
+
+	public copyPixels(source:Image2D, target:Image2D, rect:Rectangle, destPoint:Point, alphaBitmapData: Image2D = null, alphaPoint: Point = null, mergeAlpha:boolean = false):void
+	{
+		//early out for values that won't produce any visual update
+		if (destPoint.x < -rect.width || destPoint.x > target.width || destPoint.y < -rect.height || destPoint.y > target.height)
+			return;
+
+		if (mergeAlpha) {
+			if (!this._renderToTextureVertexBuffer) {
+				this._renderToTextureVertexBuffer = this._context.createVertexBuffer(4, 20);
+
+				this._renderToTextureVertexBuffer.uploadFromArray(new Float32Array([-1, -1, 0, 0, 0, 1, -1, 1, 0, 1, 1, 1, 1, 1, 2, -1, 1, 0, 1, 3]), 0, 4);
+			}
+
+			if (!this._indexBuffer) {
+				this._indexBuffer = this._context.createIndexBuffer(6);
+	
+				this._indexBuffer.uploadFromArray(new Uint16Array([2, 1, 0, 3, 2, 0]), 0, 6);
+			}
+			
+
+			if (!this._copyPixelFilter) {
+				this._copyPixelFilter = new CopyPixelFilter3D();
+				this._copyPixelSampler = new ImageSampler(false, false, false);
+			}
+
+			this._copyPixelFilter.sourceTexture = source;
+			this._copyPixelFilter.rect = rect;
+			this._copyPixelFilter.destPoint = destPoint;
+
+			this._copyPixelFilter.setRenderTargets(target, this);
+
+			//render
+			var indexBuffer:IIndexBuffer = this._indexBuffer;
+			var vertexBuffer:IVertexBuffer = this._renderToTextureVertexBuffer;
+			var tasks:Filter3DTaskBase[] = this._copyPixelFilter.tasks;
+			var len:number = tasks.length;
+
+			if (len > 1 || tasks[0].target) {
+				this._context.setProgram(tasks[0].getProgram(this));
+				this._context.setVertexBufferAt(tasks[0]._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+				this._context.setVertexBufferAt(tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+			}
+	
+			for (var i:number = 0; i < len; ++i) {
+
+				var task:Filter3DTaskBase = tasks[i];
+
+				this.setRenderTarget(task.target, false);
+				this.setScissor(null);
+
+				this._context.setProgram(task.getProgram(this));
+				this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
+				(<_Stage_ImageBase> this.getAbstraction(task.getMainInputTexture(this))).activate(task._inputTextureIndex, this._copyPixelSampler);
+	
+				if (!task.target) {
+	
+					vertexBuffer = this._renderToTextureVertexBuffer;
+					this._context.setVertexBufferAt(task._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+					this._context.setVertexBufferAt(task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+	
+				}
+	
+				task.activate(this, null, null);
+
+				this._context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
+	
+				task.deactivate(this);
+			}
+
+			this._context.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL);
+			this._context.setTextureAt(0, null);
+			this._context.setVertexBufferAt(0, null);
+			this._context.setVertexBufferAt(1, null);
+		} else {
+			var rect:Rectangle = rect.clone();
+			var destPoint:Point = destPoint.clone();
+
+			if (destPoint.x < 0) {
+				rect.x -= destPoint.x;
+				rect.width += destPoint.x;
+				destPoint.x = 0;
+			}
+
+			if (destPoint.y < 0) {
+				rect.y -= destPoint.y;
+				rect.height += destPoint.y;
+				destPoint.y = 0;
+			}
+
+			if (rect.width > target.width - destPoint.x)
+				rect.width = target.width - destPoint.x;
+
+			if (rect.height > target.height - destPoint.y)
+				rect.height = target.height - destPoint.y;
+
+			this.setRenderTarget(source, false);
+			this.setScissor(null);
+
+			var targetStage:_Stage_ImageBase = <_Stage_ImageBase> this.getAbstraction(target);
+	
+			this._context.copyToTexture(targetStage.getTexture(), rect, destPoint);	
 		}
 	}
 

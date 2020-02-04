@@ -94,6 +94,9 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		if (enableDepthAndStencil) {
 			this._gl.enable(this._gl.STENCIL_TEST);
 			this._gl.enable(this._gl.DEPTH_TEST);
+		} else {
+			this._gl.disable(this._gl.STENCIL_TEST);
+			this._gl.disable(this._gl.DEPTH_TEST);
 		}
 
 		this._gl.viewport(0, 0, width, height);
