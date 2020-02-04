@@ -42,6 +42,7 @@ export {SamplerState} from "./lib/base/SamplerState";
 
 export {ImageEvent} from "./lib/events/ImageEvent";
 export {StageEvent} from "./lib/events/StageEvent";
+export {RTTEvent} from "./lib/events/RTTEvent";
 
 export {BitmapImage2D, _Stage_BitmapImage2D} from "./lib/image/BitmapImage2D";
 export {BitmapImageChannel} from "./lib/image/BitmapImageChannel";
@@ -62,6 +63,16 @@ export {SpecularImage2D} from "./lib/image/SpecularImage2D";
 export {DefaultGraphicsFactory} from "./lib/factories/DefaultGraphicsFactory";
 export {IGraphicsFactory} from "./lib/factories/IGraphicsFactory";
 
+export {Filter3DCompositeTask} from "./lib/filters/tasks/Filter3DCompositeTask";
+export {Filter3DFXAATask} from "./lib/filters/tasks/Filter3DFXAATask";
+export {Filter3DHBlurTask} from "./lib/filters/tasks/Filter3DHBlurTask";
+export {Filter3DTaskBase} from "./lib/filters/tasks/Filter3DTaskBase";
+export {Filter3DVBlurTask} from "./lib/filters/tasks/Filter3DVBlurTask";
+export {BlurFilter3D} from "./lib/filters/BlurFilter3D";
+export {CompositeFilter3D} from "./lib/filters/CompositeFilter3D";
+export {Filter3DBase} from "./lib/filters/Filter3DBase";
+export {FXAAFilter3D} from "./lib/filters/FXAAFilter3D";
+
 export {ContextGLES} from "./lib/gles/ContextGLES";
 export {GLESConnector} from "./lib/gles/GLESConnector";
 export {GLESAssetBase} from "./lib/gles/GLESAssetBase";
@@ -76,6 +87,7 @@ export {ProgramData} from "./lib/image/ProgramData";
 export {ProgramDataPool} from "./lib/image/ProgramDataPool";
 
 export {StageManager} from "./lib/managers/StageManager";
+export {RTTBufferManager} from "./lib/managers/RTTBufferManager";
 
 
 export {Image2DParser} from "./lib/parsers/Image2DParser";
