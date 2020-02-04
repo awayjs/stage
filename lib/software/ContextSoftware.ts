@@ -261,6 +261,11 @@ export class ContextSoftware implements IContextGL
 		this._activeBufferZ = this._backBufferZ;
 		this.activateScreenMatrix(this._backBufferColor.width, this._backBufferColor.height, true);
 	}
+			
+	public copyToTexture(target:TextureSoftware, rect:Rectangle, destPoint:Point):void
+	{
+
+	}
 
 	public drawIndices(mode:ContextGLDrawMode, indexBuffer:IndexBufferSoftware, firstIndex:number, numIndices:number):void
 	{

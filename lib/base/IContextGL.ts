@@ -1,4 +1,4 @@
-import {Rectangle, CoordinateSystem} from "@awayjs/core";
+import {Rectangle, CoordinateSystem, Point} from "@awayjs/core";
 
 import {BitmapImage2D} from "../image/BitmapImage2D";
 import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
@@ -79,6 +79,8 @@ export interface IContextGL
 	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number, mipmapSelector?:number);
 
 	setRenderToBackBuffer();
+
+	copyToTexture(target:ITextureBase, rect:Rectangle, destPoint:Point):void
 
 	enableStencil();
 

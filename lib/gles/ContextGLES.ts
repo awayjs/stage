@@ -1,4 +1,4 @@
-import {Rectangle, Byte32Array, CoordinateSystem} from "@awayjs/core";
+import {Rectangle, Byte32Array, CoordinateSystem, Point} from "@awayjs/core";
 
 import {BitmapImage2D} from "../image/BitmapImage2D";
 import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
@@ -436,6 +436,12 @@ export class ContextGLES implements IContextGL
 		this._cmdBytes.writeInt(OpCodes.clearRenderToTexture);
 		//todo
 		// this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+	}
+
+		
+	public copyToTexture(target:TextureBaseGLES, rect:Rectangle, destPoint:Point):void
+	{
+
 	}
 
 	private updateBlendStatus():void

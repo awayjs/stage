@@ -1,4 +1,4 @@
-import {Rectangle, CoordinateSystem} from "@awayjs/core";
+import {Rectangle, CoordinateSystem, Point} from "@awayjs/core";
 
 import {BitmapImage2D} from "../image/BitmapImage2D";
 import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
@@ -274,6 +274,9 @@ export class ContextWebGL implements IContextGL
 		if (enableDepthAndStencil) {
 			this._gl.enable(this._gl.STENCIL_TEST);
 			this._gl.enable(this._gl.DEPTH_TEST);
+		} else {
+			this._gl.disable(this._gl.STENCIL_TEST);
+			this._gl.disable(this._gl.DEPTH_TEST);
 		}
 
 		this._gl.viewport(0, 0, this._width, this._height);
@@ -574,6 +577,13 @@ export class ContextWebGL implements IContextGL
 		}
 
 		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+	}
+
+	
+	public copyToTexture(target:TextureBaseWebGL, rect:Rectangle, destPoint:Point):void
+	{
+		this._gl.bindTexture(this._gl.TEXTURE_2D, target.glTexture);
+		this._gl.copyTexSubImage2D(this._gl.TEXTURE_2D, 0, destPoint.x, destPoint.y, rect.x, rect.y, rect.width, rect.height);
 	}
 
 	private updateBlendStatus():void
