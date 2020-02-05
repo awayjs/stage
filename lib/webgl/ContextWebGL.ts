@@ -320,10 +320,7 @@ export class ContextWebGL implements IContextGL
 
 		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
 
-		var dummy:BitmapImage2D = new BitmapImage2D(destination.width, destination.height, true, 0x0, false);
-		dummy.setPixels(new Rectangle(0, 0, destination.width, destination.height), new Uint8ClampedArray(pixels.buffer));
-
-		destination.draw(dummy);
+		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), new Uint8ClampedArray(pixels.buffer));
 	}
 
 	public drawIndices(mode:ContextGLDrawMode, indexBuffer:IndexBufferWebGL, firstIndex:number = 0, numIndices:number = -1):void
