@@ -1,4 +1,4 @@
-import {IAsset, URLLoaderDataFormat, URLRequest, ParserBase, ResourceDependency} from "@awayjs/core";
+import {IAsset, URLLoaderDataFormat, URLRequest, ParserBase, ResourceDependency, Rectangle} from "@awayjs/core";
 
 import {BitmapImage2D} from "../image/BitmapImage2D";
 import {BitmapImageCube} from "../image/BitmapImageCube";
@@ -83,13 +83,14 @@ export class ImageCubeParser extends ParserBase
 	{
 		if (this._imgDependencyDictionary != null) { //all images loaded
 			var asset:BitmapImageCube = new BitmapImageCube(this._getBitmapImage2D(ImageCubeParser.posX).width);
+			var rect:Rectangle = new Rectangle(0, 0, asset.size, asset.size)
 
-			asset.drawBitmap(BitmapImageCube.posX, this._getBitmapImage2D(ImageCubeParser.posX).data, 0, 0, asset.size, asset.size);
-			asset.drawBitmap(BitmapImageCube.negX, this._getBitmapImage2D(ImageCubeParser.negX).data, 0, 0, asset.size, asset.size);
-			asset.drawBitmap(BitmapImageCube.posY, this._getBitmapImage2D(ImageCubeParser.posY).data, 0, 0, asset.size, asset.size);
-			asset.drawBitmap(BitmapImageCube.negY, this._getBitmapImage2D(ImageCubeParser.negY).data, 0, 0, asset.size, asset.size);
-			asset.drawBitmap(BitmapImageCube.posZ, this._getBitmapImage2D(ImageCubeParser.posZ).data, 0, 0, asset.size, asset.size);
-			asset.drawBitmap(BitmapImageCube.negZ, this._getBitmapImage2D(ImageCubeParser.negZ).data, 0, 0, asset.size, asset.size);
+			asset.setPixels(BitmapImageCube.posX, rect, this._getBitmapImage2D(ImageCubeParser.posX).data);
+			asset.setPixels(BitmapImageCube.negX, rect, this._getBitmapImage2D(ImageCubeParser.negX).data);
+			asset.setPixels(BitmapImageCube.posY, rect, this._getBitmapImage2D(ImageCubeParser.posY).data);
+			asset.setPixels(BitmapImageCube.negY, rect, this._getBitmapImage2D(ImageCubeParser.negY).data);
+			asset.setPixels(BitmapImageCube.posZ, rect, this._getBitmapImage2D(ImageCubeParser.posZ).data);
+			asset.setPixels(BitmapImageCube.negZ, rect, this._getBitmapImage2D(ImageCubeParser.negZ).data);
 
 			//clear dictionary
 			this._imgDependencyDictionary = null;

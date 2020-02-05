@@ -49,15 +49,6 @@ export class ImageCube extends ImageBase
 
 	/**
 	 *
-	 * @returns {ImageData}
-	 */
-	public getImageData(side:number):ImageData
-	{
-		throw new AbstractMethodError();
-	}
-
-	/**
-	 *
 	 * @param width
 	 * @param height
 	 * @private

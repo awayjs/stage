@@ -717,7 +717,7 @@ export class _Stage_BitmapImageCube extends _Stage_ImageCube
             this._invalid = false;
 
             for (var i:number = 0; i < 6; ++i)
-                (<ICubeTexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImageCube> this._asset).getImageData(i).data.buffer), i, 0);
+                (<ICubeTexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImageCube> this._asset).data[i].buffer), i, 0);
 
             this._invalidMipmaps = true;
         }
