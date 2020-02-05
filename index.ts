@@ -48,10 +48,7 @@ export {BitmapImage2D, _Stage_BitmapImage2D} from "./lib/image/BitmapImage2D";
 export {BitmapImageChannel} from "./lib/image/BitmapImageChannel";
 export {BitmapImageCube, _Stage_BitmapImageCube} from "./lib/image/BitmapImageCube";
 export {BlendMode} from "./lib/image/BlendMode";
-export {CPUCanvas} from "./lib/image/CPUCanvas";
-export {CPURenderingContext2D} from "./lib/image/CPURenderingContext2D";
 export {ExternalImage2D, _Stage_ExternalImage2D} from "./lib/image/ExternalImage2D";
-export {IImageCanvas} from "./lib/image/IImageCanvas";
 export {Image2D, _Stage_Image2D} from "./lib/image/Image2D";
 export {ImageBase, _Stage_ImageBase} from "./lib/image/ImageBase";
 export {ImageCube, _Stage_ImageCube} from "./lib/image/ImageCube";
@@ -118,7 +115,6 @@ export {VertexBufferWebGL} from "./lib/webgl/VertexBufferWebGL";
 
 export {BitmapImageUtils} from "./lib/utils/BitmapImageUtils";
 export {ImageUtils} from "./lib/utils/ImageUtils";
-export {MipmapGenerator} from "./lib/utils/MipmapGenerator";
 
 export {AttributesView} from "./lib/attributes/AttributesView";
 export {AttributesBuffer, _Stage_AttributesBuffer} from "./lib/attributes/AttributesBuffer";
