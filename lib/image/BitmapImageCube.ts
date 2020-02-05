@@ -2,10 +2,7 @@ import {ColorTransform, Matrix, Rectangle, Point, ByteArray, ColorUtils} from "@
 
 import {BitmapImage2D} from "./BitmapImage2D";
 import {ImageCube} from "./ImageCube";
-import {BlendMode} from "./BlendMode";
 import {BitmapImageUtils} from "../utils/BitmapImageUtils";
-import {IImageCanvas} from "./IImageCanvas";
-import {CPUCanvas} from "./CPUCanvas";
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
  * object. You can use the methods of the BitmapImage2D export class to create
@@ -74,9 +71,7 @@ export class BitmapImageCube extends ImageCube
 	public static posZ:number = 4;
 	public static negZ:number = 5;
 
-	private _imageCanvas:Array<IImageCanvas> = new Array<IImageCanvas>(6);
-	private _context:Array<ICanvasRenderingContext> = new Array<ICanvasRenderingContext>(6);
-	private _imageData:Array<ImageData> = new Array<ImageData>(6);
+	private _data:Array<Uint8ClampedArray> = new Array<Uint8ClampedArray>(6);
 	private _transparent:boolean;
 	private _locked:boolean = false;
 
@@ -142,14 +137,7 @@ export class BitmapImageCube extends ImageCube
 		this._transparent = transparent;
 
 		for (var i:number = 0; i < 6; i++) {
-			if(typeof document !== "undefined") {
-				this._imageCanvas[i] = <IImageCanvas> document.createElement("canvas");
-			}else {
-				this._imageCanvas[i] = new CPUCanvas();
-			}
-			this._imageCanvas[i].width = size;
-			this._imageCanvas[i].height = size;
-			this._context[i] = this._imageCanvas[i].getContext("2d");
+			this._data[i] = new Uint8ClampedArray(4*this._size*this._size);
 
 			if (fillColor != null)
 				this.fillRect(i, new Rectangle(0, 0, size, size), fillColor);
@@ -167,7 +155,7 @@ export class BitmapImageCube extends ImageCube
 		var t:BitmapImageCube = new BitmapImageCube(this._size, this.transparent);
 
 		for (var i:number = 0; i < 6; i++) {
-			t.draw(i, this.getCanvas(i));
+			t.setPixels(i, new Rectangle(0, 0, this._size, this._size), this.data[i]);
 		}
 		return t;
 	}
@@ -185,12 +173,7 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public colorTransform(side:number, rect:Rectangle, colorTransform:ColorTransform):void
 	{
-		if (!this._locked)
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		var data:Uint8ClampedArray = this._imageData[side].data;
-
-		var i:number, j:number, index:number;
+		var i:number, j:number, index:number, data:Uint8ClampedArray = this.data[side];
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
 				index = (i + rect.x + (j + rect.y)*this._size)*4;
@@ -202,12 +185,8 @@ export class BitmapImageCube extends ImageCube
 			}
 		}
 
-		if (!this._locked) {
-			this._context[side].putImageData(this._imageData[side], 0, 0);
-			this._imageData[side] = null;
-		}
-
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -255,98 +234,29 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public copyChannel(side:number, sourceBitmap:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, sourceChannel:number, destChannel:number):void
 	{
-		var imageData:ImageData = sourceBitmap.getImageData();
-
-		if (!this._locked)
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		var sourceData:Uint8ClampedArray = sourceBitmap.getImageData().data;
-		var destData:Uint8ClampedArray = this._imageData[side].data;
+		var sourceData:Uint8ClampedArray = sourceBitmap.data;
+		var destData:Uint8ClampedArray = this._data[side];
 
 		var sourceOffset:number = Math.round(Math.log(sourceChannel)/Math.log(2));
 		var destOffset:number = Math.round(Math.log(destChannel)/Math.log(2));
 
+		var sourceX:number = Math.round(sourceRect.x);
+		var sourceY:number = Math.round(sourceRect.y);
+		var destX:number = Math.round(destPoint.x);
+		var destY:number = Math.round(destPoint.y);
+
 		var i:number, j:number, sourceIndex:number, destIndex:number;
 		for (i = 0; i < sourceRect.width; ++i) {
 			for (j = 0; j < sourceRect.height; ++j) {
-				sourceIndex = (i + sourceRect.x + (j + sourceRect.y)*sourceBitmap.width)*4;
-				destIndex = (i + destPoint.x + (j + destPoint.y)*this._size)*4;
+				sourceIndex = (i + sourceX + (j + sourceY)*sourceBitmap.width)*4;
+				destIndex = (i + destX + (j + destY)*this._size)*4;
 
 				destData[destIndex + destOffset] = sourceData[sourceIndex + sourceOffset];
 			}
 		}
 
-		if (!this._locked) {
-			this._context[side].putImageData(this._imageData[side], 0, 0);
-			this._imageData[side] = null;
-		}
-
-		this.invalidate();
-	}
-
-	/**
-	 * Provides a fast routine to perform pixel manipulation between images with
-	 * no stretching, rotation, or color effects. This method copies a
-	 * rectangular area of a source image to a rectangular area of the same size
-	 * at the destination point of the destination BitmapImage2D object.
-	 *
-	 * <p>If you include the <code>alphaBitmap</code> and <code>alphaPoint</code>
-	 * parameters, you can use a secondary image as an alpha source for the
-	 * source image. If the source image has alpha data, both sets of alpha data
-	 * are used to composite pixels from the source image to the destination
-	 * image. The <code>alphaPoint</code> parameter is the point in the alpha
-	 * image that corresponds to the upper-left corner of the source rectangle.
-	 * Any pixels outside the intersection of the source image and alpha image
-	 * are not copied to the destination image.</p>
-	 *
-	 * <p>The <code>mergeAlpha</code> property controls whether or not the alpha
-	 * channel is used when a transparent image is copied onto another
-	 * transparent image. To copy pixels with the alpha channel data, set the
-	 * <code>mergeAlpha</code> property to <code>true</code>. By default, the
-	 * <code>mergeAlpha</code> property is <code>false</code>.</p>
-	 *
-	 * @param sourceBitmapImage2D The input bitmap image from which to copy pixels.
-	 *                         The source image can be a different BitmapImage2D
-	 *                         instance, or it can refer to the current
-	 *                         BitmapImage2D instance.
-	 * @param sourceRect       A rectangle that defines the area of the source
-	 *                         image to use as input.
-	 * @param destPoint        The destination point that represents the
-	 *                         upper-left corner of the rectangular area where
-	 *                         the new pixels are placed.
-	 * @param alphaBitmapImage2D  A secondary, alpha BitmapImage2D object source.
-	 * @param alphaPoint       The point in the alpha BitmapImage2D object source
-	 *                         that corresponds to the upper-left corner of the
-	 *                         <code>sourceRect</code> parameter.
-	 * @param mergeAlpha       To use the alpha channel, set the value to
-	 *                         <code>true</code>. To copy pixels with no alpha
-	 *                         channel, set the value to <code>false</code>.
-	 * @throws TypeError The sourceBitmapImage2D, sourceRect, destPoint are null.
-	 */
-	public copyPixels(side:number, source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point);
-	public copyPixels(side:number, source:HTMLImageElement, sourceRect:Rectangle, destPoint:Point);
-	public copyPixels(side:number, source:any, sourceRect:Rectangle, destPoint:Point):void
-	{
-		if (source instanceof BitmapImage2D)
-			source = source.getCanvas();
-
-		if (this._locked) {
-
-			// If canvas is locked:
-			//
-			//      1) copy image data back to canvas
-			//      2) draw object
-			//      3) read _imageData back out
-
-			this._context[side].putImageData(this._imageData[side], 0, 0); // at coords 0,0
-			BitmapImageUtils._copyPixels(this._context[side], source, sourceRect, destPoint);
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		} else {
-			BitmapImageUtils._copyPixels(this._context[side], source, sourceRect, destPoint);
-		}
-
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -372,11 +282,8 @@ export class BitmapImageCube extends ImageCube
 	{
 		super.dispose();
 
-		for (var i:number = 0; i < 6; i++) {
-			this._context[i] = null;
-			this._imageCanvas[i] = null;
-			this._imageData[i] = null;
-		}
+		for (var i:number = 0; i < 6; i++)
+			this._data[i] = null;
 
 		this._transparent = null;
 		this._locked = null;
@@ -454,29 +361,12 @@ export class BitmapImageCube extends ImageCube
 	 *                       restriction does not apply to AIR content in the
 	 *                       application security sandbox.
 	 */
-	public draw(side:number, source:BitmapImage2D, matrix?:Matrix, colorTransform?:ColorTransform, blendMode?:BlendMode, clipRect?:Rectangle, smoothing?:boolean);
-	public draw(side:number, source:HTMLElement, matrix?:Matrix, colorTransform?:ColorTransform, blendMode?:BlendMode, clipRect?:Rectangle, smoothing?:boolean);
-	public draw(side:number, source:any, matrix?:Matrix, colorTransform?:ColorTransform, blendMode?:BlendMode, clipRect?:Rectangle, smoothing?:boolean):void
+	public drawBitmap(side:number, source:Uint8ClampedArray, offsetX:number, offsetY:number, width:number, height:number, matrix:Matrix = null):void
 	{
-		if (source instanceof BitmapImage2D)
-			source = source.getCanvas();
+		BitmapImageUtils.drawBitmap(source, offsetX, offsetY, width, height, this.data[side], 0, 0, this._size, this._size, matrix)
 
-		if (this._locked) {
-
-			// If canvas is locked:
-			//
-			//      1) copy image data back to canvas
-			//      2) draw object
-			//      3) read _imageData back out
-
-			this._context[side].putImageData(this._imageData[side], 0, 0); // at coords 0,0
-			BitmapImageUtils._draw(this._context[side], source, matrix, colorTransform, blendMode, clipRect, smoothing);
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-		} else {
-			BitmapImageUtils._draw(this._context[side], source, matrix, colorTransform, blendMode, clipRect, smoothing);
-		}
-
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -490,26 +380,26 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public fillRect(side:number, rect:Rectangle, color:number):void
 	{
-		if (this._locked) {
-
-			// If canvas is locked:
-			//
-			//      1) copy image data back to canvas
-			//      2) apply fill
-			//      3) read _imageData back out
-
-			if (this._imageData[side])
-				this._context[side].putImageData(this._imageData[side], 0, 0); // at coords 0,0
-
-			BitmapImageUtils._fillRect(this._context[side], rect, color, this._transparent);
-
-			if (this._imageData[side])
-				this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
+		var data:Uint32Array = new Uint32Array(this._data[side].buffer);
+		var x:number = ~~rect.x, y:number = ~~rect.y, width:number = ~~rect.width, height:number = ~~rect.height;
+		var argb:number = this._transparent? (color & 0xFFFFFFFF) : (color & 0xFFFFFF) + 0xFF000000;
+		
+		//fast path for complete fill
+		if (x == 0 && y == 0 && width == this._size && height == this._size) {
+			data.fill(argb);
 		} else {
-			BitmapImageUtils._fillRect(this._context[side], rect, color, this._transparent);
+			var j:number;
+			var index:number;
+			for (j = 0; j < height; ++j) {
+			
+				index = x + (j + y)*this._size;
+	
+				data.fill(argb, index, index + width);
+			}
 		}
 
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -535,35 +425,25 @@ export class BitmapImageCube extends ImageCube
 	 *         <i>y</i>) coordinates are outside the bounds of the image, the
 	 *         method returns 0.
 	 */
-	public getPixel(side:number, x:number, y:number):number
+	public getPixel(side:number, x, y):number
 	{
 		var r:number;
 		var g:number;
 		var b:number;
 		var a:number;
 
-		if (!this._locked) {
-			var pixelData:ImageData = this._context[side].getImageData(x, y, 1, 1);
+		var index:number = (~~x + ~~y*this._size)*4, data:Uint8ClampedArray = this.data[side];
 
-			r = pixelData.data[0];
-			g = pixelData.data[1];
-			b = pixelData.data[2];
-			a = pixelData.data[3];
-
-		} else {
-			var index:number = (x + y*this._size)*4;
-
-			r = this._imageData[side].data[index + 0];
-			g = this._imageData[side].data[index + 1];
-			b = this._imageData[side].data[index + 2];
-			a = this._imageData[side].data[index + 3];
-		}
+		r = data[index + 0];
+		g = data[index + 1];
+		b = data[index + 2];
+		a = data[index + 3];
 
 		//returns black if fully transparent
 		if (!a)
 			return 0x0;
 
-		return (r << 16) | (g << 8) | b;
+		return (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
 	}
 
 	/**
@@ -595,24 +475,18 @@ export class BitmapImageCube extends ImageCube
 		var b:number;
 		var a:number;
 
-		if (!this._locked) {
-			var pixelData:ImageData = this._context[side].getImageData(x, y, 1, 1);
+		var index:number = (~~x + ~~y*this._size)*4;
+		var data:Uint8ClampedArray = this.data[side];
 
-			r = pixelData.data[0];
-			g = pixelData.data[1];
-			b = pixelData.data[2];
-			a = pixelData.data[3];
+		r = data[index++];
+		g = data[index++];
+		b = data[index++];
+		a = data[index];
 
-		} else {
-			var index:number = (x + y*this._size)*4;
+		if (!a)
+			return 0x0;
 
-			r = this._imageData[side].data[index + 0];
-			g = this._imageData[side].data[index + 1];
-			b = this._imageData[side].data[index + 2];
-			a = this._imageData[side].data[index + 3];
-		}
-
-		return (a << 24) | (r << 16) | (g << 8) | b;
+		return (a << 24) | (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
 	}
 
 	/**
@@ -629,9 +503,6 @@ export class BitmapImageCube extends ImageCube
 			return;
 
 		this._locked = true;
-
-		for (var i:number = 0; i < 6; i++)
-			this._imageData[i] = this._context[i].getImageData(0, 0, this._size, this._size);
 	}
 
 	/**
@@ -648,28 +519,21 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public setArray(side:number, rect:Rectangle, inputArray:Array<number>):void
 	{
-		if (!this._locked)
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		var i:number, j:number, index:number, argb:number[];
+		var i:number, j:number, index:number, argb:number[], data:Uint8ClampedArray = this.data[side];
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
 				argb = ColorUtils.float32ColorToARGB(inputArray[i + j*rect.width]);
 				index = (i + rect.x + (j + rect.y)*this._size)*4;
 
-				this._imageData[side].data[index + 0] = argb[1];
-				this._imageData[side].data[index + 1] = argb[2];
-				this._imageData[side].data[index + 2] = argb[3];
-				this._imageData[side].data[index + 3] = argb[0];
+				data[index + 0] = argb[1];
+				data[index + 1] = argb[2];
+				data[index + 2] = argb[3];
+				data[index + 3] = this._transparent? argb[0] : 0xFF;
 			}
 		}
 
-		if (!this._locked) {
-			this._context[side].putImageData(this._imageData[side], 0, 0);
-			this._imageData[side] = null;
-		}
-
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -691,24 +555,15 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public setPixel(side:number, x:number, y:number, color:number):void
 	{
-		var argb:number[] = ColorUtils.float32ColorToARGB(color);
+		var index:number = (~~x + ~~y*this._size)*4, argb:number[] = ColorUtils.float32ColorToARGB(color), data:Uint8ClampedArray = this.data[side];
+
+		data[index + 0] = argb[1];
+		data[index + 1] = argb[2];
+		data[index + 2] = argb[3];
+		data[index + 3] = 0xff;
 
 		if (!this._locked)
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		var index:number = (x + y*this._size)*4;
-
-		this._imageData[side].data[index + 0] = argb[1];
-		this._imageData[side].data[index + 1] = argb[2];
-		this._imageData[side].data[index + 2] = argb[3];
-		this._imageData[side].data[index + 3] = 255;
-
-		if (!this._locked) {
-			this._context[side].putImageData(this._imageData[side], 0, 0);
-			this._imageData = null;
-		}
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -742,26 +597,17 @@ export class BitmapImageCube extends ImageCube
 	 *              opaque(not transparent), the alpha transparency portion of
 	 *              this color value is ignored.
 	 */
-	public setPixel32(side:number, x, y, color:number):void
+	public setPixel32(side:number, x:number, y:number, color:number):void
 	{
-		var argb:number[] = ColorUtils.float32ColorToARGB(color);
+		var index:number = (~~x + ~~y*this._size)*4, argb:number[] = ColorUtils.float32ColorToARGB(color), data:Uint8ClampedArray = this.data[side];
+
+		data[index + 0] = argb[1];
+		data[index + 1] = argb[2];
+		data[index + 2] = argb[3];
+		data[index + 3] = this._transparent? argb[0] : 0xFF;
 
 		if (!this._locked)
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		var index:number = (x + y*this._size)*4;
-
-		this._imageData[side].data[index + 0] = argb[1];
-		this._imageData[side].data[index + 1] = argb[2];
-		this._imageData[side].data[index + 2] = argb[3];
-		this._imageData[side].data[index + 3] = argb[0];
-
-		if (!this._locked) {
-			this._context[side].putImageData(this._imageData[side], 0, 0);
-			this._imageData[side] = null;
-		}
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -783,30 +629,19 @@ export class BitmapImageCube extends ImageCube
 	 *                   before throwing the exception.
 	 * @throws TypeError The rect or inputByteArray are null.
 	 */
-	public setPixels(side:number, rect:Rectangle, inputByteArray:ByteArray):void
+	public setPixels(side:number, rect:Rectangle, input:Uint8ClampedArray):void
 	{
+		//fast path for full imageData
+		if (rect.x == 0 && rect.y == 0 && rect.width == this._size && rect.height == this._size) {
+			this._data[side].set(input);
+		} else {
+			var i:number, imageSize:number = this._size, inputWidth:number = rect.width, data:Uint8ClampedArray = this._data[side];
+			for (i = 0; i < rect.height; ++i)
+				data.set(input.subarray(i*inputWidth*4, (i + 1)*inputWidth*4), (rect.x + (i + rect.y)*imageSize)*4);
+		}
+
 		if (!this._locked)
-			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
-
-		inputByteArray.position = 0;
-		var i:number, j:number, index:number;
-		for (i = 0; i < rect.width; ++i) {
-			for (j = 0; j < rect.height; ++j) {
-				index = (i + rect.x + (j + rect.y)*this._size)*4;
-
-				this._imageData[side].data[index + 0] = inputByteArray.readUnsignedInt();
-				this._imageData[side].data[index + 1] = inputByteArray.readUnsignedInt();
-				this._imageData[side].data[index + 2] = inputByteArray.readUnsignedInt();
-				this._imageData[side].data[index + 3] = inputByteArray.readUnsignedInt();
-			}
-		}
-
-		if (!this._locked) {
-			this._context[side].putImageData(this._imageData[side], 0, 0);
-			this._imageData[side] = null;
-		}
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -828,31 +663,16 @@ export class BitmapImageCube extends ImageCube
 
 		this._locked = false;
 
-		for (var i:number = 0; i < 6; i++) {
-			this._context[i].putImageData(this._imageData[i], 0, 0); // at coords 0,0
-			this._imageData[i] = null;
-		}
+		this.invalidate();
 	}
 
 	/**
 	 *
 	 * @returns {ImageData}
 	 */
-	public getImageData(side:number):ImageData
+	public get data():Uint8ClampedArray[]
 	{
-		if (!this._locked)
-			return this._context[side].getImageData(0, 0, this._size, this._size);
-
-		return this._imageData[side];
-	}
-
-	/**
-	 *
-	 * @returns {HTMLCanvasElement}
-	 */
-	public getCanvas(side:number):HTMLCanvasElement
-	{
-		return this._imageCanvas[side] as HTMLCanvasElement;
+		return this._data;
 	}
 
 	/**
@@ -863,22 +683,18 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public _setSize(size:number):void
 	{
-		super._setSize(size);
-
 		for (var i:number = 0; i < 6; i++) {
-			if (this._locked)
-				this._context[i].putImageData(this._imageData[i], 0, 0);
+			var data:Uint8ClampedArray = this.data[i];
 
-			this._imageCanvas[i].width = size;
-			this._imageCanvas[i].height = size;
-
-			if (this._locked)
-				this._imageData[i] = this._context[i].getImageData(0, 0, this._size, this._size);
+			this._data[i] = new Uint8ClampedArray(4*size*size);
+			var inputSize:number = (this._size < size)? this._size : size;
+			for (var j = 0; j < inputSize; ++i)
+				this._data[i].set(data.subarray(j*inputSize*4, (j + 1)*inputSize*4), j*size*4);
 		}
+
+		super._setSize(size);
 	}
 }
-
-import {AssetEvent} from "@awayjs/core";
 
 import {ITextureBase} from "../base/ITextureBase"
 import {ICubeTexture} from "../base/ICubeTexture";
@@ -886,7 +702,6 @@ import {ICubeTexture} from "../base/ICubeTexture";
 import {_Stage_ImageCube} from "./ImageCube";
 
 import {Stage} from "../Stage";
-import { ICanvasRenderingContext } from './ICanvasRenderingContext';
 
 /**
  *

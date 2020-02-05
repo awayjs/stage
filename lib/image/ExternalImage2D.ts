@@ -53,12 +53,8 @@ export class ExternalImage2D extends Image2D
 	}
 }
 
-import {AssetEvent} from "@awayjs/core";
-
 import {ITextureBase} from "../base/ITextureBase"
 import {ITexture} from "../base/ITexture";
-
-import {MipmapGenerator} from "../utils/MipmapGenerator";
 
 import {_Stage_Image2D} from "./Image2D";
 

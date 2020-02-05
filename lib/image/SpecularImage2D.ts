@@ -117,7 +117,7 @@ export class SpecularImage2D extends Image2D
 	 *
 	 * @returns {ImageData}
 	 */
-	public getImageData():ImageData
+	public get data():Uint8ClampedArray
 	{
 		var origin:Point = new Point();
 
@@ -129,16 +129,7 @@ export class SpecularImage2D extends Image2D
 		if (this._specularSource)
 			this._output.copyChannel(this._specularSource, this._rect, origin, BitmapImageChannel.RED, BitmapImageChannel.RED);
 
-		return this._output.getImageData();
-	}
-
-	/**
-	 *
-	 * @returns {HTMLCanvasElement}
-	 */
-	public getCanvas():HTMLCanvasElement
-	{
-		return this._output.getCanvas();
+		return this._output.data;
 	}
 
 	/**

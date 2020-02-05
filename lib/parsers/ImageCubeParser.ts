@@ -84,12 +84,12 @@ export class ImageCubeParser extends ParserBase
 		if (this._imgDependencyDictionary != null) { //all images loaded
 			var asset:BitmapImageCube = new BitmapImageCube(this._getBitmapImage2D(ImageCubeParser.posX).width);
 
-			asset.draw(BitmapImageCube.posX, this._getBitmapImage2D(ImageCubeParser.posX));
-			asset.draw(BitmapImageCube.negX, this._getBitmapImage2D(ImageCubeParser.negX));
-			asset.draw(BitmapImageCube.posY, this._getBitmapImage2D(ImageCubeParser.posY));
-			asset.draw(BitmapImageCube.negY, this._getBitmapImage2D(ImageCubeParser.negY));
-			asset.draw(BitmapImageCube.posZ, this._getBitmapImage2D(ImageCubeParser.posZ));
-			asset.draw(BitmapImageCube.negZ, this._getBitmapImage2D(ImageCubeParser.negZ));
+			asset.drawBitmap(BitmapImageCube.posX, this._getBitmapImage2D(ImageCubeParser.posX).data, 0, 0, asset.size, asset.size);
+			asset.drawBitmap(BitmapImageCube.negX, this._getBitmapImage2D(ImageCubeParser.negX).data, 0, 0, asset.size, asset.size);
+			asset.drawBitmap(BitmapImageCube.posY, this._getBitmapImage2D(ImageCubeParser.posY).data, 0, 0, asset.size, asset.size);
+			asset.drawBitmap(BitmapImageCube.negY, this._getBitmapImage2D(ImageCubeParser.negY).data, 0, 0, asset.size, asset.size);
+			asset.drawBitmap(BitmapImageCube.posZ, this._getBitmapImage2D(ImageCubeParser.posZ).data, 0, 0, asset.size, asset.size);
+			asset.drawBitmap(BitmapImageCube.negZ, this._getBitmapImage2D(ImageCubeParser.negZ).data, 0, 0, asset.size, asset.size);
 
 			//clear dictionary
 			this._imgDependencyDictionary = null;

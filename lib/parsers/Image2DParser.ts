@@ -86,9 +86,11 @@ export class Image2DParser extends ParserBase
 
 	}
 
-	public _pFinalizeAsset(asset:IAsset, fileName:string){
+	public _pFinalizeAsset(asset:IAsset, fileName:string):void
+	{
 		if(this._alphaChannel)
-			(<Image2D>asset).alphaChannel=this._alphaChannel;
+			(<Image2D>asset).alphaChannel = this._alphaChannel;
+
 		super._pFinalizeAsset(asset, fileName)
 	}
 

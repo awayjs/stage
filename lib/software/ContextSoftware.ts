@@ -40,6 +40,9 @@ export class ContextSoftware implements IContextGL
 	private _activeBufferColor:BitmapImage2D;
 	private _activeBufferZ:Float32Array;
 	private _activeTexture:TextureSoftware;
+	private _frontCanvas:HTMLCanvasElement;
+	private _frontBufferContext:CanvasRenderingContext2D;
+	private _frontBufferImageData:ImageData;
 
 	private _backBufferZ:Float32Array;
 	private _backBufferZClear:Float32Array;
@@ -114,12 +117,15 @@ export class ContextSoftware implements IContextGL
 		this._activeBufferZ = this._backBufferZ;
 
 		if (document && document.body) {
-			var frontCanvas = this._frontBuffer.getCanvas();
+			this._frontCanvas = document.createElement("canvas");
+
+			this._frontBufferContext = this._frontCanvas.getContext("2d");
+			this._frontBufferImageData = this._frontBufferContext.getImageData(0, 0, 100, 100);
 
 			// TODO: remove software renderToTexture
-			frontCanvas.style.position = "absolute";
+			this._frontCanvas.style.position = "absolute";
 
-			document.body.appendChild(frontCanvas);
+			document.body.appendChild(this._frontCanvas);
 		}
 
 		this._depthCompareModeSoftware[ContextGLCompareMode.ALWAYS] = DepthCompareModeSoftware.always;
@@ -157,6 +163,10 @@ export class ContextSoftware implements IContextGL
 			this._antialias = 1;
 
 		this._frontBuffer._setSize(width, height);
+
+		this._frontCanvas.width = width;
+		this._frontCanvas.height = height;
+		this._frontBufferImageData = this._frontBufferContext.getImageData(0, 0, width, height);
 
 		var backBufferWidth = width*this._antialias;
 		var backBufferHeight = height*this._antialias;
@@ -224,7 +234,7 @@ export class ContextSoftware implements IContextGL
 			textureBufferColor = this.textureBuffersColor[surfaceSelector] = new BitmapImage2D(target.width, target.height, false, 0xFFFFFF, true);
 
 			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
-			target.uploadFromArray(textureBufferColor.getImageData().data);
+			target.uploadFromArray(textureBufferColor.data);
 		}
 		else {
 			textureBufferColor.fillRect(textureBufferColor.rect, 0xFFFFFF);
@@ -337,7 +347,7 @@ export class ContextSoftware implements IContextGL
 		// Transfer buffer data to texture.
 		if (this._activeBufferColor != this._backBufferColor) {
 			this._activeBufferColor.unlock();
-			this._activeTexture.uploadFromArray(this._activeBufferColor.getImageData().data);
+			this._activeTexture.uploadFromArray(this._activeBufferColor.data);
 		}
 	}
 
@@ -720,12 +730,17 @@ export class ContextSoftware implements IContextGL
 	{
 		this._backBufferColor.unlock();
 		this._frontBuffer.fillRect(this._frontBuffer.rect, 0);
-		this._frontBuffer.draw(this._backBufferColor, this._frontBufferMatrix);
+		this._frontBuffer.drawBitmap(this._backBufferColor.data, 0, 0, this._backBufferColor.width, this._backBufferColor.height, this._frontBufferMatrix);
+
+		if (document && document.body) {
+			this._frontBufferImageData.data.set(this._frontBuffer.data);
+			this._frontBufferContext.putImageData(this._frontBufferImageData, 0, 0);	
+		}
 	}
 
 	public drawToBitmapImage2D(destination:BitmapImage2D):void
 	{
-		destination.setPixels(this._activeBufferColor.rect, this._activeBufferColor.getImageData().data);
+		destination.setPixels(this._activeBufferColor.rect, this._activeBufferColor.data);
 	}
 
 	private _interpolateVertexPair(factor:number, v0:Float32Array, v1:Float32Array, result:Float32Array):void

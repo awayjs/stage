@@ -19,8 +19,11 @@ export class ImageUtils
 	{
 		if (!factory)
 			factory = new DefaultGraphicsFactory();
-		var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
-		image2D.draw(img);
+        var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
+        
+        var context:CanvasRenderingContext2D = document.createElement("canvas").getContext("2d");
+        context.drawImage(img, 0, 0);
+		image2D.setPixels(image2D.rect, context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data);
 
 		return image2D;
 	}
@@ -97,7 +100,7 @@ export class ImageUtils
         var b = new BitmapImageCube(this._defaultBitmapImage2D.width);
 
         for (var i:number = 0; i < 6; i++)
-            b.draw(i, this._defaultBitmapImage2D);
+            b.drawBitmap(i, this._defaultBitmapImage2D.data, 0, 0, this._defaultBitmapImage2D.width, this._defaultBitmapImage2D.height);
 
         this._defaultBitmapImageCube = b;
     }

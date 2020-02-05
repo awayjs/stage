@@ -8,11 +8,11 @@ export class Image2D extends ImageBase
 {
 	public static assetType:string = "[image Image2D]";
 
-	public _rect:Rectangle;
+	protected _rect:Rectangle;
 
 	protected _alphaChannel:Uint8Array;
 
-	private _powerOfTwo:boolean = true;
+	protected _powerOfTwo:boolean = true;
 
 	/**
 	 *
@@ -126,16 +126,6 @@ export class Image2D extends ImageBase
 		if(this._powerOfTwo == value) return;
 		this._powerOfTwo = value;
 		this._testDimensions();
-	}
-
-
-	/**
-	 *
-	 * @returns {ImageData}
-	 */
-	public getImageData():ImageData
-	{
-		throw new AbstractMethodError();
 	}
 }
 
