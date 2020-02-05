@@ -21,7 +21,10 @@ export class ImageUtils
 			factory = new DefaultGraphicsFactory();
         var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
         
-        var context:CanvasRenderingContext2D = document.createElement("canvas").getContext("2d");
+        var canvas:HTMLCanvasElement = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        var context:CanvasRenderingContext2D = canvas.getContext("2d");
         context.drawImage(img, 0, 0);
 		image2D.setPixels(image2D.rect, context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data);
 
