@@ -331,17 +331,7 @@ export class ContextWebGL implements IContextGL
 
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 
-		// Note: The 2 code options below are for #1 production and #2 debugging. Pick one and comment the other.
-		// #1
-		if(!window["awayDebugDrawing"]){
-			this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
-		
-		}	// #2
-		else{
-			for (var i:number = 0; i < numIndices; i+=3) {
-				this._gl.drawElements(this._gl.LINE_LOOP, 3, this._gl.UNSIGNED_SHORT, (firstIndex+i)*2);
-			}
-		}
+		this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1)? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex*2);
 	}
 
 	public drawVertices(mode:ContextGLDrawMode, firstVertex:number = 0, numVertices:number = -1):void
@@ -351,21 +341,8 @@ export class ContextWebGL implements IContextGL
 
 		if(numVertices==0)
 			return;
-		//DEBUG: draws triangle outlines
-		if(window["awayDebugDrawing"]){
-			for (var i:number = 0; i < numVertices; i+=3) {
-				this._gl.drawArrays(this._gl.LINE_LOOP, firstVertex+i, 3);
-			}
-		}
-		else{
-			try {
-				this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
-			} catch(e) {
-				console.log(e);
-			}
-			
 
-		}
+		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
 
 		// todo: this check should not be needed.
 		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
