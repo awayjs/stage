@@ -234,7 +234,7 @@ export class ContextSoftware implements IContextGL
 			textureBufferColor = this.textureBuffersColor[surfaceSelector] = new BitmapImage2D(target.width, target.height, false, 0xFFFFFF, true);
 
 			// TODO: transfer the initial image2D data from the texture to the BitmapImage2D object.
-			target.uploadFromArray(<Uint8Array>textureBufferColor.data);
+			target.uploadFromArray(new Uint8Array(textureBufferColor.data.buffer));
 		}
 		else {
 			textureBufferColor.fillRect(textureBufferColor.rect, 0xFFFFFF);
@@ -347,7 +347,7 @@ export class ContextSoftware implements IContextGL
 		// Transfer buffer data to texture.
 		if (this._activeBufferColor != this._backBufferColor) {
 			this._activeBufferColor.unlock();
-			this._activeTexture.uploadFromArray(<Uint8Array>this._activeBufferColor.data);
+			this._activeTexture.uploadFromArray(new Uint8Array(this._activeBufferColor.data.buffer));
 		}
 	}
 

@@ -40,7 +40,7 @@ export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 	
 	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0):void
 	{
-		this._textureSelectorDictionary[side][miplevel] = <Uint8ClampedArray> ((array instanceof Array)? new Uint8Array(array) : array);
+		this._textureSelectorDictionary[side][miplevel] = ((array instanceof Array)? new Uint8ClampedArray(array) : new Uint8ClampedArray(array.buffer));
 	}
 
 	public getData(side:number, miplevel:number = 0):Uint8ClampedArray
