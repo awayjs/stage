@@ -512,20 +512,12 @@ export class ContextWebGL implements IContextGL
 
 	public setVertexBufferAt(index:number, buffer:VertexBufferWebGL, bufferOffset:number = 0, format:number = 4):void
 	{
-        if(index==-1){   
-            // workaround to prevent gl-errors in drawArrays on ios / osx
-            // a call to activateVertexBufferVO with index==-1 will disable all 8 vertex-attributes   
-            for(var i = 0; i<8; i++){
-                this._gl.disableVertexAttribArray(i);
-            }
-            return;
-        }
-
 		var location:number = this._currentProgram? this._currentProgram.getAttribLocation(index) : -1;
 
+		//TODO: remove use of index in disableVertexAttribArray by better handling of internal Attrib location
 		if (!buffer) {
 			if (location > -1)
-				this._gl.disableVertexAttribArray(location);
+				this._gl.disableVertexAttribArray(index);
 
 			return;
 		}
