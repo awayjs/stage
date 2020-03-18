@@ -90,6 +90,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public globalDisableSmooth:boolean = false;
 	
+	public numUsedStreams:number = 0;
+	public numUsedTextures:number = 0;
+	
 	public get glVersion():number
 	{
 		return this._context.glVersion;
