@@ -10,7 +10,6 @@ import { Stage } from '../../Stage';
 
 export class Filter3DCopyPixelTask extends Filter3DTaskBase
 {
-	private _fragmentConstantData:Float32Array;
 	private _vertexConstantData:Float32Array;
 
 	public rect:Rectangle = new Rectangle();
@@ -21,8 +20,7 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 	{
 		super();
 
-		this._vertexConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0]);
-		this._fragmentConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0]);
+		this._vertexConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 	}
 	
 	public get sourceTexture():Image2D
@@ -44,6 +42,8 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 		var position:ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
 		this._positionIndex = position.index;
 		
+		var offset:ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
+
 		var uv:ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
 		this._uvIndex = uv.index;
 		
@@ -55,7 +55,7 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 			"add " + temp1 + ".xy, " + temp1 + ", " + rect + ".xy\n" +
 			"mov " + temp1 + ".w, " + position + ".w\n" +
 			"mov op, " + temp1 + "\n" + 
-			"mov " + this._uvVarying + ", " + uv + "\n";
+			"add " + this._uvVarying + ", " + uv + ", " + offset + ".xy\n";
 		
 		return code;
 	}
@@ -63,17 +63,13 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 	public getFragmentCode():string
 	{
 		var temp1:ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
-		
-		
+
 		var inputTexture:ShaderRegisterElement = this._registerCache.getFreeTextureReg();
 		this._inputTextureIndex = inputTexture.index;
-		
-		var offset:ShaderRegisterElement = this._registerCache.getFreeFragmentConstant();
-		
+
 		var code:string;
-		
-		code = "add " + temp1 + ", " + this._uvVarying + ", " + offset + ".xy\n" +
-			"tex " + temp1 + ", " + this._uvVarying + ", " + inputTexture + " <2d,linear,clamp>\n" +
+	
+		code = "tex " + temp1 + ", " + this._uvVarying + ", " + inputTexture + " <2d,linear,clamp>\n" +
 			"mov oc, " + temp1 + "\n";
 		return code;
 	}
@@ -85,17 +81,17 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 
 	public activate(stage:Stage, projection:ProjectionBase, depthTexture:Image2D):void
 	{
-		this._vertexConstantData[0] = (2*this.destPoint.x + this.rect.width)/this._target.width - 1;
-		this._vertexConstantData[1] = (2*this.destPoint.y + this.rect.height)/this._target.height - 1;
-		this._vertexConstantData[2] = this.rect.width/this._target.width;
-		this._vertexConstantData[3] = this.rect.height/this._target.height;
+		var index:number = this._positionIndex;
+		this._vertexConstantData[index] = (2*this.destPoint.x + this.rect.width)/this._target.width - 1;
+		this._vertexConstantData[index + 1] = (2*this.destPoint.y + this.rect.height)/this._target.height - 1;
+		this._vertexConstantData[index + 2] = this.rect.width/this._target.width;
+		this._vertexConstantData[index + 3] = this.rect.height/this._target.height;
 
-		this._fragmentConstantData[0] = this.rect.x/this._mainInputTexture.width;
-		this._fragmentConstantData[1] = this.rect.y/this._mainInputTexture.height;
+		this._vertexConstantData[index + 4] = this.rect.x/this._mainInputTexture.width;
+		this._vertexConstantData[index + 5] = this.rect.y/this._mainInputTexture.height;
 
 		var context:IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
-		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragmentConstantData);
 	}
 	
 	public deactivate(stage:Stage):void
