@@ -24,7 +24,7 @@ export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 		this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0, premultiplied:boolean = false):void
 	{
         if (array.length != this._size*this._size*4)
             throw new Error("Array is not the correct length for texture dimensions");
@@ -33,6 +33,7 @@ export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
             array = new Uint8Array(array);
 
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
+		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
         this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._size, this._size, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 	}

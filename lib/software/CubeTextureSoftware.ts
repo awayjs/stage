@@ -38,7 +38,7 @@ export class CubeTextureSoftware implements ICubeTexture, ITextureBaseSoftware
 		return this.textureType == textureClass.textureType;
 	}
 	
-	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0, premultiplied:boolean = false):void
 	{
 		this._textureSelectorDictionary[side][miplevel] = ((array instanceof Array)? new Uint8ClampedArray(array) : new Uint8ClampedArray(array.buffer));
 	}

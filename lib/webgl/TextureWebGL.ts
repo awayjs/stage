@@ -137,7 +137,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, this._gl.COLOR_BUFFER_BIT, this._gl.NEAREST);
 	}
 
-	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0, premultiplied:boolean = false):void
 	{
 
 		var width:number=this._width;
@@ -154,14 +154,16 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
             array = new Uint8Array(array);
 
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
+		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
         this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
-	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
+	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0, premultiplied:boolean = false):void
 	{
 		//dummy code for testing
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
+		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
         this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}

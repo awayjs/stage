@@ -772,12 +772,12 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
         if (this._invalid) {
             this._invalid = false;
 
-            (<ITexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImage2D> this._asset).data.buffer), 0);
+            (<ITexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImage2D> this._asset).data.buffer), 0, (<BitmapImage2D> this._asset).transparent);
 
 			var mipLevels:BitmapImage2D[]=(<BitmapImage2D> this._asset).mipLevels;
 			if(mipLevels && mipLevels.length>0){
 				for(var i=0; i<mipLevels.length; i++){
-					(<ITexture> this._texture).uploadFromArray(new Uint8Array(mipLevels[i].data.buffer), i+1);
+					(<ITexture> this._texture).uploadFromArray(new Uint8Array(mipLevels[i].data.buffer), i+1, (<BitmapImage2D> this._asset).transparent);
 				}
 				this._mipmap=true;
 				this._invalidMipmaps = false;

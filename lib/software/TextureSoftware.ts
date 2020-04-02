@@ -45,12 +45,12 @@ export class TextureSoftware implements ITexture, ITextureBaseSoftware
 	}
 	
 
-	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0, premultiplied:boolean = false):void
 	{
         this._mipLevels[miplevel] = ((array instanceof Array)? new Uint8ClampedArray(array) : new Uint8ClampedArray(array.buffer));
 	}
 
-	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
+	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0, premultiplied:boolean = false):void
 	{
 
 	}

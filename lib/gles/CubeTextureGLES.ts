@@ -28,7 +28,7 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 		// this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0, premultiplied:boolean = false):void
 	{
         if (array.length != this._size*this._size*4)
             throw new Error("Array is not the correct length for texture dimensions");

@@ -8,8 +8,8 @@ export interface ITexture extends ITextureBase
 
 	height:number;
 
-	uploadFromArray(array:Uint8Array | Array<number>, miplevel?:number);
+	uploadFromArray(array:Uint8Array | Array<number>, miplevel?:number, premultiplied?:boolean);
 
-	uploadFromURL(urlRequest:URLRequest, miplevel?:number);
+	uploadFromURL(urlRequest:URLRequest, miplevel?:number, premultiplied?:boolean);
 
 }

@@ -67,7 +67,7 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		return this._frameBuffer;
 	}
 
-	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0):void
+	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0, premultiplied:boolean = false):void
 	{
         if (array.length != this._width*this._height*4)
             throw new Error("Array is not the correct length for texture dimensions");
@@ -89,7 +89,7 @@ export class TextureGLES extends TextureBaseGLES implements ITexture
 		GLESConnector.gles.sendGLESCommands(localInt32View.buffer);
 	}
 
-	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0):void
+	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0, premultiplied:boolean = false):void
 	{
 		var newSendbytes=new Byte32Array();
 		newSendbytes.writeInt(1);//tells cpp that this is a create-bytes chunk
