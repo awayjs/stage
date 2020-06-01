@@ -358,11 +358,16 @@ export class ContextWebGL implements IContextGL
 
 	public setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor):void
 	{
+		const src = this._blendFactorDictionary[sourceFactor];
+		const dst = this._blendFactorDictionary[destinationFactor];
+
+		if(this._blendSourceFactor === src && this._blendDestinationFactor === dst && this._blendEnabled) {
+			return;	
+		}		
+
 		this._blendEnabled = true;
-
-		this._blendSourceFactor = this._blendFactorDictionary[sourceFactor];
-
-		this._blendDestinationFactor = this._blendFactorDictionary[destinationFactor];
+		this._blendSourceFactor = src;
+		this._blendDestinationFactor = dst;
 
 		this.updateBlendStatus();
 	}
@@ -443,6 +448,11 @@ export class ContextWebGL implements IContextGL
 
 	public setProgram(program:ProgramWebGL):void
 	{
+		// kill focus when program is same
+		if(this._currentProgram === program) {
+			return;
+		}
+
 		//TODO decide on construction/reference resposibilities
 		this._currentProgram = program;
 		program.focusProgram();
