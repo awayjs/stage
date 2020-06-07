@@ -25,6 +25,8 @@ import {VertexBufferWebGL} from "./VertexBufferWebGL";
 
 var awayDebugDrawing:boolean=false;
 
+const nPOTAlerts: NumberMap<boolean> = {};
+
 export class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
@@ -110,7 +112,7 @@ export class ContextWebGL implements IContextGL
 		};
 
 		try {
-			this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+			// this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
 
 			if (!this._gl) {
 				this._gl = <WebGLRenderingContext> (this._container.getContext("webgl", props) || this._container.getContext("experimental-webgl", props));
@@ -237,7 +239,7 @@ export class ContextWebGL implements IContextGL
 		//defaults
 		for (var i:number = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
 			this._samplerStates[i] = new SamplerState();
-			this._samplerStates[i].wrap = this._gl.REPEAT;
+			this._samplerStates[i].wrap = this.glVersion === 2 ? this._gl.REPEAT : this._gl.CLAMP_TO_EDGE;
 			this._samplerStates[i].filter = this._gl.LINEAR;
 			this._samplerStates[i].mipfilter = this._gl.LINEAR;
 		}
@@ -495,6 +497,10 @@ export class ContextWebGL implements IContextGL
 			return;
 		}
 
+		const tex = <TextureWebGL>texture;
+		const powerOfTwo = !(tex.width & (tex.width - 1)) && !(tex.height & (tex.height - 1));
+		const isAllowRepeat = this.glVersion === 2 || powerOfTwo;
+
 		var textureType:number = this._textureTypeDictionary[texture.textureType];
 		samplerState.type = textureType;
 
@@ -502,8 +508,21 @@ export class ContextWebGL implements IContextGL
 
 		this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
 
-		this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
-		this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
+		if(samplerState.wrap === this._gl.REPEAT && !isAllowRepeat) {
+
+			if(!nPOTAlerts[<number>tex.id]) {
+				nPOTAlerts[<number>tex.id] = true;
+				console.warn(
+					"[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1, plz convert it to POT if this requred!",
+					 tex);
+			}
+
+			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
+		} else {
+			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
+			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
+		}
 
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_MIN_FILTER, samplerState.mipfilter);
