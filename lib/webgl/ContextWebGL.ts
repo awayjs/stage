@@ -112,7 +112,7 @@ export class ContextWebGL implements IContextGL
 		};
 
 		try {
-			// this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+			this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
 
 			if (!this._gl) {
 				this._gl = <WebGLRenderingContext> (this._container.getContext("webgl", props) || this._container.getContext("experimental-webgl", props));
