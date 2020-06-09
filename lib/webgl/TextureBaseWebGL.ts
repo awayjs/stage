@@ -1,4 +1,5 @@
 import {AbstractMethodError} from "@awayjs/core";
+import { ContextWebGL } from "./ContextWebGL";
 
 export class TextureBaseWebGL
 {
@@ -8,15 +9,19 @@ export class TextureBaseWebGL
 	public _gl:WebGLRenderingContext | WebGL2RenderingContext;
 
 	public _glTexture:WebGLTexture;
+
 	private _id: number;
+
+	protected _context: ContextWebGL;
 
 	get id(): number {
 		return this._id;
 	}
 
-	constructor(gl:WebGLRenderingContext | WebGL2RenderingContext)
+	constructor(context: ContextWebGL)
 	{
-		this._gl = gl;
+		this._context = context;
+		this._gl = context._gl;
 		this._id = TextureBaseWebGL.TEXTURE_ID ++;
 	}
 

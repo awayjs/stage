@@ -20,9 +20,9 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	private _mipmapSelector:number;
 	private _texStorageFlag:boolean;
 
-	constructor(gl:WebGLRenderingContext | WebGL2RenderingContext, width:number, height:number)
+	constructor(context: ContextWebGL, width:number, height:number)
 	{
-		super(gl);
+		super(context);
 		this._width = width;
 		this._height = height;
 

@@ -1,6 +1,7 @@
 import {ICubeTexture} from "../base/ICubeTexture";
 
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
+import { ContextWebGL } from './ContextWebGL';
 
 export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 {
@@ -10,9 +11,10 @@ export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 	public textureType:string = "textureCube";
 	private _size:number;
 
-	constructor(gl:WebGLRenderingContext, size:number)
+	constructor(context: ContextWebGL, size:number)
 	{
-		super(gl);
+		super(context);
+		const gl = this._gl;
 		this._size = size;
 		this._glTexture = this._gl.createTexture();
 

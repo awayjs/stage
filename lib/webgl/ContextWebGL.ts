@@ -286,7 +286,7 @@ export class ContextWebGL implements IContextGL
 
 	public createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):CubeTextureWebGL
 	{
-		return new CubeTextureWebGL(this._gl, size);
+		return new CubeTextureWebGL(this, size);
 	}
 
 	public createIndexBuffer(numIndices:number):IndexBufferWebGL
@@ -302,7 +302,7 @@ export class ContextWebGL implements IContextGL
 	public createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureWebGL
 	{
 		//TODO streaming
-		return new TextureWebGL(this._gl, width, height);
+		return new TextureWebGL(this, width, height);
 	}
 
 	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferWebGL
