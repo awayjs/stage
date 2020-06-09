@@ -5,6 +5,8 @@ import {ITexture} from "../base/ITexture";
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
 import { ContextWebGL } from './ContextWebGL';
 
+const DISABLE_MULTISAMPLED = true;
+
 export class TextureWebGL extends TextureBaseWebGL implements ITexture
 {
 
@@ -19,6 +21,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	private _renderBufferDepth:WebGLRenderbuffer = [];
 	private _mipmapSelector:number;
 	private _texStorageFlag:boolean;
+	private _multisampled:boolean = false;
 
 	constructor(context: ContextWebGL, width:number, height:number)
 	{
@@ -63,7 +66,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
 
 			//no Multisample buffers with WebGL1
-			if (this._gl instanceof WebGLRenderingContext) {
+			if (this._gl instanceof WebGLRenderingContext || DISABLE_MULTISAMPLED) {
 				this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 				this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 
@@ -74,6 +77,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
 
 				this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+
+				this._multisampled = false;
 			} else {
 				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
 				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
@@ -84,6 +89,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
 				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.RGBA8, width, height);
 				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.RENDERBUFFER, renderBuffer);
+
+				this._multisampled = true;
 			}
 
 			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
@@ -92,20 +99,20 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		}
 
 		if (enableDepthAndStencil) {
-			this._gl.enable(this._gl.STENCIL_TEST);
-			this._gl.enable(this._gl.DEPTH_TEST);
+			this._context.enableStencil();
+			this._context.ebableDepth();
 		} else {
-			this._gl.disable(this._gl.STENCIL_TEST);
-			this._gl.disable(this._gl.DEPTH_TEST);
+			this._context.disableStencil();
+			this._context.disableDepth();
 		}
 
-		this._gl.viewport(0, 0, width, height);
+		this._context.setViewport(0, 0, width, height);
 	}
 	
 	public presentFrameBuffer():void
 	{
 		//no Multisample buffers with WebGL1
-		if (this._gl instanceof WebGLRenderingContext)
+		if (this._gl instanceof WebGLRenderingContext || !this._multisampled)
 			return;
 
 		var width:number = this._width >>> this._mipmapSelector;
