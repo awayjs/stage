@@ -128,6 +128,9 @@ export {Short3Attributes} from "./lib/attributes/Short3Attributes";
 
 export {Stage} from "./lib/Stage";
 
+export { ContextWebGLFlags, ContextWebGLPreference } from "./lib/webgl/ContextWebGLFlags";
+
+
 import { Loader } from '@awayjs/core';
 
 import {Image2DParser} from "./lib/parsers/Image2DParser";
