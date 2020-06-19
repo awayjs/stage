@@ -4,8 +4,7 @@ import {ITexture} from "../base/ITexture";
 
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
 import { ContextWebGL } from './ContextWebGL';
-
-const DISABLE_MULTISAMPLED = true;
+import { ContextWebGLFlags } from "./ContextWebGLFlags";
 
 export class TextureWebGL extends TextureBaseWebGL implements ITexture
 {
@@ -66,7 +65,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
 
 			//no Multisample buffers with WebGL1
-			if (this._gl instanceof WebGLRenderingContext || DISABLE_MULTISAMPLED) {
+			if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE) {
 				this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 				this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 
