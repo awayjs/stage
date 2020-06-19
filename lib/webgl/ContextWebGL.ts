@@ -519,7 +519,7 @@ export class ContextWebGL implements IContextGL
 
 		const tex = <TextureWebGL>texture;
 		const powerOfTwo = !(tex.width & (tex.width - 1)) && !(tex.height & (tex.height - 1));
-		const isAllowRepeat = this.glVersion === 2 || powerOfTwo;
+		const isAllowRepeat =(this.glVersion === 2 || powerOfTwo) && ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
 
 		var textureType:number = this._textureTypeDictionary[texture.textureType];
 		samplerState.type = textureType;
@@ -530,10 +530,12 @@ export class ContextWebGL implements IContextGL
 
 		if(samplerState.wrap === this._gl.REPEAT && !isAllowRepeat) {
 
-			if(!nPOTAlerts[<number>tex.id]) {
+			if(!nPOTAlerts[<number>tex.id] && ContextWebGLFlags.PREF_REPEAT_WRAP === ContextWebGLPreference.ALL_TEXTURES) {
 				nPOTAlerts[<number>tex.id] = true;
 				console.warn(
-					"[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1, plz convert it to POT if this requred!",
+					"[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1," +
+					"set ContextWebGLFlags.PREF_REPEAT_WRAP = (ContextWebGLPreference.POT_TEXTURES || ContextWebGLPreference.NONE)" + 
+					"to supress warnings!",
 					 tex);
 			}
 
