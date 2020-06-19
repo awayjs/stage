@@ -13,6 +13,8 @@ import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
 import {ContextGLVertexBufferFormat} from "../base/ContextGLVertexBufferFormat";
 import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
 import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
+import {ContextWebGLFlags, ContextWebGLPreference, ContextWebGLVersion} from "./ContextWebGLFlags";
+
 import {IContextGL} from "../base/IContextGL"
 import {SamplerState} from "../base/SamplerState";
 
@@ -112,11 +114,17 @@ export class ContextWebGL implements IContextGL
 		};
 
 		try {
-			this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+			if(ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
+				this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+			}
 
 			if (!this._gl) {
 				this._gl = <WebGLRenderingContext> (this._container.getContext("webgl", props) || this._container.getContext("experimental-webgl", props));
 				this._glVersion = 1;
+
+				if(ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
+					console.warn(`[CONTEXT] Preferred WebGL2 not supported on you device. WebGL1 will used!`);
+				}
 			} else {
 				this._glVersion = 2;
 			}
