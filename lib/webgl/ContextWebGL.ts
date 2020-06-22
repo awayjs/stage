@@ -610,6 +610,7 @@ export class ContextWebGL implements IContextGL
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_2D, target.glTexture);
 		this._gl.copyTexSubImage2D(this._gl.TEXTURE_2D, 0, destPoint.x, destPoint.y, rect.x, rect.y, rect.width, rect.height);
+		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
 	private updateBlendStatus():void

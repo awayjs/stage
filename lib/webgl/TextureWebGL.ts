@@ -1,4 +1,4 @@
-import {ByteArray, URLRequest} from "@awayjs/core";
+import {ByteArray, URLRequest, Rectangle, Point} from "@awayjs/core";
 
 import {ITexture} from "../base/ITexture";
 
@@ -41,6 +41,18 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		return this._height;
 	}
 
+	public get multisampled(): boolean {
+		return this._multisampled;
+	}
+
+	public get framebuffer(): WebGLFramebuffer {
+		return this._frameBuffer[this._mipmapSelector];
+	}
+
+	public get textureFramebuffer(): WebGLFramebuffer {
+		return this.multisampled ? this._frameBufferDraw[this._mipmapSelector] : this._frameBuffer[this._mipmapSelector];
+	}
+
 	public setFrameBuffer(enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0, mipmapSelector:number = 0):void
 	{
 		//only top level mipmap is allowed for WebGL1
@@ -55,43 +67,66 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		if (!this._frameBuffer[mipmapSelector]) {
 
 			//create framebuffer
-			var frameBuffer:WebGLFramebuffer = this._frameBuffer[mipmapSelector] = this._gl.createFramebuffer();
-
-			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
-
+			var frameBuffer = this._frameBuffer[mipmapSelector] = this._gl.createFramebuffer();
 			//create renderbufferdepth
-			var renderBufferDepth:WebGLRenderbuffer = this._renderBufferDepth[mipmapSelector] = this._gl.createRenderbuffer();
+			var renderBufferDepth = this._renderBufferDepth[mipmapSelector] = this._gl.createRenderbuffer();
 
-			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
+			// this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
+			
+			// bind texture
+			this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
+			// apply texture with empty data
+			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 
 			//no Multisample buffers with WebGL1
 			if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE) {
-				this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-				this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
-
-				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
+				
+				// activate framebuffer
+				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+				// activate renderbuffer
+				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);	
+				// set renderbuffer configuration
 				this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_STENCIL, this._width, this._height);
-
+				// attach texture to framebuffer
 				this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, 0);
+				// attach depth to framebuffer
 				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
-
-				this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 
 				this._multisampled = false;
 			} else {
+
+				// create framebuffer for DRAW
+				const drawFrameBuffer = this._frameBufferDraw[mipmapSelector] = this._gl.createFramebuffer();
+				// compute levels for texture
+				const levels = Math.log(Math.min(this._width, this._height))/Math.LN2 | 0 + 1;
+				// bind DRAW framebuffer
+				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, drawFrameBuffer);
+				// apply storage for texture
+				this._gl.texStorage2D(this._gl.TEXTURE_2D, levels , this._gl.RGBA8, width, height);
+				// attach texture to framebuffer to current mipmap level
+				this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, this._mipmapSelector);
+
+				// bind READ framebuffer
+				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+				// attach depth renderbuffer multisampled
 				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
+				// set renderbuffer configuration
 				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
 
-				//get renderbuffer
+				// create READ color renderbuffer for multismapling
 				var renderBuffer:WebGLRenderbuffer = this._renderBuffer[mipmapSelector] = this._gl.createRenderbuffer();
 
+				// bind it
 				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
+				// set config
 				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.RGBA8, width, height);
+				// attach READ framebuffer
 				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.RENDERBUFFER, renderBuffer);
 
 				this._multisampled = true;
 			}
 
+			this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
 		} else {
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._frameBuffer[mipmapSelector]);
@@ -117,29 +152,95 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		var width:number = this._width >>> this._mipmapSelector;
 		var height:number = this._height >>> this._mipmapSelector;
 
-		//init framebuffer
-		if (!this._frameBufferDraw[this._mipmapSelector])
-			this._frameBufferDraw[this._mipmapSelector] = this._gl.createFramebuffer();
-
+		/*
 		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._frameBufferDraw[this._mipmapSelector]);
 
-		//init texture
+		// init texture
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 
 		if (!this._texStorageFlag) {
 			//texStorage2D creates an immutable texture for all levels
-			this._gl.texStorage2D(this._gl.TEXTURE_2D, Math.log(Math.min(this._width, this._height))/Math.LN2 + 1, this._gl.RGBA8, width, height);
+			this._gl.texStorage2D(this._gl.TEXTURE_2D, Math.log(Math.min(this._width, this._height))/Math.LN2 | 0 + 1, this._gl.RGBA8, width, height);
 			this._texStorageFlag = true;
 		}
-		//this._gl.texImage2D(this._gl.TEXTURE_2D, mipmapSelector, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+		//this._gl.texImage2D(this._gl.TEXTURE_2D, this._mipmapSelector, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 		this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, this._mipmapSelector);
 
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+		*/
 
-		//write frameBuffer to frameBufferDraw
+		// bind framebuffer with renderbuffer to READ slot
 		this._gl.bindFramebuffer(this._gl.READ_FRAMEBUFFER, this._frameBuffer[this._mipmapSelector]);
+		// bind framebuffer with texture to WRITE slot
 		this._gl.bindFramebuffer(this._gl.DRAW_FRAMEBUFFER, this._frameBufferDraw[this._mipmapSelector]);
+		// ckear
 		this._gl.clearBufferfv(this._gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+		// copy renderbuffer to texture
+		this._gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, this._gl.COLOR_BUFFER_BIT, this._gl.NEAREST);
+	}
+
+	public presentFrameBufferTo(texture: TextureWebGL, rect: Rectangle, point: Point):void
+	{
+		var width:number = this._width >>> this._mipmapSelector;
+		var height:number = this._height >>> this._mipmapSelector;
+
+		/*
+		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._frameBufferDraw[this._mipmapSelector]);
+
+		// init texture
+		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
+
+		if (!this._texStorageFlag) {
+			//texStorage2D creates an immutable texture for all levels
+			this._gl.texStorage2D(this._gl.TEXTURE_2D, Math.log(Math.min(this._width, this._height))/Math.LN2 | 0 + 1, this._gl.RGBA8, width, height);
+			this._texStorageFlag = true;
+		}
+		//this._gl.texImage2D(this._gl.TEXTURE_2D, this._mipmapSelector, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+		this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, this._mipmapSelector);
+
+		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+		*/
+
+		const targetFrameBuffer = texture.textureFramebuffer;
+
+		if(!this._multisampled || this._gl instanceof WebGLRenderingContext) {
+			// direct copy to target texture.
+			// same as call this._context.renderToTexture
+			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._frameBuffer[this._mipmapSelector]);
+			texture.blitTextureToRenderbuffer();
+
+		} else if(targetFrameBuffer) {
+			// bind framebuffer with renderbuffer to READ slot
+			this._gl.bindFramebuffer(this._gl.READ_FRAMEBUFFER, this._frameBuffer[this._mipmapSelector]);
+			// bind framebuffer with texture to WRITE slot
+			this._gl.bindFramebuffer(this._gl.DRAW_FRAMEBUFFER, targetFrameBuffer);
+			// clear
+			this._gl.clearBufferfv(this._gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+			// copy renderbuffer to texture
+			this._gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, this._gl.COLOR_BUFFER_BIT, this._gl.NEAREST);
+
+			texture.blitTextureToRenderbuffer();
+		}
+	}
+
+	/**
+	 * Blit self texture to renderbuffer if a multisampled
+	 */
+	public blitTextureToRenderbuffer(): void {
+		if(!this._multisampled ||  !(this._gl instanceof WebGL2RenderingContext)) {
+			return;
+		}
+
+		const width = this._width >>> this._mipmapSelector;
+		const height = this._height >>> this._mipmapSelector;
+
+		// bind framebuffer with renderbuffer to DRAW slot
+		this._gl.bindFramebuffer(this._gl.DRAW_FRAMEBUFFER, this._frameBuffer[this._mipmapSelector]);
+		// bind framebuffer with texture to READ slot
+		this._gl.bindFramebuffer(this._gl.READ_FRAMEBUFFER, this._frameBufferDraw[this._mipmapSelector]);
+		// clear
+		this._gl.clearBufferfv(this._gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+		// copy texture to renderbuffer!
 		this._gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, this._gl.COLOR_BUFFER_BIT, this._gl.NEAREST);
 	}
 
