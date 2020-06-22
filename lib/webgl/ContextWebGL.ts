@@ -115,7 +115,7 @@ export class ContextWebGL implements IContextGL
 
 		try {
 			if(ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
-				this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+				//this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
 			}
 
 			if (!this._gl) {
@@ -591,8 +591,9 @@ export class ContextWebGL implements IContextGL
 			this._renderTarget.presentFrameBuffer();
 
 		this._renderTarget = <TextureWebGL> target;
+		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 
-		this._renderTarget.setFrameBuffer(enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
+		//this._renderTarget.setFrameBuffer(enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
 	public setRenderToBackBuffer():void
@@ -604,13 +605,101 @@ export class ContextWebGL implements IContextGL
 
 		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
 	}
-
 	
 	public copyToTexture(target:TextureBaseWebGL, rect:Rectangle, destPoint:Point):void
 	{
 		this._gl.bindTexture(this._gl.TEXTURE_2D, target.glTexture);
 		this._gl.copyTexSubImage2D(this._gl.TEXTURE_2D, 0, destPoint.x, destPoint.y, rect.x, rect.y, rect.width, rect.height);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+	}
+
+	/*internal*/ setFrameBuffer(target: TextureWebGL, enableDepthAndStencil: boolean, antiAlias: number, surfaceSelector: number, mipmapSelector: number) {
+		//only top level mipmap is allowed for WebGL1
+		if (this._gl instanceof WebGLRenderingContext)
+			mipmapSelector = 0; 
+
+		var width:number = target.width >>> mipmapSelector;
+		var height:number = target.height >>> mipmapSelector;
+
+		target._mipmapSelector = mipmapSelector;
+	
+		if (!target._frameBuffer[mipmapSelector]) {
+
+			//create framebuffer
+			var frameBuffer = target._frameBuffer[mipmapSelector] = this._gl.createFramebuffer();
+			//create renderbufferdepth
+			var renderBufferDepth = target._renderBufferDepth[mipmapSelector] = this._gl.createRenderbuffer();
+
+			// this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
+			
+			// bind texture
+			this._gl.bindTexture(this._gl.TEXTURE_2D, target._glTexture);
+			// apply texture with empty data
+			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+
+			//no Multisample buffers with WebGL1
+			if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE) {
+				
+				// activate framebuffer
+				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+				// activate renderbuffer
+				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);	
+				// set renderbuffer configuration
+				this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_STENCIL, target._width, target._height);
+				// attach texture to framebuffer
+				this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, target._glTexture, 0);
+				// attach depth to framebuffer
+				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
+
+				target._multisampled = false;
+			} else {
+
+				// create framebuffer for DRAW
+				const drawFrameBuffer = target._frameBufferDraw[mipmapSelector] = this._gl.createFramebuffer();
+				// compute levels for texture
+				const levels = Math.log(Math.min(target._width, target._height))/Math.LN2 | 0 + 1;
+				// bind DRAW framebuffer
+				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, drawFrameBuffer);
+				// apply storage for texture
+				this._gl.texStorage2D(this._gl.TEXTURE_2D, levels , this._gl.RGBA8, width, height);
+				// attach texture to framebuffer to current mipmap level
+				this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, target._glTexture, target._mipmapSelector);
+
+				// bind READ framebuffer
+				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+				// attach depth renderbuffer multisampled
+				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
+				// set renderbuffer configuration
+				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
+
+				// create READ color renderbuffer for multismapling
+				var renderBuffer:WebGLRenderbuffer = target._renderBuffer[mipmapSelector] = this._gl.createRenderbuffer();
+
+				// bind it
+				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
+				// set config
+				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.RGBA8, width, height);
+				// attach READ framebuffer
+				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.RENDERBUFFER, renderBuffer);
+
+				target._multisampled = true;
+			}
+
+			this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
+		} else {
+			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, target._frameBuffer[mipmapSelector]);
+		}
+
+		if (enableDepthAndStencil) {
+			this.enableStencil();
+			this.ebableDepth();
+		} else {
+			this.disableStencil();
+			this.disableDepth();
+		}
+
+		this.setViewport(0, 0, width, height);
 	}
 
 	private updateBlendStatus():void

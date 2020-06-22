@@ -11,16 +11,16 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 
 	public textureType:string = "texture2d";
 
-	private _width:number;
-	private _height:number;
+	/*internal*/ _width:number;
+	/*internal*/ _height:number;
 
-	private _frameBuffer:WebGLFramebuffer[] = [];
-	private _frameBufferDraw:WebGLFramebuffer[] = [];
-	private _renderBuffer:WebGLRenderbuffer = [];
-	private _renderBufferDepth:WebGLRenderbuffer = [];
-	private _mipmapSelector:number;
+	/*internal*/ _frameBuffer:WebGLFramebuffer[] = [];
+	/*internal*/ _frameBufferDraw:WebGLFramebuffer[] = [];
+	/*internal*/ _renderBuffer:WebGLRenderbuffer = [];
+	/*internal*/ _renderBufferDepth:WebGLRenderbuffer = [];
+	/*internal*/ _mipmapSelector:number;
 	private _texStorageFlag:boolean;
-	private _multisampled:boolean = false;
+	/*internal*/ _multisampled:boolean = false;
 
 	constructor(context: ContextWebGL, width:number, height:number)
 	{
@@ -55,92 +55,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 
 	public setFrameBuffer(enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0, mipmapSelector:number = 0):void
 	{
-		//only top level mipmap is allowed for WebGL1
-		if (this._gl instanceof WebGLRenderingContext)
-			mipmapSelector = 0; 
-
-		var width:number = this._width >>> mipmapSelector;
-		var height:number = this._height >>> mipmapSelector;
-
-		this._mipmapSelector = mipmapSelector;
-	
-		if (!this._frameBuffer[mipmapSelector]) {
-
-			//create framebuffer
-			var frameBuffer = this._frameBuffer[mipmapSelector] = this._gl.createFramebuffer();
-			//create renderbufferdepth
-			var renderBufferDepth = this._renderBufferDepth[mipmapSelector] = this._gl.createRenderbuffer();
-
-			// this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
-			
-			// bind texture
-			this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-			// apply texture with empty data
-			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
-
-			//no Multisample buffers with WebGL1
-			if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE) {
-				
-				// activate framebuffer
-				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
-				// activate renderbuffer
-				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);	
-				// set renderbuffer configuration
-				this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_STENCIL, this._width, this._height);
-				// attach texture to framebuffer
-				this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, 0);
-				// attach depth to framebuffer
-				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
-
-				this._multisampled = false;
-			} else {
-
-				// create framebuffer for DRAW
-				const drawFrameBuffer = this._frameBufferDraw[mipmapSelector] = this._gl.createFramebuffer();
-				// compute levels for texture
-				const levels = Math.log(Math.min(this._width, this._height))/Math.LN2 | 0 + 1;
-				// bind DRAW framebuffer
-				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, drawFrameBuffer);
-				// apply storage for texture
-				this._gl.texStorage2D(this._gl.TEXTURE_2D, levels , this._gl.RGBA8, width, height);
-				// attach texture to framebuffer to current mipmap level
-				this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, this._glTexture, this._mipmapSelector);
-
-				// bind READ framebuffer
-				this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
-				// attach depth renderbuffer multisampled
-				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
-				// set renderbuffer configuration
-				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
-
-				// create READ color renderbuffer for multismapling
-				var renderBuffer:WebGLRenderbuffer = this._renderBuffer[mipmapSelector] = this._gl.createRenderbuffer();
-
-				// bind it
-				this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
-				// set config
-				this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.RGBA8, width, height);
-				// attach READ framebuffer
-				this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.RENDERBUFFER, renderBuffer);
-
-				this._multisampled = true;
-			}
-
-			this._gl.bindTexture(this._gl.TEXTURE_2D, null);
-			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
-		} else {
-			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, this._frameBuffer[mipmapSelector]);
-		}
-
-		if (enableDepthAndStencil) {
-			this._context.enableStencil();
-			this._context.ebableDepth();
-		} else {
-			this._context.disableStencil();
-			this._context.disableDepth();
-		}
-
-		this._context.setViewport(0, 0, width, height);
+		this._context.setFrameBuffer(this, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector)
 	}
 	
 	public presentFrameBuffer():void
