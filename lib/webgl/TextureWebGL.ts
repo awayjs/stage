@@ -1,10 +1,9 @@
-import {ByteArray, URLRequest, Rectangle, Point} from "@awayjs/core";
+import { URLRequest} from "@awayjs/core";
 
 import {ITexture} from "../base/ITexture";
 
 import {TextureBaseWebGL} from "./TextureBaseWebGL";
 import { ContextWebGL } from './ContextWebGL';
-import { ContextWebGLFlags } from "./ContextWebGLFlags";
 
 export class TextureWebGL extends TextureBaseWebGL implements ITexture
 {
@@ -18,8 +17,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	/*internal*/ _frameBufferDraw:WebGLFramebuffer[] = [];
 	/*internal*/ _renderBuffer:WebGLRenderbuffer = [];
 	/*internal*/ _renderBufferDepth:WebGLRenderbuffer = [];
-	/*internal*/ _mipmapSelector:number;
-	private _texStorageFlag:boolean;
+	/*internal*/ _mipmapSelector:number = 0;
+	/*internal*/ _texStorageFlag:boolean;
 	/*internal*/ _multisampled:boolean = false;
 
 	constructor(context: ContextWebGL, width:number, height:number)

@@ -29,6 +29,14 @@ var awayDebugDrawing:boolean=false;
 
 const nPOTAlerts: NumberMap<boolean> = {};
 
+interface IRendertargetEntry {
+	texture: TextureWebGL;
+	enableDepthAndStencil: boolean;
+	antiAlias: number; 
+	surfaceSelector: number;
+	mipmapSelector: number;
+}
+
 export class ContextWebGL implements IContextGL
 {
 	private _blendFactorDictionary:Object = new Object();
@@ -73,6 +81,7 @@ export class ContextWebGL implements IContextGL
 	private _pixelRatio:number;
 	private _glVersion:number;
 	private _renderTarget:TextureWebGL;
+	private _renderTargetConfig: IRendertargetEntry = undefined;
 
 	public get glVersion():number
 	{
@@ -409,12 +418,12 @@ export class ContextWebGL implements IContextGL
 		this._gl.viewport(x,y,width,height);
 	}
 
-	public ebableDepth(){
-		this._gl.enable(this._gl.STENCIL_TEST);
+	public enableDepth(){
+		this._gl.enable(this._gl.DEPTH_TEST);
 	}
 
 	public disableDepth(){
-		this._gl.disable(this._gl.STENCIL_TEST);
+		this._gl.disable(this._gl.DEPTH_TEST);
 	}
 
 	public enableStencil(){
@@ -591,9 +600,8 @@ export class ContextWebGL implements IContextGL
 			this.presentFrameBuffer(this._renderTarget);
 
 		this._renderTarget = <TextureWebGL> target;
+		this._renderTargetConfig = {texture: this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector};
 		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
-
-		//this._renderTarget.setFrameBuffer(enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
 	public setRenderToBackBuffer():void
@@ -603,7 +611,21 @@ export class ContextWebGL implements IContextGL
 			this._renderTarget = null;
 		}
 
+		this._renderTargetConfig = null;
 		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+	}
+
+	public restoreRenderTarget() {
+		if(!this._renderTargetConfig) {
+			this.setRenderToBackBuffer();
+			return;
+		}
+
+		const {
+			texture, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector
+		} = this._renderTargetConfig;
+
+		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);		
 	}
 	
 	public copyToTexture(target:TextureBaseWebGL, rect:Rectangle, destPoint:Point):void
@@ -629,42 +651,42 @@ export class ContextWebGL implements IContextGL
 		target._mipmapSelector = mipmapSelector;
 	
 		if (!target._frameBuffer[mipmapSelector]) {
-			this.initFrameBuffer(target, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
+			this.initFrameBuffer(target, antiAlias,  mipmapSelector);
 		} else {
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, target._frameBuffer[mipmapSelector]);
 		}
-
+		
+		
 		if (enableDepthAndStencil) {
-			this.enableStencil();
-			this.ebableDepth();
+			this._gl.enable(this._gl.STENCIL_TEST);
+			this._gl.enable(this._gl.DEPTH_TEST);
 		} else {
-			this.disableStencil();
-			this.disableDepth();
+			this._gl.disable(this._gl.STENCIL_TEST);
+			this._gl.disable(this._gl.DEPTH_TEST);
 		}
 
-		this.setViewport(0, 0, width, height);
+		this._gl.viewport(0,0,width,height)
 	
 	}
 	
-	/*internal*/ initFrameBuffer(target: TextureWebGL, enableDepthAndStencil: boolean, antiAlias: number, surfaceSelector: number, mipmapSelector: number) 
+	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: number, mipmapSelector: number) 
 	{
-		var width:number = target.width >>> mipmapSelector;
-		var height:number = target.height >>> mipmapSelector;
+		const width:number = target._width >>> mipmapSelector;
+		const height:number = target._height >>> mipmapSelector;
 
-		//create framebuffer
-		var frameBuffer = target._frameBuffer[mipmapSelector] = this._gl.createFramebuffer();
+		//create main framebuffer
+		const frameBuffer = target._frameBuffer[mipmapSelector] = this._gl.createFramebuffer();
 		//create renderbufferdepth
-		var renderBufferDepth = target._renderBufferDepth[mipmapSelector] = this._gl.createRenderbuffer();
+		const renderBufferDepth = target._renderBufferDepth[mipmapSelector] = this._gl.createRenderbuffer();
 
-		// this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
-		
+		target._mipmapSelector = mipmapSelector;
 		// bind texture
 		this._gl.bindTexture(this._gl.TEXTURE_2D, target._glTexture);
 		// apply texture with empty data
-		this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+		// this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 
 		//no Multisample buffers with WebGL1
-		if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE) {
+		if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE || antiAlias < 1) {
 			
 			// activate framebuffer
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
@@ -687,12 +709,19 @@ export class ContextWebGL implements IContextGL
 			// bind DRAW framebuffer
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, drawFrameBuffer);
 			// apply storage for texture
-			this._gl.texStorage2D(this._gl.TEXTURE_2D, levels , this._gl.RGBA8, width, height);
+			if(!target._texStorageFlag) {
+				this._gl.texStorage2D(this._gl.TEXTURE_2D, levels , this._gl.RGBA8, width, height);
+				target._texStorageFlag = true;
+			}
 			// attach texture to framebuffer to current mipmap level
 			this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, target._glTexture, target._mipmapSelector);
 
+			this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+
 			// bind READ framebuffer
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, frameBuffer);
+
+			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
 			// attach depth renderbuffer multisampled
 			this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
 			// set renderbuffer configuration
@@ -711,7 +740,6 @@ export class ContextWebGL implements IContextGL
 			target._multisampled = true;
 		}
 
-		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 		this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, null);
 	}
 
@@ -723,6 +751,11 @@ export class ContextWebGL implements IContextGL
 
 		var width:number = source._width >>> source._mipmapSelector;
 		var height:number = source._height >>> source._mipmapSelector;
+
+		if(source._frameBuffer[source._mipmapSelector] === source._frameBufferDraw[source._mipmapSelector]) {
+			console.error("Framebuffer loop `presentFrameBuffer`");
+			return;
+		}
 
 		// bind framebuffer with renderbuffer to READ slot
 		this._gl.bindFramebuffer(this._gl.READ_FRAMEBUFFER, source._frameBuffer[source._mipmapSelector]);
@@ -736,11 +769,18 @@ export class ContextWebGL implements IContextGL
 
 	/*internal*/ presentFrameBufferTo(source: TextureWebGL | null, target: TextureWebGL, rect: Rectangle, point: Point):void
 	{
-		const targetFrameBuffer = target.textureFramebuffer;
+		let targetFrameBuffer = target.textureFramebuffer;
 
 		if(!targetFrameBuffer) {
-			this.initFrameBuffer(target, true, 0, 0, 0);
+			this.initFrameBuffer(target, 0, 0,);
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, null);
+			
+			targetFrameBuffer = target.textureFramebuffer;
+		}
+
+		if(source._frameBuffer[0] === targetFrameBuffer) {
+			console.error("Framebuffer loop `presentFrameBufferTo`");
+			return;
 		}
 
 		if(!source || !source._multisampled || this._gl instanceof WebGLRenderingContext) {
@@ -755,7 +795,7 @@ export class ContextWebGL implements IContextGL
 			// bind framebuffer with texture to WRITE slot
 			this._gl.bindFramebuffer(this._gl.DRAW_FRAMEBUFFER, targetFrameBuffer);
 			// clear
-			this._gl.clearBufferfv(this._gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+			// this._gl.clearBufferfv(this._gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 			// copy renderbuffer to texture
 			this._gl.blitFramebuffer(
 				rect.x | 0,
@@ -772,6 +812,11 @@ export class ContextWebGL implements IContextGL
 		}
 		
 		this.blitTextureToRenderbuffer(target);
+
+		// needs, because we rebound buffers to copy
+		// otherwith Stage not restore rebounds an we will draw to other framebuffer
+		this.restoreRenderTarget();
+
 	}
 
 	
@@ -780,6 +825,11 @@ export class ContextWebGL implements IContextGL
 	 */
 	/*internal*/ blitTextureToRenderbuffer(target: TextureWebGL): void {
 		if(!target._multisampled ||  !(this._gl instanceof WebGL2RenderingContext)) {
+			return;
+		}
+
+		if(target._frameBuffer[target._mipmapSelector] === target._frameBufferDraw[target._mipmapSelector]) {
+			console.error("Framebuffer loop `blitTextureToRenderbuffer`");
 			return;
 		}
 
