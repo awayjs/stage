@@ -440,30 +440,6 @@ export class BitmapImage2D extends Image2D
 		
 		if (!this._locked)
 			this.invalidate();
-		/*
-		//4-way floodfill using our own stack routines
-			void floodFill4Stack(Uint32* screenBuffer, int w, int h,
-								int x, int y, Uint32 newColor, Uint32 oldColor)
-			{
-			if(newColor == oldColor) return; //avoid infinite loop
-
-			static const int dx[4] = {0, 1, 0, -1}; // relative neighbor x coordinates
-			static const int dy[4] = {-1, 0, 1, 0}; // relative neighbor y coordinates
-
-			std::vector<int> stack;
-			push(stack, x, y);
-			while(pop(stack, x, y))
-			{
-				screenBuffer[y * w + x] = newColor;
-				for(int i = 0; i < 4; i++) {
-				int nx = x + dx[i];
-				int ny = y + dy[i];
-				if(nx >= 0 && nx < w && ny >= 0 && ny < h && screenBuffer[ny][nx] == oldColor) {
-					push(stack, nx, ny);
-				}
-				}
-			}
-			}*/
 	}
 
 	public drawBitmap(source:Uint8ClampedArray, offsetX:number, offsetY:number, width:number, height:number, matrix:Matrix = null):void
