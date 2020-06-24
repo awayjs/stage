@@ -770,9 +770,11 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
         super.getTexture();
 
         if (this._invalid) {
-            this._invalid = false;
+			this._invalid = false;
+			
+			const data = (<any> this._asset)._data.buffer;
 
-            (<ITexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImage2D> this._asset).data.buffer), 0, (<BitmapImage2D> this._asset).transparent);
+            (<ITexture> this._texture).uploadFromArray(new Uint8Array(data), 0, (<BitmapImage2D> this._asset).transparent);
 
 			var mipLevels:BitmapImage2D[]=(<BitmapImage2D> this._asset).mipLevels;
 			if(mipLevels && mipLevels.length>0){
