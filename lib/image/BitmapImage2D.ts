@@ -567,7 +567,7 @@ export class BitmapImage2D extends Image2D
 		if (!a)
 			return 0x0;
 
-		return (a << 24) | (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
+		return ((a << 24) | (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a) >>> 0;
 	}
 
 	public getPixelData(x, y, imagePixel:Uint8ClampedArray):void
