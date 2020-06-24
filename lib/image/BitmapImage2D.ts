@@ -58,6 +58,10 @@ import {Image2D} from "./Image2D";
  * it can only be 2,048 pixels high.) In Flash Player 9 and earlier, the limitation
  * is 2,880 pixels in height and 2,880 in width.</p>
  */
+
+const N_DX = [0, 1, 0, -1]; // relative neighbor x coordinates
+const N_DY = [-1, 0, 1, 0]; // relative neighbor y coordinates
+
 export class BitmapImage2D extends Image2D
 {
 	public static assetType:string = "[image BitmapImage2D]";
@@ -67,6 +71,8 @@ export class BitmapImage2D extends Image2D
 	protected _transparent:boolean;
 	protected _stage:Stage;
 	protected _locked:boolean = false;
+	protected _floodStack: number[] = [];
+
 	private _customMipLevels:BitmapImage2D[];
 
 	public addMipLevel(newLevel:BitmapImage2D):void
@@ -366,6 +372,100 @@ export class BitmapImage2D extends Image2D
 		this._locked = null;
 	}
 
+	// https://lodev.org/cgtutor/floodfill.html
+	// 4 way method implementation
+
+	public floodFill(x: number, y: number, color: number): void 
+	{
+		x = x | 0;
+		y = y | 0;
+
+		// needs update data when it use GL rendering mode
+		const data = this.data;
+		const width = this._rect.width;
+		const height = this._rect.height;
+		const index = (x + y * width) * 4;
+		const stack = this._floodStack;
+		const 
+			oldR = data[index + 0],
+			oldG = data[index + 1],
+			oldB = data[index + 2],
+			oldA = data[index + 3];
+		
+		let [newA, newR, newG, newB] = ColorUtils.float32ColorToARGB(color);		
+		// premultiply 
+		newR = newR * newA / 0xff;
+		newG = newG * newA / 0xff;
+		newB = newB * newA / 0xff;
+		
+		let stackIndex = 0;
+
+		stack[stackIndex ++] = x;
+		stack[stackIndex ++] = y;
+
+		while(true) {
+			const cy = stack[--stackIndex];
+			const cx = stack[--stackIndex];
+
+			if(stackIndex < 0) {
+				break;
+			}
+
+			const i = (cx + cy * width) * 4;			
+
+			data[i + 0] = newR;
+			data[i + 1] = newG;
+			data[i + 2] = newB;
+			data[i + 3] = newA;
+			
+			for(let j = 0; j < 4; j ++) {
+				let nx = cx + N_DX[j];
+				let ny = cy + N_DY[j];
+
+				if(nx >= 0 && ny >= 0 && nx < width && ny < height) {
+					const ni = (nx + ny * width) * 4;
+					const eq = 
+						oldR === data[ni + 0] &&
+						oldG === data[ni + 1] &&
+						oldB === data[ni + 2] &&
+						oldA === data[ni + 3];
+					
+					if(eq) {
+						stack[stackIndex ++] = nx;
+						stack[stackIndex ++] = ny;
+					}
+				}
+			}
+		}
+		
+		if (!this._locked)
+			this.invalidate();
+		/*
+		//4-way floodfill using our own stack routines
+			void floodFill4Stack(Uint32* screenBuffer, int w, int h,
+								int x, int y, Uint32 newColor, Uint32 oldColor)
+			{
+			if(newColor == oldColor) return; //avoid infinite loop
+
+			static const int dx[4] = {0, 1, 0, -1}; // relative neighbor x coordinates
+			static const int dy[4] = {-1, 0, 1, 0}; // relative neighbor y coordinates
+
+			std::vector<int> stack;
+			push(stack, x, y);
+			while(pop(stack, x, y))
+			{
+				screenBuffer[y * w + x] = newColor;
+				for(int i = 0; i < 4; i++) {
+				int nx = x + dx[i];
+				int ny = y + dy[i];
+				if(nx >= 0 && nx < w && ny >= 0 && ny < h && screenBuffer[ny][nx] == oldColor) {
+					push(stack, nx, ny);
+				}
+				}
+			}
+			}*/
+	}
+
 	public drawBitmap(source:Uint8ClampedArray, offsetX:number, offsetY:number, width:number, height:number, matrix:Matrix = null):void
 	{
 		BitmapImageUtils.drawBitmap(source, offsetX, offsetY, width, height, this.data, 0, 0, this._rect.width, this._rect.height, matrix)
@@ -437,7 +537,7 @@ export class BitmapImage2D extends Image2D
 		var b:number;
 		var a:number;
 
-		var index:number = (~~x + ~~y*this._rect.width)*4, data:Uint8ClampedArray = this.data;
+		var index:number = (~~x + ~~y*this._rect.width)*4, data:Uint8ClampedArray = this._data;
 
 		r = data[index + 0];
 		g = data[index + 1];
@@ -481,7 +581,7 @@ export class BitmapImage2D extends Image2D
 		var a:number;
 
 		var index:number = (~~x + ~~y*this._rect.width)*4;
-		var data:Uint8ClampedArray = this.data;
+		var data:Uint8ClampedArray = this._data;
 
 		r = data[index++];
 		g = data[index++];
@@ -497,7 +597,7 @@ export class BitmapImage2D extends Image2D
 	public getPixelData(x, y, imagePixel:Uint8ClampedArray):void
 	{
 		var index:number = (x + y*this._rect.width)*4;
-		var data:Uint8ClampedArray = this.data;
+		var data:Uint8ClampedArray = this._data;
 
 		imagePixel[0] = data[index++];
 		imagePixel[1] = data[index++];
