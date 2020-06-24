@@ -63,6 +63,22 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		console.warn("[Texture] Framebuffer present internal method of ContextWebGL");
 	}
 
+	/**
+	 * @inheritdoc
+	 */
+	public dispose() {
+		this._context.disposeTexture(this);
+
+		this._glTexture = null;
+		this._renderBuffer = null;
+		this._renderBufferDepth = null;
+		this._frameBuffer = null;
+		this._frameBufferDraw = null;
+		this._mipmapSelector = 0;
+		this._width = this._height = 0;
+		this._multisampled = false;
+	}
+
 	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0, premultiplied:boolean = false):void
 	{
 

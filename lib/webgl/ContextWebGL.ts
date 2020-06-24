@@ -846,6 +846,28 @@ export class ContextWebGL implements IContextGL
 		this._gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, this._gl.COLOR_BUFFER_BIT, this._gl.NEAREST);
 	}
 
+	/*internal*/ disposeTexture(texture: TextureWebGL) {
+		if(this._renderTarget === texture) {
+			console.error("[Context] Trying to dispose a active tendertarget!");
+			return;
+		}
+
+		// delete texture
+		this._gl.deleteTexture(texture._glTexture);
+
+		// delete all framebuffers
+		Object.keys(texture._frameBuffer)
+			.forEach((key) => this._gl.deleteFramebuffer(texture._frameBuffer[key]));
+		Object.keys(texture._frameBufferDraw)
+			.forEach((key) => this._gl.deleteFramebuffer(texture._frameBufferDraw[key]));
+		
+		// delete all renderbuffers
+		Object.keys(texture._renderBuffer)
+			.forEach((key) => this._gl.deleteRenderbuffer(texture._renderBuffer[key]));
+		
+		Object.keys(texture._renderBufferDepth)
+			.forEach((key) => this._gl.deleteRenderbuffer(texture._renderBufferDepth[key]));
+	}
 
 	private updateBlendStatus():void
 	{
