@@ -833,22 +833,28 @@ export class BitmapImage2D extends Image2D
 	}
 
 	/**
-	 *
-	 * @returns {ImageData}
+	 * @inheritdoc
 	 */
-	public get data():Uint8ClampedArray
-	{
-		if(this._alphaChannel){
-			if(this._data.length!=this._alphaChannel.length*4)
+	set alphaChannel(buff: Uint8Array) {
+		if(buff){
+			if(this._data.length != buff.length *4 )
 				throw("error when trying to merge the alpha channel into the image. the length of the alpha channel should be 1/4 of the length of the imageData");
 
-			for(var i:number = 0; i < this._alphaChannel.length; i++)
-				this._data[i*4 + 3]=this._alphaChannel[i];
+			for(var i:number = 0; i < buff.length; i++)
+				this._data[i*4 + 3] = buff[i];
 
 			//remove alpha data once applied
 			this._alphaChannel = null;
 		}
 
+	}
+
+	/**
+	 *
+	 * @returns {ImageData}
+	 */
+	public get data():Uint8ClampedArray
+	{
 		return this._data;
 	}
 
