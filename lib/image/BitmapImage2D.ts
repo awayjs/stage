@@ -387,6 +387,8 @@ export class BitmapImage2D extends Image2D
 		let c = 0;
 		let has = false;
 
+		let start = performance.now();
+
 		for (let j = 0; j < size.height; j++) {
 			for (let i = 0; i < size.width; i++) {
 				const index = (j * size.width + i) * 4;
@@ -416,76 +418,107 @@ export class BitmapImage2D extends Image2D
 			? new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1)
 			: new Rectangle(0, 0, 0, 0);
 
-		console.debug("ColoreRect (mask, color, rect) ", mask.toString(16), color.toString(16), d._rawData, this);
+		const delta = performance.now() - start;
+		
+		console.debug("ColoreRect (mask, color, rect, time):", mask.toString(16), color.toString(16), d._rawData, delta);
 
 		return d;
 	}
+
 	// https://lodev.org/cgtutor/floodfill.html
-	// 4 way method implementation
+	// scanline method implementation
 
 	public floodFill(x: number, y: number, color: number): void 
 	{
 		x = x | 0;
 		y = y | 0;
 
+		//const start = performance.now();
+
 		// needs update data when it use GL rendering mode
-		const data = this.data;
+		const data = new Uint32Array(this.data.buffer);
+
 		const width = this._rect.width;
 		const height = this._rect.height;
-		const index = (x + y * width) * 4;
 		const stack = this._floodStack;
-		const 
-			oldR = data[index + 0],
-			oldG = data[index + 1],
-			oldB = data[index + 2],
-			oldA = data[index + 3];
 		
+		// avoid reloaction. it costly
+		stack.length = width * height * 2;
+		
+		const oldc32 = data[(x + y * width)];
+		//const rect = [100000,100000,0,0];
+
 		let [newA, newR, newG, newB] = ColorUtils.float32ColorToARGB(color);		
 		// premultiply 
 		newR = newR * newA / 0xff;
 		newG = newG * newA / 0xff;
 		newB = newB * newA / 0xff;
 		
+		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
+
+		let x1 = 0;
+		let spanAbove, spanBelow;
 		let stackIndex = 0;
 
-		stack[stackIndex ++] = x;
-		stack[stackIndex ++] = y;
+		stack[stackIndex++] = x;
+		stack[stackIndex++] = y;
 
-		while(true) {
-			const cy = stack[--stackIndex];
-			const cx = stack[--stackIndex];
+		while (stackIndex > 0) {
+			y = stack[--stackIndex];
+			x1 = x = stack[--stackIndex];
 
-			if(stackIndex < 0) {
-				break;
+			while (x1 >= 0 && data[y * width + x1] === oldc32) {
+				x1--;
 			}
 
-			const i = (cx + cy * width) * 4;			
+			x1++;
+			spanAbove = spanBelow = false;
 
-			data[i + 0] = newR;
-			data[i + 1] = newG;
-			data[i + 2] = newB;
-			data[i + 3] = newA;
-			
-			for(let j = 0; j < 4; j ++) {
-				let nx = cx + N_DX[j];
-				let ny = cy + N_DY[j];
+			while (x1 < width && data[y * width + x1] === oldc32) {
+				data[y * width + x1] = newc32;
 
-				if(nx >= 0 && ny >= 0 && nx < width && ny < height) {
-					const ni = (nx + ny * width) * 4;
-					const eq = 
-						oldR === data[ni + 0] &&
-						oldG === data[ni + 1] &&
-						oldB === data[ni + 2] &&
-						oldA === data[ni + 3];
-					
-					if(eq) {
-						stack[stackIndex ++] = nx;
-						stack[stackIndex ++] = ny;
-					}
+				/*
+				rect[0] = rect[0] > x1 ? x1 : rect[0];
+				rect[1] = rect[1] > y ? y : rect[1];
+				rect[2] = rect[2] < x1 ? x1 : rect[2];
+				rect[3] = rect[3] < y ? y : rect[3];
+				*/
+				if (!spanAbove && y > 0 && data[(y - 1) * width + x1] === oldc32) {
+					stack[stackIndex ++] = x1;
+					stack[stackIndex ++] = y - 1;
+					spanAbove = true;
+				} else if (spanAbove && y > 0 && data[(y - 1) * width + x1] !== oldc32) {
+					spanAbove = false;
 				}
+
+				if (!spanBelow && y < height - 1 && data[(y + 1) * width + x1] === oldc32) {
+					stack[stackIndex ++] = x1;
+					stack[stackIndex ++] = y + 1;
+					spanBelow = true;
+				} else if (spanBelow && y < height - 1 && data[(y + 1) * width + x1] !== oldc32) {
+					spanBelow = false;
+				}
+
+				x1++;
 			}
 		}
+
+		/*
+		rect[2] -= rect[0];
+		rect[3] -= rect[1];
 		
+		if(rect[2] * rect[3]) {
+			rect[2] += 1;
+			rect[3] += 1;
+		}
+
+		
+		const delta = performance.now() - start;
+		console.debug(
+			"FloodFill (sourceColor, targetColor, source rect, result, time):", 
+			oldc32.toString(16), newc32.toString(16), this._rect._rawData, rect, delta,)
+		*/
+
 		if (!this._locked)
 			this.invalidate();
 	}
