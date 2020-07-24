@@ -59,8 +59,14 @@ import {Image2D} from "./Image2D";
  * is 2,880 pixels in height and 2,880 in width.</p>
  */
 
-const N_DX = [0, 1, 0, -1]; // relative neighbor x coordinates
-const N_DY = [-1, 0, 1, 0]; // relative neighbor y coordinates
+
+function fastARGB_to_ABGR(val: number) {
+	return (
+		(val & 0xff000000)
+		| ((val & 0xff) << 16)
+		| (val & 0xff00)
+		| ((val & 0xff0000) >> 16) & 0xff) >>> 0
+}
 
 export class BitmapImage2D extends Image2D
 {
@@ -374,11 +380,11 @@ export class BitmapImage2D extends Image2D
 
 
 	public getColorBoundsRect(mask: number, color: number, findColor: boolean = true): Rectangle {
-		const buffer = this.data;
+		const buffer = new Uint32Array(this.data.buffer);
 		const size = this.rect;
 
-		color >>>= 0;
-		mask >>>= 0;
+		color = fastARGB_to_ABGR(color);
+		mask = fastARGB_to_ABGR(mask);
 
 		let minX = size.width,
 			minY = size.height,
@@ -392,15 +398,8 @@ export class BitmapImage2D extends Image2D
 
 		for (let j = 0; j < size.height; j++) {
 			for (let i = 0; i < size.width; i++) {
-				const index = (j * size.width + i) * 4;
-				const r = buffer[index + 0];
-				const g = buffer[index + 1];
-				const b = buffer[index + 2];
-				const a = buffer[index + 3];
+				let  c = buffer[j * size.width + i];
 
-				// inline
-				// c = ColorUtils.ARGBtoFloat32(a, r, g, b);
-				c = ((a << 24) | (r << 16) | (g << 8) | b);
 				c = (c & mask) >>> 0;
 
 				if ((c === color && findColor) || (c !== color && !findColor)) {
