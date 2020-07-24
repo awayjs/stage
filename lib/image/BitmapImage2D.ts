@@ -1,4 +1,4 @@
-import {ColorTransform, Matrix, Rectangle, Point, ColorUtils} from "@awayjs/core";
+import {ColorTransform, Matrix, Rectangle, Point, ColorUtils, CoordinateSystem} from "@awayjs/core";
 
 import {Image2D} from "./Image2D";
 /**
@@ -373,11 +373,12 @@ export class BitmapImage2D extends Image2D
 	}
 
 
-	public getColorBoundsRect(mask: number, color: number, findColor: boolean): Rectangle {
+	public getColorBoundsRect(mask: number, color: number, findColor: boolean = true): Rectangle {
 		const buffer = this.data;
 		const size = this.rect;
 
-		color &= 0xffffffff;
+		color >>>= 0;
+		mask >>>= 0;
 
 		let minX = size.width,
 			minY = size.height,
@@ -399,10 +400,10 @@ export class BitmapImage2D extends Image2D
 
 				// inline
 				// c = ColorUtils.ARGBtoFloat32(a, r, g, b);
-				c = ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
-				c &= mask;
+				c = ((a << 24) | (r << 16) | (g << 8) | b);
+				c = (c & mask) >>> 0;
 
-				if (c === color) {
+				if ((c === color && findColor) || (c !== color && !findColor)) {
 					has = true;
 
 					minX = i < minX ? i : minX; // Math.min(minX, i);
