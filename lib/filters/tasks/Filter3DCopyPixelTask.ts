@@ -35,16 +35,16 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 
 	public getVertexCode():string
 	{
-		var temp1:ShaderRegisterElement = this._registerCache.getFreeVertexVectorTemp();
+		var temp1 = this._registerCache.getFreeVertexVectorTemp();
 
-		var rect:ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
+		var rect = this._registerCache.getFreeVertexConstant();
 
-		var position:ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
+		var position = this._registerCache.getFreeVertexAttribute();
 		this._positionIndex = position.index;
 		
-		var offset:ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
+		var offset = this._registerCache.getFreeVertexConstant();
 
-		var uv:ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
+		var uv = this._registerCache.getFreeVertexAttribute();
 		this._uvIndex = uv.index;
 		
 		this._uvVarying = this._registerCache.getFreeVarying();
@@ -55,7 +55,8 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 			"add " + temp1 + ".xy, " + temp1 + ", " + rect + ".xy\n" +
 			"mov " + temp1 + ".w, " + position + ".w\n" +
 			"mov op, " + temp1 + "\n" + 
-			"add " + this._uvVarying + ", " + uv + ", " + offset + ".xy\n";
+			"add " + this._uvVarying + ", " + uv + ", " + offset + ".xy\n" +
+			"mul " +  this._uvVarying + ", " + this._uvVarying + ", " + offset + ".zw\n";
 		
 		return code;
 	}
@@ -88,7 +89,7 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 		const tr = this._target;
 		const tex = this._mainInputTexture;
 
-		// mult to vertex
+		// mul to vertex
 		vd[index + 0] = (2 * dp.x + sr.width) / tr.width - 1;
 		vd[index + 1] = (2 * dp.y + sr.height) / tr.height - 1;
 		
@@ -97,8 +98,13 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 		vd[index + 3] = sr.height / tr.height;
 
 		// add to uv
-		vd[index + 4] = sr.x / tex.width;
-		vd[index + 5] = sr.y / tex.height;
+		vd[index + 4] = 2 * sr.x / tex.width;
+		vd[index + 5] = 2 * sr.y / tex.height;
+
+		// mul to uv
+		vd[index + 6] = sr.width / tex.width;
+		vd[index + 7] = sr.height / tex.width;
+		
 
 		var context:IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, vd);
