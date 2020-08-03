@@ -4,11 +4,18 @@ import {AGALTokenizer} from "../aglsl/AGALTokenizer";
 import {AGLSLParser} from "../aglsl/AGLSLParser";
 import {IProgram} from "../base/IProgram";
 
+const TEST_PLACE = /(#define|#version|precision).*\n/gi;
+
 export class ProgramWebGL implements IProgram
 {
+	private static ProgramID = 0;
+
 	private static _tokenizer:AGALTokenizer = new AGALTokenizer();
 	private static _aglslParser:AGLSLParser = new AGLSLParser();
 	private static _uniformLocationNameDictionary:Array<string> = ["fc", "fs", "vc"];
+
+	public name: string;
+
 	// private static _uniformLocationNameDictionary:Array<string> = ["fcarrr", "fs", "vcarrr"];
 
 	private _gl:WebGLRenderingContext;
@@ -33,16 +40,31 @@ export class ProgramWebGL implements IProgram
 		var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram), vertexPrecision);
 		var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
 
+		if(!this.name) {
+			this.name = "PROG_AGAL_" + (++ProgramWebGL.ProgramID);
+		}
+
+		this.uploadRaw(vertexString, fragmentString);
+	}
+
+	public uploadRaw(vertexGLSL: string, fragmentGLSL: string) {
+		if(!this.name) {
+			this.name = "PROG_GLSL_" + (++ProgramWebGL.ProgramID);
+		}
+
+		vertexGLSL = this.insertName(vertexGLSL);
+		fragmentGLSL = this.insertName(fragmentGLSL);
+
 		this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 		this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
 
-		this._gl.shaderSource(this._vertexShader, vertexString);
+		this._gl.shaderSource(this._vertexShader, vertexGLSL);
 		this._gl.compileShader(this._vertexShader);
 
 		if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS))
 			throw new Error(this._gl.getShaderInfoLog(this._vertexShader));
 
-		this._gl.shaderSource(this._fragmentShader, fragmentString);
+		this._gl.shaderSource(this._fragmentShader, fragmentGLSL);
 		this._gl.compileShader(this._fragmentShader);
 
 		if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS))
@@ -54,7 +76,21 @@ export class ProgramWebGL implements IProgram
 
 		if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS))
 			throw new Error(this._gl.getProgramInfoLog(this._program));
+		
+		this.reset();
+	}
 
+	protected insertName(shader: string): string {
+		const mathes = shader.match(TEST_PLACE) || [];
+		const last = mathes[mathes.length - 1]; 
+		const corret = last ? shader.lastIndexOf(last) + last.length : 0;
+
+		return shader.substr(0, corret) 
+			+ `\n#define SHADER_NAME ${this.name}\n\n`
+			+ shader.substr(corret);
+	}
+
+	protected reset() {
 		this._uniforms[0].length = 0;
 		this._uniforms[1].length = 0;
 		this._uniforms[2].length = 0;
@@ -87,7 +123,6 @@ export class ProgramWebGL implements IProgram
 
 		return (this._attribs[index] = this._gl.getAttribLocation(this._program, "va" + index));
 	}
-
 
 	public dispose():void
 	{

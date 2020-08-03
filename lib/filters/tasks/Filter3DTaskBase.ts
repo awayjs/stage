@@ -25,8 +25,8 @@ export class Filter3DTaskBase
 	public _textureWidth:number = -1;
 	public _textureHeight:number = -1;
 	private _textureDimensionsInvalid:boolean = true;
-	private _program3DInvalid:boolean = true;
-	private _program3D:IProgram;
+	protected _program3DInvalid:boolean = true;
+	protected _program3D:IProgram;
 	protected _target:Image2D;
 	private _requireDepthRender:boolean;
 	private _textureScale:number = 1;
