@@ -122,7 +122,13 @@ export class ProgramWebGL implements IProgram
 		if (this._attribs[index] != null)
 			return this._attribs[index];
 
-		return (this._attribs[index] = this._gl.getAttribLocation(this._program, "va" + index));
+		const atrib = this._gl.getActiveAttrib(this._program, index);
+
+		if(!atrib) {
+			return this._attribs[index] = -1;
+		}
+
+		return (this._attribs[index] = this._gl.getAttribLocation(this._program, atrib.name));
 	}
 
 	public dispose():void
