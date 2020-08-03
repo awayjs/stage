@@ -103,7 +103,7 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 
 		// mul to uv
 		vd[index + 6] = sr.width / tex.width;
-		vd[index + 7] = sr.height / tex.width;
+		vd[index + 7] = sr.height / tex.height;
 		
 
 		var context:IContextGL = stage.context;
