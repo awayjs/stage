@@ -11,7 +11,11 @@ export class Filter3DTaskBaseWebGL extends Filter3DTaskBase
 
 		this._program3D = stage.context.createProgram();
 		this._registerCache.reset();
-		(<ProgramWebGL>this._program3D).uploadRaw(this.getVertexCode(), this.getFragmentCode());
+		
+		this._program3D.name = (<any>this.constructor).name;
+		(<ProgramWebGL>this._program3D).uploadRaw(
+			this.getVertexCode(), 
+			this.getFragmentCode());
 		this._program3DInvalid = false;
 	}
 }

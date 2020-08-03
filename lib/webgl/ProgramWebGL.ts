@@ -18,6 +18,7 @@ export class ProgramWebGL implements IProgram
 
 	// private static _uniformLocationNameDictionary:Array<string> = ["fcarrr", "fs", "vcarrr"];
 
+	private _id: number = ProgramWebGL.ProgramID ++;
 	private _gl:WebGLRenderingContext;
 	private _program:WebGLProgram;
 	private _vertexShader:WebGLShader;
@@ -41,7 +42,7 @@ export class ProgramWebGL implements IProgram
 		var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
 
 		if(!this.name) {
-			this.name = "PROG_AGAL_" + (++ProgramWebGL.ProgramID);
+			this.name = "PROG_AGAL_" + this._id;
 		}
 
 		this.uploadRaw(vertexString, fragmentString);
@@ -49,7 +50,7 @@ export class ProgramWebGL implements IProgram
 
 	public uploadRaw(vertexGLSL: string, fragmentGLSL: string) {
 		if(!this.name) {
-			this.name = "PROG_GLSL_" + (++ProgramWebGL.ProgramID);
+			this.name = "PROG_GLSL_" + this._id;
 		}
 
 		vertexGLSL = this.insertName(vertexGLSL);
