@@ -81,17 +81,27 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 
 	public activate(stage:Stage, projection:ProjectionBase, depthTexture:Image2D):void
 	{
-		var index:number = this._positionIndex;
-		this._vertexConstantData[index] = (2*this.destPoint.x + this.rect.width)/this._target.width - 1;
-		this._vertexConstantData[index + 1] = (2*this.destPoint.y + this.rect.height)/this._target.height - 1;
-		this._vertexConstantData[index + 2] = this.rect.width/this._target.width;
-		this._vertexConstantData[index + 3] = this.rect.height/this._target.height;
+		const index = this._positionIndex;
+		const vd = this._vertexConstantData;
+		const dp = this.destPoint;
+		const sr = this.rect;
+		const tr = this._target;
+		const tex = this._mainInputTexture;
 
-		this._vertexConstantData[index + 4] = this.rect.x/this._mainInputTexture.width;
-		this._vertexConstantData[index + 5] = this.rect.y/this._mainInputTexture.height;
+		// mult to vertex
+		vd[index + 0] = (2 * dp.x + sr.width) / tr.width - 1;
+		vd[index + 1] = (2 * dp.y + sr.height) / tr.height - 1;
+		
+		// add to vertex
+		vd[index + 2] = sr.width / tr.width;
+		vd[index + 3] = sr.height / tr.height;
+
+		// add to uv
+		vd[index + 4] = sr.x / tex.width;
+		vd[index + 5] = sr.y / tex.height;
 
 		var context:IContextGL = stage.context;
-		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
+		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, vd);
 	}
 	
 	public deactivate(stage:Stage):void
