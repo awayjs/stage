@@ -23,7 +23,8 @@ export class ProgramWebGL implements IProgram
 	private _program:WebGLProgram;
 	private _vertexShader:WebGLShader;
 	private _fragmentShader:WebGLShader;
-	private _uniforms:Array<Array<WebGLUniformLocation>> = [[],[],[]];
+	private _uniforms:Array<NumberMap<WebGLUniformLocation>> = [{},{},{}];
+	private _nameToIndex: StringMap<number> = {};
 	private _attribs:Array<number> = [];
 
 	constructor(gl:WebGLRenderingContext)
@@ -35,11 +36,15 @@ export class ProgramWebGL implements IProgram
 	public upload(vertexProgram:ByteArray, fragmentProgram:ByteArray):void
 	{
 		//detect whether highp can be used
-		var vertexPrecision:string = (this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT).precision != 0)? "highp" : "mediump";
-		var fragmentPrecision:string = (this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT).precision != 0)? "highp" : "mediump";
+		var vertexPrecision:string = 
+			(this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT).precision != 0) ? "highp" : "mediump";
+		var fragmentPrecision:string = 
+			(this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT).precision != 0) ? "highp" : "mediump";
 
-		var vertexString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram), vertexPrecision);
-		var fragmentString:string = ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
+		var vertexString:string = 
+			ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram), vertexPrecision);
+		var fragmentString:string = 
+			ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
 
 		if(!this.name) {
 			this.name = "PROG_AGAL_" + this._id;
@@ -92,18 +97,32 @@ export class ProgramWebGL implements IProgram
 	}
 
 	protected reset() {
-		this._uniforms[0].length = 0;
-		this._uniforms[1].length = 0;
-		this._uniforms[2].length = 0;
+
+		this._uniforms[0] = {};
+		this._uniforms[1] = {};
+		this._uniforms[2] = {};
 		this._attribs.length = 0;
 	}
 
-	public getUniformLocation(programType:number, index:number = -1):WebGLUniformLocation
+	public getUniformLocation(programType:number, indexOrName:number | string = -1):WebGLUniformLocation
 	{
-		if (this._uniforms[programType][index + 1] != null)
+		const isIndex = typeof indexOrName === 'number';
+		const index = isIndex ? <number>indexOrName : this._nameToIndex[<string>indexOrName];
+
+		if (typeof index !=='undefined' && this._uniforms[programType][index + 1] != null) {
 			return this._uniforms[programType][index + 1];
-	
-		var name:string =  (index == -1)? ProgramWebGL._uniformLocationNameDictionary[programType] : ProgramWebGL._uniformLocationNameDictionary[programType] + index;
+		}
+
+		let name = <string>indexOrName;
+
+		if(isIndex) {
+			name = (indexOrName === -1) ? 
+				ProgramWebGL._uniformLocationNameDictionary[programType] : 
+				ProgramWebGL._uniformLocationNameDictionary[programType] + indexOrName;		 
+		}
+
+		this._nameToIndex[name] = index + 1;
+		
 		return (this._uniforms[programType][index + 1] = this._gl.getUniformLocation(this._program, name));
 	}
 	
