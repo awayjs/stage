@@ -145,6 +145,7 @@ export class Filter3DTaskBase
 		var vertexByteCode:ByteArray = (new AGALMiniAssembler().assemble("part vertex 1\n" + this.getVertexCode() + "endpart"))['vertex'].data;
 		var fragmentByteCode:ByteArray = (new AGALMiniAssembler().assemble("part fragment 1\n" + this.getFragmentCode() + "endpart"))['fragment'].data;
 
+		this._program3D.name = (<any>this.constructor).name;
 		this._program3D.upload(vertexByteCode, fragmentByteCode);
 		this._program3DInvalid = false;
 	}
