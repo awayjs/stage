@@ -60,9 +60,9 @@ import {Image2D} from "./Image2D";
  */
 
 
-function fastARGB_to_ABGR(val: number) {
-	return (
-		(val & 0xff000000)
+function fastARGB_to_ABGR(val: number, hasAlpha = true) {
+	const a = hasAlpha ? (val & 0xff000000) : 0xff000000;
+	return (a
 		| ((val & 0xff) << 16)
 		| (val & 0xff00)
 		| ((val & 0xff0000) >> 16) & 0xff) >>> 0
@@ -383,8 +383,8 @@ export class BitmapImage2D extends Image2D
 		const buffer = new Uint32Array(this.data.buffer);
 		const size = this.rect;
 
-		color = fastARGB_to_ABGR(color);
-		mask = fastARGB_to_ABGR(mask);
+		color = fastARGB_to_ABGR(color, this._transparent);
+		mask = fastARGB_to_ABGR(mask, this._transparent);
 
 		let minX = size.width,
 			minY = size.height,
@@ -448,11 +448,13 @@ export class BitmapImage2D extends Image2D
 		const oldc32 = data[(x + y * width)];
 		//const rect = [100000,100000,0,0];
 
-		let [newA, newR, newG, newB] = ColorUtils.float32ColorToARGB(color);		
+		let [newA, newR, newG, newB] = ColorUtils.float32ColorToARGB(color);
+
+		newA =  this._transparent ? newA : 0xff;
 		// premultiply 
-		newR = newR * newA / 0xff;
-		newG = newG * newA / 0xff;
-		newB = newB * newA / 0xff;
+		newR = newR * newA / 0xff | 0;
+		newG = newG * newA / 0xff | 0;
+		newB = newB * newA / 0xff | 0;
 		
 		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
 
