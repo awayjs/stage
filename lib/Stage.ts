@@ -1,4 +1,4 @@
-import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, IAbstractionClass, CSS, ProjectionBase, Point} from "@awayjs/core";
+import {EventDispatcher, Rectangle, AbstractionBase, IAsset, IAssetClass, IAbstractionPool, IAbstractionClass, CSS, ProjectionBase, Point, ColorTransform} from "@awayjs/core";
 
 import {ContextMode} from "./base/ContextMode";
 import {ContextGLMipFilter} from "./base/ContextGLMipFilter";
@@ -305,6 +305,20 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 
 		this.renderFilter(target, this._thresholdFilter);
+	}
+
+	public colorTransform(source:Image2D, target: Image2D, rect:Rectangle, colorTransform:ColorTransform):void {		
+		if (!this._copyPixelFilter)
+			this._copyPixelFilter = new CopyPixelFilter3D();
+
+		this._copyPixelFilter.sourceTexture = source;
+		this._copyPixelFilter.rect = rect;
+		this._copyPixelFilter.destPoint = new Point(0,0);
+		this._copyPixelFilter.colorTransform = colorTransform;
+
+		this.renderFilter(target, this._copyPixelFilter);
+
+		this._copyPixelFilter.colorTransform = null
 	}
 
 	public getAbstraction(asset:IAsset):AbstractionBase

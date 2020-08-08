@@ -2,7 +2,7 @@ import {Filter3DCopyPixelTask} from "./tasks/Filter3DCopyPixelTask";
 
 import {Filter3DBase} from "./Filter3DBase";
 import { Image2D } from '../image/Image2D';
-import { Rectangle, Point } from '@awayjs/core';
+import { Rectangle, Point, ColorTransform } from '@awayjs/core';
 
 export class CopyPixelFilter3D extends Filter3DBase
 {
@@ -23,6 +23,14 @@ export class CopyPixelFilter3D extends Filter3DBase
 		this.addTask(this._copyPixelTask);
 	}
 	
+	public get colorTransform() {
+		return this._copyPixelTask.transform;
+	}
+
+	public set colorTransform(value: ColorTransform) {
+		this._copyPixelTask.transform = value;
+	}
+
 	public get rect():Rectangle
 	{
 		return this._copyPixelTask.rect;
