@@ -70,6 +70,9 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 		var temp1:ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
 		this._registerCache.addFragmentTempUsages(temp1, 1);
 
+		var temp2:ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
+		this._registerCache.addFragmentTempUsages(temp2, 1);
+
 		var mulltipler = this._registerCache.getFreeFragmentConstant();
 		var add = this._registerCache.getFreeFragmentConstant();
 
@@ -80,8 +83,9 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 	
 		code = 
 			"tex " + temp1 + ", " + this._uvVarying + ", " + inputTexture + " <2d,linear,clamp>\n" +
-			//"div " + temp1 + ", " + temp1 + ", " + temp1 + ".w\n" +
-			"mul " + temp1 + ", " + temp1 + ", " + mulltipler + ".xyzw\n" +
+			"sat " + temp2 + ", " + mulltipler + "\n" +
+			"mul " + temp2 + ", " + temp2 + ", " + temp2 + ".w\n" +
+			"mul " + temp1 + ", " + temp1 + ", " + temp2 + ".xyzw\n" +
 			"add " + temp1 + ", " + temp1 + ", " + add + ".xyzw\n" +
 			//"mul " + temp1 + ", " + temp1 + ", " + temp1 + ".w\n" +
 			"mov oc, " + temp1 + "\n";
@@ -124,6 +128,9 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 			fd = this._fragConstantData;
 			fd.set(this.transform._rawData);
 			for(let i = 0; i < 4; i ++) fd[i + 4] /= 255;
+
+			// disable ALPHA offset, because can't allowed in PMA mode
+			fd[7] = 0;
 		}
 
 		var context:IContextGL = stage.context;
