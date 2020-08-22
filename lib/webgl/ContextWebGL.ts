@@ -682,10 +682,14 @@ export class ContextWebGL implements IContextGL
 		target._mipmapSelector = mipmapSelector;
 		// bind texture
 		this._gl.bindTexture(this._gl.TEXTURE_2D, target._glTexture);
+
 		// apply texture with empty data
 		if(!target._isFilled) {
 			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+			this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
 			target._isFilled = true;
+			target._isPMA = true;
 		}
 
 		//no Multisample buffers with WebGL1

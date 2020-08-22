@@ -21,13 +21,18 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	/*internal*/ _texStorageFlag:boolean;
 	/*internal*/ _multisampled:boolean = false;
 	/*internal*/ _isFilled:boolean = false;
-	
+	/*internal*/ _isPMA:boolean = false;
 
-	constructor(context: ContextWebGL, width:number, height:number)
-	{
+	constructor(context: ContextWebGL, width:number, height:number) {
 		super(context);
+
+		if(!width || !height) {
+			throw new Error(`Incorrected size of texture { width: ${width}, height: ${height}}`);
+		}
+
 		this._width = width;
 		this._height = height;
+
 
 		this._glTexture = this._gl.createTexture();
 	}
@@ -83,16 +88,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 
 	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0, premultiplied:boolean = false):void
 	{
+		const width = this._width >>> miplevel;
+		const height = this._height >>> miplevel;
 
-		var width:number=this._width;
-		var height:number=this._height;
-
-		for(var i=0; i<miplevel; i++){
-			width=width*0.5;
-			height=height*0.5;
+        if (array.length !== width * height * 4){
+			throw new Error("Array is not the correct length for texture dimensions");
 		}
-        if (array.length != Math.floor(width)*Math.floor(height)*4)
-            throw new Error("Array is not the correct length for texture dimensions");
 
 		if (array instanceof Array)
             array = new Uint8Array(array);
@@ -103,6 +104,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 
 		this._isFilled = true;
+		this._isPMA = premultiplied;
 	}
 
 	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0, premultiplied:boolean = false):void
@@ -114,6 +116,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 
 		this._isFilled = true;
+		this._isPMA = premultiplied;
 	}
 
 	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number, async:boolean = false):void
