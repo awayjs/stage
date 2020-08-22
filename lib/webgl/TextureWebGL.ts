@@ -20,6 +20,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 	/*internal*/ _mipmapSelector:number = 0;
 	/*internal*/ _texStorageFlag:boolean;
 	/*internal*/ _multisampled:boolean = false;
+	/*internal*/ _isFilled:boolean = false;
+	
 
 	constructor(context: ContextWebGL, width:number, height:number)
 	{
@@ -99,6 +101,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
         this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+
+		this._isFilled = true;
 	}
 
 	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0, premultiplied:boolean = false):void
@@ -108,6 +112,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture
 		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
         this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+
+		this._isFilled = true;
 	}
 
 	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number, async:boolean = false):void

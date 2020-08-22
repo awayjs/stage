@@ -683,7 +683,10 @@ export class ContextWebGL implements IContextGL
 		// bind texture
 		this._gl.bindTexture(this._gl.TEXTURE_2D, target._glTexture);
 		// apply texture with empty data
-		// this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+		if(!target._isFilled) {
+			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+			target._isFilled = true;
+		}
 
 		//no Multisample buffers with WebGL1
 		if (this._gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE || antiAlias < 1) {
