@@ -192,6 +192,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		if (!this._filterSampler)
 			this._filterSampler = new ImageSampler(false, false, false);
 
+		
+		const _rt = this._renderTarget;
+		const _rtss = this._renderSurfaceSelector;
+		const _rtms = this._renderMipmapSelector;
+		const _rtem = this._enableDepthAndStencil;
+
 		filter.setRenderTargets(target, this);
 
 		//render
@@ -236,6 +242,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 		this._context.setTextureAt(0, null);
 		this._context.setVertexBufferAt(0, null);
 		this._context.setVertexBufferAt(1, null);
+
+		this.setRenderTarget(_rt, _rtem, _rtss, _rtms);
 	}
 
 	public copyPixels(source:Image2D, target:Image2D, rect:Rectangle, destPoint:Point, alphaBitmapData: Image2D = null, alphaPoint: Point = null, mergeAlpha:boolean = false):void

@@ -577,7 +577,7 @@ export class ContextWebGL implements IContextGL
 		//TODO: remove use of index in disableVertexAttribArray by better handling of internal Attrib location
 		if (!buffer) {
 			if (location > -1)
-				this._gl.disableVertexAttribArray(index);
+				this._gl.disableVertexAttribArray(location);
 
 			return;
 		}
@@ -591,6 +591,7 @@ export class ContextWebGL implements IContextGL
 		var properties:VertexBufferProperties = this._vertexBufferPropertiesDictionary[format];
 
 		this._gl.enableVertexAttribArray(location);
+
 		this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
 	}
 
