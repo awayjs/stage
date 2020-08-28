@@ -79,6 +79,25 @@ export class BitmapImage2D extends Image2D
 	protected _locked:boolean = false;
 	protected _floodStack: number[] = [];
 
+	private _needUpload: boolean = false;	
+
+	public invalidateGPU() {
+		this._needUpload = true;
+		this.invalidate();
+	}
+
+	public invalidate() {
+		if(!this._needUpload) {
+			return;
+		}
+
+		if(this._locked) {
+			return;
+		}
+
+		super.invalidate();
+	}
+
 	private _customMipLevels:BitmapImage2D[];
 
 	public addMipLevel(newLevel:BitmapImage2D):void
@@ -197,8 +216,8 @@ export class BitmapImage2D extends Image2D
 			}
 		}
 
-		if (!this._locked)
-			this.invalidate();
+
+		this.invalidateGPU();
 	}
 
 	/**
@@ -267,8 +286,7 @@ export class BitmapImage2D extends Image2D
 			}
 		}
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	// public copyPixels(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point)
@@ -345,8 +363,7 @@ export class BitmapImage2D extends Image2D
 			}
 		}
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	/**
@@ -521,16 +538,14 @@ export class BitmapImage2D extends Image2D
 			oldc32.toString(16), newc32.toString(16), this._rect._rawData, rect, delta,)
 		*/
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	public drawBitmap(source:Uint8ClampedArray, offsetX:number, offsetY:number, width:number, height:number, matrix:Matrix = null):void
 	{
 		BitmapImageUtils.drawBitmap(source, offsetX, offsetY, width, height, this.data, 0, 0, this._rect.width, this._rect.height, matrix)
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	/**
@@ -562,8 +577,7 @@ export class BitmapImage2D extends Image2D
 			}
 		}
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	/**
@@ -674,8 +688,7 @@ export class BitmapImage2D extends Image2D
 		data[index + 2] = imagePixel[2];
 		data[index + 3] = this._transparent? imagePixel[3] : 0xFF;
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 	
 	/**
@@ -720,9 +733,8 @@ export class BitmapImage2D extends Image2D
 				data[index + 3] = this._transparent? argb[0] : 0xFF;
 			}
 		}
-
-		if (!this._locked)
-			this.invalidate();
+		
+		this.invalidateGPU();
 	}
 
 	/**
@@ -750,10 +762,10 @@ export class BitmapImage2D extends Image2D
 		data[index + 1] = argb[2];
 		data[index + 2] = argb[3];
 		data[index + 3] = 0xff;
-
-		if (!this._locked)
-			this.invalidate();
+		
+		this.invalidateGPU();
 	}
+
 	public setPixelFromArray(x:number, y:number, colors:number[]):void
 	{
 		var index:number = (x + y*this._rect.width)*4, data:Uint8ClampedArray = this.data;
@@ -763,8 +775,7 @@ export class BitmapImage2D extends Image2D
 		data[index + 2] = colors[3];
 		data[index + 3] = colors[0]*0xff;
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	/**
@@ -807,8 +818,7 @@ export class BitmapImage2D extends Image2D
 		data[index + 2] = argb[3];
 		data[index + 3] = this._transparent? argb[0] : 0xFF;
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	/**
@@ -841,8 +851,7 @@ export class BitmapImage2D extends Image2D
 				data.set(input.subarray(i*inputWidth*4, (i + 1)*inputWidth*4), (rect.x + (i + rect.y)*imageWidth)*4);
 		}
 
-		if (!this._locked)
-			this.invalidate();
+		this.invalidateGPU();
 	}
 
 	/**
