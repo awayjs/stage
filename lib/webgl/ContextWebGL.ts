@@ -856,8 +856,9 @@ export class ContextWebGL implements IContextGL
 
 	/*internal*/ disposeTexture(texture: TextureWebGL) {
 		if(this._renderTarget === texture) {
-			console.error("[Context] Trying to dispose a active tendertarget!");
-			return;
+			console.warn("[Context] Trying to dispose a active tendertarget!");
+
+			this.setRenderToBackBuffer()
 		}
 
 		// delete texture
