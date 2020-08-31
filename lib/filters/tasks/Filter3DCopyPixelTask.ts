@@ -115,8 +115,8 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase
 		vd[index + 3] = sr.height / tr.height;
 
 		// add to uv
-		vd[index + 4] = 2 * sr.x / tex.width;
-		vd[index + 5] = 2 * sr.y / tex.height;
+		vd[index + 4] = sr.x / sr.width;
+		vd[index + 5] = sr.y / sr.height;
 
 		// mul to uv
 		vd[index + 6] = sr.width / tex.width;
