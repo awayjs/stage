@@ -124,7 +124,7 @@ export class ContextWebGL implements IContextGL
 
 		try {
 			if(ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
-				this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+				//this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
 			}
 
 			if (!this._gl) {
@@ -574,11 +574,13 @@ export class ContextWebGL implements IContextGL
 	{
 		var location:number = this._currentProgram? this._currentProgram.getAttribLocation(index) : -1;
 
-		//TODO: remove use of index in disableVertexAttribArray by better handling of internal Attrib location
-		if (!buffer) {
-			if (location > -1)
-				this._gl.disableVertexAttribArray(location);
+		// disable location, OS will fire error when loadings invalid buffer to it 
+		// location - is index of buffer location inside shader
+		// index - attrib location for binding.
+		// FOR OSx - IT CAN BE DIFFERENT
 
+		if (!buffer && location > -1) {
+			this._gl.disableVertexAttribArray(index);
 			return;
 		}
 
