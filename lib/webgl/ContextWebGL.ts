@@ -124,7 +124,7 @@ export class ContextWebGL implements IContextGL
 
 		try {
 			if(ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
-				//this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
+				this._gl = <WebGLRenderingContext> this._container.getContext("webgl2", props);
 			}
 
 			if (!this._gl) {
