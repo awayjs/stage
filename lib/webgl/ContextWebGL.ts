@@ -579,8 +579,10 @@ export class ContextWebGL implements IContextGL
 		// index - attrib location for binding.
 		// FOR OSx - IT CAN BE DIFFERENT
 
-		if (!buffer && location > -1) {
-			this._gl.disableVertexAttribArray(index);
+		if (!buffer) {
+			if(location > -1){
+				this._gl.disableVertexAttribArray(index);
+			}
 			return;
 		}
 
