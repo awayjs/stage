@@ -1,4 +1,4 @@
-import {ColorTransform, Matrix, Rectangle, Point, ColorUtils, CoordinateSystem} from "@awayjs/core";
+import {ColorTransform, Matrix, Rectangle, Point, ColorUtils, CoordinateSystem, IAssetAdapter} from "@awayjs/core";
 
 import {Image2D} from "./Image2D";
 /**
@@ -60,6 +60,26 @@ import {Image2D} from "./Image2D";
  */
 
 
+declare global {
+	class WeakRef<T> {
+		deref(): T;
+		constructor(arg: T);
+	}
+
+	class FinalizationRegistry {
+		constructor(callback: (v: any) => void);
+		register(target: object, heldValue: any, token?: object);
+		unregister(token: object);
+	}
+
+}
+
+const HAS_REF = 'WeakRef' in window;
+
+if(HAS_REF) {
+	console.debug("[ImageBitmap2D Experemental] Use WeakRef for ImageBitmap2D");
+}
+
 function fastARGB_to_ABGR(val: number, hasAlpha = true) {
 	const a = hasAlpha ? (val & 0xff000000) : 0xff000000;
 	return (a
@@ -74,6 +94,9 @@ export class BitmapImage2D extends Image2D
 
 	private _data:Uint8ClampedArray;
 
+	protected _isWeakRef: boolean = true;
+	protected _finalizer: FinalizationRegistry;
+	protected _weakRefAdapter: WeakRef<IAssetAdapter>;
 	protected _transparent:boolean;
 	protected _stage:Stage;
 	protected _locked:boolean = false;
@@ -176,6 +199,46 @@ export class BitmapImage2D extends Image2D
 
 		if (fillColor != null && fillColor != 0x0)
 			this.fillRect(this._rect, fillColor);
+		
+		if(HAS_REF) {
+			this._finalizer = new FinalizationRegistry(this.onAdapterDropped.bind(this));
+		}
+	}
+
+	public useWakRef() {
+		this._isWeakRef = true;
+		this.adapter = this._adapter;
+	}
+
+	get isWeakRef() {
+		return this._isWeakRef;
+	}
+
+	set adapter(v: IAssetAdapter) {
+
+		if(HAS_REF && this._isWeakRef) {
+			if (v) {
+				this._weakRefAdapter = new WeakRef<IAssetAdapter>(v);
+				this._finalizer.unregister(this);
+				this._finalizer.register(v, this.id, this);
+			} else {
+				this._weakRefAdapter = null;
+			}
+
+			// drop hard ref
+			this._adapter = null;
+		} else {
+			this._adapter = v;
+		}
+	}
+
+	get adapter() {
+		return  (this._weakRefAdapter ? this._weakRefAdapter.deref() : this._adapter) || this;
+	}
+
+	private onAdapterDropped(id: number) {
+		console.debug("[ImageBitmap2D Experemental] Disposing adaptee, adapter was collected for:", id);
+		this.dispose();
 	}
 
 	/**
@@ -388,6 +451,10 @@ export class BitmapImage2D extends Image2D
 	public dispose():void
 	{
 		this.clear();
+
+		if(this._isWeakRef) {
+			this._finalizer.unregister(this);
+		}
 
 		this._data = null;
 		this._rect = null;
