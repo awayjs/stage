@@ -74,7 +74,7 @@ declare global {
 
 }
 
-const HAS_REF = 'WeakRef' in window;
+const HAS_REF = false && 'WeakRef' in window;
 
 if(HAS_REF) {
 	console.debug("[ImageBitmap2D Experemental] Use WeakRef for ImageBitmap2D");
@@ -94,7 +94,7 @@ export class BitmapImage2D extends Image2D
 
 	private _data:Uint8ClampedArray;
 
-	protected _isWeakRef: boolean = true;
+	protected _isWeakRef: boolean = false;
 	protected _finalizer: FinalizationRegistry;
 	protected _weakRefAdapter: WeakRef<IAssetAdapter>;
 	protected _transparent:boolean;
