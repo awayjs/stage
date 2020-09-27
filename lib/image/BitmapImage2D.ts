@@ -74,7 +74,7 @@ declare global {
 
 }
 
-const HAS_REF = false && 'WeakRef' in window;
+const HAS_REF = true && 'WeakRef' in window;
 
 if(HAS_REF) {
 	console.debug("[ImageBitmap2D Experemental] Use WeakRef for ImageBitmap2D");
@@ -205,8 +205,22 @@ export class BitmapImage2D extends Image2D
 		}
 	}
 
-	public useWakRef() {
+	/**
+	 * @description transfer adapter to weak mode. Reference will dropped, and adapter destroyed after collecting a adapter
+	 */
+	public useWeakRef() {
 		this._isWeakRef = true;
+		this.adapter = this._adapter;
+	}
+
+	public unuseWeakRef() {
+		if(!HAS_REF || this._isWeakRef) {
+			return
+		}
+
+		this._isWeakRef = false;	
+		this._finalizer.unregister(this);
+		this._weakRefAdapter = null;
 		this.adapter = this._adapter;
 	}
 
