@@ -214,7 +214,7 @@ export class BitmapImage2D extends Image2D
 	}
 
 	public unuseWeakRef() {
-		if(!HAS_REF || this._isWeakRef) {
+		if(!HAS_REF || !this._isWeakRef) {
 			return
 		}
 
@@ -231,9 +231,11 @@ export class BitmapImage2D extends Image2D
 	set adapter(v: IAssetAdapter) {
 
 		if(HAS_REF && this._isWeakRef) {
+
+			this._finalizer.unregister(this);
+
 			if (v) {
 				this._weakRefAdapter = new WeakRef<IAssetAdapter>(v);
-				this._finalizer.unregister(this);
 				this._finalizer.register(v, this.id, this);
 			} else {
 				this._weakRefAdapter = null;
@@ -251,7 +253,7 @@ export class BitmapImage2D extends Image2D
 	}
 
 	private onAdapterDropped(id: number) {
-		console.debug("[ImageBitmap2D Experemental] Disposing adaptee, adapter was collected for:", id);
+		console.debug("[ImageBitmap2D Experemental] Disposing adaptee, GC runs for:", id);
 		this.dispose();
 	}
 
@@ -980,7 +982,7 @@ export class BitmapImage2D extends Image2D
 	 */
 	public get data():Uint8ClampedArray
 	{
-		return this._data;
+		return this._data || (this._data = new Uint8ClampedArray(this.width * this.height * 4));
 	}
 
 	/**
