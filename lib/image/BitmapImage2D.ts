@@ -88,12 +88,21 @@ function fastARGB_to_ABGR(val: number, hasAlpha = true) {
 		| ((val & 0xff0000) >> 16) & 0xff) >>> 0
 }
 
+interface LazyImageSymbolTag {
+	needParse:boolean;
+	lazyParser(): LazyImageSymbolTag;
+	definition: {
+		width: number;
+		height: number;
+		data: Uint8ClampedArray;
+	}
+}
 export class BitmapImage2D extends Image2D
 {
 	public static assetType:string = "[image BitmapImage2D]";
+	public _symbol: LazyImageSymbolTag;
 
-	private _data:Uint8ClampedArray;
-
+	protected _data:Uint8ClampedArray;
 	protected _isWeakRef: boolean = false;
 	protected _finalizer: FinalizationRegistry;
 	protected _weakRefAdapter: WeakRef<IAssetAdapter>;
@@ -103,7 +112,7 @@ export class BitmapImage2D extends Image2D
 	protected _floodStack: number[] = [];
 
 	private _needUpload: boolean = false;	
-
+		
 	public invalidateGPU() {
 		this._needUpload = true;
 		this.invalidate();
@@ -202,6 +211,22 @@ export class BitmapImage2D extends Image2D
 		
 		if(HAS_REF) {
 			this._finalizer = new FinalizationRegistry(this.onAdapterDropped.bind(this));
+		}
+	}
+
+	public addLazySymbol(tag: LazyImageSymbolTag) {
+		this._symbol = tag;
+		this.invalidateGPU();
+	}
+
+	public applySymbol() {
+		if(this._symbol && this._symbol.needParse) {
+			this._symbol.lazyParser();
+			this._data = this._symbol.definition.data;
+
+			console.log("Run lazy bitmap parser", this.id);
+			// hop
+			this._symbol = null;
 		}
 	}
 
@@ -963,17 +988,18 @@ export class BitmapImage2D extends Image2D
 	 * @inheritdoc
 	 */
 	set alphaChannel(buff: Uint8Array) {
-		if(buff){
-			if(this._data.length != buff.length *4 )
-				throw("error when trying to merge the alpha channel into the image. the length of the alpha channel should be 1/4 of the length of the imageData");
+		if(!buff) return; 
+	
+		this.applySymbol();
 
-			for(var i:number = 0; i < buff.length; i++)
-				this._data[i*4 + 3] = buff[i];
+		if(this._data.length != buff.length *4 )
+			throw("error when trying to merge the alpha channel into the image. the length of the alpha channel should be 1/4 of the length of the imageData");
 
-			//remove alpha data once applied
-			this._alphaChannel = null;
-		}
+		for(var i = 0; i < buff.length; i++)
+			this._data[i*4 + 3] = buff[i];
 
+		//remove alpha data once applied
+		this._alphaChannel = null;
 	}
 
 	/**
@@ -1024,6 +1050,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
 {
     public getTexture():ITextureBase
     {
+		(<BitmapImage2D> this._asset).applySymbol();
         super.getTexture();
 
         if (this._invalid) {
