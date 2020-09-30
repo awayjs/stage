@@ -224,7 +224,7 @@ export class BitmapImage2D extends Image2D
 			this._symbol.lazyParser();
 			this._data = this._symbol.definition.data;
 
-			console.log("Run lazy bitmap parser", this.id);
+			// console.log("Run lazy bitmap parser", this.id);
 			// hop
 			this._symbol = null;
 		}
