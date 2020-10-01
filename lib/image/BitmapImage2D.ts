@@ -100,7 +100,7 @@ interface LazyImageSymbolTag {
 export class BitmapImage2D extends Image2D
 {
 	public static assetType:string = "[image BitmapImage2D]";
-	public _symbol: LazyImageSymbolTag;
+	public _lazySymbol: LazyImageSymbolTag;
 
 	protected _data:Uint8ClampedArray;
 	protected _isWeakRef: boolean = false;
@@ -215,18 +215,18 @@ export class BitmapImage2D extends Image2D
 	}
 
 	public addLazySymbol(tag: LazyImageSymbolTag) {
-		this._symbol = tag;
+		this._lazySymbol = tag;
 		this.invalidateGPU();
 	}
 
 	public applySymbol() {
-		if(this._symbol && this._symbol.needParse) {
-			this._symbol.lazyParser();
-			this._data = this._symbol.definition.data;
+		if(this._lazySymbol && this._lazySymbol.needParse) {
+			this._lazySymbol.lazyParser();
+			this._data = this._lazySymbol.definition.data;
 
 			// console.log("Run lazy bitmap parser", this.id);
 			// hop
-			this._symbol = null;
+			this._lazySymbol = null;
 		}
 	}
 
@@ -1008,6 +1008,7 @@ export class BitmapImage2D extends Image2D
 	 */
 	public get data():Uint8ClampedArray
 	{
+		this.applySymbol();
 		return this._data || (this._data = new Uint8ClampedArray(this.width * this.height * 4));
 	}
 
