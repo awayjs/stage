@@ -111,8 +111,13 @@ export class BitmapImage2D extends Image2D
 	protected _locked:boolean = false;
 	protected _floodStack: number[] = [];
 
+	protected _nestedBitmap: BitmapImage2D[] = [];
+	protected _sourceBitmap: BitmapImage2D;
+	public get sourceBitmap():BitmapImage2D {
+		return this._sourceBitmap;
+	}
+
 	private _needUpload: boolean = false;	
-		
 	public invalidateGPU() {
 		this._needUpload = true;
 		this.invalidate();
@@ -282,6 +287,60 @@ export class BitmapImage2D extends Image2D
 		this.dispose();
 	}
 
+	public addNestedReference(child: BitmapImage2D) {
+		if(this._sourceBitmap) {
+			this._sourceBitmap.addNestedReference(child);
+			return;
+		}
+
+		this._nestedBitmap.push(child);
+		child._sourceBitmap = this;
+
+		//console.debug(`[BitmapImage] Add nested ${child.id} -> ${this.id}`);
+	}
+
+	public dropNestedReference(child: BitmapImage2D): boolean {
+		const index = this._nestedBitmap.indexOf(child);
+		return index > -1 && !!this._nestedBitmap.splice(index, 1);
+	}
+
+	/**
+	 * @description Detach clone from source, and apply texture directly 
+	 */
+	public dropAllReferences(fireDroping = true) {				
+
+		if(this._nestedBitmap.length) {		
+			for(let nest of this._nestedBitmap) {
+				nest.dropAllReferences(false);
+			}
+			this._nestedBitmap.length = 0;
+		}
+
+		if (!this._sourceBitmap) {
+			return;
+		}
+
+		const source = this._sourceBitmap;
+
+		this._sourceBitmap = null;
+
+		fireDroping && source.dropNestedReference(this);
+
+		this.deepClone(source);
+
+		//console.debug("[BitmapImage] drop nested references:", source.id);
+	}
+
+	protected deepClone(from: BitmapImage2D) {
+		this.setPixels(this._rect, from.data);
+		this.invalidateGPU();
+	}
+
+	public copyTo(target: BitmapImage2D): BitmapImage2D {
+		this.addNestedReference(target);
+		return target;
+	}
+
 	/**
 	 * Returns a new BitmapImage2D object that is a clone of the original instance
 	 * with an exact copy of the contained bitmap.
@@ -290,9 +349,10 @@ export class BitmapImage2D extends Image2D
 	 */
 	public clone():BitmapImage2D
 	{
-		var t:BitmapImage2D = new BitmapImage2D(this._rect.width, this._rect.height, this._transparent, null, this._powerOfTwo);
-		t.setPixels(this._rect, this.data);
-		return t;
+		const clone = new BitmapImage2D(this._rect.width, this._rect.height, this._transparent, null, this._powerOfTwo);
+		this.addNestedReference(clone);
+
+		return clone;
 	}
 
 	/**
@@ -308,6 +368,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public colorTransform(rect:Rectangle, colorTransform:ColorTransform):void
 	{
+		this.dropAllReferences();
+
 		var i:number, j:number, index:number, data:Uint8ClampedArray = this.data;
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
@@ -369,6 +431,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public copyChannel(sourceBitmap:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, sourceChannel:number, destChannel:number):void
 	{
+		this.dropAllReferences();
+
 		var sourceData:Uint8ClampedArray = sourceBitmap.data;
 		var destData:Uint8ClampedArray = this.data;
 
@@ -447,6 +511,8 @@ export class BitmapImage2D extends Image2D
 
 	public merge(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, redMultiplier:number, greenMultiplier:number, blueMultiplier:number, alphaMultiplier:number)
 	{
+		this.dropAllReferences();
+
 		var dest:Uint8ClampedArray = this.data;
 		var src:Uint8ClampedArray = source.data;
 
@@ -491,6 +557,7 @@ export class BitmapImage2D extends Image2D
 	 */
 	public dispose():void
 	{
+		this.dropAllReferences();
 		this.clear();
 
 		if(this._isWeakRef) {
@@ -555,6 +622,8 @@ export class BitmapImage2D extends Image2D
 
 	public floodFill(x: number, y: number, color: number): void 
 	{
+		this.dropAllReferences();
+
 		x = x | 0;
 		y = y | 0;
 
@@ -651,6 +720,8 @@ export class BitmapImage2D extends Image2D
 
 	public drawBitmap(source:Uint8ClampedArray, offsetX:number, offsetY:number, width:number, height:number, matrix:Matrix = null):void
 	{
+		this.dropAllReferences();
+
 		BitmapImageUtils.drawBitmap(source, offsetX, offsetY, width, height, this.data, 0, 0, this._rect.width, this._rect.height, matrix)
 
 		this.invalidateGPU();
@@ -667,6 +738,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public fillRect(rect:Rectangle, color:number):void
 	{
+		this.dropAllReferences();
+
 		var data:Uint32Array = new Uint32Array(this._data.buffer);
 		var x:number = ~~rect.x, y:number = ~~rect.y, width:number = ~~rect.width, height:number = ~~rect.height;
 		var argb:number = this._transparent? (color & 0xFFFFFFFF) : (color & 0xFFFFFF) + 0xFF000000;
@@ -788,6 +861,8 @@ export class BitmapImage2D extends Image2D
 
 	public setPixelData(x, y, imagePixel:Uint8ClampedArray):void
 	{
+		this.dropAllReferences();
+
 		var index:number = (x + y*this._rect.width)*4;
 		var data:Uint8ClampedArray = this.data;
 
@@ -829,6 +904,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public setArray(rect:Rectangle, inputArray:Array<number>):void
 	{
+		this.dropAllReferences();
+
 		var i:number, j:number, index:number, argb:number[], data:Uint8ClampedArray = this.data;
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
@@ -864,6 +941,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public setPixel(x:number, y:number, color:number):void
 	{
+		this.dropAllReferences();
+
 		var index:number = (~~x + ~~y*this._rect.width)*4, argb:number[] = ColorUtils.float32ColorToARGB(color), data:Uint8ClampedArray = this.data;
 
 		data[index + 0] = argb[1];
@@ -876,6 +955,8 @@ export class BitmapImage2D extends Image2D
 
 	public setPixelFromArray(x:number, y:number, colors:number[]):void
 	{
+		this.dropAllReferences();
+
 		var index:number = (x + y*this._rect.width)*4, data:Uint8ClampedArray = this.data;
 
 		data[index + 0] = colors[1];
@@ -919,6 +1000,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public setPixel32(x:number, y:number, color:number):void
 	{
+		this.dropAllReferences();
+
 		var index:number = (~~x + ~~y*this._rect.width)*4, argb:number[] = ColorUtils.float32ColorToARGB(color), data:Uint8ClampedArray = this.data;
 
 		data[index + 0] = argb[1];
@@ -950,6 +1033,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public setPixels(rect:Rectangle, input:Uint8ClampedArray):void
 	{
+		this.dropAllReferences();
+
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
 			this._data.set(input);
@@ -988,6 +1073,8 @@ export class BitmapImage2D extends Image2D
 	 * @inheritdoc
 	 */
 	set alphaChannel(buff: Uint8Array) {
+		this.dropAllReferences();
+
 		if(!buff) return; 
 	
 		this.applySymbol();
@@ -1020,6 +1107,8 @@ export class BitmapImage2D extends Image2D
 	 */
 	public _setSize(width:number, height:number):void
 	{
+		this.dropAllReferences();
+
 		var data:Uint8ClampedArray = this.data;
 
 		this._data = new Uint8ClampedArray(4*width*height);
@@ -1040,8 +1129,8 @@ import {ITexture} from "../base/ITexture";
 import {_Stage_Image2D} from "./Image2D";
 
 import {Stage} from "../Stage";
-import ImageUtils from '../utils/ImageUtils';
 import { BitmapImageUtils } from '../utils/BitmapImageUtils';
+
 
 /**
  *
@@ -1051,20 +1140,27 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
 {
     public getTexture():ITextureBase
     {
-		(<BitmapImage2D> this._asset).applySymbol();
+		const asset = <BitmapImage2D>this._asset;
+		const sourceBitmap = asset.sourceBitmap;
+
+		if (sourceBitmap) {
+			return (<_Stage_BitmapImage2D>this._stage.getAbstraction(sourceBitmap)).getTexture();
+		}
+
+		asset.applySymbol();
         super.getTexture();
 
         if (this._invalid) {
 			this._invalid = false;
 			
-			const data = (<any> this._asset)._data.buffer;
+			const data = (<any> asset)._data.buffer;
 
-            (<ITexture> this._texture).uploadFromArray(new Uint8Array(data), 0, (<BitmapImage2D> this._asset).transparent);
+            (<ITexture> this._texture).uploadFromArray(new Uint8Array(data), 0, asset.transparent);
 
-			var mipLevels:BitmapImage2D[]=(<BitmapImage2D> this._asset).mipLevels;
+			var mipLevels = asset.mipLevels;
 			if(mipLevels && mipLevels.length>0){
 				for(var i=0; i<mipLevels.length; i++){
-					(<ITexture> this._texture).uploadFromArray(new Uint8Array(mipLevels[i].data.buffer), i+1, (<BitmapImage2D> this._asset).transparent);
+					(<ITexture> this._texture).uploadFromArray(new Uint8Array(mipLevels[i].data.buffer), i+1, asset.transparent);
 				}
 				this._mipmap=true;
 				this._invalidMipmaps = false;
