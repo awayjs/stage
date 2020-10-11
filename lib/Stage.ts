@@ -31,6 +31,13 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 
+declare class WeakMap<T extends Object, V = any> {
+	delete(key: T);
+	get(key:T):V;
+	has(key:T): boolean;
+	set(key:T, value:V): this;
+}
+
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
  * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -43,7 +50,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 {
 	private static _abstractionClassPool:Object = new Object();
 
-	private _abstractionPool:Object = new Object();
+	private _abstractionPool:WeakMap<IAsset, AbstractionBase> = new WeakMap();
 
 	private _programData:Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool:ProgramDataPool;
@@ -331,7 +338,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 
 	public getAbstraction(asset:IAsset):AbstractionBase
 	{
-		return (this._abstractionPool[asset.id] || (this._abstractionPool[asset.id] = new (<IAbstractionClass> Stage._abstractionClassPool[asset.assetType])(asset, this)));
+		let abst = this._abstractionPool.get(asset);
+
+		if(!abst) {
+			abst = new (<IAbstractionClass> Stage._abstractionClassPool[asset.assetType])(asset, this);
+			this._abstractionPool.set(asset, abst);
+		}
+
+		return abst;
 	}
 
 	/**
@@ -340,7 +354,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	 */
 	public clearAbstraction(asset:IAsset):void
 	{
-		delete this._abstractionPool[asset.id];
+		this._abstractionPool.delete(asset);
 	}
 
 	/**
@@ -519,12 +533,13 @@ export class Stage extends EventDispatcher implements IAbstractionPool
 	 */
 	public dispose():void
 	{
+		/*
 		for (var id in this._abstractionPool){
 			if(this._abstractionPool[id].clear)
 				this._abstractionPool[id].clear();
-		}
+		}*/
 
-		this._abstractionPool = {};
+		this._abstractionPool = new WeakMap();
 
 		this._stageManager.iRemoveStage(this);
 		this.freeContext();
