@@ -1,6 +1,8 @@
-import {ColorTransform, Matrix, Rectangle, Point, ColorUtils, CoordinateSystem, IAssetAdapter} from "@awayjs/core";
+import {ColorTransform, Matrix, Rectangle, Point, ColorUtils, IAssetAdapter, AssetEvent, IAsset} from "@awayjs/core";
 
-import {Image2D} from "./Image2D";
+import { Image2D } from "./Image2D";
+import { UnloadManager, IUnloadable } from "./../managers/UnloadManager";
+
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
  * object. You can use the methods of the BitmapImage2D export class to create
@@ -97,11 +99,16 @@ interface LazyImageSymbolTag {
 		data: Uint8ClampedArray;
 	}
 }
-export class BitmapImage2D extends Image2D
+
+export class BitmapImage2D extends Image2D implements IUnloadable
 {
+	public static UNLOAD_EVENT = "unload";
+
 	public static assetType:string = "[image BitmapImage2D]";
+	public static unloadManager: UnloadManager<BitmapImage2D> = new UnloadManager();
 	public _lazySymbol: LazyImageSymbolTag;
 
+	protected _isSymbolSource: boolean = false;
 	protected _data:Uint8ClampedArray;
 	protected _isWeakRef: boolean = false;
 	protected _finalizer: FinalizationRegistry;
@@ -133,6 +140,40 @@ export class BitmapImage2D extends Image2D
 		}
 
 		super.invalidate();
+	}
+
+	public isUnloaded = false;
+	public lastUsedTime = 0;
+	public get canUnload(): boolean {
+		return !this._sourceBitmap 
+				&& !this._nestedBitmap.length 
+				&& !this._locked 
+				&& !this._isSymbolSource;
+	}
+
+	public unmarkToUnload() {
+		BitmapImage2D.unloadManager.removeTask(this);
+	}
+
+	public markToUnload() {
+		if(this._isSymbolSource) return;
+
+		this.lastUsedTime = BitmapImage2D.unloadManager.correctedTime;
+
+		// run execution when is marked that used
+		const count = BitmapImage2D.unloadManager.execute();
+		count && console.debug("[BitmapImage2D Experemental] Texture was unloaded from GPU by timer:", count);
+
+		BitmapImage2D.unloadManager.addTask(this);
+	}
+
+	public unload(): void {
+		// copy buffer back to _data
+		// this.syncData();
+		// dispose texture 
+		this.lastUsedTime = -1;
+		this.dispatchEvent(new AssetEvent(BitmapImage2D.UNLOAD_EVENT, this));
+		this.invalidateGPU();
 	}
 
 	private _customMipLevels:BitmapImage2D[];
@@ -221,18 +262,23 @@ export class BitmapImage2D extends Image2D
 
 	public addLazySymbol(tag: LazyImageSymbolTag) {
 		this._lazySymbol = tag;
+		this._isSymbolSource = true;
+
 		this.invalidateGPU();
 	}
 
 	public applySymbol() {
-		if(this._lazySymbol && this._lazySymbol.needParse) {
-			this._lazySymbol.lazyParser();
-			this._data = this._lazySymbol.definition.data;
-
-			// console.log("Run lazy bitmap parser", this.id);
-			// hop
-			this._lazySymbol = null;
+		if (!this._lazySymbol || !this._lazySymbol.needParse) {
+			return;
 		}
+		
+		this._lazySymbol.lazyParser();
+		this._data = this._lazySymbol.definition.data;
+
+		// console.log("Run lazy bitmap parser", this.id);
+		// hop
+		this._lazySymbol = null;
+	
 	}
 
 	/**
@@ -557,12 +603,14 @@ export class BitmapImage2D extends Image2D
 	 */
 	public dispose():void
 	{
-		this.dropAllReferences();
-		this.clear();
-
+		BitmapImage2D.unloadManager.removeTask(this);
+		
 		if(this._isWeakRef) {
 			this._finalizer.unregister(this);
 		}
+
+		this.dropAllReferences();
+		this.clear();
 
 		this._data = null;
 		this._rect = null;
@@ -1138,6 +1186,25 @@ import { BitmapImageUtils } from '../utils/BitmapImageUtils';
  */
 export class _Stage_BitmapImage2D extends _Stage_Image2D
 {
+	private onUnload = () =>{
+		if(this._texture) {
+			this._texture.dispose();
+			this._texture = null;
+			this._invalid = true;
+		}
+	}
+
+	constructor(asset:IAsset, pool:Stage) {
+		super(asset, pool);
+
+		this._asset.addEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
+	}
+
+	public onClear(event: AssetEvent) {
+		this._asset.removeEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
+		super.onClear(event);
+	}
+
     public getTexture():ITextureBase
     {
 		const asset = <BitmapImage2D>this._asset;
@@ -1147,13 +1214,14 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
 			return (<_Stage_BitmapImage2D>this._stage.getAbstraction(sourceBitmap)).getTexture();
 		}
 
+		asset.markToUnload();
 		asset.applySymbol();
         super.getTexture();
 
-        if (this._invalid) {
-			this._invalid = false;
-			
-			const data = (<any> asset)._data.buffer;
+		const pixels = ((<any> asset)._data);
+
+        if (this._invalid && pixels) {
+			const data = pixels.buffer;
 
             (<ITexture> this._texture).uploadFromArray(new Uint8Array(data), 0, asset.transparent);
 
@@ -1173,6 +1241,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D
 			
         }
 
+		this._invalid = false;
         return this._texture;
     }
 }
