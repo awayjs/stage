@@ -319,7 +319,7 @@ export class ContextWebGL implements IContextGL
 	public createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels:number = 0):TextureWebGL
 	{
 		//TODO streaming
-		return new TextureWebGL(this, width, height);
+		return TextureWebGL.create(this, width, height);
 	}
 
 	public createVertexBuffer(numVertices:number, dataPerVertex:number):VertexBufferWebGL
@@ -601,10 +601,13 @@ export class ContextWebGL implements IContextGL
 
 	public setRenderToTexture(target:TextureBaseWebGL, enableDepthAndStencil:boolean = false, antiAlias:number = 0, surfaceSelector:number = 0, mipmapSelector:number = 0):void
 	{
-		if (this._renderTarget)
+		if (this._renderTarget) {
 			this.presentFrameBuffer(this._renderTarget);
+			this._renderTarget._isRT = false;
+		}
 
 		this._renderTarget = <TextureWebGL> target;
+		this._renderTarget._isRT = true;
 		this._renderTargetConfig = {texture: this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector};
 		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
@@ -613,6 +616,7 @@ export class ContextWebGL implements IContextGL
 	{
 		if (this._renderTarget) {
 			this.presentFrameBuffer(this._renderTarget);
+			this._renderTarget._isRT = false;
 			this._renderTarget = null;
 		}
 
@@ -862,7 +866,7 @@ export class ContextWebGL implements IContextGL
 		if(this._renderTarget === texture) {
 			console.warn("[Context] Trying to dispose a active tendertarget!");
 
-			this.setRenderToBackBuffer()
+			this.setRenderToBackBuffer();
 		}
 
 		// delete texture
