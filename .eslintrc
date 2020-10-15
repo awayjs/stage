@@ -77,7 +77,7 @@
         "prefer-const": "warn",
         "prefer-rest-params": "warn",
         "prefer-spread": "warn",
-        "max-len": ["error", { "code": 120 }],
+        "max-len": ["warn", { "code": 120 }],
         "space-before-blocks": "error",
         "space-in-parens": "error",
         "space-infix-ops": [
