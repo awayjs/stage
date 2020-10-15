@@ -53,9 +53,7 @@
     "rollup-plugin-includepaths": "^0.2.1",
     "tslib": "^1.9.0",
     "typescript": "^3.7.3",
-    "uglify-js": "^3.0.15"
-  },
-  "dependencies": {
+    "uglify-js": "^3.0.15",
     "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/parser": "^4.4.1",
     "eslint": "^7.11.0"
