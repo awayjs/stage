@@ -1,25 +1,22 @@
-import {IIndexBuffer} from "../base/IIndexBuffer";
+import { IIndexBuffer } from '../base/IIndexBuffer';
 
-import {GLESAssetBase} from "./GLESAssetBase";
-import {ContextGLES} from "./ContextGLES";
+import { GLESAssetBase } from './GLESAssetBase';
+import { ContextGLES } from './ContextGLES';
 
-export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer
-{
+export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer {
 
-	private _gl:WebGLRenderingContext;
-	private _numIndices:number;
-	private _buffer:WebGLBuffer;
+	private _gl: WebGLRenderingContext;
+	private _numIndices: number;
+	private _buffer: WebGLBuffer;
 
-	constructor(context:ContextGLES, gl:WebGLRenderingContext, numIndices:number, id:number)
-	{
+	constructor(context: ContextGLES, gl: WebGLRenderingContext, numIndices: number, id: number) {
 		super(context, id);
 		this._gl = gl;
 		// this._buffer = this._gl.createBuffer();
 		this._numIndices = numIndices;
 	}
 
-	public uploadFromArray(array:Uint16Array, startOffset:number, count:number):void
-	{
+	public uploadFromArray(array: Uint16Array, startOffset: number, count: number): void {
 		//GLESConnector.gles.uploadIndexDataFromArray(this.id, data, startOffset, count);
 		// this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 		//
@@ -29,8 +26,7 @@ export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer
 		// 	this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), this._gl.STATIC_DRAW);
 	}
 
-	public uploadFromByteArray(data:ArrayBuffer, startOffset:number, count:number):void
-	{
+	public uploadFromByteArray(data: ArrayBuffer, startOffset: number, count: number): void {
 		//GLESConnector.gles.uploadIndexDataFromByteArray(this.id, data, startOffset, count);
 		// this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
 		//
@@ -40,19 +36,16 @@ export class IndexBufferGLES extends GLESAssetBase implements IIndexBuffer
 		// 	this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
 	}
 
-	public dispose():void
-	{
+	public dispose(): void {
 		//GLESConnector.gles.disposeIndexBuffer(this.id);
 		// this._gl.deleteBuffer(this._buffer);
 	}
 
-	public get numIndices():number
-	{
+	public get numIndices(): number {
 		return this._numIndices;
 	}
 
-	public get glBuffer():WebGLBuffer
-	{
+	public get glBuffer(): WebGLBuffer {
 		return this._buffer;
 	}
 }

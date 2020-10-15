@@ -1,5 +1,5 @@
 export enum ContextGLCompareMode
-{
+	{
 	ALWAYS,
 	EQUAL,
 	GREATER,

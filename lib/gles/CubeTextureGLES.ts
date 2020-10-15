@@ -1,20 +1,18 @@
-import {ByteArray} from "@awayjs/core";
+import { ByteArray } from '@awayjs/core';
 
-import {ICubeTexture} from "../base/ICubeTexture";
+import { ICubeTexture } from '../base/ICubeTexture';
 
-import {TextureBaseGLES} from "./TextureBaseGLES";
-import {ContextGLES} from "./ContextGLES";
+import { TextureBaseGLES } from './TextureBaseGLES';
+import { ContextGLES } from './ContextGLES';
 
-export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
-{
+export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture {
 
-	private _textureSelectorDictionary:Array<number> = new Array<number>(6);
+	private _textureSelectorDictionary: Array<number> = new Array<number>(6);
 
-	public textureType:string = "textureCube";
-	private _size:number;
+	public textureType: string = 'textureCube';
+	private _size: number;
 
-	constructor(context:ContextGLES, gl:WebGLRenderingContext, size:number, id:number)
-	{
+	constructor(context: ContextGLES, gl: WebGLRenderingContext, size: number, id: number) {
 		super(context, gl, id);
 		this._size = size;
 		//todo
@@ -28,13 +26,12 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 		// this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0, premultiplied:boolean = false):void
-	{
-        if (array.length != this._size*this._size*4)
-            throw new Error("Array is not the correct length for texture dimensions");
+	public uploadFromArray(array: Uint8Array | Array<number>, side: number, miplevel: number = 0, premultiplied: boolean = false): void {
+		if (array.length != this._size * this._size * 4)
+			throw new Error('Array is not the correct length for texture dimensions');
 
-        if (array instanceof Array)
-            array = new Uint8Array(array);
+		if (array instanceof Array)
+			array = new Uint8Array(array);
 
 		//todo
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
@@ -42,14 +39,12 @@ export class CubeTextureGLES extends TextureBaseGLES implements ICubeTexture
 		// this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 	}
 
-	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number /*uint*/, async:boolean = false):void
-	{
+	public uploadCompressedTextureFromArray(array: Uint8Array, offset: number /*uint*/, async: boolean = false): void {
 		//todo
 
 	}
 
-	public get size():number
-	{
+	public get size(): number {
 		return this._size;
 	}
 }

@@ -1,4 +1,4 @@
 export interface ITextureBaseSoftwareClass
 {
-	textureType:string;
+	textureType: string;
 }

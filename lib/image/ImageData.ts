@@ -1,12 +1,11 @@
-export class ImageData
-{
+export class ImageData {
 	public width: number;
 	public data: any;
 	public height: number;
-	
-	constructor(width:number, height:number) {
+
+	constructor(width: number, height: number) {
 		this.width = width;
 		this.height = height;
-		this.data = new Uint8Array(width*height*4);
+		this.data = new Uint8Array(width * height * 4);
 	}
 }

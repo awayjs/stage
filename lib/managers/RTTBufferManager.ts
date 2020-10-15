@@ -1,36 +1,34 @@
-import {Rectangle, EventDispatcher} from "@awayjs/core";
+import { Rectangle, EventDispatcher } from '@awayjs/core';
 
 import { IVertexBuffer } from '../base/IVertexBuffer';
 import { IIndexBuffer } from '../base/IIndexBuffer';
 import { IContextGL } from '../base/IContextGL';
-import {RTTEvent} from "../events/RTTEvent";
+import { RTTEvent } from '../events/RTTEvent';
 import ImageUtils from '../utils/ImageUtils';
 import { Stage } from '../Stage';
 
-export class RTTBufferManager extends EventDispatcher
-{
-	private static _instances:Array<RTTBufferManagerVO>;
+export class RTTBufferManager extends EventDispatcher {
+	private static _instances: Array<RTTBufferManagerVO>;
 
-	private _renderToTextureVertexBuffer:IVertexBuffer;
-	private _renderToScreenVertexBuffer:IVertexBuffer;
+	private _renderToTextureVertexBuffer: IVertexBuffer;
+	private _renderToScreenVertexBuffer: IVertexBuffer;
 
-	private _indexBuffer:IIndexBuffer;
-	private _stage:Stage;
-	private _powerOfTwo:boolean;
-	private _viewOffsetX:number = 0;
-	private _viewOffsetY:number = 0;
-	private _viewWidth:number = -1;
-	private _viewHeight:number = -1;
-	private _textureWidth:number = -1;
-	private _textureHeight:number = -1;
-	private _renderToTextureRect:Rectangle;
-	private _buffersInvalid:boolean = true;
+	private _indexBuffer: IIndexBuffer;
+	private _stage: Stage;
+	private _powerOfTwo: boolean;
+	private _viewOffsetX: number = 0;
+	private _viewOffsetY: number = 0;
+	private _viewWidth: number = -1;
+	private _viewHeight: number = -1;
+	private _textureWidth: number = -1;
+	private _textureHeight: number = -1;
+	private _renderToTextureRect: Rectangle;
+	private _buffersInvalid: boolean = true;
 
-	private _textureRatioX:number;
-	private _textureRatioY:number;
+	private _textureRatioX: number;
+	private _textureRatioY: number;
 
-	constructor(stage:Stage, powerOfTwo:boolean = true)
-	{
+	constructor(stage: Stage, powerOfTwo: boolean = true) {
 		super();
 
 		this._renderToTextureRect = new Rectangle();
@@ -40,20 +38,19 @@ export class RTTBufferManager extends EventDispatcher
 
 	}
 
-	public static getInstance(stage:Stage):RTTBufferManager
-	{
+	public static getInstance(stage: Stage): RTTBufferManager {
 		if (!stage)
-			throw new Error("stage key cannot be null!");
+			throw new Error('stage key cannot be null!');
 
 		if (RTTBufferManager._instances == null)
 			RTTBufferManager._instances = new Array<RTTBufferManagerVO>();
 
-		var rttBufferManager:RTTBufferManager = RTTBufferManager.getRTTBufferManagerFromStage(stage);
+		let rttBufferManager: RTTBufferManager = RTTBufferManager.getRTTBufferManagerFromStage(stage);
 
 		if (rttBufferManager == null) {
 			rttBufferManager = new RTTBufferManager(stage);
 
-			var vo:RTTBufferManagerVO = new RTTBufferManagerVO();
+			const vo: RTTBufferManagerVO = new RTTBufferManagerVO();
 
 			vo.stage3d = stage;
 			vo.rttbfm = rttBufferManager;
@@ -65,13 +62,12 @@ export class RTTBufferManager extends EventDispatcher
 
 	}
 
-	private static getRTTBufferManagerFromStage(stage:Stage):RTTBufferManager
-	{
+	private static getRTTBufferManagerFromStage(stage: Stage): RTTBufferManager {
 
-		var l:number = RTTBufferManager._instances.length;
-		var r:RTTBufferManagerVO;
+		const l: number = RTTBufferManager._instances.length;
+		let r: RTTBufferManagerVO;
 
-		for (var c:number = 0; c < l; c++) {
+		for (let c: number = 0; c < l; c++) {
 			r = RTTBufferManager._instances[c];
 
 			if (r.stage3d === stage)
@@ -81,12 +77,11 @@ export class RTTBufferManager extends EventDispatcher
 		return null;
 	}
 
-	private static deleteRTTBufferManager(stage:Stage):void
-	{
-		var l:number = RTTBufferManager._instances.length;
-		var r:RTTBufferManagerVO;
+	private static deleteRTTBufferManager(stage: Stage): void {
+		const l: number = RTTBufferManager._instances.length;
+		let r: RTTBufferManagerVO;
 
-		for (var c:number = 0; c < l; c++) {
+		for (let c: number = 0; c < l; c++) {
 			r = RTTBufferManager._instances[c];
 
 			if (r.stage3d === stage) {
@@ -96,52 +91,45 @@ export class RTTBufferManager extends EventDispatcher
 		}
 	}
 
-	public get textureRatioX():number
-	{
+	public get textureRatioX(): number {
 		if (this._buffersInvalid)
 			this.updateRTTBuffers();
 
 		return this._textureRatioX;
 	}
 
-	public get textureRatioY():number
-	{
+	public get textureRatioY(): number {
 		if (this._buffersInvalid)
 			this.updateRTTBuffers();
 
 		return this._textureRatioY;
 	}
-	public get viewOffsetX():number
-	{
+
+	public get viewOffsetX(): number {
 		return this._viewOffsetX;
 	}
 
-	public set viewOffsetX(value:number)
-	{
+	public set viewOffsetX(value: number) {
 		this._viewOffsetX = value;
 
 		this._buffersInvalid = true;
 	}
 
-	public get viewOffsetY():number
-	{
+	public get viewOffsetY(): number {
 		return this._viewOffsetY;
 	}
 
-	public set viewOffsetY(value:number)
-	{
+	public set viewOffsetY(value: number) {
 		this._viewOffsetY = value;
 
 		this._buffersInvalid = true;
 	}
 
-	public get viewWidth():number
-	{
+	public get viewWidth(): number {
 		return this._viewWidth;
 	}
 
-	public set viewWidth(value:number)
-	{
+	public set viewWidth(value: number) {
 		if (value == this._viewWidth)
 			return;
 
@@ -149,10 +137,10 @@ export class RTTBufferManager extends EventDispatcher
 
 		this._buffersInvalid = true;
 
-		this._textureWidth = this._powerOfTwo? ImageUtils.getBestPowerOf2(this._viewWidth) : this._viewWidth;
+		this._textureWidth = this._powerOfTwo ? ImageUtils.getBestPowerOf2(this._viewWidth) : this._viewWidth;
 
 		if (this._textureWidth > this._viewWidth) {
-			this._renderToTextureRect.x = Math.floor((this._textureWidth - this._viewWidth)*.5);
+			this._renderToTextureRect.x = Math.floor((this._textureWidth - this._viewWidth) * .5);
 			this._renderToTextureRect.width = this._viewWidth;
 		} else {
 			this._renderToTextureRect.x = 0;
@@ -162,13 +150,11 @@ export class RTTBufferManager extends EventDispatcher
 		this.dispatchEvent(new RTTEvent(RTTEvent.RESIZE, this));
 	}
 
-	public get viewHeight():number
-	{
+	public get viewHeight(): number {
 		return this._viewHeight;
 	}
 
-	public set viewHeight(value:number)
-	{
+	public set viewHeight(value: number) {
 		if (value == this._viewHeight)
 			return;
 
@@ -176,10 +162,10 @@ export class RTTBufferManager extends EventDispatcher
 
 		this._buffersInvalid = true;
 
-		this._textureHeight = this._powerOfTwo? ImageUtils.getBestPowerOf2(this._viewHeight) : this._viewHeight;
+		this._textureHeight = this._powerOfTwo ? ImageUtils.getBestPowerOf2(this._viewHeight) : this._viewHeight;
 
 		if (this._textureHeight > this._viewHeight) {
-			this._renderToTextureRect.y = Math.floor((this._textureHeight - this._viewHeight)*.5);
+			this._renderToTextureRect.y = Math.floor((this._textureHeight - this._viewHeight) * .5);
 			this._renderToTextureRect.height = this._viewHeight;
 		} else {
 			this._renderToTextureRect.y = 0;
@@ -189,16 +175,14 @@ export class RTTBufferManager extends EventDispatcher
 		this.dispatchEvent(new RTTEvent(RTTEvent.RESIZE, this));
 	}
 
-	public get renderToTextureVertexBuffer():IVertexBuffer
-	{
+	public get renderToTextureVertexBuffer(): IVertexBuffer {
 		if (this._buffersInvalid)
 			this.updateRTTBuffers();
 
 		return this._renderToTextureVertexBuffer;
 	}
 
-	public get renderToScreenVertexBuffer():IVertexBuffer
-	{
+	public get renderToScreenVertexBuffer(): IVertexBuffer {
 		if (this._buffersInvalid)
 			this.updateRTTBuffers();
 
@@ -206,34 +190,29 @@ export class RTTBufferManager extends EventDispatcher
 
 	}
 
-	public get indexBuffer():IIndexBuffer
-	{
+	public get indexBuffer(): IIndexBuffer {
 		if (this._buffersInvalid)
 			this.updateRTTBuffers();
 
 		return this._indexBuffer;
 	}
 
-	public get renderToTextureRect():Rectangle
-	{
+	public get renderToTextureRect(): Rectangle {
 		if (this._buffersInvalid)
 			this.updateRTTBuffers();
 
 		return this._renderToTextureRect;
 	}
 
-	public get textureWidth():number
-	{
+	public get textureWidth(): number {
 		return this._textureWidth;
 	}
 
-	public get textureHeight():number
-	{
+	public get textureHeight(): number {
 		return this._textureHeight;
 	}
 
-	public dispose():void
-	{
+	public dispose(): void {
 		RTTBufferManager.deleteRTTBufferManager(this._stage);
 
 		if (this._indexBuffer) {
@@ -249,14 +228,13 @@ export class RTTBufferManager extends EventDispatcher
 	// todo: place all this in a separate model, since it's used all over the place
 	// maybe it even has a place in the core (together with screenRect etc)?
 	// needs to be stored per view of course
-	private updateRTTBuffers():void
-	{
-		var context:IContextGL = this._stage.context;
-		var textureVerts:Float32Array;
-		var screenVerts:Float32Array;
+	private updateRTTBuffers(): void {
+		const context: IContextGL = this._stage.context;
+		let textureVerts: Float32Array;
+		let screenVerts: Float32Array;
 
-		var x:number;
-		var y:number;
+		let x: number;
+		let y: number;
 
 		if (this._renderToTextureVertexBuffer == null)
 			this._renderToTextureVertexBuffer = context.createVertexBuffer(4, 20);
@@ -270,18 +248,18 @@ export class RTTBufferManager extends EventDispatcher
 			this._indexBuffer.uploadFromArray(new Uint16Array([2, 1, 0, 3, 2, 0]), 0, 6);
 		}
 
-		this._textureRatioX = x = Math.min(this._viewWidth/this._textureWidth, 1);
-		this._textureRatioY = y = Math.min(this._viewHeight/this._textureHeight, 1);
+		this._textureRatioX = x = Math.min(this._viewWidth / this._textureWidth, 1);
+		this._textureRatioY = y = Math.min(this._viewHeight / this._textureHeight, 1);
 
-		var u1:number = (1 - x)*.5;
-		var u2:number = (x + 1)*.5;
-		var v1:number = (1 - y)*.5;
-		var v2:number = (y + 1)*.5;
+		const u1: number = (1 - x) * .5;
+		const u2: number = (x + 1) * .5;
+		const v1: number = (1 - y) * .5;
+		const v2: number = (y + 1) * .5;
 
 		// last element contains indices for data per vertex that can be passed to the vertex shader if necessary (ie: frustum corners for deferred rendering)
-		textureVerts = new Float32Array([    -x, -y, u1, v1, 0, x, -y, u2, v1, 1, x, y, u2, v2, 2, -x, y, u1, v2, 3 ]);
+		textureVerts = new Float32Array([-x, -y, u1, v1, 0, x, -y, u2, v1, 1, x, y, u2, v2, 2, -x, y, u1, v2, 3]);
 
-		screenVerts = new Float32Array([     -1, -1, u1, v1, 0, 1, -1, u2, v1, 1, 1, 1, u2, v2, 2, -1, 1, u1, v2, 3 ]);
+		screenVerts = new Float32Array([-1, -1, u1, v1, 0, 1, -1, u2, v1, 1, 1, 1, u2, v2, 2, -1, 1, u1, v2, 3]);
 
 		this._renderToTextureVertexBuffer.uploadFromArray(textureVerts, 0, 4);
 		this._renderToScreenVertexBuffer.uploadFromArray(screenVerts, 0, 4);
@@ -290,9 +268,8 @@ export class RTTBufferManager extends EventDispatcher
 	}
 }
 
-class RTTBufferManagerVO
-{
-	public stage3d:Stage;
+class RTTBufferManagerVO {
+	public stage3d: Stage;
 
-	public rttbfm:RTTBufferManager;
+	public rttbfm: RTTBufferManager;
 }

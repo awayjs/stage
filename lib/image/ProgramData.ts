@@ -1,39 +1,37 @@
-import {IProgram} from "../base/IProgram";
-import {ProgramDataPool} from "../image/ProgramDataPool";
+import { IProgram } from '../base/IProgram';
+import { ProgramDataPool } from '../image/ProgramDataPool';
 
-import {Stage} from "../Stage";
+import { Stage } from '../Stage';
 
 /**
  *
  * @class away.pool.ProgramDataBase
  */
-export class ProgramData
-{
-	public static PROGRAMDATA_ID_COUNT:number = 0;
+export class ProgramData {
+	public static PROGRAMDATA_ID_COUNT: number = 0;
 
-	private _pool:ProgramDataPool;
+	private _pool: ProgramDataPool;
 
-	public vertexString:string;
+	public vertexString: string;
 
-	public fragmentString:string;
+	public fragmentString: string;
 
-	public stage:Stage;
+	public stage: Stage;
 
-	public usages:number = 0;
+	public usages: number = 0;
 
 	/**
 	 * Dispose time, used in ProgramDataPool to avoid recreatings
 	 */
 	public disposedAt: number = -1;
 
-	public program:IProgram;
+	public program: IProgram;
 
-	public id:number;
+	public id: number;
 
 	public disposed: boolean = false;
 
-	constructor(pool:ProgramDataPool, context:Stage, vertexString:string, fragmentString:string)
-	{
+	constructor(pool: ProgramDataPool, context: Stage, vertexString: string, fragmentString: string) {
 		this._pool = pool;
 		this.stage = context;
 		this.vertexString = vertexString;
@@ -44,8 +42,7 @@ export class ProgramData
 	/**
 	 * Lighed dispose. Pushs prog to pool for waiting time to die or mercy
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 		this.usages--;
 
 		if (!this.usages) {
@@ -57,7 +54,7 @@ export class ProgramData
 	 * Dispose prog and internal prog completely
 	 */
 	public disposeFinaly() {
-		if(this.stage) {
+		if (this.stage) {
 			this.stage.unRegisterProgram(this);
 		}
 

@@ -1,12 +1,12 @@
-import {ITextureBase} from "../base/ITextureBase";
+import { ITextureBase } from '../base/ITextureBase';
 
-import {ITextureBaseSoftwareClass} from "./ITextureBaseSoftwareClass";
+import { ITextureBaseSoftwareClass } from './ITextureBaseSoftwareClass';
 
 export interface ITextureBaseSoftware extends ITextureBase
 {
-	textureType:string;
-	
-	isTexture(textureClass:ITextureBaseSoftwareClass):boolean;
+	textureType: string;
 
-	getMipLevelsCount():number;
+	isTexture(textureClass: ITextureBaseSoftwareClass): boolean;
+
+	getMipLevelsCount(): number;
 }

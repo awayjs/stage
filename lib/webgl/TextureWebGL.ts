@@ -1,5 +1,5 @@
-import { ITexture } from "../base/ITexture";
-import { TextureBaseWebGL } from "./TextureBaseWebGL";
+import { ITexture } from '../base/ITexture';
+import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { ContextWebGL } from './ContextWebGL';
 import { IUnloadable, UnloadManager } from '../managers/UnloadManager';
 import { AssetBase } from '@awayjs/core';
@@ -9,25 +9,25 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 	public static unloadManager = new UnloadManager<TextureWebGL>(20_000);
 	private static _pool: NumberMap<Array<TextureWebGL>> = {};
-	
+
 	public static store(tex: TextureWebGL) {
-		
+
 		const count = this.unloadManager.execute();
-		count && console.debug("[TextureWebGL Experimental] Remove textures persistently", count);
+		count && console.debug('[TextureWebGL Experimental] Remove textures persistently', count);
 
 		const key = tex._width << 16 | tex._height;
 		const array = TextureWebGL._pool[key] || (TextureWebGL._pool[key] = []);
 
-		if(array.indexOf(tex) > -1) {
+		if (array.indexOf(tex) > -1) {
 			tex.lastUsedTime = this.unloadManager.correctedTime;
 
 			return true;
 		}
 
-		if(array.length >= this.SIZE_POOL_LIMIT) {
+		if (array.length >= this.SIZE_POOL_LIMIT) {
 			return false;
 		}
-		
+
 		tex.lastUsedTime = this.unloadManager.correctedTime;
 
 		this.unloadManager.addTask(tex);
@@ -40,21 +40,20 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		const key = tex._width << 16 | tex._height;
 		const array = TextureWebGL._pool[key];
 
-		if(!array && !array.length) return false;
+		if (!array && !array.length) return false;
 
 		const index = array.indexOf(tex);
-		
+
 		return index > -1 && !!array.splice(index,1);
 	}
 
-	public static create (context: ContextWebGL, width: number, height: number) 
-	{
+	public static create (context: ContextWebGL, width: number, height: number) {
 		const count = this.unloadManager.execute();
-		count && console.debug("[TextureWebGL Experimental] Remove textures persistently", count);
+		count && console.debug('[TextureWebGL Experimental] Remove textures persistently', count);
 
 		const key = width << 16 | (height | 0);
 		const tex = TextureWebGL._pool[key]?.pop();
-		
+
 		if (tex) {
 			this.unloadManager.removeTask(tex);
 			return tex;
@@ -63,7 +62,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		return new TextureWebGL(context, width, height);
 	}
 
-	public textureType: string = "texture2d";
+	public textureType: string = 'texture2d';
 
 	/*internal*/ _width: number;
 	/*internal*/ _height: number;
@@ -78,7 +77,6 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	/*internal*/ _isFilled: boolean = false;
 	/*internal*/ _isPMA: boolean = false;
 	/*internal*/ _isRT: boolean = false;
-	
 
 	//keepAliveTime: number = 30_000;
 	lastUsedTime: number = 0;
@@ -96,7 +94,6 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 		this._width = width;
 		this._height = height;
-
 
 		this._glTexture = this._gl.createTexture();
 	}
@@ -122,19 +119,19 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	}
 
 	public setFrameBuffer(enableDepthAndStencil: boolean = false, antiAlias: number = 0, surfaceSelector: number = 0, mipmapSelector: number = 0): void {
-		this._context.setFrameBuffer(this, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector)
+		this._context.setFrameBuffer(this, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
 	public presentFrameBuffer(): void {
 		// deprecation
-		console.warn("[Texture] Framebuffer present internal method of ContextWebGL");
+		console.warn('[Texture] Framebuffer present internal method of ContextWebGL');
 	}
 
 	/**
 	 * @inheritdoc
 	 */
 	public dispose(): void {
-		if(TextureWebGL.store(this)) 
+		if (TextureWebGL.store(this))
 			return;
 
 		this.unload();
@@ -187,7 +184,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	}
 
 	public uploadCompressedTextureFromArray(array: Uint8Array, offset: number, async: boolean = false): void {
-		var ext: Object = this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
+		const ext: Object = this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
 		//this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)
 	}
 

@@ -1,86 +1,86 @@
-import {Rectangle, CoordinateSystem, Point} from "@awayjs/core";
+import { Rectangle, CoordinateSystem, Point } from '@awayjs/core';
 
-import {BitmapImage2D} from "../image/BitmapImage2D";
-import {ContextGLBlendFactor} from "../base/ContextGLBlendFactor";
-import {ContextGLClearMask} from "../base/ContextGLClearMask";
-import {ContextGLCompareMode} from "../base/ContextGLCompareMode";
-import {ContextGLProgramType} from "../base/ContextGLProgramType";
-import {ContextGLTriangleFace} from "../base/ContextGLTriangleFace";
-import {ContextGLMipFilter} from "../base/ContextGLMipFilter";
-import {ContextGLWrapMode} from "../base/ContextGLWrapMode";
-import {ContextGLStencilAction} from "../base/ContextGLStencilAction";
-import {ContextGLTextureFormat} from "../base/ContextGLTextureFormat";
-import {ContextGLDrawMode} from "../base/ContextGLDrawMode";
-import {ContextGLTextureFilter} from "../base/ContextGLTextureFilter";
+import { BitmapImage2D } from '../image/BitmapImage2D';
+import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ContextGLClearMask } from '../base/ContextGLClearMask';
+import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
+import { ContextGLProgramType } from '../base/ContextGLProgramType';
+import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
+import { ContextGLMipFilter } from '../base/ContextGLMipFilter';
+import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
+import { ContextGLStencilAction } from '../base/ContextGLStencilAction';
+import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
+import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
+import { ContextGLTextureFilter } from '../base/ContextGLTextureFilter';
 
-import {ICubeTexture} from "./ICubeTexture";
-import {IIndexBuffer} from "./IIndexBuffer";
-import {IProgram} from "./IProgram";
-import {ITexture} from "./ITexture";
-import {ITextureBase} from "./ITextureBase";
-import {IVertexBuffer} from "./IVertexBuffer";
+import { ICubeTexture } from './ICubeTexture';
+import { IIndexBuffer } from './IIndexBuffer';
+import { IProgram } from './IProgram';
+import { ITexture } from './ITexture';
+import { ITextureBase } from './ITextureBase';
+import { IVertexBuffer } from './IVertexBuffer';
 
 export interface IContextGL
 {
-	glVersion:number;
+	glVersion: number;
 
-	pixelRatio:number;
+	pixelRatio: number;
 
-	container:HTMLCanvasElement;
+	container: HTMLCanvasElement;
 
-	clear(red?:number, green?:number, blue?:number, alpha?:number, depth?:number, stencil?:number, mask?:ContextGLClearMask);
+	clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: ContextGLClearMask);
 
-	configureBackBuffer(width:number, height:number, antiAlias:number, enableDepthAndStencil?:boolean);
+	configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean);
 
-	createCubeTexture(size:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels?:number):ICubeTexture;
+	createCubeTexture(size: number, format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
 
-	createIndexBuffer(numIndices:number):IIndexBuffer;
+	createIndexBuffer(numIndices: number): IIndexBuffer;
 
-	createProgram():IProgram;
+	createProgram(): IProgram;
 
-	createTexture(width:number, height:number, format:ContextGLTextureFormat, optimizeForRenderToTexture:boolean, streamingLevels?:number):ITexture;
+	createTexture(width: number, height: number, format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
 
-	createVertexBuffer(numVertices:number, dataPerVertex:number):IVertexBuffer;
+	createVertexBuffer(numVertices: number, dataPerVertex: number): IVertexBuffer;
 
 	dispose();
 
-	drawToBitmapImage2D(destination:BitmapImage2D);
+	drawToBitmapImage2D(destination: BitmapImage2D);
 
-	drawIndices(mode:ContextGLDrawMode, indexBuffer:IIndexBuffer, firstIndex?:number, numIndices?:number);
+	drawIndices(mode: ContextGLDrawMode, indexBuffer: IIndexBuffer, firstIndex?: number, numIndices?: number);
 
-	drawVertices(mode:ContextGLDrawMode, firstVertex?:number, numVertices?:number);
+	drawVertices(mode: ContextGLDrawMode, firstVertex?: number, numVertices?: number);
 
 	present();
 
-	setBlendFactors(sourceFactor:ContextGLBlendFactor, destinationFactor:ContextGLBlendFactor);
+	setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor);
 
-	setColorMask(red:boolean, green:boolean, blue:boolean, alpha:boolean);
+	setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean);
 
-    setStencilActions(triangleFace?:ContextGLTriangleFace, compareMode?:ContextGLCompareMode, actionOnBothPass?:ContextGLStencilAction, actionOnDepthFail?:ContextGLStencilAction, actionOnDepthPassStencilFail?:ContextGLStencilAction, coordinateSystem?:CoordinateSystem);
+	setStencilActions(triangleFace?: ContextGLTriangleFace, compareMode?: ContextGLCompareMode, actionOnBothPass?: ContextGLStencilAction, actionOnDepthFail?: ContextGLStencilAction, actionOnDepthPassStencilFail?: ContextGLStencilAction, coordinateSystem?: CoordinateSystem);
 
-    setStencilReferenceValue(referenceValue:number, readMask?:number, writeMask?:number);
+	setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number);
 
-	setCulling(triangleFaceToCull:ContextGLTriangleFace, coordinateSystem?:CoordinateSystem)
+	setCulling(triangleFaceToCull: ContextGLTriangleFace, coordinateSystem?: CoordinateSystem)
 
-	setDepthTest(depthMask:boolean, passCompareMode:ContextGLCompareMode);
+	setDepthTest(depthMask: boolean, passCompareMode: ContextGLCompareMode);
 
-	setProgram(program:IProgram);
-	
-	setProgramConstantsFromArray(programType:number, data:Float32Array);
+	setProgram(program: IProgram);
 
-	setSamplerStateAt(sampler:number, wrap:ContextGLWrapMode, filter:ContextGLTextureFilter, mipfilter:ContextGLMipFilter);
+	setProgramConstantsFromArray(programType: number, data: Float32Array);
 
-	setScissorRectangle(rectangle:Rectangle);
+	setSamplerStateAt(sampler: number, wrap: ContextGLWrapMode, filter: ContextGLTextureFilter, mipfilter: ContextGLMipFilter);
 
-	setTextureAt(sampler:number, texture:ITextureBase);
+	setScissorRectangle(rectangle: Rectangle);
 
-	setVertexBufferAt(index:number, buffer:IVertexBuffer, bufferOffset?:number, format?:number);
+	setTextureAt(sampler: number, texture: ITextureBase);
 
-	setRenderToTexture(target:ITextureBase, enableDepthAndStencil?:boolean, antiAlias?:number, surfaceSelector?:number, mipmapSelector?:number);
+	setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: number);
+
+	setRenderToTexture(target: ITextureBase, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number, mipmapSelector?: number);
 
 	setRenderToBackBuffer();
 
-	copyToTexture(target:ITextureBase, rect:Rectangle, destPoint:Point):void
+	copyToTexture(target: ITextureBase, rect: Rectangle, destPoint: Point): void
 
 	enableStencil();
 

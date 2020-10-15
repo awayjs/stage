@@ -1,18 +1,16 @@
-import {ICubeTexture} from "../base/ICubeTexture";
+import { ICubeTexture } from '../base/ICubeTexture';
 
-import {TextureBaseWebGL} from "./TextureBaseWebGL";
+import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { ContextWebGL } from './ContextWebGL';
 
-export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
-{
+export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture {
 
-	private _textureSelectorDictionary:Array<number> = new Array<number>(6);
+	private _textureSelectorDictionary: Array<number> = new Array<number>(6);
 
-	public textureType:string = "textureCube";
-	private _size:number;
+	public textureType: string = 'textureCube';
+	private _size: number;
 
-	constructor(context: ContextWebGL, size:number)
-	{
+	constructor(context: ContextWebGL, size: number) {
 		super(context);
 		const gl = this._gl;
 		this._size = size;
@@ -26,33 +24,29 @@ export class CubeTextureWebGL extends TextureBaseWebGL implements ICubeTexture
 		this._textureSelectorDictionary[5] = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
 	}
 
-	public uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel:number = 0, premultiplied:boolean = false):void
-	{
-        if (array.length != this._size*this._size*4)
-            throw new Error("Array is not the correct length for texture dimensions");
+	public uploadFromArray(array: Uint8Array | Array<number>, side: number, miplevel: number = 0, premultiplied: boolean = false): void {
+		if (array.length != this._size * this._size * 4)
+			throw new Error('Array is not the correct length for texture dimensions');
 
-        if (array instanceof Array)
-            array = new Uint8Array(array);
+		if (array instanceof Array)
+			array = new Uint8Array(array);
 
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
 		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
-        this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._size, this._size, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
+		this._gl.texImage2D(this._textureSelectorDictionary[side], miplevel, this._gl.RGBA, this._size, this._size, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
 		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, null);
 	}
 
-	public uploadCompressedTextureFromArray(array:Uint8Array, offset:number /*uint*/, async:boolean = false):void
-	{
+	public uploadCompressedTextureFromArray(array: Uint8Array, offset: number /*uint*/, async: boolean = false): void {
 
 	}
 
-	public get size():number
-	{
+	public get size(): number {
 		return this._size;
 	}
 
-	public generateMipmaps():void
-	{
-		this._gl.bindTexture( this._gl.TEXTURE_CUBE_MAP, this._glTexture );
+	public generateMipmaps(): void {
+		this._gl.bindTexture(this._gl.TEXTURE_CUBE_MAP, this._glTexture);
 		this._gl.generateMipmap(this._gl.TEXTURE_CUBE_MAP);
 		//this._gl.bindTexture( this._gl.TEXTURE_CUBE_MAP, null );
 	}

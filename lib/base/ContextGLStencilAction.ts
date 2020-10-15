@@ -1,5 +1,5 @@
 export enum ContextGLStencilAction
-{
+	{
 	DECREMENT_SATURATE,
 	DECREMENT_WRAP,
 	INCREMENT_SATURATE,

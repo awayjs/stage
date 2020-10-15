@@ -1,5 +1,5 @@
 export enum ContextGLVertexBufferFormat
-{
+	{
 	FLOAT_1,
 	FLOAT_2,
 	FLOAT_3,

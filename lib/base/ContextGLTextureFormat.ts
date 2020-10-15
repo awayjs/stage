@@ -1,5 +1,5 @@
 export enum ContextGLTextureFormat
-{
+	{
 	BGRA,
 	BGRA_PACKED,
 	BGR_PACKED,

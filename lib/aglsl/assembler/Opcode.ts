@@ -1,19 +1,17 @@
-import {Flags} from "../../aglsl/assembler/Flags";
-import {FS} from "../../aglsl/assembler/FS";
+import { Flags } from '../../aglsl/assembler/Flags';
+import { FS } from '../../aglsl/assembler/FS';
 
 /**
  *
  */
-export class Opcode
-{
-	public dest:string;
-	public a:FS;
-	public b:FS;
-	public opcode:number;
-	public flags:Flags;
+export class Opcode {
+	public dest: string;
+	public a: FS;
+	public b: FS;
+	public opcode: number;
+	public flags: Flags;
 
-	constructor(dest:string, aformat:string, asize:number, bformat:string, bsize:number, opcode:number, simple:boolean, horizontal:boolean, fragonly:boolean, matrix:boolean)
-	{
+	constructor(dest: string, aformat: string, asize: number, bformat: string, bsize: number, opcode: number, simple: boolean, horizontal: boolean, fragonly: boolean, matrix: boolean) {
 		this.a = new FS();
 		this.b = new FS();
 		this.flags = new Flags();

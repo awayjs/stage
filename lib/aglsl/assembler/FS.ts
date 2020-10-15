@@ -1,5 +1,4 @@
-export class FS
-{
-	public format:string;
-	public size:number;
+export class FS {
+	public format: string;
+	public size: number;
 }

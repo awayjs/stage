@@ -1,36 +1,32 @@
-import {Point} from "@awayjs/core";
+import { Point } from '@awayjs/core';
 
-import {BitmapImage2D} from "./BitmapImage2D";
-import {BitmapImageChannel} from "./BitmapImageChannel";
-import {Image2D} from "./Image2D";
+import { BitmapImage2D } from './BitmapImage2D';
+import { BitmapImageChannel } from './BitmapImageChannel';
+import { Image2D } from './Image2D';
 
 /**
  *
  */
-export class SpecularImage2D extends Image2D
-{
-	public static assetType:string = "[asset SpecularImage2D]";
+export class SpecularImage2D extends Image2D {
+	public static assetType: string = '[asset SpecularImage2D]';
 
-	private _specularSource:BitmapImage2D;
-	private _glossSource:BitmapImage2D;
-	private _output:BitmapImage2D;
+	private _specularSource: BitmapImage2D;
+	private _glossSource: BitmapImage2D;
+	private _output: BitmapImage2D;
 
 	/**
 	 *
 	 * @returns {string}
 	 */
-	public get assetType():string
-	{
+	public get assetType(): string {
 		return SpecularImage2D.assetType;
 	}
 
-	public get specularSource():BitmapImage2D
-	{
+	public get specularSource(): BitmapImage2D {
 		return this._specularSource;
 	}
 
-	public set specularSource(value:BitmapImage2D)
-	{
+	public set specularSource(value: BitmapImage2D) {
 		if (this._specularSource == value)
 			return;
 
@@ -41,14 +37,11 @@ export class SpecularImage2D extends Image2D
 		this._testSize();
 	}
 
-
-	public get glossSource():BitmapImage2D
-	{
+	public get glossSource(): BitmapImage2D {
 		return this._glossSource;
 	}
 
-	public set glossSource(value:BitmapImage2D)
-	{
+	public set glossSource(value: BitmapImage2D) {
 		if (this._glossSource == value)
 			return;
 
@@ -62,8 +55,7 @@ export class SpecularImage2D extends Image2D
 	/**
 	 *
 	 */
-	constructor(specularSource:BitmapImage2D = null, glossSource:BitmapImage2D = null)
-	{
+	constructor(specularSource: BitmapImage2D = null, glossSource: BitmapImage2D = null) {
 		super(1, 1);
 
 		this._specularSource = specularSource;
@@ -80,8 +72,7 @@ export class SpecularImage2D extends Image2D
 	 *
 	 * @return A new SpecularImage2D object that is identical to the original.
 	 */
-	public clone():SpecularImage2D
-	{
+	public clone(): SpecularImage2D {
 		return new SpecularImage2D(this._specularSource, this._glossSource);
 	}
 
@@ -104,8 +95,7 @@ export class SpecularImage2D extends Image2D
 	 * collected by the garbage collector.</p>
 	 *
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 		super.dispose();
 
 		this._rect = null;
@@ -117,9 +107,8 @@ export class SpecularImage2D extends Image2D
 	 *
 	 * @returns {ImageData}
 	 */
-	public get data():Uint8ClampedArray
-	{
-		var origin:Point = new Point();
+	public get data(): Uint8ClampedArray {
+		const origin: Point = new Point();
 
 		this._output.fillRect(this._rect, 0xffffff);
 
@@ -138,16 +127,14 @@ export class SpecularImage2D extends Image2D
 	 * @param height
 	 * @private
 	 */
-	public _setSize(width:number, height:number):void
-	{
+	public _setSize(width: number, height: number): void {
 		super._setSize(width, height);
 
 		this._output._setSize(width, height);
 	}
 
-	private _testSize():void
-	{
-		var w:number, h:number;
+	private _testSize(): void {
+		let w: number, h: number;
 
 		if (this._specularSource) {
 			w = this._specularSource.width;
@@ -169,7 +156,7 @@ export class SpecularImage2D extends Image2D
 	}
 }
 
-import {Stage} from "../Stage";
-import {_Stage_BitmapImage2D} from "./BitmapImage2D";
+import { Stage } from '../Stage';
+import { _Stage_BitmapImage2D } from './BitmapImage2D';
 
 Stage.registerAbstraction(_Stage_BitmapImage2D, SpecularImage2D);

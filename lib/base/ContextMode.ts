@@ -1,5 +1,5 @@
 export enum ContextMode
-{
+	{
 	AUTO,
 	WEBGL,
 	FLASH,

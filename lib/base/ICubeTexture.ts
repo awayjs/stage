@@ -1,10 +1,10 @@
-import {ITextureBase} from "./ITextureBase";
+import { ITextureBase } from './ITextureBase';
 
 export interface ICubeTexture extends ITextureBase
 {
-	size:number;
+	size: number;
 
-	uploadFromArray(array:Uint8Array | Array<number>, side:number, miplevel?:number, premultiplied?:boolean);
+	uploadFromArray(array: Uint8Array | Array<number>, side: number, miplevel?: number, premultiplied?: boolean);
 
-	uploadCompressedTextureFromArray(array:Uint8Array, offset:number, async:boolean, premultiplied?:boolean);
+	uploadCompressedTextureFromArray(array: Uint8Array, offset: number, async: boolean, premultiplied?: boolean);
 }

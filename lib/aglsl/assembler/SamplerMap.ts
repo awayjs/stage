@@ -1,12 +1,10 @@
-import {Sampler} from "../../aglsl/assembler/Sampler";
+import { Sampler } from '../../aglsl/assembler/Sampler';
 
-export class SamplerMap
-{
+export class SamplerMap {
 
-	private static _map:Object[];
+	private static _map: Object[];
 
-	public static get map():Object[]
-	{
+	public static get map(): Object[] {
 
 		if (!SamplerMap._map) {
 
@@ -115,7 +113,6 @@ export class SamplerMap
 	 public static nearest: Sampler = new Sampler( 28, 0xf, 0 );
 	 public static linear: Sampler = new Sampler( 28, 0xf, 1 );
 	 */
-	constructor()
-	{
+	constructor() {
 	}
 }

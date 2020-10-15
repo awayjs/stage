@@ -31,19 +31,17 @@ void main() {
 
 `;
 
-export class Filter3DTaskBaseWebGL extends Filter3DTaskBase
-{
-	public updateProgram(stage:Stage):void
-	{
+export class Filter3DTaskBaseWebGL extends Filter3DTaskBase {
+	public updateProgram(stage: Stage): void {
 		if (this._program3D)
 			this._program3D.dispose();
 
 		this._program3D = stage.context.createProgram();
 		this._registerCache.reset();
-		
-		this._program3D.name = (<any>this.constructor).name;
-		(<ProgramWebGL>this._program3D).uploadRaw(
-			this.getVertexCode(), 
+
+		this._program3D.name = (<any> this.constructor).name;
+		(<ProgramWebGL> this._program3D).uploadRaw(
+			this.getVertexCode(),
 			this.getFragmentCode());
 		this._program3DInvalid = false;
 	}
@@ -51,7 +49,7 @@ export class Filter3DTaskBaseWebGL extends Filter3DTaskBase
 	getVertexCode() {
 		return VERTEX_DEF;
 	}
-	
+
 	getFragmentCode() {
 		return FRAG_DEF;
 	}

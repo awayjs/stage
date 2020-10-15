@@ -1,14 +1,13 @@
-import {ProgramData} from "../image/ProgramData";
+import { ProgramData } from '../image/ProgramData';
 
-import {Stage} from "../Stage";
+import { Stage } from '../Stage';
 
 /**
  * @class away.pool.ProgramDataPool
  */
-export class ProgramDataPool
-{
+export class ProgramDataPool {
 	private _pool: StringMap<ProgramData> = {};
-	
+
 	// Killing pool
 	private _disposedPool: StringMap<ProgramData> = {};
 
@@ -24,8 +23,7 @@ export class ProgramDataPool
 	 *
 	 * @param {Stage} stage
 	 */
-	constructor(stage:Stage)
-	{
+	constructor(stage: Stage) {
 		this._stage = stage;
 	}
 
@@ -34,11 +32,11 @@ export class ProgramDataPool
 	 */
 	public collect() {
 		const now = Date.now();
-	
-		for(let key in this._disposedPool) {
+
+		for (const key in this._disposedPool) {
 			const prog = this._disposedPool[key];
-			
-			if(!prog.usages && (prog.disposedAt + this.keepAlive < now)  || prog.disposed) {
+
+			if (!prog.usages && (prog.disposedAt + this.keepAlive < now)  || prog.disposed) {
 				delete this._pool[key];
 				delete this._disposedPool[key];
 
@@ -46,17 +44,17 @@ export class ProgramDataPool
 			}
 		}
 	}
+
 	/**
 	 * //TODO
 	 *
 	 * @param materialOwner
 	 * @returns ITexture
 	 */
-	public getItem(vertexString:string, fragmentString:string):ProgramData
-	{
-		var key = vertexString + fragmentString;
-		var prog = this._pool[key] ||  (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
-		
+	public getItem(vertexString: string, fragmentString: string): ProgramData {
+		const key = vertexString + fragmentString;
+		const prog = this._pool[key] ||  (this._pool[key] = new ProgramData(this, this._stage, vertexString, fragmentString));
+
 		prog.disposedAt = -1;
 
 		delete this._disposedPool[key];
@@ -71,11 +69,10 @@ export class ProgramDataPool
 	 *
 	 * @param materialOwner
 	 */
-	public disposeItem(key:string):void
-	{
+	public disposeItem(key: string): void {
 		const entry = this._pool[key];
-		
-		if(entry) {
+
+		if (entry) {
 			entry.disposedAt = Date.now();
 
 			this._disposedPool[key] = entry;

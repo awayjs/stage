@@ -1,55 +1,50 @@
-import {AssetBase, Rectangle} from "@awayjs/core";
+import { AssetBase, Rectangle } from '@awayjs/core';
 
 /**
  *
  */
-export class ImageSampler extends AssetBase
-{
-    public static assetType:string = "[asset Sampler]";
+export class ImageSampler extends AssetBase {
+	public static assetType: string = '[asset Sampler]';
 
-    private _repeat:boolean;
-	private _smooth:boolean;
-	private _mipmap:boolean;
+	private _repeat: boolean;
+	private _smooth: boolean;
+	private _mipmap: boolean;
 
-    private _imageRect:Rectangle;
-    private _frameRect:Rectangle;
+	private _imageRect: Rectangle;
+	private _frameRect: Rectangle;
 
-    /**
+	/**
      *
      * @returns {string}
      */
-    public get assetType():string
-    {
-        return ImageSampler.assetType;
-    }
+	public get assetType(): string {
+		return ImageSampler.assetType;
+	}
 
-
-    /**
+	/**
      *
      */
-    public get repeat():boolean
-    {
-        return this._repeat;
-    }
-    public set repeat(value:boolean)
-    {
-        if (this._repeat == value)
-            return;
+	public get repeat(): boolean {
+		return this._repeat;
+	}
 
-        this._repeat = value;
+	public set repeat(value: boolean) {
+		if (this._repeat == value)
+			return;
 
-        //TODO: update dependencies
-    }
+		this._repeat = value;
+
+		//TODO: update dependencies
+	}
 
 	/**
 	 *
 	 */
-	public get smooth():boolean
-	{
+	public get smooth(): boolean {
 		return this._smooth;
 	}
-	public set smooth(value:boolean)
-	{
+
+	public set smooth(value: boolean) {
 		if (this._smooth == value)
 			return;
 
@@ -61,12 +56,11 @@ export class ImageSampler extends AssetBase
 	/**
 	 *
 	 */
-	public get mipmap():boolean
-	{
+	public get mipmap(): boolean {
 		return this._mipmap;
 	}
-	public set mipmap(value:boolean)
-	{
+
+	public set mipmap(value: boolean) {
 		if (this._mipmap == value)
 			return;
 
@@ -75,53 +69,49 @@ export class ImageSampler extends AssetBase
 		//TODO: update dependencies
 	}
 
-    /**
+	/**
      *
      */
-    public get imageRect():Rectangle
-    {
-        return this._imageRect;
-    }
-    public set imageRect(value:Rectangle)
-    {
-        if (this._imageRect == value)
-            return;
+	public get imageRect(): Rectangle {
+		return this._imageRect;
+	}
 
-        this._imageRect = value;
+	public set imageRect(value: Rectangle) {
+		if (this._imageRect == value)
+			return;
 
-        this._updateRect();
-    }
+		this._imageRect = value;
 
-    /**
+		this._updateRect();
+	}
+
+	/**
      *
      */
-    public get frameRect():Rectangle
-    {
-        return this._frameRect;
-    }
-    public set frameRect(value:Rectangle)
-    {
-        if (this._frameRect == value)
-            return;
+	public get frameRect(): Rectangle {
+		return this._frameRect;
+	}
 
-        this._frameRect = value;
+	public set frameRect(value: Rectangle) {
+		if (this._frameRect == value)
+			return;
 
-        this._updateRect();
-    }
+		this._frameRect = value;
+
+		this._updateRect();
+	}
 
 	/**
 	 *
 	 */
-	constructor(repeat:boolean = false, smooth:boolean = false, mipmap:boolean = false)
-	{
+	constructor(repeat: boolean = false, smooth: boolean = false, mipmap: boolean = false) {
 		super();
 
-        this._repeat = repeat;
+		this._repeat = repeat;
 		this._smooth = smooth;
 		this._mipmap = mipmap;
 	}
 
-    private _updateRect():void
-    {
-    }
+	private _updateRect(): void {
+	}
 }

@@ -1,31 +1,29 @@
-import {IAsset, URLLoaderDataFormat, URLRequest, ParserBase, ResourceDependency, Rectangle} from "@awayjs/core";
+import { IAsset, URLLoaderDataFormat, URLRequest, ParserBase, ResourceDependency, Rectangle } from '@awayjs/core';
 
-import {BitmapImage2D} from "../image/BitmapImage2D";
-import {BitmapImageCube} from "../image/BitmapImageCube";
+import { BitmapImage2D } from '../image/BitmapImage2D';
+import { BitmapImageCube } from '../image/BitmapImageCube';
 
 /**
  * ImageCubeParser provides a "parser" for natively supported image types (jpg, png). While it simply loads bytes into
  * a loader object, it wraps it in a BitmapImage2DResource so resource management can happen consistently without
  * exception cases.
  */
-export class ImageCubeParser extends ParserBase
-{
-	private static posX:string = 'posX';
-	private static negX:string = 'negX';
-	private static posY:string = 'posY';
-	private static negY:string = 'negY';
-	private static posZ:string = 'posZ';
-	private static negZ:string = 'negZ';
+export class ImageCubeParser extends ParserBase {
+	private static posX: string = 'posX';
+	private static negX: string = 'negX';
+	private static posY: string = 'posY';
+	private static negY: string = 'negY';
+	private static posZ: string = 'posZ';
+	private static negZ: string = 'negZ';
 
-	private _imgDependencyDictionary:Object;
+	private _imgDependencyDictionary: Object;
 
 	/**
 	 * Creates a new ImageCubeParser object.
 	 * @param uri The url or id of the data or file to be parsed.
 	 * @param extra The holder for extra contextual data that the parser might need.
 	 */
-	constructor()
-	{
+	constructor() {
 		super(URLLoaderDataFormat.TEXT);
 	}
 
@@ -35,10 +33,9 @@ export class ImageCubeParser extends ParserBase
 	 * @return Whether or not the given file type is supported.
 	 */
 
-	public static supportsType(extension:string):boolean
-	{
+	public static supportsType(extension: string): boolean {
 		extension = extension.toLowerCase();
-		return extension == "cube";
+		return extension == 'cube';
 	}
 
 	/**
@@ -46,10 +43,9 @@ export class ImageCubeParser extends ParserBase
 	 * @param data The data block to potentially be parsed.
 	 * @return Whether or not the given data is supported.
 	 */
-	public static supportsData(data:any):boolean
-	{
+	public static supportsData(data: any): boolean {
 		try {
-			var obj = JSON.parse(data);
+			const obj = JSON.parse(data);
 
 			if (obj)
 				return true;
@@ -63,27 +59,24 @@ export class ImageCubeParser extends ParserBase
 	/**
 	 * @inheritDoc
 	 */
-	public _iResolveDependency(resourceDependency:ResourceDependency):void
-	{
+	public _iResolveDependency(resourceDependency: ResourceDependency): void {
 
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _iResolveDependencyFailure(resourceDependency:ResourceDependency):void
-	{
+	public _iResolveDependencyFailure(resourceDependency: ResourceDependency): void {
 
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _pProceedParsing():boolean
-	{
+	public _pProceedParsing(): boolean {
 		if (this._imgDependencyDictionary != null) { //all images loaded
-			var asset:BitmapImageCube = new BitmapImageCube(this._getBitmapImage2D(ImageCubeParser.posX).width);
-			var rect:Rectangle = new Rectangle(0, 0, asset.size, asset.size)
+			const asset: BitmapImageCube = new BitmapImageCube(this._getBitmapImage2D(ImageCubeParser.posX).width);
+			const rect: Rectangle = new Rectangle(0, 0, asset.size, asset.size);
 
 			asset.setPixels(BitmapImageCube.posX, rect, this._getBitmapImage2D(ImageCubeParser.posX).data);
 			asset.setPixels(BitmapImageCube.negX, rect, this._getBitmapImage2D(ImageCubeParser.negX).data);
@@ -103,9 +96,9 @@ export class ImageCubeParser extends ParserBase
 		}
 
 		try {
-			var json:any = JSON.parse(this.data);
-			var data:Array<Object> = <Array<Object>> json.data;
-			var rec:any;
+			const json: any = JSON.parse(this.data);
+			const data: Array<Object> = <Array<Object>> json.data;
+			let rec: any;
 
 			if (data.length != 6)
 				this._pDieWithError('ImageCubeParser: Error - cube texture should have exactly 6 images');
@@ -113,14 +106,14 @@ export class ImageCubeParser extends ParserBase
 			if (json) {
 				this._imgDependencyDictionary = new Object();
 
-				for (var c:number = 0; c < data.length; c++) {
+				for (let c: number = 0; c < data.length; c++) {
 					rec = data[c];
 					this._imgDependencyDictionary[rec.id] = this._pAddDependency(rec.id, new URLRequest(rec.image.toString()));
 				}
 
 				if (!this._validateCubeData()) {
 
-					this._pDieWithError("ImageCubeParser: JSON data error - cubes require id of:   \n" + ImageCubeParser.posX + ', ' + ImageCubeParser.negX + ',  \n' + ImageCubeParser.posY + ', ' + ImageCubeParser.negY + ',  \n' + ImageCubeParser.posZ + ', ' + ImageCubeParser.negZ);
+					this._pDieWithError('ImageCubeParser: JSON data error - cubes require id of:   \n' + ImageCubeParser.posX + ', ' + ImageCubeParser.negX + ',  \n' + ImageCubeParser.posY + ', ' + ImageCubeParser.negY + ',  \n' + ImageCubeParser.posZ + ', ' + ImageCubeParser.negZ);
 
 					return ParserBase.PARSING_DONE;
 
@@ -138,14 +131,12 @@ export class ImageCubeParser extends ParserBase
 
 	}
 
-	private _validateCubeData():boolean
-	{
-		return  ( this._imgDependencyDictionary[ ImageCubeParser.posX ] != null && this._imgDependencyDictionary[ ImageCubeParser.negX ] != null && this._imgDependencyDictionary[ ImageCubeParser.posY ] != null && this._imgDependencyDictionary[ ImageCubeParser.negY ] != null && this._imgDependencyDictionary[ ImageCubeParser.posZ ] != null && this._imgDependencyDictionary[ ImageCubeParser.negZ ] != null );
+	private _validateCubeData(): boolean {
+		return  (this._imgDependencyDictionary[ ImageCubeParser.posX ] != null && this._imgDependencyDictionary[ ImageCubeParser.negX ] != null && this._imgDependencyDictionary[ ImageCubeParser.posY ] != null && this._imgDependencyDictionary[ ImageCubeParser.negY ] != null && this._imgDependencyDictionary[ ImageCubeParser.posZ ] != null && this._imgDependencyDictionary[ ImageCubeParser.negZ ] != null);
 	}
 
-	private _getBitmapImage2D(name:string):BitmapImage2D
-	{
-		var dependency:ResourceDependency = <ResourceDependency> this._imgDependencyDictionary[ name ];
+	private _getBitmapImage2D(name: string): BitmapImage2D {
+		const dependency: ResourceDependency = <ResourceDependency> this._imgDependencyDictionary[ name ];
 
 		if (dependency)
 			return <BitmapImage2D> dependency.assets[0];

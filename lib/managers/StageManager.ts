@@ -1,38 +1,36 @@
-import {EventDispatcher, ArgumentError} from "@awayjs/core";
+import { EventDispatcher, ArgumentError } from '@awayjs/core';
 
-import {ContextMode} from "../base/ContextMode";
-import {ContextGLProfile} from "../base/ContextGLProfile";
-import {StageEvent} from "../events/StageEvent";
-import {Stage} from "../Stage";
+import { ContextMode } from '../base/ContextMode';
+import { ContextGLProfile } from '../base/ContextGLProfile';
+import { StageEvent } from '../events/StageEvent';
+import { Stage } from '../Stage';
 
 /**
  * The StageManager class provides a multiton object that handles management for Stage objects.
  *
  * @see away.base.Stage
  */
-export class StageManager extends EventDispatcher
-{
-	private static STAGE_MAX_QUANTITY:number = 8;
-	private _stages:Array<Stage>;
+export class StageManager extends EventDispatcher {
+	private static STAGE_MAX_QUANTITY: number = 8;
+	private _stages: Array<Stage>;
 
-	public static htmlCanvas:HTMLCanvasElement = null;
+	public static htmlCanvas: HTMLCanvasElement = null;
 
-	private static _instance:StageManager;
-	private static _numStages:number = 0;
-	private _onContextCreatedDelegate:(event:StageEvent) => void;
+	private static _instance: StageManager;
+	private static _numStages: number = 0;
+	private _onContextCreatedDelegate: (event: StageEvent) => void;
 
 	/**
 	 * Creates a new StageManager class.
 	 * @param stage The Stage object that contains the Stage objects to be managed.
 	 * @private
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this._stages = new Array<Stage>(StageManager.STAGE_MAX_QUANTITY);
 
-		this._onContextCreatedDelegate = (event:StageEvent) => this.onContextCreated(event);
+		this._onContextCreatedDelegate = (event: StageEvent) => this.onContextCreated(event);
 	}
 
 	/**
@@ -40,8 +38,7 @@ export class StageManager extends EventDispatcher
 	 * @param stage The Stage object that contains the Stage objects to be managed.
 	 * @return The StageManager instance for the given Stage object.
 	 */
-	public static getInstance():StageManager
-	{
+	public static getInstance(): StageManager {
 		if (this._instance == null)
 			this._instance = new StageManager();
 
@@ -56,23 +53,21 @@ export class StageManager extends EventDispatcher
 	 * @param profile The compatibility profile, an enumeration of ContextProfile
 	 * @return The Stage for the given index.
 	 */
-	public getStageAt(index:number, forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO, alpha:boolean = false):Stage
-	{
+	public getStageAt(index: number, forceSoftware: boolean = false, profile: ContextGLProfile = ContextGLProfile.BASELINE, mode: ContextMode = ContextMode.AUTO, alpha: boolean = false): Stage {
 		if (index < 0 || index >= StageManager.STAGE_MAX_QUANTITY)
-			throw new ArgumentError("Index is out of bounds [0.." + StageManager.STAGE_MAX_QUANTITY + "]");
+			throw new ArgumentError('Index is out of bounds [0..' + StageManager.STAGE_MAX_QUANTITY + ']');
 
 		if (!this._stages[index]) {
 			StageManager._numStages++;
 
-			if(document && StageManager.htmlCanvas==null) {
-				var canvas:HTMLCanvasElement = document.createElement("canvas");
-				canvas.id = "stage" + index;
+			if (document && StageManager.htmlCanvas == null) {
+				var canvas: HTMLCanvasElement = document.createElement('canvas');
+				canvas.id = 'stage' + index;
 				document.body.appendChild(canvas);
+			} else if (StageManager.htmlCanvas) {
+				var canvas: HTMLCanvasElement = StageManager.htmlCanvas;
 			}
-			else if (StageManager.htmlCanvas){
-				var canvas:HTMLCanvasElement = StageManager.htmlCanvas;
-			}
-			var stage:Stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
+			const stage: Stage = this._stages[index] = new Stage(canvas, index, this, forceSoftware, profile);
 			stage.addEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
 			stage.requestContext(forceSoftware, profile, mode, alpha);
 		}
@@ -85,8 +80,7 @@ export class StageManager extends EventDispatcher
 	 * @param stage
 	 * @private
 	 */
-	public iRemoveStage(stage:Stage):void
-	{
+	public iRemoveStage(stage: Stage): void {
 		StageManager._numStages--;
 
 		stage.removeEventListener(StageEvent.CONTEXT_CREATED, this._onContextCreatedDelegate);
@@ -100,10 +94,9 @@ export class StageManager extends EventDispatcher
 	 * @param profile The compatibility profile, an enumeration of ContextProfile
 	 * @return The allocated stage
 	 */
-	public getFreeStage(forceSoftware:boolean = false, profile:ContextGLProfile = ContextGLProfile.BASELINE, mode:ContextMode = ContextMode.AUTO, alpha:boolean = false):Stage
-	{
-		var i:number = 0;
-		var len:number = this._stages.length;
+	public getFreeStage(forceSoftware: boolean = false, profile: ContextGLProfile = ContextGLProfile.BASELINE, mode: ContextMode = ContextMode.AUTO, alpha: boolean = false): Stage {
+		let i: number = 0;
+		const len: number = this._stages.length;
 
 		while (i < len) {
 			if (!this._stages[i])
@@ -119,17 +112,15 @@ export class StageManager extends EventDispatcher
 	 * Checks if a new stage can be created and managed by the class.
 	 * @return true if there is one slot free for a new stage
 	 */
-	public get hasFreeStage():boolean
-	{
-		return StageManager._numStages < StageManager.STAGE_MAX_QUANTITY? true : false;
+	public get hasFreeStage(): boolean {
+		return StageManager._numStages < StageManager.STAGE_MAX_QUANTITY ? true : false;
 	}
 
 	/**
 	 * Returns the amount of stage objects that can be created and managed by the class
 	 * @return the amount of free slots
 	 */
-	public get numSlotsFree():number
-	{
+	public get numSlotsFree(): number {
 		return StageManager.STAGE_MAX_QUANTITY - StageManager._numStages;
 	}
 
@@ -137,21 +128,18 @@ export class StageManager extends EventDispatcher
 	 * Returns the amount of Stage objects currently managed by the class.
 	 * @return the amount of slots used
 	 */
-	public get numSlotsUsed():number
-	{
+	public get numSlotsUsed(): number {
 		return StageManager._numStages;
 	}
 
 	/**
 	 * The maximum amount of Stage objects that can be managed by the class
 	 */
-	public get numSlotsTotal():number
-	{
+	public get numSlotsTotal(): number {
 		return this._stages.length;
 	}
 
-	private onContextCreated(event:StageEvent):void
-	{
+	private onContextCreated(event: StageEvent): void {
 		//var stage:Stage = <Stage> e.target;
 		//document.body.appendChild(stage.canvas)
 	}

@@ -1,13 +1,11 @@
-import {ByteArray} from "@awayjs/core";
+import { ByteArray } from '@awayjs/core';
 
-export class Part
-{
-	public name:string = "";
-	public version:number = 0;
-	public data:ByteArray;
+export class Part {
+	public name: string = '';
+	public version: number = 0;
+	public data: ByteArray;
 
-	constructor(name:string = null, version:number = null)
-	{
+	constructor(name: string = null, version: number = null) {
 		this.name = name;
 		this.version = version;
 		this.data = new ByteArray();

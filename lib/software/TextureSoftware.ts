@@ -1,72 +1,59 @@
-import {URLRequest} from "@awayjs/core";
+import { URLRequest } from '@awayjs/core';
 
-import {ITexture} from "../base/ITexture";
+import { ITexture } from '../base/ITexture';
 
-import {ITextureBaseSoftware} from "./ITextureBaseSoftware";
-import {ITextureBaseSoftwareClass} from "./ITextureBaseSoftwareClass";
+import { ITextureBaseSoftware } from './ITextureBaseSoftware';
+import { ITextureBaseSoftwareClass } from './ITextureBaseSoftwareClass';
 
-export class TextureSoftware implements ITexture, ITextureBaseSoftware
-{
-	public static textureType:string = "texture2d";
+export class TextureSoftware implements ITexture, ITextureBaseSoftware {
+	public static textureType: string = 'texture2d';
 
-	private _width:number;
-	private _height:number;
-	private _mipLevels:Uint8ClampedArray[] = [];
+	private _width: number;
+	private _height: number;
+	private _mipLevels: Uint8ClampedArray[] = [];
 
-	public get textureType():string
-	{
+	public get textureType(): string {
 		return TextureSoftware.textureType;
 	}
 
-	public get width():number
-	{
+	public get width(): number {
 		return this._width;
 	}
 
-	public get height():number
-	{
+	public get height(): number {
 		return this._height;
 	}
-	
-	constructor(width:number, height:number)
-	{
+
+	constructor(width: number, height: number) {
 		this._width = width;
 		this._height = height;
 	}
-	
-	public dispose():void
-	{
+
+	public dispose(): void {
 		this._mipLevels = null;
 	}
 
-	public isTexture(textureClass:ITextureBaseSoftwareClass):boolean
-	{
+	public isTexture(textureClass: ITextureBaseSoftwareClass): boolean {
 		return this.textureType == textureClass.textureType;
 	}
-	
 
-	public uploadFromArray(array:Uint8Array | Array<number>, miplevel:number = 0, premultiplied:boolean = false):void
-	{
-        this._mipLevels[miplevel] = ((array instanceof Array)? new Uint8ClampedArray(array) : new Uint8ClampedArray(array.buffer));
+	public uploadFromArray(array: Uint8Array | Array<number>, miplevel: number = 0, premultiplied: boolean = false): void {
+		this._mipLevels[miplevel] = ((array instanceof Array) ? new Uint8ClampedArray(array) : new Uint8ClampedArray(array.buffer));
 	}
 
-	public uploadFromURL(urlRequest:URLRequest, miplevel:number = 0, premultiplied:boolean = false):void
-	{
+	public uploadFromURL(urlRequest: URLRequest, miplevel: number = 0, premultiplied: boolean = false): void {
 
 	}
 
-	public getData(miplevel:number):Uint8ClampedArray
-	{
+	public getData(miplevel: number): Uint8ClampedArray {
 		return this._mipLevels[miplevel];
 	}
 
-	public getMipLevelsCount():number
-	{
+	public getMipLevelsCount(): number {
 		return this._mipLevels.length;
 	}
 
-	public generateMipmaps():void
-	{
+	public generateMipmaps(): void {
 		//TODO
 	}
 }

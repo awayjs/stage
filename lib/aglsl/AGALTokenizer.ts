@@ -1,22 +1,19 @@
-import {ByteArray} from "@awayjs/core";
+import { ByteArray } from '@awayjs/core';
 
-import {Description} from "../aglsl/Description";
-import {Header} from "../aglsl/Header";
-import {Mapping} from "../aglsl/Mapping";
-import {Token} from "../aglsl/Token";
+import { Description } from '../aglsl/Description';
+import { Header } from '../aglsl/Header';
+import { Mapping } from '../aglsl/Mapping';
+import { Token } from '../aglsl/Token';
 
-export class AGALTokenizer
-{
-	constructor()
-	{
+export class AGALTokenizer {
+	constructor() {
 	}
 
-	public decribeAGALByteArray(bytes:ByteArray):Description
-	{
-		var header:Header = new Header();
+	public decribeAGALByteArray(bytes: ByteArray): Description {
+		const header: Header = new Header();
 
 		if (bytes.readUnsignedByte() != 0xa0) {
-			throw "Bad AGAL: Missing 0xa0 magic byte.";
+			throw 'Bad AGAL: Missing 0xa0 magic byte.';
 		}
 
 		header.version = bytes.readUnsignedInt();
@@ -25,34 +22,34 @@ export class AGALTokenizer
 			header.version >>= 1;
 		}
 		if (bytes.readUnsignedByte() != 0xa1) {
-			throw "Bad AGAL: Missing 0xa1 magic byte.";
+			throw 'Bad AGAL: Missing 0xa1 magic byte.';
 		}
 
 		header.progid = bytes.readUnsignedByte();
 		switch (header.progid) {
 			case 1:
-				header.type = "fragment";
+				header.type = 'fragment';
 				break;
 			case 0:
-				header.type = "vertex";
+				header.type = 'vertex';
 				break;
 			case 2:
-				header.type = "cpu";
+				header.type = 'cpu';
 				break;
 			default:
-				header.type = "";
+				header.type = '';
 				break;
 		}
 
-		var desc:Description = new Description();
-		var tokens:Token[] = [];
+		const desc: Description = new Description();
+		const tokens: Token[] = [];
 		while (bytes.position < bytes.length) {
-			var token:Token = new Token();
+			const token: Token = new Token();
 
 			token.opcode = bytes.readUnsignedInt();
-			var lutentry = Mapping.agal2glsllut[token.opcode];
+			const lutentry = Mapping.agal2glsllut[token.opcode];
 			if (!lutentry) {
-				throw "Opcode not valid or not implemented yet: " + token.opcode;
+				throw 'Opcode not valid or not implemented yet: ' + token.opcode;
 			}
 			if (lutentry.matrixheight) {
 				desc.hasmatrix = true;
@@ -88,20 +85,19 @@ export class AGALTokenizer
 		return desc;
 	}
 
-	public readReg(s, mh, desc, bytes):void
-	{
+	public readReg(s, mh, desc, bytes): void {
 		s.regnum = bytes.readUnsignedShort();
 		s.indexoffset = bytes.readByte();
 		s.swizzle = bytes.readUnsignedByte();
 		s.regtype = bytes.readUnsignedByte();
-		desc.regread[s.regtype][s.regnum] = 0xf; // sould be swizzle to mask? should be |=                                                 
+		desc.regread[s.regtype][s.regnum] = 0xf; // sould be swizzle to mask? should be |=
 		if (s.regtype == 0x5) {
 			// sampler
 			s.lodbiad = s.indexoffset;
 			s.indexoffset = undefined;
 			s.swizzle = undefined;
 
-			// sampler 
+			// sampler
 			s.readmode = bytes.readUnsignedByte();
 			s.dim = s.readmode >> 4;
 			s.readmode &= 0xf;
@@ -121,7 +117,7 @@ export class AGALTokenizer
 			desc.hasindirect = true;
 		}
 		if (!s.indirectflag && mh) {
-			for (var mhi:number = 0; mhi < mh; mhi++) //TODO wrong, should be |=
+			for (let mhi: number = 0; mhi < mh; mhi++) //TODO wrong, should be |=
 			{
 				desc.regread[s.regtype][s.regnum + mhi] = desc.regread[s.regtype][s.regnum];
 			}

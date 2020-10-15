@@ -1,5 +1,5 @@
 export enum ContextGLBlendFactor
-{
+	{
 	DESTINATION_ALPHA,
 	DESTINATION_COLOR,
 	ONE,

@@ -1,8 +1,8 @@
-import {ColorTransform, Matrix, Rectangle, Point, ByteArray, ColorUtils} from "@awayjs/core";
+import { ColorTransform, Matrix, Rectangle, Point, ByteArray, ColorUtils } from '@awayjs/core';
 
-import {BitmapImage2D} from "./BitmapImage2D";
-import {ImageCube} from "./ImageCube";
-import {BitmapImageUtils} from "../utils/BitmapImageUtils";
+import { BitmapImage2D } from './BitmapImage2D';
+import { ImageCube } from './ImageCube';
+import { BitmapImageUtils } from '../utils/BitmapImageUtils';
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
  * object. You can use the methods of the BitmapImage2D export class to create
@@ -60,27 +60,25 @@ import {BitmapImageUtils} from "../utils/BitmapImageUtils";
  * it can only be 2,048 pixels high.) In Flash Player 9 and earlier, the limitation
  * is 2,880 pixels in height and 2,880 in width.</p>
  */
-export class BitmapImageCube extends ImageCube
-{
-	public static assetType:string = "[image BitmapImageCube]";
+export class BitmapImageCube extends ImageCube {
+	public static assetType: string = '[image BitmapImageCube]';
 
-	public static posX:number = 0;
-	public static negX:number = 1;
-	public static posY:number = 2;
-	public static negY:number = 3;
-	public static posZ:number = 4;
-	public static negZ:number = 5;
+	public static posX: number = 0;
+	public static negX: number = 1;
+	public static posY: number = 2;
+	public static negY: number = 3;
+	public static posZ: number = 4;
+	public static negZ: number = 5;
 
-	private _data:Array<Uint8ClampedArray> = new Array<Uint8ClampedArray>(6);
-	private _transparent:boolean;
-	private _locked:boolean = false;
+	private _data: Array<Uint8ClampedArray> = new Array<Uint8ClampedArray>(6);
+	private _transparent: boolean;
+	private _locked: boolean = false;
 
 	/**
 	 *
 	 * @returns {string}
 	 */
-	public get assetType():string
-	{
+	public get assetType(): string {
 		return BitmapImageCube.assetType;
 	}
 
@@ -92,13 +90,11 @@ export class BitmapImageCube extends ImageCube
 	 * whether it supports per-pixel transparency by determining if the value of
 	 * the <code>transparent</code> property is <code>true</code>.
 	 */
-	public get transparent():boolean
-	{
+	public get transparent(): boolean {
 		return this._transparent;
 	}
 
-	public set transparent(value:boolean)
-	{
+	public set transparent(value: boolean) {
 		this._transparent = value;
 	}
 
@@ -130,14 +126,13 @@ export class BitmapImageCube extends ImageCube
 	 *                    bitmap image area. The default value is
 	 *                    0xFFFFFFFF(solid white).
 	 */
-	constructor(size:number, transparent:boolean = true, fillColor:number = null)
-	{
+	constructor(size: number, transparent: boolean = true, fillColor: number = null) {
 		super(size);
 
 		this._transparent = transparent;
 
-		for (var i:number = 0; i < 6; i++) {
-			this._data[i] = new Uint8ClampedArray(4*this._size*this._size);
+		for (let i: number = 0; i < 6; i++) {
+			this._data[i] = new Uint8ClampedArray(4 * this._size * this._size);
 
 			if (fillColor != null)
 				this.fillRect(i, new Rectangle(0, 0, size, size), fillColor);
@@ -150,11 +145,10 @@ export class BitmapImageCube extends ImageCube
 	 *
 	 * @return A new BitmapImage2D object that is identical to the original.
 	 */
-	public clone():BitmapImageCube
-	{
-		var t:BitmapImageCube = new BitmapImageCube(this._size, this.transparent);
+	public clone(): BitmapImageCube {
+		const t: BitmapImageCube = new BitmapImageCube(this._size, this.transparent);
 
-		for (var i:number = 0; i < 6; i++) {
+		for (let i: number = 0; i < 6; i++) {
 			t.setPixels(i, new Rectangle(0, 0, this._size, this._size), this.data[i]);
 		}
 		return t;
@@ -171,17 +165,16 @@ export class BitmapImageCube extends ImageCube
 	 * @param colorTransform A ColorTransform object that describes the color
 	 *                       transformation values to apply.
 	 */
-	public colorTransform(side:number, rect:Rectangle, colorTransform:ColorTransform):void
-	{
-		var i:number, j:number, index:number, data:Uint8ClampedArray = this.data[side];
+	public colorTransform(side: number, rect: Rectangle, colorTransform: ColorTransform): void {
+		let i: number, j: number, index: number, data: Uint8ClampedArray = this.data[side];
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
-				index = (i + rect.x + (j + rect.y)*this._size)*4;
+				index = (i + rect.x + (j + rect.y) * this._size) * 4;
 
-				data[index] = data[index]*colorTransform.redMultiplier + colorTransform.redOffset;
-				data[index + 1] = data[index + 1]*colorTransform.greenMultiplier + colorTransform.greenOffset;
-				data[index + 2] = data[index + 2]*colorTransform.blueMultiplier + colorTransform.blueOffset;
-				data[index + 3] = data[index + 3]*colorTransform.alphaMultiplier + colorTransform.alphaOffset;
+				data[index] = data[index] * colorTransform.redMultiplier + colorTransform.redOffset;
+				data[index + 1] = data[index + 1] * colorTransform.greenMultiplier + colorTransform.greenOffset;
+				data[index + 2] = data[index + 2] * colorTransform.blueMultiplier + colorTransform.blueOffset;
+				data[index + 3] = data[index + 3] * colorTransform.alphaMultiplier + colorTransform.alphaOffset;
 			}
 		}
 
@@ -232,24 +225,23 @@ export class BitmapImageCube extends ImageCube
 	 *                         <code>BitmapImage2DChannel.ALPHA</code>).
 	 * @throws TypeError The sourceBitmapImage2D, sourceRect or destPoint are null.
 	 */
-	public copyChannel(side:number, sourceBitmap:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, sourceChannel:number, destChannel:number):void
-	{
-		var sourceData:Uint8ClampedArray = sourceBitmap.data;
-		var destData:Uint8ClampedArray = this._data[side];
+	public copyChannel(side: number, sourceBitmap: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, sourceChannel: number, destChannel: number): void {
+		const sourceData: Uint8ClampedArray = sourceBitmap.data;
+		const destData: Uint8ClampedArray = this._data[side];
 
-		var sourceOffset:number = Math.round(Math.log(sourceChannel)/Math.log(2));
-		var destOffset:number = Math.round(Math.log(destChannel)/Math.log(2));
+		const sourceOffset: number = Math.round(Math.log(sourceChannel) / Math.log(2));
+		const destOffset: number = Math.round(Math.log(destChannel) / Math.log(2));
 
-		var sourceX:number = Math.round(sourceRect.x);
-		var sourceY:number = Math.round(sourceRect.y);
-		var destX:number = Math.round(destPoint.x);
-		var destY:number = Math.round(destPoint.y);
+		const sourceX: number = Math.round(sourceRect.x);
+		const sourceY: number = Math.round(sourceRect.y);
+		const destX: number = Math.round(destPoint.x);
+		const destY: number = Math.round(destPoint.y);
 
-		var i:number, j:number, sourceIndex:number, destIndex:number;
+		let i: number, j: number, sourceIndex: number, destIndex: number;
 		for (i = 0; i < sourceRect.width; ++i) {
 			for (j = 0; j < sourceRect.height; ++j) {
-				sourceIndex = (i + sourceX + (j + sourceY)*sourceBitmap.width)*4;
-				destIndex = (i + destX + (j + destY)*this._size)*4;
+				sourceIndex = (i + sourceX + (j + sourceY) * sourceBitmap.width) * 4;
+				destIndex = (i + destX + (j + destY) * this._size) * 4;
 
 				destData[destIndex + destOffset] = sourceData[sourceIndex + sourceOffset];
 			}
@@ -278,11 +270,10 @@ export class BitmapImageCube extends ImageCube
 	 * collected by the garbage collector.</p>
 	 *
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 		super.dispose();
 
-		for (var i:number = 0; i < 6; i++)
+		for (let i: number = 0; i < 6; i++)
 			this._data[i] = null;
 
 		this._transparent = null;
@@ -361,9 +352,8 @@ export class BitmapImageCube extends ImageCube
 	 *                       restriction does not apply to AIR content in the
 	 *                       application security sandbox.
 	 */
-	public drawBitmap(side:number, source:Uint8ClampedArray, offsetX:number, offsetY:number, width:number, height:number, matrix:Matrix = null):void
-	{
-		BitmapImageUtils.drawBitmap(source, offsetX, offsetY, width, height, this.data[side], 0, 0, this._size, this._size, matrix)
+	public drawBitmap(side: number, source: Uint8ClampedArray, offsetX: number, offsetY: number, width: number, height: number, matrix: Matrix = null): void {
+		BitmapImageUtils.drawBitmap(source, offsetX, offsetY, width, height, this.data[side], 0, 0, this._size, this._size, matrix);
 
 		if (!this._locked)
 			this.invalidate();
@@ -378,22 +368,21 @@ export class BitmapImageCube extends ImageCube
 	 *              0xFF336699.
 	 * @throws TypeError The rect is null.
 	 */
-	public fillRect(side:number, rect:Rectangle, color:number):void
-	{
-		var data:Uint32Array = new Uint32Array(this._data[side].buffer);
-		var x:number = ~~rect.x, y:number = ~~rect.y, width:number = ~~rect.width, height:number = ~~rect.height;
-		var argb:number = this._transparent? (color & 0xFFFFFFFF) : (color & 0xFFFFFF) + 0xFF000000;
-		
+	public fillRect(side: number, rect: Rectangle, color: number): void {
+		const data: Uint32Array = new Uint32Array(this._data[side].buffer);
+		const x: number = ~~rect.x, y: number = ~~rect.y, width: number = ~~rect.width, height: number = ~~rect.height;
+		const argb: number = this._transparent ? (color & 0xFFFFFFFF) : (color & 0xFFFFFF) + 0xFF000000;
+
 		//fast path for complete fill
 		if (x == 0 && y == 0 && width == this._size && height == this._size) {
 			data.fill(argb);
 		} else {
-			var j:number;
-			var index:number;
+			let j: number;
+			let index: number;
 			for (j = 0; j < height; ++j) {
-			
-				index = x + (j + y)*this._size;
-	
+
+				index = x + (j + y) * this._size;
+
 				data.fill(argb, index, index + width);
 			}
 		}
@@ -425,14 +414,13 @@ export class BitmapImageCube extends ImageCube
 	 *         <i>y</i>) coordinates are outside the bounds of the image, the
 	 *         method returns 0.
 	 */
-	public getPixel(side:number, x, y):number
-	{
-		var r:number;
-		var g:number;
-		var b:number;
-		var a:number;
+	public getPixel(side: number, x, y): number {
+		let r: number;
+		let g: number;
+		let b: number;
+		let a: number;
 
-		var index:number = (~~x + ~~y*this._size)*4, data:Uint8ClampedArray = this.data[side];
+		const index: number = (~~x + ~~y * this._size) * 4, data: Uint8ClampedArray = this.data[side];
 
 		r = data[index + 0];
 		g = data[index + 1];
@@ -443,7 +431,7 @@ export class BitmapImageCube extends ImageCube
 		if (!a)
 			return 0x0;
 
-		return (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
+		return (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a;
 	}
 
 	/**
@@ -468,15 +456,14 @@ export class BitmapImageCube extends ImageCube
 	 *         <i>y</i>) coordinates are outside the bounds of the image, 0 is
 	 *         returned.
 	 */
-	public getPixel32(side:number, x, y):number
-	{
-		var r:number;
-		var g:number;
-		var b:number;
-		var a:number;
+	public getPixel32(side: number, x, y): number {
+		let r: number;
+		let g: number;
+		let b: number;
+		let a: number;
 
-		var index:number = (~~x + ~~y*this._size)*4;
-		var data:Uint8ClampedArray = this.data[side];
+		let index: number = (~~x + ~~y * this._size) * 4;
+		const data: Uint8ClampedArray = this.data[side];
 
 		r = data[index++];
 		g = data[index++];
@@ -486,7 +473,7 @@ export class BitmapImageCube extends ImageCube
 		if (!a)
 			return 0x0;
 
-		return (a << 24) | (r*0xFF/a << 16) | (g*0xFF/a << 8) | b*0xFF/a;
+		return (a << 24) | (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a;
 	}
 
 	/**
@@ -497,8 +484,7 @@ export class BitmapImageCube extends ImageCube
 	 * <code>setPixel()</code> or <code>setPixel32()</code> method.
 	 *
 	 */
-	public lock():void
-	{
+	public lock(): void {
 		if (this._locked)
 			return;
 
@@ -517,18 +503,17 @@ export class BitmapImageCube extends ImageCube
 	 * @throws RangeError The vector array is not large enough to read all the
 	 *                    pixel data.
 	 */
-	public setArray(side:number, rect:Rectangle, inputArray:Array<number>):void
-	{
-		var i:number, j:number, index:number, argb:number[], data:Uint8ClampedArray = this.data[side];
+	public setArray(side: number, rect: Rectangle, inputArray: Array<number>): void {
+		let i: number, j: number, index: number, argb: number[], data: Uint8ClampedArray = this.data[side];
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
-				argb = ColorUtils.float32ColorToARGB(inputArray[i + j*rect.width]);
-				index = (i + rect.x + (j + rect.y)*this._size)*4;
+				argb = ColorUtils.float32ColorToARGB(inputArray[i + j * rect.width]);
+				index = (i + rect.x + (j + rect.y) * this._size) * 4;
 
 				data[index + 0] = argb[1];
 				data[index + 1] = argb[2];
 				data[index + 2] = argb[3];
-				data[index + 3] = this._transparent? argb[0] : 0xFF;
+				data[index + 3] = this._transparent ? argb[0] : 0xFF;
 			}
 		}
 
@@ -553,9 +538,8 @@ export class BitmapImageCube extends ImageCube
 	 * @param y     The <i>y</i> position of the pixel whose value changes.
 	 * @param color The resulting RGB color for the pixel.
 	 */
-	public setPixel(side:number, x:number, y:number, color:number):void
-	{
-		var index:number = (~~x + ~~y*this._size)*4, argb:number[] = ColorUtils.float32ColorToARGB(color), data:Uint8ClampedArray = this.data[side];
+	public setPixel(side: number, x: number, y: number, color: number): void {
+		const index: number = (~~x + ~~y * this._size) * 4, argb: number[] = ColorUtils.float32ColorToARGB(color), data: Uint8ClampedArray = this.data[side];
 
 		data[index + 0] = argb[1];
 		data[index + 1] = argb[2];
@@ -597,14 +581,13 @@ export class BitmapImageCube extends ImageCube
 	 *              opaque(not transparent), the alpha transparency portion of
 	 *              this color value is ignored.
 	 */
-	public setPixel32(side:number, x:number, y:number, color:number):void
-	{
-		var index:number = (~~x + ~~y*this._size)*4, argb:number[] = ColorUtils.float32ColorToARGB(color), data:Uint8ClampedArray = this.data[side];
+	public setPixel32(side: number, x: number, y: number, color: number): void {
+		const index: number = (~~x + ~~y * this._size) * 4, argb: number[] = ColorUtils.float32ColorToARGB(color), data: Uint8ClampedArray = this.data[side];
 
 		data[index + 0] = argb[1];
 		data[index + 1] = argb[2];
 		data[index + 2] = argb[3];
-		data[index + 3] = this._transparent? argb[0] : 0xFF;
+		data[index + 3] = this._transparent ? argb[0] : 0xFF;
 
 		if (!this._locked)
 			this.invalidate();
@@ -629,15 +612,14 @@ export class BitmapImageCube extends ImageCube
 	 *                   before throwing the exception.
 	 * @throws TypeError The rect or inputByteArray are null.
 	 */
-	public setPixels(side:number, rect:Rectangle, input:Uint8ClampedArray):void
-	{
+	public setPixels(side: number, rect: Rectangle, input: Uint8ClampedArray): void {
 		//fast path for full imageData
 		if (rect.x == 0 && rect.y == 0 && rect.width == this._size && rect.height == this._size) {
 			this._data[side].set(input);
 		} else {
-			var i:number, imageSize:number = this._size, inputWidth:number = rect.width, data:Uint8ClampedArray = this._data[side];
+			let i: number, imageSize: number = this._size, inputWidth: number = rect.width, data: Uint8ClampedArray = this._data[side];
 			for (i = 0; i < rect.height; ++i)
-				data.set(input.subarray(i*inputWidth*4, (i + 1)*inputWidth*4), (rect.x + (i + rect.y)*imageSize)*4);
+				data.set(input.subarray(i * inputWidth * 4, (i + 1) * inputWidth * 4), (rect.x + (i + rect.y) * imageSize) * 4);
 		}
 
 		if (!this._locked)
@@ -656,8 +638,7 @@ export class BitmapImageCube extends ImageCube
 	 *                   entire area of the BitmapImage2D object is considered
 	 *                   changed.
 	 */
-	public unlock():void
-	{
+	public unlock(): void {
 		if (!this._locked)
 			return;
 
@@ -670,8 +651,7 @@ export class BitmapImageCube extends ImageCube
 	 *
 	 * @returns {ImageData}
 	 */
-	public get data():Uint8ClampedArray[]
-	{
+	public get data(): Uint8ClampedArray[] {
 		return this._data;
 	}
 
@@ -681,49 +661,46 @@ export class BitmapImageCube extends ImageCube
 	 * @param height
 	 * @private
 	 */
-	public _setSize(size:number):void
-	{
-		for (var i:number = 0; i < 6; i++) {
-			var data:Uint8ClampedArray = this.data[i];
+	public _setSize(size: number): void {
+		for (let i: number = 0; i < 6; i++) {
+			const data: Uint8ClampedArray = this.data[i];
 
-			this._data[i] = new Uint8ClampedArray(4*size*size);
-			var inputSize:number = (this._size < size)? this._size : size;
-			for (var j = 0; j < inputSize; ++i)
-				this._data[i].set(data.subarray(j*inputSize*4, (j + 1)*inputSize*4), j*size*4);
+			this._data[i] = new Uint8ClampedArray(4 * size * size);
+			const inputSize: number = (this._size < size) ? this._size : size;
+			for (let j = 0; j < inputSize; ++i)
+				this._data[i].set(data.subarray(j * inputSize * 4, (j + 1) * inputSize * 4), j * size * 4);
 		}
 
 		super._setSize(size);
 	}
 }
 
-import {ITextureBase} from "../base/ITextureBase"
-import {ICubeTexture} from "../base/ICubeTexture";
+import { ITextureBase } from '../base/ITextureBase';
+import { ICubeTexture } from '../base/ICubeTexture';
 
-import {_Stage_ImageCube} from "./ImageCube";
+import { _Stage_ImageCube } from './ImageCube';
 
-import {Stage} from "../Stage";
+import { Stage } from '../Stage';
 
 /**
  *
  * @class away.pool.ImageObjectBase
  */
-export class _Stage_BitmapImageCube extends _Stage_ImageCube
-{
-    public getTexture():ITextureBase
-    {
-        super.getTexture();
+export class _Stage_BitmapImageCube extends _Stage_ImageCube {
+	public getTexture(): ITextureBase {
+		super.getTexture();
 
-        if (this._invalid) {
-            this._invalid = false;
+		if (this._invalid) {
+			this._invalid = false;
 
-            for (var i:number = 0; i < 6; ++i)
-                (<ICubeTexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImageCube> this._asset).data[i].buffer), i, 0, (<BitmapImageCube> this._asset).transparent);
+			for (let i: number = 0; i < 6; ++i)
+				(<ICubeTexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImageCube> this._asset).data[i].buffer), i, 0, (<BitmapImageCube> this._asset).transparent);
 
-            this._invalidMipmaps = true;
-        }
+			this._invalidMipmaps = true;
+		}
 
-        return this._texture;
-    }
+		return this._texture;
+	}
 }
 
 Stage.registerAbstraction(_Stage_BitmapImageCube, BitmapImageCube);

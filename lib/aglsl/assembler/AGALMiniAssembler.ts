@@ -1,24 +1,20 @@
-import {Sampler} from "../../aglsl/assembler/Sampler";
-import {Opcode} from "../../aglsl/assembler/Opcode";
-import {OpcodeMap} from "../../aglsl/assembler/OpcodeMap";
-import {Part} from "../../aglsl/assembler/Part";
-import {RegMap} from "../../aglsl/assembler/RegMap";
-import {SamplerMap} from "../../aglsl/assembler/SamplerMap";
+import { Sampler } from '../../aglsl/assembler/Sampler';
+import { Opcode } from '../../aglsl/assembler/Opcode';
+import { OpcodeMap } from '../../aglsl/assembler/OpcodeMap';
+import { Part } from '../../aglsl/assembler/Part';
+import { RegMap } from '../../aglsl/assembler/RegMap';
+import { SamplerMap } from '../../aglsl/assembler/SamplerMap';
 
+export class AGALMiniAssembler {
+	public r: Object;
+	public cur: Part;
 
-export class AGALMiniAssembler
-{
-	public r:Object;
-	public cur:Part;
-
-	constructor()
-	{
+	constructor() {
 		this.r = {};
 		this.cur = new Part();
 	}
 
-	public assemble(source:string, ext_part = null, ext_version = null):Object
-	{
+	public assemble(source: string, ext_part = null, ext_version = null): Object {
 		if (!ext_version) {
 			ext_version = 1;
 		}
@@ -27,91 +23,90 @@ export class AGALMiniAssembler
 			this.addHeader(ext_part, ext_version);
 		}
 
-		var lines = source.replace(/[\f\n\r\v]+/g, "\n").split("\n"); // handle breaks, then split into lines
+		const lines = source.replace(/[\f\n\r\v]+/g, '\n').split('\n'); // handle breaks, then split into lines
 
-		for (var i in lines) {
+		for (const i in lines) {
 			this.processLine(lines[i], i);
 		}
 
 		return this.r;
 	}
 
-	private processLine(line, linenr):void
-	{
-		var startcomment:number = line.search("//");  // remove comments
+	private processLine(line, linenr): void {
+		const startcomment: number = line.search('//');  // remove comments
 		if (startcomment != -1) {
 			line = line.slice(0, startcomment);
 		}
-		line = line.replace(/^\s+|\s+$/g, ""); // remove outer space
-		if (!(line.length > 0 )) {
+		line = line.replace(/^\s+|\s+$/g, ''); // remove outer space
+		if (!(line.length > 0)) {
 			return;
 		}
-		var optsi:number = line.search(/<.*>/g); // split of options part <*> if there
-		var opts:string[] = null;
+		const optsi: number = line.search(/<.*>/g); // split of options part <*> if there
+		let opts: string[] = null;
 		if (optsi != -1) {
 			opts = line.slice(optsi).match(/([\w\.\-\+]+)/gi);
 			line = line.slice(0, optsi);
 		}
 
-		// get opcode/command				            
-		var tokens = line.match(/([\w\.\+\[\]]+)/gi); // get tokens in line
+		// get opcode/command
+		const tokens = line.match(/([\w\.\+\[\]]+)/gi); // get tokens in line
 		if (!tokens || tokens.length < 1) {
 			if (line.length >= 3) {
-				console.log("Warning: bad line " + linenr + ": " + line);
+				console.log('Warning: bad line ' + linenr + ': ' + line);
 			}
 			return;
 		}
 
-		//console.log ( linenr, line, cur, tokens ); 
+		//console.log ( linenr, line, cur, tokens );
 		switch (tokens[0]) {
-			case "part":
+			case 'part':
 				this.addHeader(tokens[1], Number(tokens[2]));
 				break;
-			case "endpart":
+			case 'endpart':
 				if (!this.cur) {
-					throw "Unexpected endpart";
+					throw 'Unexpected endpart';
 				}
 				this.cur.data.position = 0;
 				this.cur = null;
 				return;
 			default:
 				if (!this.cur) {
-					console.log("Warning: bad line " + linenr + ": " + line + " (Outside of any part definition)");
+					console.log('Warning: bad line ' + linenr + ': ' + line + ' (Outside of any part definition)');
 					return;
 				}
-				if (this.cur.name == "comment") {
+				if (this.cur.name == 'comment') {
 					return;
 				}
-				var op:Opcode = <Opcode> OpcodeMap.map[tokens[0]];
+				var op: Opcode = <Opcode> OpcodeMap.map[tokens[0]];
 				if (!op) {
-					throw "Bad opcode " + tokens[0] + " " + linenr + ": " + line;
+					throw 'Bad opcode ' + tokens[0] + ' ' + linenr + ': ' + line;
 				}
 				// console.log( 'AGALMiniAssembler' , 'op' , op );
 
 				this.emitOpcode(this.cur, op.opcode);
-				var ti:number = 1;
-				if (op.dest && op.dest != "none") {
+				var ti: number = 1;
+				if (op.dest && op.dest != 'none') {
 					if (!this.emitDest(this.cur, tokens[ti++], op.dest)) {
-						throw "Bad destination register " + tokens[ti - 1] + " " + linenr + ": " + line;
+						throw 'Bad destination register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 					}
 				} else {
 					this.emitZeroDword(this.cur);
 				}
 
-				if (op.a && op.a.format != "none") {
-					if (!this.emitSource(this.cur, tokens[ti++], op.a)) throw "Bad source register " + tokens[ti - 1] + " " + linenr + ": " + line;
+				if (op.a && op.a.format != 'none') {
+					if (!this.emitSource(this.cur, tokens[ti++], op.a)) throw 'Bad source register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 				} else {
 					this.emitZeroQword(this.cur);
 				}
 
-				if (op.b && op.b.format != "none") {
-					if (op.b.format == "sampler") {
+				if (op.b && op.b.format != 'none') {
+					if (op.b.format == 'sampler') {
 						if (!this.emitSampler(this.cur, tokens[ti++], op.b, opts)) {
-							throw "Bad sampler register " + tokens[ti - 1] + " " + linenr + ": " + line;
+							throw 'Bad sampler register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 						}
 					} else {
 						if (!this.emitSource(this.cur, tokens[ti++], op.b)) {
-							throw "Bad source register " + tokens[ti - 1] + " " + linenr + ": " + line;
+							throw 'Bad source register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 						}
 					}
 				} else {
@@ -121,8 +116,7 @@ export class AGALMiniAssembler
 		}
 	}
 
-	public emitHeader(pr:Part):void
-	{
+	public emitHeader(pr: Part): void {
 		pr.data.writeUnsignedByte(0xa0); 	// tag version
 		pr.data.writeUnsignedInt(pr.version);
 		if (pr.version >= 0x10) {
@@ -130,13 +124,13 @@ export class AGALMiniAssembler
 		}
 		pr.data.writeUnsignedByte(0xa1);		// tag program id
 		switch (pr.name) {
-			case "fragment" :
+			case 'fragment' :
 				pr.data.writeUnsignedByte(1);
 				break;
-			case "vertex" :
+			case 'vertex' :
 				pr.data.writeUnsignedByte(0);
 				break;
-			case "cpu" :
+			case 'cpu' :
 				pr.data.writeUnsignedByte(2);
 				break;
 			default :
@@ -145,34 +139,30 @@ export class AGALMiniAssembler
 		}
 	}
 
-	public emitOpcode(pr:Part, opcode):void
-	{
+	public emitOpcode(pr: Part, opcode): void {
 		pr.data.writeUnsignedInt(opcode);
-		//console.log ( "Emit opcode: ", opcode ); 
+		//console.log ( "Emit opcode: ", opcode );
 	}
 
-	public emitZeroDword(pr:Part):void
-	{
+	public emitZeroDword(pr: Part): void {
 		pr.data.writeUnsignedInt(0);
 	}
 
-	public emitZeroQword(pr):void
-	{
+	public emitZeroQword(pr): void {
 		pr.data.writeUnsignedInt(0);
 		pr.data.writeUnsignedInt(0);
 	}
 
-	public emitDest(pr, token, opdest):boolean
-	{
+	public emitDest(pr, token, opdest): boolean {
 
 		//console.log( 'AGALMiniAssembler' , 'emitDest' , 'RegMap.map' , RegMap.map);
-		var reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:mask
+		const reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:mask
 
 		// console.log( 'AGALMiniAssembler' , 'emitDest' , 'reg' , reg , reg[1] , RegMap.map[reg[1]] );
 		// console.log( 'AGALMiniAssembler' , 'emitDest' , 'RegMap.map[reg[1]]' , RegMap.map[reg[1]] , 'bool' , !RegMap.map[reg[1]] ) ;
 
 		if (!RegMap.map[reg[1]]) return false;
-		var em = { num:reg[2]? reg[2] : 0, code:RegMap.map[reg[1]].code, mask:this.stringToMask(reg[3]) };
+		const em = { num:reg[2] ? reg[2] : 0, code:RegMap.map[reg[1]].code, mask:this.stringToMask(reg[3]) };
 		pr.data.writeUnsignedShort(em.num);
 		pr.data.writeUnsignedByte(em.mask);
 		pr.data.writeUnsignedByte(em.code);
@@ -180,27 +170,25 @@ export class AGALMiniAssembler
 		return true;
 	}
 
-	public stringToMask(s:string):number
-	{
+	public stringToMask(s: string): number {
 		if (!s) return 0xf;
-		var r:number = 0;
-		if (s.indexOf("x") != -1) r |= 1;
-		if (s.indexOf("y") != -1) r |= 2;
-		if (s.indexOf("z") != -1) r |= 4;
-		if (s.indexOf("w") != -1) r |= 8;
+		let r: number = 0;
+		if (s.indexOf('x') != -1) r |= 1;
+		if (s.indexOf('y') != -1) r |= 2;
+		if (s.indexOf('z') != -1) r |= 4;
+		if (s.indexOf('w') != -1) r |= 8;
 		return r;
 	}
 
-	public stringToSwizzle(s):number
-	{
+	public stringToSwizzle(s): number {
 		if (!s) {
 			return 0xe4;
 		}
-		var chartoindex = { x:0, y:1, z:2, w:3 };
-		var sw:number = 0;
+		const chartoindex = { x:0, y:1, z:2, w:3 };
+		let sw: number = 0;
 
-		if (s.charAt(0) != ".") {
-			throw "Missing . for swizzle";
+		if (s.charAt(0) != '.') {
+			throw 'Missing . for swizzle';
 		}
 
 		if (s.length > 1) {
@@ -228,9 +216,8 @@ export class AGALMiniAssembler
 		return sw;
 	}
 
-	public emitSampler(pr:Part, token, opsrc, opts):boolean
-	{
-		var reg:string[] = token.match(/fs(\d*)/i); // g1:regnum
+	public emitSampler(pr: Part, token, opsrc, opts): boolean {
+		const reg: string[] = token.match(/fs(\d*)/i); // g1:regnum
 		if (!reg || !reg[1]) {
 			return false;
 		}
@@ -243,22 +230,22 @@ export class AGALMiniAssembler
 		 pr.data.writeUnsignedByte ( 0 );   // special, wrap
 		 pr.data.writeUnsignedByte ( 0 );   // mip, filter
 		 */
-		var samplerbits:number = 0x5;
-		var sampleroptset:number = 0;
-		for (var i:number = 0; i < opts.length; i++) {
-			var o:Sampler = <Sampler> SamplerMap.map[ opts[i].toLowerCase() ];
+		let samplerbits: number = 0x5;
+		let sampleroptset: number = 0;
+		for (let i: number = 0; i < opts.length; i++) {
+			const o: Sampler = <Sampler> SamplerMap.map[ opts[i].toLowerCase() ];
 
 			//console.log( 'AGALMiniAssembler' , 'emitSampler' , 'SampleMap opt:' , o , '<-------- WATCH FOR THIS');
 
 			if (o) {
 				if (((sampleroptset >> o.shift) & o.mask) != 0) {
-					console.log("Warning, duplicate sampler option");
+					console.log('Warning, duplicate sampler option');
 				}
 				sampleroptset |= o.mask << o.shift;
 				samplerbits &= ~(o.mask << o.shift);
 				samplerbits |= o.value << o.shift;
 			} else {
-				console.log("Warning, unknown sampler option: ", opts[i]);
+				console.log('Warning, unknown sampler option: ', opts[i]);
 				// todo bias
 			}
 		}
@@ -266,16 +253,15 @@ export class AGALMiniAssembler
 		return true;
 	}
 
-	public emitSource(pr, token, opsrc):boolean
-	{
-		var indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([\+\-]\d+)?\](\.[xyzw]{1,4})?/i); // g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
-		var reg;
+	public emitSource(pr, token, opsrc): boolean {
+		const indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([\+\-]\d+)?\](\.[xyzw]{1,4})?/i); // g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
+		let reg;
 		if (indexed) {
 			if (!RegMap.map[indexed[1]]) {
 				return false;
 			}
-			var selindex = { x:0, y:1, z:2, w:3 };
-			var em:any = { num:indexed[2] | 0, code:RegMap.map[indexed[1]].code, swizzle:this.stringToSwizzle(indexed[5]), select:selindex[indexed[3]], offset:indexed[4] | 0 };
+			const selindex = { x:0, y:1, z:2, w:3 };
+			var em: any = { num:indexed[2] | 0, code:RegMap.map[indexed[1]].code, swizzle:this.stringToSwizzle(indexed[5]), select:selindex[indexed[3]], offset:indexed[4] | 0 };
 			pr.data.writeUnsignedShort(em.num);
 			pr.data.writeByte(em.offset);
 			pr.data.writeUnsignedByte(em.swizzle);
@@ -288,7 +274,7 @@ export class AGALMiniAssembler
 			if (!RegMap.map[reg[1]]) {
 				return false;
 			}
-			var em:any = { num:reg[2] | 0, code:RegMap.map[reg[1]].code, swizzle:this.stringToSwizzle(reg[3]) };
+			var em: any = { num:reg[2] | 0, code:RegMap.map[reg[1]].code, swizzle:this.stringToSwizzle(reg[3]) };
 			pr.data.writeUnsignedShort(em.num);
 			pr.data.writeUnsignedByte(0);
 			pr.data.writeUnsignedByte(em.swizzle);
@@ -301,8 +287,7 @@ export class AGALMiniAssembler
 		return true;
 	}
 
-	public addHeader(partname, version):void
-	{
+	public addHeader(partname, version): void {
 		if (!version) {
 			version = 1;
 		}
@@ -310,7 +295,7 @@ export class AGALMiniAssembler
 			this.r[partname] = new Part(partname, version);
 			this.emitHeader(this.r[ partname ]);
 		} else if (this.r[partname].version != version) {
-			throw "Multiple versions for part " + partname;
+			throw 'Multiple versions for part ' + partname;
 		}
 		this.cur = this.r[partname];
 	}

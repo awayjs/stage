@@ -1,5 +1,5 @@
 export enum ContextGLClearMask
-{
+	{
 	COLOR = 1,
 	DEPTH = 2,
 	STENCIL = 4,

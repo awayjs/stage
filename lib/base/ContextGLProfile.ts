@@ -1,5 +1,5 @@
 export enum ContextGLProfile
-{
+	{
 	BASELINE,
 	BASELINE_CONSTRAINED,
 	BASELINE_EXTENDED

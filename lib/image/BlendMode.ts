@@ -8,8 +8,7 @@
  * method of the flash.display.BitmapData class</li>
  * </ul>
  */
-export class BlendMode
-{
+export class BlendMode {
 	/**
 	 * Adds the values of the constituent colors of the display object to the
 	 * colors of its background, applying a ceiling of 0xFF. This setting is
@@ -20,7 +19,7 @@ export class BlendMode
 	 * resulting RGB value for the displayed pixel is 0xFFC833(because 0xAA +
 	 * 0xDD > 0xFF, 0xA6 + 0x22 = 0xC8, and 0x33 + 0x00 = 0x33).</p>
 	 */
-	public static ADD:string = "add";
+	public static ADD: string = 'add';
 
 	/**
 	 * Applies the alpha value of each pixel of the display object to the
@@ -30,7 +29,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static ALPHA:string = "alpha";
+	public static ALPHA: string = 'alpha';
 
 	/**
 	 * Selects the darker of the constituent colors of the display object and the
@@ -44,7 +43,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static DARKEN:string = "darken";
+	public static DARKEN: string = 'darken';
 
 	/**
 	 * Compares the constituent colors of the display object with the colors of
@@ -57,7 +56,7 @@ export class BlendMode
 	 * resulting RGB value for the displayed pixel is 0x222C33(because 0xFF -
 	 * 0xDD = 0x22, 0xF8 - 0xCC = 0x2C, and 0x33 - 0x00 = 0x33).</p>
 	 */
-	public static DIFFERENCE:string = "difference";
+	public static DIFFERENCE: string = 'difference';
 
 	/**
 	 * Erases the background based on the alpha value of the display object. This
@@ -66,7 +65,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static ERASE:string = "erase";
+	public static ERASE: string = 'erase';
 
 	/**
 	 * Adjusts the color of each pixel based on the darkness of the display
@@ -78,12 +77,12 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static HARDLIGHT:string = "hardlight";
+	public static HARDLIGHT: string = 'hardlight';
 
 	/**
 	 * Inverts the background.
 	 */
-	public static INVERT:string = "invert";
+	public static INVERT: string = 'invert';
 
 	/**
 	 * Forces the creation of a transparency group for the display object. This
@@ -95,7 +94,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static LAYER:string = "layer";
+	public static LAYER: string = 'layer';
 
 	/**
 	 * Selects the lighter of the constituent colors of the display object and
@@ -109,7 +108,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static LIGHTEN:string = "lighten";
+	public static LIGHTEN: string = 'lighten';
 
 	/**
 	 * Multiplies the values of the display object constituent colors by the
@@ -124,14 +123,14 @@ export class BlendMode
 	 * shade than the color of the display object or the color of the
 	 * background.</p>
 	 */
-	public static MULTIPLY:string = "multiply";
+	public static MULTIPLY: string = 'multiply';
 
 	/**
 	 * The display object appears in front of the background. Pixel values of the
 	 * display object override the pixel values of the background. Where the
 	 * display object is transparent, the background is visible.
 	 */
-	public static NORMAL:string = "normal";
+	public static NORMAL: string = 'normal';
 
 	/**
 	 * Adjusts the color of each pixel based on the darkness of the background.
@@ -143,7 +142,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static OVERLAY:string = "overlay";
+	public static OVERLAY: string = 'overlay';
 
 	/**
 	 * Multiplies the complement(inverse) of the display object color by the
@@ -151,7 +150,7 @@ export class BlendMode
 	 * setting is commonly used for highlights or to remove black areas of the
 	 * display object.
 	 */
-	public static SCREEN:string = "screen";
+	public static SCREEN: string = 'screen';
 
 	/**
 	 * Uses a shader to define the blend between objects.
@@ -172,7 +171,7 @@ export class BlendMode
 	 *
 	 * <p>Not supported under GPU rendering.</p>
 	 */
-	public static SHADER:string = "shader";
+	public static SHADER: string = 'shader';
 
 	/**
 	 * Subtracts the values of the constituent colors in the display object from
@@ -184,5 +183,5 @@ export class BlendMode
 	 * resulting RGB value for the displayed pixel is 0x338400(because 0xDD -
 	 * 0xAA = 0x33, 0xA6 - 0x22 = 0x84, and 0x00 - 0x33 < 0x00).</p>
 	 */
-	public static SUBTRACT:string = "subtract";
+	public static SUBTRACT: string = 'subtract';
 }

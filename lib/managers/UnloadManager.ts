@@ -73,7 +73,7 @@ export class UnloadManager<T extends IUnloadable> {
 			}
 		}
 
-		for (let u of unloaded) {
+		for (const u of unloaded) {
 			this._tasks.delete(u);
 		}
 
