@@ -2,7 +2,6 @@ import { ITexture } from '../base/ITexture';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { ContextWebGL } from './ContextWebGL';
 import { IUnloadable, UnloadManager } from '../managers/UnloadManager';
-import { AssetBase } from '@awayjs/core';
 
 export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloadable {
 	public static readonly SIZE_POOL_LIMIT = 10;
@@ -115,10 +114,15 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	}
 
 	public get textureFramebuffer(): WebGLFramebuffer {
-		return this.multisampled ? this._frameBufferDraw[this._mipmapSelector] : this._frameBuffer[this._mipmapSelector];
+		return this.multisampled
+			? this._frameBufferDraw[this._mipmapSelector]
+			: this._frameBuffer[this._mipmapSelector];
 	}
 
-	public setFrameBuffer(enableDepthAndStencil: boolean = false, antiAlias: number = 0, surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+	public setFrameBuffer(
+		enableDepthAndStencil: boolean = false, antiAlias: number = 0,
+		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+
 		this._context.setFrameBuffer(this, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
@@ -152,11 +156,13 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		this._multisampled = false;
 	}
 
+	/* eslint-disable-next-line */
 	public uploadFromArray(array: Uint8Array | Array<number>, miplevel: number = 0, premultiplied: boolean = false): void {
 		const width = this._width >>> miplevel;
 		const height = this._height >>> miplevel;
 
 		if (array.length !== width * height * 4) {
+			/* eslint-disable-next-line */
 			throw new Error(`Array is not the correct length for texture dimensions: expected: ${width * height * 4}, exist: ${array.length}`);
 		}
 
@@ -165,7 +171,16 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
-		this._gl.texImage2D(this._gl.TEXTURE_2D, miplevel, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, array);
+		this._gl.texImage2D(
+			this._gl.TEXTURE_2D,
+			miplevel,
+			this._gl.RGBA,
+			width, height,
+			0,
+			this._gl.RGBA,
+			this._gl.UNSIGNED_BYTE,
+			array);
+
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 
 		this._isFilled = true;
@@ -176,7 +191,16 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		//dummy code for testing
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
-		this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._width, this._height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+		this._gl.texImage2D(
+			this._gl.TEXTURE_2D,
+			0,
+			this._gl.RGBA,
+			this._width, this._height,
+			0,
+			this._gl.RGBA,
+			this._gl.UNSIGNED_BYTE,
+			null);
+
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 
 		this._isFilled = true;
@@ -184,8 +208,6 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	}
 
 	public uploadCompressedTextureFromArray(array: Uint8Array, offset: number, async: boolean = false): void {
-		const ext: Object = this._gl.getExtension('WEBKIT_WEBGL_compressed_texture_s3tc');
-		//this._gl.compressedTexImage2D(this._gl.TEXTURE_2D, 0, this)
 	}
 
 	public generateMipmaps(): void {
