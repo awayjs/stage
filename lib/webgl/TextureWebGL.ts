@@ -40,7 +40,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		const key = tex._width << 16 | tex._height;
 		const array = TextureWebGL._pool[key];
 
-		if (!array && !array.length) return false;
+		if (!array || !array.length) return false;
 
 		const index = array.indexOf(tex);
 
