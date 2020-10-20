@@ -5,7 +5,6 @@ import { Image2D } from '../../image/Image2D';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
-import { _Stage_ImageBase } from '../../image/ImageBase';
 import { Stage } from '../../Stage';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);
@@ -48,9 +47,7 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase {
 
 		this._uvVarying = this._registerCache.getFreeVarying();
 
-		let code: string;
-
-		code = 'mul ' + temp1 + '.xy, ' + position + ', ' + rect + '.zw\n' +
+		const code = 'mul ' + temp1 + '.xy, ' + position + ', ' + rect + '.zw\n' +
 			'add ' + temp1 + '.xy, ' + temp1 + ', ' + rect + '.xy\n' +
 			'mov ' + temp1 + '.w, ' + position + '.w\n' +
 			'mov op, ' + temp1 + '\n' +
@@ -73,15 +70,13 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase {
 		const inputTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
 		this._inputTextureIndex = inputTexture.index;
 
-		let code: string;
-
-		code =
+		const code =
 			'tex ' + temp1 + ', ' + this._uvVarying + ', ' + inputTexture + ' <2d,linear,clamp>\n' +
 			'sat ' + temp2 + ', ' + mulltipler + '\n' +
-			'mul ' + temp2 + ', ' + temp2 + ', ' + temp2 + '.w\n' +
 			'mul ' + temp1 + ', ' + temp1 + ', ' + temp2 + '.xyzw\n' +
-			'add ' + temp1 + ', ' + temp1 + ', ' + add + '.xyzw\n' +
-			//"mul " + temp1 + ", " + temp1 + ", " + temp1 + ".w\n" +
+			// premult a addited color too
+			'mul ' + temp2 + ', ' + add + ', ' + temp1 + '.w\n' +
+			'add ' + temp1 + ', ' + temp1 + ', ' + temp2 + '.xyzw\n' +
 			'mov oc, ' + temp1 + '\n';
 		return code;
 	}
