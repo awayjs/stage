@@ -739,9 +739,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public fillRect(rect: Rectangle, color: number): void {
 		this.dropAllReferences();
 
-		const data: Uint32Array = new Uint32Array(this._data.buffer);
-		const x: number = ~~rect.x, y: number = ~~rect.y, width: number = ~~rect.width, height: number = ~~rect.height;
-		const argb: number = this._transparent ? (color & 0xFFFFFFFF) : (color & 0xFFFFFF) + 0xFF000000;
+		const
+			x = ~~rect.x,
+			y = ~~rect.y,
+			width = ~~rect.width,
+			height = ~~rect.height,
+			data = new Uint32Array(this._data.buffer);
+
+		const argb: number = this._transparent
+			? (color & 0xFFFFFFFF)
+			: (color & 0xFFFFFF) + 0xFF000000;
 
 		//fast path for complete fill
 		if (x == 0 && y == 0 && width == this._rect.width && height == this._rect.height) {
@@ -1111,10 +1118,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		this._data = new Uint8ClampedArray(4 * width * height);
 
-		let i: number;
 		const inputWidth: number = (this._rect.width < width) ? this._rect.width : width;
 		const inputHeight: number = (this._rect.height < height) ? this._rect.height : height;
-		for (i = 0; i < inputHeight; ++i)
+
+		for (let i = 0; i < inputHeight; ++i)
 			this._data.set(data.subarray(i * inputWidth * 4, (i + 1) * inputWidth * 4), i * width * 4);
 
 		super._setSize(width, height);
