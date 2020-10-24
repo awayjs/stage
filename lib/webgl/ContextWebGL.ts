@@ -25,8 +25,6 @@ import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 import { VertexBufferWebGL } from './VertexBufferWebGL';
 
-const awayDebugDrawing: boolean = false;
-
 const nPOTAlerts: NumberMap<boolean> = {};
 
 interface IRendertargetEntry {
@@ -119,17 +117,19 @@ export class ContextWebGL implements IContextGL {
 		try {
 			if (ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
 				this._gl = <WebGLRenderingContext> this._container.getContext('webgl2', props);
+				this._glVersion = 2;
 			}
 
 			if (!this._gl) {
-				this._gl = <WebGLRenderingContext> (this._container.getContext('webgl', props) || this._container.getContext('experimental-webgl', props));
+				this._gl = <WebGLRenderingContext> (
+						this._container.getContext('webgl', props)
+						|| this._container.getContext('experimental-webgl', props));
+
 				this._glVersion = 1;
 
 				if (ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
 					console.warn('[CONTEXT] Preferred WebGL2 not supported on you device. WebGL1 will used!');
 				}
-			} else {
-				this._glVersion = 2;
 			}
 
 		} catch (e) {
@@ -145,6 +145,7 @@ export class ContextWebGL implements IContextGL {
 				this._standardDerivatives = false;
 			}
 
+			/* eslint-disable */
 			//setup shortcut dictionaries
 			this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
 			this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
@@ -230,6 +231,7 @@ export class ContextWebGL implements IContextGL {
 			this._stencilCompareMode = this._gl.ALWAYS;
 			this._stencilCompareModeBack = this._gl.ALWAYS;
 			this._stencilCompareModeFront = this._gl.ALWAYS;
+			/* eslint-enable */
 
 			const dpr: number = window.devicePixelRatio || 1;
 
@@ -253,13 +255,17 @@ export class ContextWebGL implements IContextGL {
 			this._samplerStates[i].filter = this._gl.LINEAR;
 			this._samplerStates[i].mipfilter = this._gl.LINEAR;
 		}
+
 	}
 
 	public gl(): WebGLRenderingContext {
 		return this._gl;
 	}
 
-	public clear(red: number = 0, green: number = 0, blue: number = 0, alpha: number = 1, depth: number = 1, stencil: number = 0, mask: ContextGLClearMask = ContextGLClearMask.ALL): void {
+	public clear(
+		red: number = 0, green: number = 0, blue: number = 0, alpha: number = 1,
+		depth: number = 1, stencil: number = 0, mask: ContextGLClearMask = ContextGLClearMask.ALL): void {
+
 		if (!this._drawing) {
 			this.updateBlendStatus();
 			this._drawing = true;
@@ -276,7 +282,9 @@ export class ContextWebGL implements IContextGL {
 		this._gl.clear(glmask);
 	}
 
-	public configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil: boolean = true): void {
+	public configureBackBuffer(
+		width: number, height: number, antiAlias: number, enableDepthAndStencil: boolean = true): void {
+
 		this._width = width * this._pixelRatio;
 		this._height = height * this._pixelRatio;
 
@@ -291,7 +299,10 @@ export class ContextWebGL implements IContextGL {
 		this._gl.viewport(0, 0, this._width, this._height);
 	}
 
-	public createCubeTexture(size: number, format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels: number = 0): CubeTextureWebGL {
+	public createCubeTexture(
+		size: number, format: ContextGLTextureFormat,
+		optimizeForRenderToTexture: boolean, streamingLevels: number = 0): CubeTextureWebGL {
+
 		return new CubeTextureWebGL(this, size);
 	}
 
@@ -303,8 +314,11 @@ export class ContextWebGL implements IContextGL {
 		return new ProgramWebGL(this._gl);
 	}
 
-	public createTexture(width: number, height: number, format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels: number = 0): TextureWebGL {
-		//TODO streaming
+	public createTexture(
+		width: number, height: number, format: ContextGLTextureFormat,
+		optimizeForRenderToTexture: boolean, streamingLevels: number = 0): TextureWebGL {
+
+		//TODO streaming -- not supported on WebGL
 		return TextureWebGL.create(this, width, height);
 	}
 
@@ -322,16 +336,24 @@ export class ContextWebGL implements IContextGL {
 
 		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
 
-		destination.setPixels(new Rectangle(0, 0, destination.width, destination.height), new Uint8ClampedArray(pixels.buffer));
+		destination.setPixels(
+			new Rectangle(0, 0, destination.width, destination.height),
+			new Uint8ClampedArray(pixels.buffer));
 	}
 
-	public drawIndices(mode: ContextGLDrawMode, indexBuffer: IndexBufferWebGL, firstIndex: number = 0, numIndices: number = -1): void {
+	public drawIndices(
+		mode: ContextGLDrawMode, indexBuffer: IndexBufferWebGL, firstIndex: number = 0, numIndices: number = -1): void {
+
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
 
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 
-		this._gl.drawElements(this._drawModeDictionary[mode], (numIndices == -1) ? indexBuffer.numIndices : numIndices, this._gl.UNSIGNED_SHORT, firstIndex * 2);
+		this._gl.drawElements(
+			this._drawModeDictionary[mode],
+			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
+			this._gl.UNSIGNED_SHORT,
+			firstIndex * 2);
 	}
 
 	public drawVertices(mode: ContextGLDrawMode, firstVertex: number = 0, numVertices: number = -1): void {
@@ -373,7 +395,10 @@ export class ContextWebGL implements IContextGL {
 		this._gl.colorMask(red, green, blue, alpha);
 	}
 
-	public setCulling(triangleFaceToCull: ContextGLTriangleFace, coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void {
+	public setCulling(
+		triangleFaceToCull: ContextGLTriangleFace,
+		coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void {
+
 		if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
 			this._gl.disable(this._gl.CULL_FACE);
 		} else {
@@ -409,7 +434,15 @@ export class ContextWebGL implements IContextGL {
 		this._gl.disable(this._gl.STENCIL_TEST);
 	}
 
-	public setStencilActions(triangleFace: ContextGLTriangleFace = ContextGLTriangleFace.FRONT_AND_BACK, compareMode: ContextGLCompareMode = ContextGLCompareMode.ALWAYS, actionOnBothPass: ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthFail: ContextGLStencilAction = ContextGLStencilAction.KEEP, actionOnDepthPassStencilFail: ContextGLStencilAction = ContextGLStencilAction.KEEP, coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void {
+	public setStencilActions(
+		triangleFace: ContextGLTriangleFace = ContextGLTriangleFace.FRONT_AND_BACK,
+		compareMode: ContextGLCompareMode = ContextGLCompareMode.ALWAYS,
+		actionOnBothPass: ContextGLStencilAction = ContextGLStencilAction.KEEP,
+		actionOnDepthFail: ContextGLStencilAction = ContextGLStencilAction.KEEP,
+		actionOnDepthPassStencilFail: ContextGLStencilAction = ContextGLStencilAction.KEEP,
+		coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void
+	{	/* eslint-disable-line */
+
 		this._separateStencil = triangleFace != ContextGLTriangleFace.FRONT_AND_BACK;
 
 		const compareModeGL = this._compareModeDictionary[compareMode];
@@ -419,16 +452,24 @@ export class ContextWebGL implements IContextGL {
 		const pass = this._stencilActionDictionary[actionOnBothPass];
 
 		if (!this._separateStencil) {
+
 			this._stencilCompareMode = compareModeGL;
 			this._gl.stencilFunc(compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
 			this._gl.stencilOp(fail, zFail, pass);
+
 		} else if (triangleFace == ContextGLTriangleFace.BACK) {
+
 			this._stencilCompareModeBack = compareModeGL;
-			this._gl.stencilFuncSeparate(this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+			this._gl.stencilFuncSeparate(
+				this._gl.BACK, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+
 			this._gl.stencilOpSeparate(this._gl.BACK, fail, zFail, pass);
+
 		} else if (triangleFace == ContextGLTriangleFace.FRONT) {
+
 			this._stencilCompareModeFront = compareModeGL;
-			this._gl.stencilFuncSeparate(this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
+			this._gl.stencilFuncSeparate(
+				this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
 			this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass);
 		}
 	}
@@ -472,7 +513,11 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		this._gl.enable(this._gl.SCISSOR_TEST);
-		this._gl.scissor(rectangle.x * this._pixelRatio, this._height - (rectangle.y + rectangle.height) * this._pixelRatio, rectangle.width * this._pixelRatio, rectangle.height * this._pixelRatio);
+		this._gl.scissor(
+			rectangle.x * this._pixelRatio,
+			this._height - (rectangle.y + rectangle.height) * this._pixelRatio, // flipped by Y
+			rectangle.width * this._pixelRatio,
+			rectangle.height * this._pixelRatio);
 	}
 
 	public setTextureAt(sampler: number, texture: TextureBaseWebGL): void {
@@ -494,7 +539,8 @@ export class ContextWebGL implements IContextGL {
 
 		const tex = <TextureWebGL>texture;
 		const powerOfTwo = !(tex.width & (tex.width - 1)) && !(tex.height & (tex.height - 1));
-		const isAllowRepeat = (this.glVersion === 2 || powerOfTwo) && ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
+		const isAllowRepeat =
+			(this.glVersion === 2 || powerOfTwo) && ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
 
 		const textureType: number = this._textureTypeDictionary[texture.textureType];
 		samplerState.type = textureType;
@@ -505,13 +551,14 @@ export class ContextWebGL implements IContextGL {
 
 		if (samplerState.wrap === this._gl.REPEAT && !isAllowRepeat) {
 
-			if (!nPOTAlerts[<number>tex.id] && ContextWebGLFlags.PREF_REPEAT_WRAP === ContextWebGLPreference.ALL_TEXTURES) {
+			if (!nPOTAlerts[tex.id] && ContextWebGLFlags.PREF_REPEAT_WRAP === ContextWebGLPreference.ALL_TEXTURES) {
 				nPOTAlerts[<number>tex.id] = true;
 				console.warn(
 					'[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1,' +
-					'set ContextWebGLFlags.PREF_REPEAT_WRAP = (ContextWebGLPreference.POT_TEXTURES || ContextWebGLPreference.NONE)' +
+					'set ContextWebGLFlags.PREF_REPEAT_WRAP ' +
+					'= (ContextWebGLPreference.POT_TEXTURES | ContextWebGLPreference.NONE)' +
 					'to supress warnings!',
-					 tex);
+					tex);
 			}
 
 			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
@@ -525,7 +572,9 @@ export class ContextWebGL implements IContextGL {
 		this._gl.texParameteri(textureType, this._gl.TEXTURE_MIN_FILTER, samplerState.mipfilter);
 	}
 
-	public setSamplerStateAt(sampler: number, wrap: ContextGLWrapMode, filter: ContextGLTextureFilter, mipfilter: ContextGLMipFilter): void {
+	public setSamplerStateAt(
+		sampler: number, wrap: ContextGLWrapMode, filter: ContextGLTextureFilter, mipfilter: ContextGLMipFilter): void {
+
 		if (0 <= sampler && sampler < ContextWebGL.MAX_SAMPLERS) {
 			this._samplerStates[sampler].wrap = this._wrapDictionary[wrap];
 			this._samplerStates[sampler].filter = this._filterDictionary[filter];
@@ -535,7 +584,9 @@ export class ContextWebGL implements IContextGL {
 		}
 	}
 
-	public setVertexBufferAt(index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4): void {
+	public setVertexBufferAt(
+		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4): void {
+
 		const location: number = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
 
 		// disable location, OS will fire error when loadings invalid buffer to it
@@ -560,10 +611,14 @@ export class ContextWebGL implements IContextGL {
 
 		this._gl.enableVertexAttribArray(location);
 
-		this._gl.vertexAttribPointer(location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
+		this._gl.vertexAttribPointer(
+			location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
 	}
 
-	public setRenderToTexture(target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0, surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+	public setRenderToTexture(
+		target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0,
+		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+
 		if (this._renderTarget) {
 			this.presentFrameBuffer(this._renderTarget);
 			this._renderTarget._isRT = false;
@@ -571,7 +626,14 @@ export class ContextWebGL implements IContextGL {
 
 		this._renderTarget = <TextureWebGL> target;
 		this._renderTarget._isRT = true;
-		this._renderTargetConfig = { texture: this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector };
+		this._renderTargetConfig = {
+			texture: this._renderTarget,
+			enableDepthAndStencil,
+			antiAlias,
+			surfaceSelector,
+			mipmapSelector
+		};
+
 		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
@@ -593,7 +655,7 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		const {
-			texture, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector
+			/*texture,*/ enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector
 		} = this._renderTargetConfig;
 
 		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
@@ -605,11 +667,16 @@ export class ContextWebGL implements IContextGL {
 
 	public unsafeCopyToTexture(target: TextureBaseWebGL, rect: Rectangle, destPoint: Point): void {
 		this._gl.bindTexture(this._gl.TEXTURE_2D, target.glTexture);
-		this._gl.copyTexSubImage2D(this._gl.TEXTURE_2D, 0, destPoint.x, destPoint.y, rect.x, rect.y, rect.width, rect.height);
+		this._gl.copyTexSubImage2D(
+			this._gl.TEXTURE_2D, 0, destPoint.x, destPoint.y, rect.x, rect.y, rect.width, rect.height);
+
 		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 	}
 
-	/*internal*/ setFrameBuffer(target: TextureWebGL, enableDepthAndStencil: boolean, antiAlias: number, surfaceSelector: number, mipmapSelector: number) {
+	/*internal*/ setFrameBuffer(
+		target: TextureWebGL, enableDepthAndStencil: boolean,
+		antiAlias: number, surfaceSelector: number, mipmapSelector: number) {
+
 		if (this._gl instanceof WebGLRenderingContext)
 			mipmapSelector = 0;
 
@@ -651,7 +718,9 @@ export class ContextWebGL implements IContextGL {
 
 		// apply texture with empty data
 		if (!target._isFilled) {
-			this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+			this._gl.texImage2D(
+				this._gl.TEXTURE_2D, 0, this._gl.RGBA, width, height, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, null);
+
 			this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
 			target._isFilled = true;
@@ -668,9 +737,11 @@ export class ContextWebGL implements IContextGL {
 			// set renderbuffer configuration
 			this._gl.renderbufferStorage(this._gl.RENDERBUFFER, this._gl.DEPTH_STENCIL, target._width, target._height);
 			// attach texture to framebuffer
-			this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, target._glTexture, 0);
+			this._gl.framebufferTexture2D(
+				this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, target._glTexture, 0);
 			// attach depth to framebuffer
-			this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
+			this._gl.framebufferRenderbuffer(
+				this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
 
 			target._multisampled = false;
 		} else {
@@ -687,7 +758,13 @@ export class ContextWebGL implements IContextGL {
 				target._texStorageFlag = true;
 			}
 			// attach texture to framebuffer to current mipmap level
-			this._gl.framebufferTexture2D(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.TEXTURE_2D, target._glTexture, target._mipmapSelector);
+			this._gl.framebufferTexture2D(
+				this._gl.FRAMEBUFFER,
+				this._gl.COLOR_ATTACHMENT0,
+				this._gl.TEXTURE_2D,
+				target._glTexture,
+				target._mipmapSelector
+			);
 
 			this._gl.bindTexture(this._gl.TEXTURE_2D, null);
 
@@ -696,19 +773,23 @@ export class ContextWebGL implements IContextGL {
 
 			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBufferDepth);
 			// attach depth renderbuffer multisampled
-			this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
+			this._gl.renderbufferStorageMultisample(
+				this._gl.RENDERBUFFER, antiAlias, this._gl.DEPTH24_STENCIL8, width, height);
 			// set renderbuffer configuration
-			this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
+			this._gl.framebufferRenderbuffer(
+				this._gl.FRAMEBUFFER, this._gl.DEPTH_STENCIL_ATTACHMENT, this._gl.RENDERBUFFER, renderBufferDepth);
 
 			// create READ color renderbuffer for multismapling
-			const renderBuffer: WebGLRenderbuffer = target._renderBuffer[mipmapSelector] = this._gl.createRenderbuffer();
+			const renderBuffer: WebGLRenderbuffer
+				= target._renderBuffer[mipmapSelector] = this._gl.createRenderbuffer();
 
 			// bind it
 			this._gl.bindRenderbuffer(this._gl.RENDERBUFFER, renderBuffer);
 			// set config
 			this._gl.renderbufferStorageMultisample(this._gl.RENDERBUFFER, antiAlias, this._gl.RGBA8, width, height);
 			// attach READ framebuffer
-			this._gl.framebufferRenderbuffer(this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.RENDERBUFFER, renderBuffer);
+			this._gl.framebufferRenderbuffer(
+				this._gl.FRAMEBUFFER, this._gl.COLOR_ATTACHMENT0, this._gl.RENDERBUFFER, renderBuffer);
 
 			target._multisampled = true;
 		}
@@ -739,7 +820,9 @@ export class ContextWebGL implements IContextGL {
 		this._gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, this._gl.COLOR_BUFFER_BIT, this._gl.NEAREST);
 	}
 
-	/*internal*/ presentFrameBufferTo(source: TextureWebGL | null, target: TextureWebGL, rect: Rectangle, point: Point): void {
+	/*internal*/ presentFrameBufferTo(
+		source: TextureWebGL | null, target: TextureWebGL, rect: Rectangle, point: Point): void {
+
 		let targetFrameBuffer = target.textureFramebuffer;
 
 		if (!targetFrameBuffer) {
