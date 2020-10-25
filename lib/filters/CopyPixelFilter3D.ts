@@ -1,22 +1,29 @@
 import { Filter3DCopyPixelTask } from './tasks/Filter3DCopyPixelTask';
+import { Filter3DCopyPixelTaskWebGL } from './tasks/webgl/Filter3DCopyPixelTaskWebgGL';
 
 import { Filter3DBase } from './Filter3DBase';
 import { Image2D } from '../image/Image2D';
 import { Rectangle, Point, ColorTransform } from '@awayjs/core';
+import { IContextGL } from '../base/IContextGL';
+import { ContextWebGL } from '../webgl/ContextWebGL';
 
 export class CopyPixelFilter3D extends Filter3DBase {
-	private _copyPixelTask: Filter3DCopyPixelTask;
+	private _copyPixelTask: Filter3DCopyPixelTask | Filter3DCopyPixelTaskWebGL;
 
 	/**
 	 * Creates a new CopyPixelFilter3D object
-	 * @param blurX The amount of horizontal blur to apply
-	 * @param blurY The amount of vertical blur to apply
-	 * @param stepSize The distance between samples. Set to -1 to autodetect with acceptable quality.
 	 */
-	constructor() {
-		super();
 
-		this._copyPixelTask = new Filter3DCopyPixelTask();
+	public init (context: IContextGL) {
+		if (this._context === context) {
+			return;
+		}
+
+		super.init(context);
+
+		this._copyPixelTask = context instanceof ContextWebGL
+			? new Filter3DCopyPixelTaskWebGL()
+			: new Filter3DCopyPixelTask();
 
 		this.addTask(this._copyPixelTask);
 	}

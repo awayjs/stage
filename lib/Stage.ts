@@ -31,7 +31,6 @@ import { ContextSoftware } from './software/ContextSoftware';
 import { ContextWebGL } from './webgl/ContextWebGL';
 import { ContextGLClearMask } from './base/ContextGLClearMask';
 import { Image2D } from './image/Image2D';
-import { Filter3DTaskBase } from './filters/tasks/Filter3DTaskBase';
 import { ContextGLDrawMode } from './base/ContextGLDrawMode';
 import { IIndexBuffer } from './base/IIndexBuffer';
 import { CopyPixelFilter3D } from './filters/CopyPixelFilter3D';
@@ -237,13 +236,15 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const _rtms = this._renderMipmapSelector;
 		const _rtem = this._enableDepthAndStencil;
 
+		filter.init(this._context);
 		filter.setRenderTargets(target, this);
 
 		//render
-		const indexBuffer: IIndexBuffer = this._filterIndexBuffer;
+		const indexBuffer = this._filterIndexBuffer;
+		const tasks = filter.tasks;
+		const len = tasks.length;
+
 		let vertexBuffer: IVertexBuffer = this._filterVertexBuffer;
-		const tasks: Filter3DTaskBase[] = filter.tasks;
-		const len: number = tasks.length;
 
 		if (len > 1 || tasks[0].target) {
 			this._context.setProgram(tasks[0].getProgram(this));
@@ -254,10 +255,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 				tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
 		}
 
-		for (let i: number = 0; i < len; ++i) {
-
-			const task: Filter3DTaskBase = tasks[i];
-
+		for (const task of tasks) {
 			this.setRenderTarget(task.target, false);
 			this.setScissor(null);
 
@@ -308,8 +306,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		if (mergeAlpha) {
 
-			if (!this._copyPixelFilter)
+			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = new CopyPixelFilter3D();
+				this._copyPixelFilter.init(this._context);
+			}
 
 			this._copyPixelFilter.sourceTexture = source;
 			this._copyPixelFilter.rect = rect;
@@ -377,8 +377,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {
-		if (!this._copyPixelFilter)
+		if (!this._copyPixelFilter) {
 			this._copyPixelFilter = new CopyPixelFilter3D();
+			this._copyPixelFilter.init(this._context);
+		}
 
 		this._copyPixelFilter.sourceTexture = source;
 		this._copyPixelFilter.rect = rect;
