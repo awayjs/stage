@@ -1,7 +1,19 @@
 import { Matrix, Point } from '@awayjs/core';
 
 export class BitmapImageUtils {
-	public static drawBitmap(source: Uint8ClampedArray, offsetX: number, offsetY: number, width: number, height: number, canvas: Uint8ClampedArray, canvasOffsetX: number, canvasOffsetY: number, canvasImageWidth: number, canvasImageHeight: number, matrix: Matrix = null): void {
+	public static drawBitmap(
+		source: Uint8ClampedArray,
+		offsetX: number,
+		offsetY: number,
+		width: number,
+		height: number,
+		canvas: Uint8ClampedArray,
+		canvasOffsetX: number,
+		canvasOffsetY: number,
+		canvasImageWidth: number,
+		canvasImageHeight: number,
+		matrix: Matrix = null): void {
+
 		if (matrix || (canvasImageWidth != width || canvasImageHeight != height)) {
 			if (!matrix) {
 				matrix = new Matrix();
@@ -11,26 +23,26 @@ export class BitmapImageUtils {
 			const scaleX: number = Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b);
 			const scaleY: number = Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d);
 
-			var canvasWidth: number = width * scaleX;
-			var canvasHeight: number = height * scaleY;
+			const canvasWidth = width * scaleX;
+			const canvasHeight = height * scaleY;
 
 			matrix.tx += canvasOffsetX;
 			matrix.ty += canvasOffsetY;
 
-			var canvasOffsetX: number = Math.floor(matrix.tx);
-			var canvasOffsetY: number = Math.floor(matrix.ty);
+			canvasOffsetX = Math.floor(matrix.tx);
+			canvasOffsetY = Math.floor(matrix.ty);
 
 			matrix.invert();
 
 			if (scaleX >= 1 || scaleY >= 1) {
 				let p: Point = new Point();
-				for (var i: number = canvasOffsetX; i < canvasOffsetX + canvasWidth; i++) {
-					for (var j: number = canvasOffsetY; j < canvasOffsetY + canvasHeight; j++) {
+				for (let i = canvasOffsetX; i < canvasOffsetX + canvasWidth; i++) {
+					for (let j = canvasOffsetY; j < canvasOffsetY + canvasHeight; j++) {
 						p.x = i;
 						p.y = j;
 						p = matrix.transformPoint(p);
 
-						var color: number[] = BitmapImageUtils.sampleBilinear(p.x, p.y, source, width, height);
+						const color: number[] = BitmapImageUtils.sampleBilinear(p.x, p.y, source, width, height);
 						BitmapImageUtils.applyPixel32(canvas, canvasImageWidth, canvasImageHeight, i, j, color);
 					}
 				}
@@ -38,8 +50,8 @@ export class BitmapImageUtils {
 				//decimate
 				let p1: Point = new Point();
 				let p2: Point = new Point();
-				for (var i: number = canvasOffsetX; i < canvasOffsetX + canvasWidth; i++) {
-					for (var j: number = canvasOffsetY; j < canvasOffsetY + canvasHeight; j++) {
+				for (let i = canvasOffsetX; i < canvasOffsetX + canvasWidth; i++) {
+					for (let j = canvasOffsetY; j < canvasOffsetY + canvasHeight; j++) {
 						p1.x = i;
 						p1.y = j;
 						p1 = matrix.transformPoint(p1);
@@ -48,7 +60,14 @@ export class BitmapImageUtils {
 						p2.y = j + 1;
 						p2 = matrix.transformPoint(p2);
 
-						var color: number[] = BitmapImageUtils.sampleBox(p1.x + offsetX, p1.y + offsetY, p2.x + offsetX, p2.y + offsetY, source, width, height);
+						const color: number[] = BitmapImageUtils.sampleBox(
+							p1.x + offsetX,
+							p1.y + offsetY,
+							p2.x + offsetX,
+							p2.y + offsetY,
+							source,
+							width,
+							height);
 						BitmapImageUtils.applyPixel32(canvas, canvasImageWidth, canvasImageHeight, i, j, color);
 					}
 				}
@@ -56,16 +75,23 @@ export class BitmapImageUtils {
 
 			matrix.invert();
 		} else {
-			for (var i: number = canvasOffsetX; i < canvasOffsetX + canvasWidth; i++) {
-				for (var j: number = canvasOffsetY; j < canvasOffsetY + canvasHeight; j++) {
-					var color: number[] = BitmapImageUtils.sample(i - canvasOffsetX + offsetX, j - canvasOffsetY + offsetY, source, width, height);
+			for (let i = canvasOffsetX; i < canvasOffsetX + width; i++) {
+				for (let j = canvasOffsetY; j < canvasOffsetY + height; j++) {
+					const color: number[] = BitmapImageUtils.sample(
+						i - canvasOffsetX + offsetX,
+						j - canvasOffsetY + offsetY,
+						source,
+						width,
+						height);
 					BitmapImageUtils.applyPixel32(canvas, canvasImageWidth, canvasImageHeight, i, j, color);
 				}
 			}
 		}
 	}
 
-	private static applyPixel32(data: Uint8ClampedArray, width: number, height: number, x: number, y: number, color: number[]) {
+	private static applyPixel32(
+		data: Uint8ClampedArray, width: number, height: number, x: number, y: number, color: number[]) {
+
 		//todo: blending support
 
 		x = Math.floor(x);
@@ -92,7 +118,12 @@ export class BitmapImageUtils {
 		data[index + 3] = data[index + 3] & 0xFF;
 	}
 
-	public static sampleBilinear(u: number, v: number, data: Uint8ClampedArray, width: number, height: number, texelSizeX: number = 1, texelSizeY: number = 1): number[] {
+	public static sampleBilinear(
+		u: number, v: number,
+		data: Uint8ClampedArray,
+		width: number, height: number,
+		texelSizeX: number = 1, texelSizeY: number = 1): number[] {
+
 		const color00: number[] = BitmapImageUtils.sample(u, v, data, width, height);
 		const color10: number[] = BitmapImageUtils.sample(u + texelSizeX, v, data, width, height);
 		const color01: number[] = BitmapImageUtils.sample(u, v + texelSizeY, data, width, height);
@@ -127,7 +158,13 @@ export class BitmapImageUtils {
 		return result;
 	}
 
-	public static sampleBox(x0: number, y0: number, x1: number, y1: number, data: Uint8ClampedArray, width: number, height: number): number[] {
+	public static sampleBox(
+		x0: number,y0: number,
+		x1: number, y1: number,
+		data: Uint8ClampedArray,
+		width: number,
+		height: number): number[] {
+
 		let area: number = 0;// -- total area accumulated in pixels
 		const result: number[] = [0, 0, 0, 0];
 		let x: number;
