@@ -3,7 +3,6 @@ import { ContextGLProgramType } from '../../../base/ContextGLProgramType';
 import { IContextGL } from '../../../base/IContextGL';
 import { Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
-import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);

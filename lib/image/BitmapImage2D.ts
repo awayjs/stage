@@ -112,6 +112,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	protected _finalizer: FinalizationRegistry;
 	protected _weakRefAdapter: WeakRef<IAssetAdapter>;
 	protected _transparent: boolean;
+	protected _uploadPMA: boolean = true;
 	protected _stage: Stage;
 	protected _locked: boolean = false;
 	protected _floodStack: number[] = [];
@@ -208,6 +209,14 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	public set transparent(value: boolean) {
 		this._transparent = value;
+	}
+
+	/**
+	 * Store a mode, witch should be uploaded to GPU
+	 * not all case PMA is should be enabled
+	 */
+	get uploadPMA() {
+		return this._uploadPMA && this._transparent;
 	}
 
 	/**
@@ -1079,7 +1088,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	set alphaChannel(buff: Uint8Array) {
 		this.dropAllReferences();
-
 		if (!buff) return;
 
 		this.applySymbol();
@@ -1089,11 +1097,14 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				'error when trying to merge the alpha channel into the image.' +
 				'the length of the alpha channel should be 1/4 of the length of the imageData');
 
-		for (let i = 0; i < buff.length; i++)
+		for (let i = 0; i < buff.length; i++) {
 			this._data[i * 4 + 3] = buff[i];
+		}
 
 		//remove alpha data once applied
 		this._alphaChannel = null;
+		// disable PMA because it is a cause black halo bag on JPEG3 images
+		this._uploadPMA = false;
 	}
 
 	/**
@@ -1177,7 +1188,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		if (this._invalid && pixels) {
 			const data = pixels.buffer;
 
-			t.uploadFromArray(new Uint8Array(data), 0, asset.transparent);
+			t.uploadFromArray(new Uint8Array(data), 0, asset.uploadPMA);
 
 			const mipLevels = asset.mipLevels;
 			if (mipLevels && mipLevels.length > 0) {
