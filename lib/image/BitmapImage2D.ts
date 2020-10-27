@@ -1,7 +1,6 @@
 import { ColorTransform, Matrix, Rectangle, Point, ColorUtils, IAssetAdapter, AssetEvent, IAsset } from '@awayjs/core';
-
-import { Image2D } from './Image2D';
 import { UnloadManager, IUnloadable } from './../managers/UnloadManager';
+import { Image2D } from './Image2D';
 
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
@@ -96,6 +95,7 @@ interface LazyImageSymbolTag {
 		width: number;
 		height: number;
 		data: Uint8ClampedArray;
+		isPMA?: boolean;
 	}
 }
 
@@ -112,7 +112,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	protected _finalizer: FinalizationRegistry;
 	protected _weakRefAdapter: WeakRef<IAssetAdapter>;
 	protected _transparent: boolean;
-	protected _uploadPMA: boolean = true;
+	protected _unpackPMA: boolean = true;
 	protected _stage: Stage;
 	protected _locked: boolean = false;
 	protected _floodStack: number[] = [];
@@ -215,8 +215,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * Store a mode, witch should be uploaded to GPU
 	 * not all case PMA is should be enabled
 	 */
-	get uploadPMA() {
-		return this._uploadPMA && this._transparent;
+	get unpackPMA() {
+		return this._unpackPMA && this._transparent;
 	}
 
 	/**
@@ -279,6 +279,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		this._lazySymbol.lazyParser();
 		this._data = this._lazySymbol.definition.data;
+
+		// disable UNPACK_PREMULTIPLE_ALPHA becasue already is PMA
+		this._unpackPMA = !this._lazySymbol.definition.isPMA;
 
 		// console.log("Run lazy bitmap parser", this.id);
 		// hop
@@ -1104,7 +1107,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		//remove alpha data once applied
 		this._alphaChannel = null;
 		// disable PMA because it is a cause black halo bag on JPEG3 images
-		this._uploadPMA = false;
+		this._unpackPMA = false;
 	}
 
 	/**
@@ -1188,7 +1191,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		if (this._invalid && pixels) {
 			const data = pixels.buffer;
 
-			t.uploadFromArray(new Uint8Array(data), 0, asset.uploadPMA);
+			t.uploadFromArray(new Uint8Array(data), 0, asset.unpackPMA);
 
 			const mipLevels = asset.mipLevels;
 			if (mipLevels && mipLevels.length > 0) {
