@@ -6,6 +6,7 @@ import { Image2D } from '../image/Image2D';
 import { IGraphicsFactory } from '../factories/IGraphicsFactory';
 
 export class ImageUtils {
+	private static CANVAS: HTMLCanvasElement;
 	private static MAX_SIZE: number = 8192;
 	private static _defaultSampler: ImageSampler;
 	private static _defaultBitmapImage2D: BitmapImage2D;
@@ -14,15 +15,21 @@ export class ImageUtils {
 	/**
 	 *
 	 */
-	public static imageToBitmapImage2D(img: HTMLImageElement, powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
+	public static imageToBitmapImage2D(
+		img: HTMLImageElement, powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
+
 		if (!factory)
 			factory = new DefaultGraphicsFactory();
-		const image2D: BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
 
-		const canvas: HTMLCanvasElement = document.createElement('canvas');
+		const image2D = <BitmapImage2D> factory.createImage2D(
+			img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
+
+		const canvas = this.CANVAS || (this.CANVAS = document.createElement('canvas'));
+		const context = canvas.getContext('2d');
+
 		canvas.width = img.naturalWidth;
 		canvas.height = img.naturalHeight;
-		const context: CanvasRenderingContext2D = canvas.getContext('2d');
+
 		context.drawImage(img, 0, 0);
 		image2D.setPixels(image2D.rect, context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data);
 
@@ -33,7 +40,8 @@ export class ImageUtils {
 		if (image2D == null)
 			return true;
 
-		return this.isDimensionValid(image2D.width, image2D.powerOfTwo) && this.isDimensionValid(image2D.height, image2D.powerOfTwo);
+		return this.isDimensionValid(image2D.width, image2D.powerOfTwo)
+			&& this.isDimensionValid(image2D.height, image2D.powerOfTwo);
 	}
 
 	public static isHTMLImageElementValid(image: HTMLImageElement): boolean {
@@ -90,8 +98,14 @@ export class ImageUtils {
 
 		const b = new BitmapImageCube(this._defaultBitmapImage2D.width);
 
-		for (let i: number = 0; i < 6; i++)
-			b.drawBitmap(i, this._defaultBitmapImage2D.data, 0, 0, this._defaultBitmapImage2D.width, this._defaultBitmapImage2D.height);
+		for (let i = 0; i < 6; i++) {
+			b.drawBitmap(
+				i,
+				this._defaultBitmapImage2D.data,
+				0, 0,
+				this._defaultBitmapImage2D.width,
+				this._defaultBitmapImage2D.height);
+		}
 
 		this._defaultBitmapImageCube = b;
 	}
