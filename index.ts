@@ -135,6 +135,7 @@ import { Image2DParser } from './lib/parsers/Image2DParser';
 import { ImageCubeParser } from './lib/parsers/ImageCubeParser';
 import { TextureAtlasParser } from './lib/parsers/TextureAtlasParser';
 
+export * from './lib/Settings';
 
 Loader.enableParser(Image2DParser);
 Loader.enableParser(ImageCubeParser);
