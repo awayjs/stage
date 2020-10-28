@@ -1,6 +1,7 @@
 import { ColorTransform, Matrix, Rectangle, Point, ColorUtils, IAssetAdapter, AssetEvent, IAsset } from '@awayjs/core';
 import { UnloadManager, IUnloadable } from './../managers/UnloadManager';
 import { Image2D } from './Image2D';
+import { Settings } from './../Settings';
 
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
@@ -74,10 +75,20 @@ declare global {
 
 }
 
-const HAS_REF = true && 'WeakRef' in window;
+let HAS_REF = ('WeakRef' in window);
+let alerted = false;
 
-if (HAS_REF) {
-	console.debug('[ImageBitmap2D Experemental] Use WeakRef for ImageBitmap2D');
+function REF_ENABLED() {
+	if (alerted) return HAS_REF;
+
+	alerted = true;
+	HAS_REF = HAS_REF && Settings.ENABLE_WEAK_REF;
+
+	if (HAS_REF) {
+		console.debug('[ImageBitmap2D Experemental] Use WeakRef for ImageBitmap2D');
+	}
+
+	return HAS_REF;
 }
 
 function fastARGB_to_ABGR(val: number, hasAlpha = true) {
@@ -151,19 +162,22 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public unmarkToUnload() {
-		BitmapImage2D.unloadManager.removeTask(this);
+		Settings.ENABLE_UNLOAD_BITMAP && BitmapImage2D.unloadManager.removeTask(this);
 	}
 
 	public markToUnload() {
+		if (!Settings.ENABLE_UNLOAD_BITMAP) return;
 		if (this._isSymbolSource) return;
 
 		this.lastUsedTime = BitmapImage2D.unloadManager.correctedTime;
 
+		// add before, because task can be already exist
+		// and if we a run GC before - it kill texture
+		BitmapImage2D.unloadManager.addTask(this);
+
 		// run execution when is marked that used
 		const count = BitmapImage2D.unloadManager.execute();
 		count && console.debug('[BitmapImage2D Experemental] Texture was unloaded from GPU by timer:', count);
-
-		BitmapImage2D.unloadManager.addTask(this);
 	}
 
 	public unload(): void {
@@ -259,10 +273,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		if (fillColor != null && fillColor != 0x0)
 			this.fillRect(this._rect, fillColor);
-
-		if (HAS_REF) {
-			this._finalizer = new FinalizationRegistry(this.onAdapterDropped.bind(this));
-		}
 	}
 
 	public addLazySymbol(tag: LazyImageSymbolTag) {
@@ -294,12 +304,21 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * Reference will dropped, and adapter destroyed after collecting a adapter
 	 */
 	public useWeakRef() {
+		if (!REF_ENABLED() || this._isWeakRef) {
+			return;
+		}
+
 		this._isWeakRef = true;
+
+		if (!this._finalizer) {
+			this._finalizer = new FinalizationRegistry(this.onAdapterDropped.bind(this));
+		}
+
 		this.adapter = this._adapter;
 	}
 
 	public unuseWeakRef() {
-		if (!HAS_REF || !this._isWeakRef) {
+		if (!this._isWeakRef) {
 			return;
 		}
 
@@ -315,7 +334,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	set adapter(v: IAssetAdapter) {
 
-		if (HAS_REF && this._isWeakRef) {
+		if (this._isWeakRef) {
 
 			this._finalizer.unregister(this);
 
