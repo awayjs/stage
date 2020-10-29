@@ -13,6 +13,7 @@ function sortManagersFunct(a: UnloadManager<IUnloadable>, b: UnloadManager<IUnlo
 export interface IManagerOptions {
 	name?: string;
 	keepAliveTime?: number;
+	maxUnloadTasks?: number;
 	priority?: number;
 }
 
@@ -65,8 +66,9 @@ export class UnloadManager<T extends IUnloadable> {
 	constructor(options?: IManagerOptions) {
 		if (options) {
 			this.name = options.name || this.name;
-			this.keepAliveTime = options.keepAliveTime || this.keepAliveTime;
 			this.priority = options.priority ?? this.priority;
+			this.keepAliveTime = options.keepAliveTime || this.keepAliveTime;
+			this.maxUnloadTask = options.maxUnloadTasks || this.maxUnloadTask;
 		}
 	}
 

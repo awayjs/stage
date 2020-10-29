@@ -114,10 +114,21 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public static UNLOAD_EVENT = 'unload';
 
 	public static assetType: string = '[image BitmapImage2D]';
-	public static unloadManager: UnloadManager<BitmapImage2D> = UnloadService.createManager({
-		name : 'BitmapImage2D',
-		priority: 0,
-	});
+
+	private static _unloadManager: UnloadManager<BitmapImage2D>;
+
+	public static get unloadManager() {
+
+		if (!this._unloadManager) {
+			this._unloadManager = UnloadService.createManager({
+				name : 'BitmapImage2D',
+				priority: 0,
+				maxUnloadTasks: Settings.MAX_BITMAP_UNLOAD_TASKS,
+			});
+		}
+
+		return this._unloadManager;
+	}
 
 	public _lazySymbol: LazyImageSymbolTag;
 
@@ -1212,10 +1223,10 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {
-			throw new Error('Invalid BitmapData state, pixles can\'t be null' + asset.id);
+			// throw new Error('Invalid BitmapData state, pixles can\'t be null' + asset.id);
 		}
 
-		if (this._invalid) {
+		if (this._invalid && pixels) {
 			const data = pixels.buffer;
 
 			t.uploadFromArray(new Uint8Array(data), 0, asset.unpackPMA);
