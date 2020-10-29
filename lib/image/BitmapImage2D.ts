@@ -1,5 +1,5 @@
 import { ColorTransform, Matrix, Rectangle, Point, ColorUtils, IAssetAdapter, AssetEvent, IAsset } from '@awayjs/core';
-import { UnloadManager, IUnloadable } from './../managers/UnloadManager';
+import { UnloadManager, IUnloadable, UnloadService } from './../managers/UnloadManager';
 import { Image2D } from './Image2D';
 import { Settings } from './../Settings';
 
@@ -114,7 +114,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public static UNLOAD_EVENT = 'unload';
 
 	public static assetType: string = '[image BitmapImage2D]';
-	public static unloadManager: UnloadManager<BitmapImage2D> = new UnloadManager();
+	public static unloadManager: UnloadManager<BitmapImage2D> = UnloadService.createManager({
+		name : 'BitmapImage2D',
+		priority: 0,
+	});
+
 	public _lazySymbol: LazyImageSymbolTag;
 
 	protected _isSymbolSource: boolean = false;
@@ -176,8 +180,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		BitmapImage2D.unloadManager.addTask(this);
 
 		// run execution when is marked that used
-		const count = BitmapImage2D.unloadManager.execute();
-		count && console.debug('[BitmapImage2D Experemental] Texture was unloaded from GPU by timer:', count);
+		// const count = BitmapImage2D.unloadManager.execute();
+		// count && console.debug('[BitmapImage2D Experemental] Texture was unloaded from GPU by timer:', count);
 	}
 
 	public unload(): void {
@@ -1207,7 +1211,11 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		const pixels = ((<any> asset)._data);
 		const t = <ITexture> this._texture;
 
-		if (this._invalid && pixels) {
+		if (!pixels) {
+			throw new Error('Invalid BitmapData state, pixles can\'t be null' + asset.id);
+		}
+
+		if (this._invalid) {
 			const data = pixels.buffer;
 
 			t.uploadFromArray(new Uint8Array(data), 0, asset.unpackPMA);

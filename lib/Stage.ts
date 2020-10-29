@@ -37,6 +37,7 @@ import { CopyPixelFilter3D } from './filters/CopyPixelFilter3D';
 import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
+import { UnloadService } from './managers/UnloadManager';
 
 declare class WeakMap<T extends Object, V = any> {
 	delete(key: T);
@@ -163,6 +164,20 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
 
 		this.visible = true;
+	}
+
+	/**
+	 * @description Should be executed AFTER maing rendering process
+	 */
+	public onRenderBegin() {
+
+	}
+
+	/**
+	 * @description Should be executed AFTER rendering process
+	 */
+	public onRenderEnd() {
+		UnloadService.executeAll();
 	}
 
 	public getProgramData(vertexString: string, fragmentString: string): ProgramData {
@@ -585,6 +600,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this.freeContext();
 		this._stageManager = null;
 		this._stageIndex = -1;
+
+		UnloadService.clearAll();
 	}
 
 	/**

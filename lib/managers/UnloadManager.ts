@@ -6,16 +6,69 @@ export interface IUnloadable {
 	unload(): void;
 }
 
+function sortManagersFunct(a: UnloadManager<IUnloadable>, b: UnloadManager<IUnloadable>) {
+	return a.priority - b.priority;
+}
+
+export interface IManagerOptions {
+	name?: string;
+	keepAliveTime?: number;
+	priority?: number;
+}
+
+export class UnloadService {
+	public static tick = 0;
+	private static managers: Array<UnloadManager<IUnloadable>> = [];
+	public static createManager <T extends IUnloadable> (options?: IManagerOptions): UnloadManager<T> {
+		options = Object.assign({
+			name: UnloadManager.name + ':' + this.managers.length
+		}, options || {});
+
+		const manager = new UnloadManager<T>(options);
+		this.managers.push(manager);
+		this.managers.sort(sortManagersFunct);
+
+		return manager;
+	}
+
+	public static executeAll() {
+		for (const m of this.managers) {
+			const count = m.execute();
+			if (count) {
+				console.debug(`[UnloadService:${m.name}, tick: ${this.tick}] unloaded:`, count);
+			}
+		}
+
+		this.tick++;
+	}
+
+	public static clearAll() {
+		for (const m of this.managers) {
+			m.clear();
+		}
+
+		this.tick = 0;
+		this.managers.length = 0;
+	}
+}
+
 export class UnloadManager<T extends IUnloadable> {
 	_tasks: Set<T> = new Set();
 
+	public name = UnloadManager.name;
+	public priority = 0;
+	public keepAliveTime = 10_000;
 	public exectuionTimeout = 5_000;
 	public unloadTaskShift = 1_000;
 	public maxUnloadTask = 100;
 
-	constructor(
-		public keepAliveTime = 10_000
-	) { }
+	constructor(options?: IManagerOptions) {
+		if (options) {
+			this.name = options.name || this.name;
+			this.keepAliveTime = options.keepAliveTime || this.keepAliveTime;
+			this.priority = options.priority ?? this.priority;
+		}
+	}
 
 	private _lastExecutionTime = 0;
 

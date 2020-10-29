@@ -1,18 +1,21 @@
 import { ITexture } from '../base/ITexture';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { ContextWebGL } from './ContextWebGL';
-import { IUnloadable, UnloadManager } from '../managers/UnloadManager';
+import { IUnloadable, UnloadService } from '../managers/UnloadManager';
+import { Settings } from '../Settings';
 
 export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloadable {
 	public static readonly SIZE_POOL_LIMIT = 10;
 
-	public static unloadManager = new UnloadManager<TextureWebGL>(20_000);
+	public static unloadManager = UnloadService.createManager<TextureWebGL>({
+		keepAliveTime: 20_000,
+		name: 'TextureWebGL',
+		priority: 1000, // runs after any unloaders
+	});
+
 	private static _pool: NumberMap<Array<TextureWebGL>> = {};
 
 	public static store(tex: TextureWebGL) {
-
-		const count = this.unloadManager.execute();
-		count && console.debug('[TextureWebGL Experimental] Remove textures persistently', count);
 
 		const key = tex._width << 16 | tex._height;
 		const array = TextureWebGL._pool[key] || (TextureWebGL._pool[key] = []);
@@ -27,10 +30,16 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 			return false;
 		}
 
-		tex.lastUsedTime = this.unloadManager.correctedTime;
-
-		this.unloadManager.addTask(tex);
 		array.push(tex);
+
+		if (Settings.ENABLE_UNLOAD_TEXTURE) {
+			tex.lastUsedTime = this.unloadManager.correctedTime;
+
+			this.unloadManager.addTask(tex);
+
+			// const count = this.unloadManager.execute();
+			// count && console.debug('[TextureWebGL Experimental] Remove textures persistently', count);
+		}
 
 		return true;
 	}
@@ -47,8 +56,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	}
 
 	public static create (context: ContextWebGL, width: number, height: number) {
-		const count = this.unloadManager.execute();
-		count && console.debug('[TextureWebGL Experimental] Remove textures persistently', count);
+		// const count = this.unloadManager.execute();
+		// count && console.debug('[TextureWebGL Experimental] Remove textures persistently', count);
 
 		const key = width << 16 | (height | 0);
 		const tex = TextureWebGL._pool[key]?.pop();
@@ -135,7 +144,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	 * @inheritdoc
 	 */
 	public dispose(): void {
-		if (TextureWebGL.store(this))
+		if (Settings.ENABLE_TEXTURE_POOLING && TextureWebGL.store(this))
 			return;
 
 		this.unload();

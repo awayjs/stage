@@ -27,3 +27,5 @@ export const Settings: IStageSettings = {
 	 */
 	ENABLE_TEXTURE_POOLING: true,
 };
+
+// console.debug('[Stage settings]', Settings);
