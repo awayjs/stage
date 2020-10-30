@@ -145,6 +145,14 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	protected _nestedBitmap: BitmapImage2D[] = [];
 	protected _sourceBitmap: BitmapImage2D;
+
+	/**
+	 * @description Upload flag, marking a image that it was uploaded on GPU
+	 * and can use GPU operations
+	 * fillRect can be implemented on GPU or CPU
+	 */
+	public wasUpload: boolean = false;
+
 	public get sourceBitmap(): BitmapImage2D {
 		return this._sourceBitmap;
 	}
@@ -785,6 +793,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public fillRect(rect: Rectangle, color: number): void {
 		this.dropAllReferences();
 
+		if (!this._data) {
+			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+		}
+
 		const
 			x = ~~rect.x,
 			y = ~~rect.y,
@@ -792,9 +804,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			height = ~~rect.height,
 			data = new Uint32Array(this._data.buffer);
 
-		const argb: number = this._transparent
-			? (color & 0xFFFFFFFF)
-			: (color & 0xFFFFFF) + 0xFF000000;
+		let argb = 0;
+		if (this._transparent) {
+			const [a, r, g, b] = ColorUtils.float32ColorToARGB(color);
+			// PMA
+			argb = ColorUtils.ARGBtoFloat32(
+				a,
+				r * a / 0xff | 0,
+				g * a / 0xff | 0,
+				b * a / 0xff | 0);
+		} else {
+			argb = (color & 0xffffff) | 0xff000000;
+		}
 
 		//fast path for complete fill
 		if (x == 0 && y == 0 && width == this._rect.width && height == this._rect.height) {
@@ -810,6 +831,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			}
 		}
 
+		this._unpackPMA = false;
 		this.invalidateGPU();
 	}
 
@@ -1050,9 +1072,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		const argb = ColorUtils.float32ColorToARGB(color);
 		const data = this.data;
 
-		data[index + 0] = argb[1];
-		data[index + 1] = argb[2];
-		data[index + 2] = argb[3];
+		const factor = this._transparent ? argb[0] / 0xff : 1;
+
+		data[index + 0] = argb[1] * factor | 0;
+		data[index + 1] = argb[2] * factor | 0;
+		data[index + 2] = argb[3] * factor | 0;
 		data[index + 3] = this._transparent ? argb[0] : 0xFF;
 
 		this.invalidateGPU();
@@ -1083,6 +1107,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
 			this._data.set(input);
+			this._unpackPMA = true;
 		} else {
 			const
 				imageWidth: number = this._rect.width,
@@ -1094,6 +1119,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 					input.subarray(i * inputWidth * 4, (i + 1) * inputWidth * 4),
 					(rect.x + (i + rect.y) * imageWidth) * 4);
 
+			console.warn('[BitmapImage2D] Mixed texture mode - array should be a PMA.', this.id);
 		}
 
 		this.invalidateGPU();
@@ -1129,7 +1155,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		this.applySymbol();
 
-		if (this._data.length != buff.length * 4)
+		if (this._data.length !== buff.length * 4)
 			throw (
 				'error when trying to merge the alpha channel into the image.' +
 				'the length of the alpha channel should be 1/4 of the length of the imageData');
@@ -1193,6 +1219,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 			this._texture.dispose();
 			this._texture = null;
 			this._invalid = true;
+			(<BitmapImage2D> this._asset).wasUpload = false;
 		}
 	}
 
@@ -1219,7 +1246,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		asset.applySymbol();
 		super.getTexture();
 
-		const pixels = ((<any> asset)._data);
+		const pixels = <Uint8Array>((<any> asset)._data);
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {
@@ -1227,9 +1254,9 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		}
 
 		if (this._invalid && pixels) {
-			const data = pixels.buffer;
+			t.uploadFromArray(pixels, 0, asset.unpackPMA);
 
-			t.uploadFromArray(new Uint8Array(data), 0, asset.unpackPMA);
+			asset.wasUpload = true;
 
 			const mipLevels = asset.mipLevels;
 			if (mipLevels && mipLevels.length > 0) {
