@@ -37,28 +37,24 @@ precision highp float;
 uniform vec4 fc[2];
 varying vec2 vUv;
 
-/* AGAL legacy atrib resolver require this names */
+/* AGAL legacy attrib resolver require this names */
 uniform sampler2D fs0;
 
 void main() {
 	vec4 color = texture2D(fs0, vUv);
 	
-	if(color.a <= 0.0001) {
-		color *= 0.0;
-	} else {
+	if (color.a > 0.0) {
 		color.rgb /= color.a;
 	}
-	
+
 	// mult
 	color *= clamp(fc[0], 0.0, 1.0);	
-	color = color + fc[1];
+	color += fc[1];
 
 	color.rgb *= color.a;
 
     gl_FragColor = color;
-}
-
-`;
+}`;
 
 export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	private _vertexConstantData: Float32Array;
