@@ -1,6 +1,6 @@
 import { AbstractMethodError } from '@awayjs/core';
-import { SamplerState } from '../base/SamplerState';
 import { ContextWebGL } from './ContextWebGL';
+import { SamplerStateWebGL } from './SamplerStateWebGL';
 
 export class TextureBaseWebGL {
 	public static TEXTURE_ID: number = 0;
@@ -8,7 +8,7 @@ export class TextureBaseWebGL {
 	public textureType: string = '';
 	/* internal */ _gl: WebGLRenderingContext | WebGL2RenderingContext;
 	/* internal */ _glTexture: WebGLTexture;
-	/* internal */ readonly _state: SamplerState = new SamplerState();
+	/* internal */ readonly _state: SamplerStateWebGL = new SamplerStateWebGL();
 
 	private _id: number;
 

@@ -16,7 +16,6 @@ import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
 import { ContextWebGLFlags, ContextWebGLPreference, ContextWebGLVersion } from './ContextWebGLFlags';
 
 import { IContextGL } from '../base/IContextGL';
-import { SamplerState } from '../base/SamplerState';
 
 import { CubeTextureWebGL } from './CubeTextureWebGL';
 import { IndexBufferWebGL } from './IndexBufferWebGL';
@@ -24,6 +23,7 @@ import { ProgramWebGL } from './ProgramWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 import { VertexBufferWebGL } from './VertexBufferWebGL';
+import { SamplerStateWebGL } from './SamplerStateWebGL';
 
 const nPOTAlerts: NumberMap<boolean> = {};
 
@@ -57,7 +57,7 @@ export class ContextWebGL implements IContextGL {
 
 	private _standardDerivatives: boolean;
 
-	private _samplerStates: Array<SamplerState> = new Array<SamplerState>(8);
+	private _samplerStates: Array<SamplerStateWebGL> = new Array<SamplerStateWebGL>(8);
 
 	public static MAX_SAMPLERS: number = 8;
 
@@ -247,7 +247,7 @@ export class ContextWebGL implements IContextGL {
 
 		//defaults
 		for (let i = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
-			this._samplerStates[i] = new SamplerState(
+			this._samplerStates[i] = new SamplerStateWebGL(
 				i,
 				null,
 				this.glVersion === 2 ? this._gl.REPEAT : this._gl.CLAMP_TO_EDGE,
@@ -521,7 +521,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setTextureAt(sampler: number, texture: TextureBaseWebGL): void {
-		const samplerState: SamplerState = this._samplerStates[sampler];
+		const samplerState: SamplerStateWebGL = this._samplerStates[sampler];
 
 		if (this._activeTexture !== sampler && (texture || samplerState.type)) {
 			this._activeTexture = sampler;
@@ -533,13 +533,12 @@ export class ContextWebGL implements IContextGL {
 
 				// disable link to sampler in bounded texture
 				if (samplerState.boundedTexture) {
-					(<TextureWebGL>samplerState.boundedTexture)._state.id = -1;
+					samplerState.boundedTexture._state.id = -1;
 				}
+				this._gl.bindTexture(samplerState.type, null);
 
 				samplerState.boundedTexture = null;
 				samplerState.type = null;
-
-				this._gl.bindTexture(samplerState.type, null);
 			}
 			return;
 		}
