@@ -106,6 +106,10 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		this._glTexture = this._gl.createTexture();
 	}
 
+	get isPOT () {
+		return !(this._width & (this._width - 1)) && !(this._height & (this._height - 1));
+	}
+
 	public get width(): number {
 		return this._width;
 	}
@@ -163,6 +167,8 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		this._mipmapSelector = 0;
 		this._width = this._height = 0;
 		this._multisampled = false;
+
+		this._state.dispose();
 	}
 
 	/* eslint-disable-next-line */

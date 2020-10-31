@@ -139,11 +139,8 @@ export class ContextWebGL implements IContextGL {
 		if (this._gl) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_SUCCESS ) );
 
-			if (this._gl.getExtension('OES_standard_derivatives')) {
-				this._standardDerivatives = true;
-			} else {
-				this._standardDerivatives = false;
-			}
+			this._standardDerivatives = this._glVersion === 2
+						|| !!this._gl.getExtension('OES_standard_derivatives');
 
 			/* eslint-disable */
 			//setup shortcut dictionaries
@@ -249,11 +246,14 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		//defaults
-		for (let i: number = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
-			this._samplerStates[i] = new SamplerState();
-			this._samplerStates[i].wrap = this.glVersion === 2 ? this._gl.REPEAT : this._gl.CLAMP_TO_EDGE;
-			this._samplerStates[i].filter = this._gl.LINEAR;
-			this._samplerStates[i].mipfilter = this._gl.LINEAR;
+		for (let i = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
+			this._samplerStates[i] = new SamplerState(
+				i,
+				null,
+				this.glVersion === 2 ? this._gl.REPEAT : this._gl.CLAMP_TO_EDGE,
+				this._gl.LINEAR,
+				this._gl.LINEAR
+			);
 		}
 
 	}
@@ -523,57 +523,78 @@ export class ContextWebGL implements IContextGL {
 	public setTextureAt(sampler: number, texture: TextureBaseWebGL): void {
 		const samplerState: SamplerState = this._samplerStates[sampler];
 
-		if (this._activeTexture != sampler && (texture || samplerState.type)) {
+		if (this._activeTexture !== sampler && (texture || samplerState.type)) {
 			this._activeTexture = sampler;
 			this._gl.activeTexture(this._textureIndexDictionary[sampler]);
 		}
 
 		if (!texture) {
 			if (samplerState.type) {
-				this._gl.bindTexture(samplerState.type, null);
-				samplerState.type = null;
-			}
 
+				// disable link to sampler in bounded texture
+				if (samplerState.boundedTexture) {
+					(<TextureWebGL>samplerState.boundedTexture)._state.id = -1;
+				}
+
+				samplerState.boundedTexture = null;
+				samplerState.type = null;
+
+				this._gl.bindTexture(samplerState.type, null);
+			}
 			return;
 		}
 
 		const tex = <TextureWebGL>texture;
-		const powerOfTwo = !(tex.width & (tex.width - 1)) && !(tex.height & (tex.height - 1));
-		const isAllowRepeat =
-			(this.glVersion === 2 || powerOfTwo) && ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
+		const powerOfTwo = tex.isPOT;
+		const isAllowRepeat = (this.glVersion === 2 || powerOfTwo)
+			&& ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
 
-		const textureType: number = this._textureTypeDictionary[texture.textureType];
+		const textureType = this._textureTypeDictionary[texture.textureType];
 		samplerState.type = textureType;
 
+		// bind texture only when sampler is not same (texture is not bounded)
+		// but there are a bug, and texture can be unbounded
+		// if (texture._state.id !== sampler) {
 		this._gl.bindTexture(textureType, texture.glTexture);
+		texture._state.id = sampler;
+		// }
 
-		this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
+		// apply state of texture only WHEN IT NOT EQUAL
+		if (!texture._state.equals(samplerState)) {
 
-		if (samplerState.wrap === this._gl.REPEAT && !isAllowRepeat) {
+			texture._state.copyFrom(samplerState);
 
-			if (!nPOTAlerts[tex.id] && ContextWebGLFlags.PREF_REPEAT_WRAP === ContextWebGLPreference.ALL_TEXTURES) {
-				nPOTAlerts[<number>tex.id] = true;
-				console.warn(
-					'[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1,' +
-					'set ContextWebGLFlags.PREF_REPEAT_WRAP ' +
-					'= (ContextWebGLPreference.POT_TEXTURES | ContextWebGLPreference.NONE)' +
-					'to supress warnings!',
-					tex);
+			if (samplerState.wrap === this._gl.REPEAT && !isAllowRepeat) {
+
+				if (!nPOTAlerts[tex.id] && ContextWebGLFlags.PREF_REPEAT_WRAP === ContextWebGLPreference.ALL_TEXTURES) {
+					nPOTAlerts[<number>tex.id] = true;
+					console.warn(
+						'[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1,' +
+						'set ContextWebGLFlags.PREF_REPEAT_WRAP ' +
+						'= (ContextWebGLPreference.POT_TEXTURES | ContextWebGLPreference.NONE)' +
+						'to supress warnings!',
+						tex);
+				}
+
+				this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
+				this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
+			} else {
+				this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
+				this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
 			}
 
-			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, this._gl.CLAMP_TO_EDGE);
-			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
-		} else {
-			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_S, samplerState.wrap);
-			this._gl.texParameteri(textureType, this._gl.TEXTURE_WRAP_T, samplerState.wrap);
+			this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
+			this._gl.texParameteri(textureType, this._gl.TEXTURE_MIN_FILTER, samplerState.mipfilter);
 		}
 
-		this._gl.texParameteri(textureType, this._gl.TEXTURE_MAG_FILTER, samplerState.filter);
-		this._gl.texParameteri(textureType, this._gl.TEXTURE_MIN_FILTER, samplerState.mipfilter);
+		this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
 	}
 
 	public setSamplerStateAt(
-		sampler: number, wrap: ContextGLWrapMode, filter: ContextGLTextureFilter, mipfilter: ContextGLMipFilter): void {
+		sampler: number,
+		wrap: ContextGLWrapMode,
+		filter: ContextGLTextureFilter,
+		mipfilter: ContextGLMipFilter): void {
 
 		if (0 <= sampler && sampler < ContextWebGL.MAX_SAMPLERS) {
 			this._samplerStates[sampler].wrap = this._wrapDictionary[wrap];
