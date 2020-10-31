@@ -813,6 +813,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				r * a / 0xff | 0,
 				g * a / 0xff | 0,
 				b * a / 0xff | 0);
+
+			/**
+			 * TW2 has bug with transition over timeline when used a PMA
+			 * I think that caused by invalid blend mode
+			 */
+			//this._unpackPMA = false;
 		} else {
 			argb = (color & 0xffffff) | 0xff000000;
 		}
@@ -831,7 +837,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			}
 		}
 
-		this._unpackPMA = false;
 		this.invalidateGPU();
 	}
 
