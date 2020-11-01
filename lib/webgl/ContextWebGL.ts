@@ -21,10 +21,43 @@ import { ProgramWebGL } from './ProgramWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 import { VertexBufferWebGL } from './VertexBufferWebGL';
-import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureContextWebGL } from './TextureContextWebGL';
 
+interface IState <T> {
+	values: T[];
+	set (...args: T[]): boolean;
+	reset();
+}
+
+class State<T> implements IState<T> {
+	values: T[] = [];
+
+	constructor (...args: T[]) {
+		// eslint-disable-next-line prefer-rest-params
+		this.values = Array.prototype.slice.call(arguments);
+	}
+
+	set(...args: T[]): boolean {
+		const v = this.values;
+
+		let dirty = false;
+
+		for (let i = 0; i < args.length; i++) {
+			dirty = dirty || v[i] !== args[i];
+			v[i] = args[i];
+		}
+
+		return dirty;
+	}
+
+	reset() {
+		this.set();
+	}
+}
+
 export class ContextWebGL implements IContextGL {
+	public static MAX_SAMPLERS: number = 8;
+
 	private _blendFactorMap: Object = new Object();
 	private _drawModeMap: Object = new Object();
 	private _compareModeMap: Object = new Object();
@@ -41,9 +74,8 @@ export class ContextWebGL implements IContextGL {
 
 	private _standardDerivatives: boolean;
 
-	private _samplerStates: Array<SamplerStateWebGL> = new Array<SamplerStateWebGL>(8);
-
-	public static MAX_SAMPLERS: number = 8;
+	private _colorMapState: State<boolean> = new State(false, false, false, false);
+	private _viewportState: State<number> = new State(0,0,0,0);
 
 	//@protected
 	public _gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -292,8 +324,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public dispose(): void {
-		for (let i: number = 0; i < this._samplerStates.length; ++i)
-			this._samplerStates[i] = null;
+		//
 	}
 
 	public drawToBitmapImage2D(destination: BitmapImage2D): void {
@@ -312,6 +343,9 @@ export class ContextWebGL implements IContextGL {
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
 
+		// updata blend before draw, because blend state can mutated a more times
+		// reduce a state changes
+		this.updateBlendStatus();
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 
 		this._gl.drawElements(
@@ -328,13 +362,15 @@ export class ContextWebGL implements IContextGL {
 		if (numVertices == 0)
 			return;
 
+		// updata blend before draw, because blend state can mutated a more times
+		// reduce a state changes
+		this.updateBlendStatus();
 		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 
 		// todo: this check should not be needed.
 		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
 		if (numVertices == 0)
 			return;
-
 	}
 
 	public present(): void {
@@ -345,19 +381,23 @@ export class ContextWebGL implements IContextGL {
 		const src = this._blendFactorMap[sourceFactor];
 		const dst = this._blendFactorMap[destinationFactor];
 
-		if (this._blendSourceFactor === src && this._blendDestinationFactor === dst && this._blendEnabled) {
+		if (
+			this._blendSourceFactor === src &&
+			this._blendDestinationFactor === dst &&
+			this._blendEnabled) {
 			return;
 		}
 
 		this._blendEnabled = true;
 		this._blendSourceFactor = src;
 		this._blendDestinationFactor = dst;
-
-		this.updateBlendStatus();
 	}
 
 	public setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void {
-		this._gl.colorMask(red, green, blue, alpha);
+
+		if (this._colorMapState.set(red, green, blue, alpha)) {
+			this._gl.colorMask(red, green, blue, alpha);
+		}
 	}
 
 	public setCulling(
@@ -380,7 +420,10 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setViewport(x: number, y: number, width: number, height: number) {
-		this._gl.viewport(x,y,width,height);
+
+		if (this._viewportState.set(x,y,width, height)) {
+			this._gl.viewport(x,y,width,height);
+		}
 	}
 
 	public enableDepth() {
