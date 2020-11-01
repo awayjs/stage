@@ -136,7 +136,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		enableDepthAndStencil: boolean = false, antiAlias: number = 0,
 		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
 
-		this._context.setFrameBuffer(this, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
+		this._context._texContext.setFrameBuffer(
+			this,
+			enableDepthAndStencil,
+			antiAlias,
+			surfaceSelector,
+			mipmapSelector);
 	}
 
 	public presentFrameBuffer(): void {
@@ -157,7 +162,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	unload(): void {
 		TextureWebGL.remove(this);
 
-		this._context.disposeTexture(this);
+		this._context._texContext.disposeTexture(this);
 
 		this._glTexture = null;
 		this._renderBuffer = null;
@@ -173,30 +178,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 	/* eslint-disable-next-line */
 	public uploadFromArray(array: Uint8Array | Array<number>, miplevel: number = 0, premultiplied: boolean = false): void {
-		const width = this._width >>> miplevel;
-		const height = this._height >>> miplevel;
-
-		if (array.length !== width * height * 4) {
-			/* eslint-disable-next-line */
-			throw new Error(`Array is not the correct length for texture dimensions: expected: ${width * height * 4}, exist: ${array.length}`);
-		}
-
-		if (array instanceof Array)
-			array = new Uint8Array(array);
-
-		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
-		this._gl.texImage2D(
-			this._gl.TEXTURE_2D,
+		this._context._texContext.uploadFromArray(
+			this,
+			array,
 			miplevel,
-			this._gl.RGBA,
-			width, height,
-			0,
-			this._gl.RGBA,
-			this._gl.UNSIGNED_BYTE,
-			array);
-
-		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+			premultiplied
+		);
 
 		this._isFilled = true;
 		this._isPMA = premultiplied;
@@ -204,19 +191,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 	public uploadFromURL(urlRequest: unknown, miplevel: number = 0, premultiplied: boolean = false): void {
 		//dummy code for testing
-		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-		this._gl.pixelStorei(this._gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
-		this._gl.texImage2D(
-			this._gl.TEXTURE_2D,
-			0,
-			this._gl.RGBA,
-			this._width, this._height,
-			0,
-			this._gl.RGBA,
-			this._gl.UNSIGNED_BYTE,
-			null);
-
-		this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+		this._context._texContext.uploadFromArray(
+			this,
+			null,
+			miplevel,
+			premultiplied
+		);
 
 		this._isFilled = true;
 		this._isPMA = premultiplied;
