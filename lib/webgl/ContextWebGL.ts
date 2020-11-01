@@ -14,9 +14,7 @@ import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat
 import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
 import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
 import { ContextWebGLFlags, ContextWebGLVersion } from './ContextWebGLFlags';
-
 import { IContextGL } from '../base/IContextGL';
-
 import { CubeTextureWebGL } from './CubeTextureWebGL';
 import { IndexBufferWebGL } from './IndexBufferWebGL';
 import { ProgramWebGL } from './ProgramWebGL';
@@ -26,25 +24,12 @@ import { VertexBufferWebGL } from './VertexBufferWebGL';
 import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureContextWebGL } from './TextureContextWebGL';
 
-interface IRendertargetEntry {
-	texture: TextureWebGL;
-	enableDepthAndStencil: boolean;
-	antiAlias: number;
-	surfaceSelector: number;
-	mipmapSelector: number;
-}
-
 export class ContextWebGL implements IContextGL {
-	private _blendFactorDictionary: Object = new Object();
-	private _drawModeDictionary: Object = new Object();
-	private _compareModeDictionary: Object = new Object();
-	private _stencilActionDictionary: Object = new Object();
-	private _textureIndexDictionary: Array<number> = new Array<number>(8);
-	private _textureTypeDictionary: Object = new Object();
-	private _wrapDictionary: Object = new Object();
-	private _filterDictionary: Object = new Object();
-	private _mipmapFilterDictionary: Object = new Object();
-	private _vertexBufferPropertiesDictionary: Array<VertexBufferProperties> = [];
+	private _blendFactorMap: Object = new Object();
+	private _drawModeMap: Object = new Object();
+	private _compareModeMap: Object = new Object();
+	private _stencilActionMap: Object = new Object();
+	private _vertexBufferMap: NumberMap<VertexBufferProperties> = {};
 
 	private _container: HTMLCanvasElement;
 	private _width: number;
@@ -77,7 +62,6 @@ export class ContextWebGL implements IContextGL {
 	private _separateStencil: boolean = false;
 	private _pixelRatio: number;
 	private _glVersion: number;
-	private _renderTarget: TextureWebGL;
 
 	public get glVersion(): number {
 		return this._glVersion;
@@ -138,77 +122,96 @@ export class ContextWebGL implements IContextGL {
 		if (this._gl) {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_SUCCESS ) );
 
+			const gl = this._gl;
+
 			this._standardDerivatives = this._glVersion === 2
-						|| !!this._gl.getExtension('OES_standard_derivatives');
+						|| !!gl.getExtension('OES_standard_derivatives');
 
 			/* eslint-disable */
 			//setup shortcut dictionaries
-			this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
-			this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_ALPHA] = this._gl.DST_ALPHA;
-			this._blendFactorDictionary[ContextGLBlendFactor.DESTINATION_COLOR] = this._gl.DST_COLOR;
-			this._blendFactorDictionary[ContextGLBlendFactor.ONE] = this._gl.ONE;
-			this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_ALPHA] = this._gl.ONE_MINUS_DST_ALPHA;
-			this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_DESTINATION_COLOR] = this._gl.ONE_MINUS_DST_COLOR;
-			this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA] = this._gl.ONE_MINUS_SRC_ALPHA;
-			this._blendFactorDictionary[ContextGLBlendFactor.ONE_MINUS_SOURCE_COLOR] = this._gl.ONE_MINUS_SRC_COLOR;
-			this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_ALPHA] = this._gl.SRC_ALPHA;
-			this._blendFactorDictionary[ContextGLBlendFactor.SOURCE_COLOR] = this._gl.SRC_COLOR;
-			this._blendFactorDictionary[ContextGLBlendFactor.ZERO] = this._gl.ZERO;
+			const BF = ContextGLBlendFactor;
 
-			this._drawModeDictionary[ContextGLDrawMode.LINES] = this._gl.LINES;
-			this._drawModeDictionary[ContextGLDrawMode.TRIANGLES] = this._gl.TRIANGLES;
+			this._blendFactorMap = {
+				[BF.ONE]: gl.ONE,
+				[BF.DESTINATION_ALPHA]: gl.DST_ALPHA,
+				[BF.DESTINATION_COLOR]: gl.DST_COLOR,
+				[BF.ONE]: gl.ONE,
+				[BF.ONE_MINUS_DESTINATION_ALPHA]: gl.ONE_MINUS_DST_ALPHA,
+				[BF.ONE_MINUS_DESTINATION_COLOR]: gl.ONE_MINUS_DST_COLOR,
+				[BF.ONE_MINUS_SOURCE_ALPHA]: gl.ONE_MINUS_SRC_ALPHA,
+				[BF.ONE_MINUS_SOURCE_COLOR]: gl.ONE_MINUS_SRC_COLOR,
+				[BF.SOURCE_ALPHA]: gl.SRC_ALPHA,
+				[BF.SOURCE_COLOR]: gl.SRC_COLOR,
+				[BF.ZERO]: gl.ZERO
+			};
 
-			this._compareModeDictionary[ContextGLCompareMode.ALWAYS] = this._gl.ALWAYS;
-			this._compareModeDictionary[ContextGLCompareMode.EQUAL] = this._gl.EQUAL;
-			this._compareModeDictionary[ContextGLCompareMode.GREATER] = this._gl.GREATER;
-			this._compareModeDictionary[ContextGLCompareMode.GREATER_EQUAL] = this._gl.GEQUAL;
-			this._compareModeDictionary[ContextGLCompareMode.LESS] = this._gl.LESS;
-			this._compareModeDictionary[ContextGLCompareMode.LESS_EQUAL] = this._gl.LEQUAL;
-			this._compareModeDictionary[ContextGLCompareMode.NEVER] = this._gl.NEVER;
-			this._compareModeDictionary[ContextGLCompareMode.NOT_EQUAL] = this._gl.NOTEQUAL;
+			this._drawModeMap = {
+				[ContextGLDrawMode.LINES]: gl.LINES,
+				[ContextGLDrawMode.TRIANGLES]: gl.TRIANGLES
+			};
 
-			this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_SATURATE] = this._gl.DECR;
-			this._stencilActionDictionary[ContextGLStencilAction.DECREMENT_WRAP] = this._gl.DECR_WRAP;
-			this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_SATURATE] = this._gl.INCR;
-			this._stencilActionDictionary[ContextGLStencilAction.INCREMENT_WRAP] = this._gl.INCR_WRAP;
-			this._stencilActionDictionary[ContextGLStencilAction.INVERT] = this._gl.INVERT;
-			this._stencilActionDictionary[ContextGLStencilAction.KEEP] = this._gl.KEEP;
-			this._stencilActionDictionary[ContextGLStencilAction.SET] = this._gl.REPLACE;
-			this._stencilActionDictionary[ContextGLStencilAction.ZERO] = this._gl.ZERO;
+			const CM = ContextGLCompareMode;
+			this._compareModeMap = {
+				[CM.ALWAYS]: gl.ALWAYS,
+				[CM.EQUAL]: gl.EQUAL,
+				[CM.GREATER]: gl.GREATER,
+				[CM.GREATER_EQUAL]: gl.GEQUAL,
+				[CM.LESS]: gl.LESS,
+				[CM.LESS_EQUAL]: gl.LEQUAL,
+				[CM.NEVER]: gl.NEVER,
+				[CM.NOT_EQUAL]: gl.NOTEQUAL
+			};
 
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_1] = new VertexBufferProperties(1, this._gl.FLOAT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_2] = new VertexBufferProperties(2, this._gl.FLOAT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_3] = new VertexBufferProperties(3, this._gl.FLOAT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.FLOAT_4] = new VertexBufferProperties(4, this._gl.FLOAT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_1] = new VertexBufferProperties(1, this._gl.BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_2] = new VertexBufferProperties(2, this._gl.BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_3] = new VertexBufferProperties(3, this._gl.BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.BYTE_4] = new VertexBufferProperties(4, this._gl.BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_BYTE_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_BYTE, true);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_1] = new VertexBufferProperties(1, this._gl.SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_2] = new VertexBufferProperties(2, this._gl.SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_3] = new VertexBufferProperties(3, this._gl.SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.SHORT_4] = new VertexBufferProperties(4, this._gl.SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_1] = new VertexBufferProperties(1, this._gl.UNSIGNED_SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_2] = new VertexBufferProperties(2, this._gl.UNSIGNED_SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_3] = new VertexBufferProperties(3, this._gl.UNSIGNED_SHORT, false);
-			this._vertexBufferPropertiesDictionary[ContextGLVertexBufferFormat.UNSIGNED_SHORT_4] = new VertexBufferProperties(4, this._gl.UNSIGNED_SHORT, false);
+			const SA = ContextGLStencilAction;
+			
+			this._stencilActionMap = {
+				[SA.DECREMENT_SATURATE]: gl.DECR,
+				[SA.DECREMENT_WRAP]: gl.DECR_WRAP,
+				[SA.INCREMENT_SATURATE]: gl.INCR,
+				[SA.INCREMENT_WRAP]: gl.INCR_WRAP,
+				[SA.INVERT]: gl.INVERT,
+				[SA.KEEP]: gl.KEEP,
+				[SA.SET]: gl.REPLACE,
+				[SA.ZERO]: gl.ZERO
+			};
 
-			this._stencilCompareMode = this._gl.ALWAYS;
-			this._stencilCompareModeBack = this._gl.ALWAYS;
-			this._stencilCompareModeFront = this._gl.ALWAYS;
+			const VBF = ContextGLVertexBufferFormat;
+
+			this._vertexBufferMap = {
+				[VBF.FLOAT_1]: new VertexBufferProperties(1, gl.FLOAT, false),
+				[VBF.FLOAT_2]: new VertexBufferProperties(2, gl.FLOAT, false),
+				[VBF.FLOAT_3]: new VertexBufferProperties(3, gl.FLOAT, false),
+				[VBF.FLOAT_4]: new VertexBufferProperties(4, gl.FLOAT, false),
+				[VBF.BYTE_1]: new VertexBufferProperties(1, gl.BYTE, true),
+				[VBF.BYTE_2]: new VertexBufferProperties(2, gl.BYTE, true),
+				[VBF.BYTE_3]: new VertexBufferProperties(3, gl.BYTE, true),
+				[VBF.BYTE_4]: new VertexBufferProperties(4, gl.BYTE, true),
+				[VBF.UNSIGNED_BYTE_1]: new VertexBufferProperties(1, gl.UNSIGNED_BYTE, true),
+				[VBF.UNSIGNED_BYTE_2]: new VertexBufferProperties(2, gl.UNSIGNED_BYTE, true),
+				[VBF.UNSIGNED_BYTE_3]: new VertexBufferProperties(3, gl.UNSIGNED_BYTE, true),
+				[VBF.UNSIGNED_BYTE_4]: new VertexBufferProperties(4, gl.UNSIGNED_BYTE, true),
+				[VBF.SHORT_1]: new VertexBufferProperties(1, gl.SHORT, false),
+				[VBF.SHORT_2]: new VertexBufferProperties(2, gl.SHORT, false),
+				[VBF.SHORT_3]: new VertexBufferProperties(3, gl.SHORT, false),
+				[VBF.SHORT_4]: new VertexBufferProperties(4, gl.SHORT, false),
+				[VBF.UNSIGNED_SHORT_1]: new VertexBufferProperties(1, gl.UNSIGNED_SHORT, false),
+				[VBF.UNSIGNED_SHORT_2]: new VertexBufferProperties(2, gl.UNSIGNED_SHORT, false),
+				[VBF.UNSIGNED_SHORT_3]: new VertexBufferProperties(3, gl.UNSIGNED_SHORT, false),
+				[VBF.UNSIGNED_SHORT_4]: new VertexBufferProperties(4, gl.UNSIGNED_SHORT, false)
+			}
+
+			this._stencilCompareMode = gl.ALWAYS;
+			this._stencilCompareModeBack = gl.ALWAYS;
+			this._stencilCompareModeFront = gl.ALWAYS;
 			/* eslint-enable */
 
 			const dpr: number = window.devicePixelRatio || 1;
 
-			const bsr: number = this._gl['webkitBackingStorePixelRatio'] ||
-				this._gl['mozBackingStorePixelRatio'] ||
-				this._gl['msBackingStorePixelRatio'] ||
-				this._gl['oBackingStorePixelRatio'] ||
-				this._gl['backingStorePixelRatio'] || 1;
+			const bsr: number = gl['webkitBackingStorePixelRatio'] ||
+				gl['mozBackingStorePixelRatio'] ||
+				gl['msBackingStorePixelRatio'] ||
+				gl['oBackingStorePixelRatio'] ||
+				gl['backingStorePixelRatio'] || 1;
 				//this._gl["backingStorePixelRatio"] || (/\bCrOS\b/.test(navigator.userAgent))? 0.5 : 1;
 
 			this._pixelRatio = dpr / bsr;
@@ -312,7 +315,7 @@ export class ContextWebGL implements IContextGL {
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 
 		this._gl.drawElements(
-			this._drawModeDictionary[mode],
+			this._drawModeMap[mode],
 			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
 			this._gl.UNSIGNED_SHORT,
 			firstIndex * 2);
@@ -325,7 +328,7 @@ export class ContextWebGL implements IContextGL {
 		if (numVertices == 0)
 			return;
 
-		this._gl.drawArrays(this._drawModeDictionary[mode], firstVertex, numVertices);
+		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 
 		// todo: this check should not be needed.
 		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
@@ -339,8 +342,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor): void {
-		const src = this._blendFactorDictionary[sourceFactor];
-		const dst = this._blendFactorDictionary[destinationFactor];
+		const src = this._blendFactorMap[sourceFactor];
+		const dst = this._blendFactorMap[destinationFactor];
 
 		if (this._blendSourceFactor === src && this._blendDestinationFactor === dst && this._blendEnabled) {
 			return;
@@ -371,7 +374,7 @@ export class ContextWebGL implements IContextGL {
 
 	// TODO ContextGLCompareMode
 	public setDepthTest(depthMask: boolean, passCompareMode: ContextGLCompareMode): void {
-		this._gl.depthFunc(this._compareModeDictionary[passCompareMode]);
+		this._gl.depthFunc(this._compareModeMap[passCompareMode]);
 
 		this._gl.depthMask(depthMask);
 	}
@@ -407,11 +410,11 @@ export class ContextWebGL implements IContextGL {
 
 		this._separateStencil = triangleFace != ContextGLTriangleFace.FRONT_AND_BACK;
 
-		const compareModeGL = this._compareModeDictionary[compareMode];
+		const compareModeGL = this._compareModeMap[compareMode];
 
-		const fail = this._stencilActionDictionary[actionOnDepthPassStencilFail];
-		const zFail = this._stencilActionDictionary[actionOnDepthFail];
-		const pass = this._stencilActionDictionary[actionOnBothPass];
+		const fail = this._stencilActionMap[actionOnDepthPassStencilFail];
+		const zFail = this._stencilActionMap[actionOnDepthFail];
+		const pass = this._stencilActionMap[actionOnBothPass];
 
 		if (!this._separateStencil) {
 
@@ -525,7 +528,7 @@ export class ContextWebGL implements IContextGL {
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
 		}
 
-		const properties: VertexBufferProperties = this._vertexBufferPropertiesDictionary[format];
+		const properties = this._vertexBufferMap[format];
 
 		this._gl.enableVertexAttribArray(location);
 
