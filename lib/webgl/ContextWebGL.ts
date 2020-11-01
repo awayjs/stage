@@ -24,13 +24,37 @@ import { VertexBufferWebGL } from './VertexBufferWebGL';
 import { TextureContextWebGL } from './TextureContextWebGL';
 
 interface IState <T> {
+	dirty: boolean;
 	values: T[];
+	locked: boolean;
+
 	set (...args: T[]): boolean;
+	setAt(index: number, value: T): boolean;
 	reset();
 }
 
 class State<T> implements IState<T> {
 	values: T[] = [];
+	fixedValues: T[] = [];
+	dirty: boolean = true;
+
+	private _deltaDirty: boolean[] = [];
+	private _locked: boolean = false;
+
+	set locked (v) {
+		this._locked = v;
+
+		if (v) {
+			const v = this.values;
+
+			for (let i = 0, l = v.length; i < l; i++) {
+				this.fixedValues[i] = v[i];
+			}
+
+			this.fixedValues.length = v.length;
+			this.dirty = false;
+		}
+	}
 
 	constructor (...args: T[]) {
 		// eslint-disable-next-line prefer-rest-params
@@ -38,7 +62,7 @@ class State<T> implements IState<T> {
 	}
 
 	set(...args: T[]): boolean {
-		const v = this.values;
+		const v = this._locked ? this.fixedValues : this.values;
 
 		let dirty = false;
 
@@ -47,7 +71,31 @@ class State<T> implements IState<T> {
 			v[i] = args[i];
 		}
 
+		return this.dirty = dirty;
+	}
+
+	setAt(index: number, value: T): boolean {
+		const v = this._locked ? this.fixedValues : this.values;
+		const dirty = v[index] !== value;
+
+		this.values[index] = value;
+		this.dirty = this.dirty || dirty;
+
 		return dirty;
+	}
+
+	deltaDirty (): boolean[]  {
+		const delta = this._deltaDirty;
+		const v = this.values;
+		const f = this.fixedValues;
+
+		delta.length = v.length;
+
+		for (let i = 0; i < v.length; i++) {
+			delta[i] = v[i] !== f[i];
+		}
+
+		return delta;
 	}
 
 	reset() {
@@ -74,8 +122,18 @@ export class ContextWebGL implements IContextGL {
 
 	private _standardDerivatives: boolean;
 
-	private _colorMapState: State<boolean> = new State(false, false, false, false);
+	// [x, y, w, h]
 	private _viewportState: State<number> = new State(0,0,0,0);
+	// [enable, func, src, dst];
+	private _blendState: State<number> = new State(0,0,0,0);
+	// [r, g, b, a]
+	private _colorMapState: State<boolean> = new State(false, false, false, false);
+	// [r, g, b, a]
+	private _clearColorState: State<number> = new State(0,0,0,0);
+	// [enable, mask, func]
+	private _depthState: State<number> = new State(0, 0, 0);
+	// [enable, mask, func]
+	private _stencilState: State<number> = new State(0, 0, 0);
 
 	//@protected
 	public _gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -94,6 +152,8 @@ export class ContextWebGL implements IContextGL {
 	private _separateStencil: boolean = false;
 	private _pixelRatio: number;
 	private _glVersion: number;
+
+	private lastBoundedIndexBuffer = null;
 
 	public get glVersion(): number {
 		return this._glVersion;
@@ -269,13 +329,24 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		let glmask: number = 0;
-		if (mask & ContextGLClearMask.COLOR) glmask |= this._gl.COLOR_BUFFER_BIT;
-		if (mask & ContextGLClearMask.STENCIL) glmask |= this._gl.STENCIL_BUFFER_BIT;
-		if (mask & ContextGLClearMask.DEPTH) glmask |= this._gl.DEPTH_BUFFER_BIT;
+		if (mask & ContextGLClearMask.COLOR) {
+			if (this._clearColorState.set(red, green, blue, alpha)) {
+				this._gl.clearColor(red, green, blue, alpha);
+			}
 
-		this._gl.clearColor(red, green, blue, alpha);
-		this._gl.clearDepth(depth);
-		this._gl.clearStencil(stencil);
+			glmask |= this._gl.COLOR_BUFFER_BIT;
+		}
+
+		if (mask & ContextGLClearMask.STENCIL) {
+			this._gl.clearStencil(stencil);
+			glmask |= this._gl.STENCIL_BUFFER_BIT;
+		}
+
+		if (mask & ContextGLClearMask.DEPTH) {
+			glmask |= this._gl.DEPTH_BUFFER_BIT;
+			this._gl.clearDepth(depth);
+		}
+
 		this._gl.clear(glmask);
 	}
 
@@ -286,14 +357,16 @@ export class ContextWebGL implements IContextGL {
 		this._height = height * this._pixelRatio;
 
 		if (enableDepthAndStencil) {
-			this._gl.enable(this._gl.STENCIL_TEST);
-			this._gl.enable(this._gl.DEPTH_TEST);
+			this.enableStencil();
+			this.enableDepth();
 		} else {
-			this._gl.disable(this._gl.STENCIL_TEST);
-			this._gl.disable(this._gl.DEPTH_TEST);
+			this.disableStencil();
+			this.disableDepth();
 		}
 
-		this._gl.viewport(0, 0, this._width, this._height);
+		if (this._viewportState.set(0,0,this._width, this._height)) {
+			this._gl.viewport(0, 0, this._width, this._height);
+		}
 	}
 
 	public createCubeTexture(
@@ -346,7 +419,13 @@ export class ContextWebGL implements IContextGL {
 		// updata blend before draw, because blend state can mutated a more times
 		// reduce a state changes
 		this.updateBlendStatus();
-		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
+		this.updateDepthStatus();
+
+		if (this.lastBoundedIndexBuffer !== indexBuffer.glBuffer) {
+			this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
+		}
+
+		this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
 
 		this._gl.drawElements(
 			this._drawModeMap[mode],
@@ -365,6 +444,8 @@ export class ContextWebGL implements IContextGL {
 		// updata blend before draw, because blend state can mutated a more times
 		// reduce a state changes
 		this.updateBlendStatus();
+		this.updateDepthStatus();
+
 		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 
 		// todo: this check should not be needed.
@@ -380,17 +461,9 @@ export class ContextWebGL implements IContextGL {
 	public setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor): void {
 		const src = this._blendFactorMap[sourceFactor];
 		const dst = this._blendFactorMap[destinationFactor];
+		const gl = this._gl;
 
-		if (
-			this._blendSourceFactor === src &&
-			this._blendDestinationFactor === dst &&
-			this._blendEnabled) {
-			return;
-		}
-
-		this._blendEnabled = true;
-		this._blendSourceFactor = src;
-		this._blendDestinationFactor = dst;
+		this._blendState.set(+true, gl.FUNC_ADD, src, dst);
 	}
 
 	public setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void {
@@ -414,9 +487,12 @@ export class ContextWebGL implements IContextGL {
 
 	// TODO ContextGLCompareMode
 	public setDepthTest(depthMask: boolean, passCompareMode: ContextGLCompareMode): void {
-		this._gl.depthFunc(this._compareModeMap[passCompareMode]);
+		const mode = this._compareModeMap[passCompareMode];
 
-		this._gl.depthMask(depthMask);
+		// last depth state was applyed in render command
+		// In 0 location we has a ENABLE/DISABLE flag
+		this._depthState.setAt(2, mode);
+		this._depthState.setAt(1, +depthMask);
 	}
 
 	public setViewport(x: number, y: number, width: number, height: number) {
@@ -427,19 +503,23 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public enableDepth() {
-		this._gl.enable(this._gl.DEPTH_TEST);
+		// last depth state was applyed in render command
+		// set state ENABLE and check dirty
+		this._depthState.setAt(0, +true);
 	}
 
 	public disableDepth() {
-		this._gl.disable(this._gl.DEPTH_TEST);
+		// last depth state was applyed in render command
+		// set state DISABLE and check dirty
+		this._depthState.setAt(0, +false);
 	}
 
 	public enableStencil() {
-		this._gl.enable(this._gl.STENCIL_TEST);
+		this._stencilState.setAt(0, +true) && this._gl.enable(this._gl.STENCIL_TEST);
 	}
 
 	public disableStencil() {
-		this._gl.disable(this._gl.STENCIL_TEST);
+		this._stencilState.setAt(0, +false) && this._gl.disable(this._gl.STENCIL_TEST);
 	}
 
 	public setStencilActions(
@@ -606,12 +686,45 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	private updateBlendStatus(): void {
-		if (this._blendEnabled) {
-			this._gl.enable(this._gl.BLEND);
-			this._gl.blendEquation(this._gl.FUNC_ADD);
-			this._gl.blendFunc(this._blendSourceFactor, this._blendDestinationFactor);
+		const bs = this._blendState;
+
+		if (!bs.dirty) {
+			return;
+		}
+
+		const v = bs.values;
+		const delta = bs.deltaDirty();
+
+		// now fixedValues = values;
+		bs.locked = true;
+
+		if (v[0]) {
+			delta[0] && this._gl.enable(this._gl.BLEND);
+			delta[1] && this._gl.blendEquation(v[1]);
+			delta[2] && this._gl.blendFunc(v[2], v[3]);
 		} else {
-			this._gl.disable(this._gl.BLEND);
+			delta[0] && this._gl.disable(this._gl.BLEND);
+		}
+	}
+
+	private updateDepthStatus(): void {
+		const ds = this._depthState;
+
+		if (!ds.dirty) {
+			return;
+		}
+
+		const v = ds.values;
+		const delta = ds.deltaDirty();
+
+		ds.locked = true;
+
+		if (v[0]) {
+			delta[0] && this._gl.enable(this._gl.DEPTH_TEST);
+			delta[1] && this._gl.depthMask(!!v[1]);
+			delta[2] && this._gl.depthFunc(v[2]);
+		} else {
+			delta[0] && this._gl.disable(this._gl.DEPTH_TEST);
 		}
 	}
 

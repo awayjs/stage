@@ -294,14 +294,14 @@ export class TextureContextWebGL {
 		}
 
 		if (enableDepthAndStencil) {
-			gl.enable(gl.STENCIL_TEST);
-			gl.enable(gl.DEPTH_TEST);
+			this._context.enableDepth();
+			this._context.enableStencil();
 		} else {
-			gl.disable(gl.STENCIL_TEST);
-			gl.disable(gl.DEPTH_TEST);
+			this._context.disableDepth();
+			this._context.disableStencil();
 		}
 
-		gl.viewport(0,0,width,height);
+		this._context.setViewport(0,0,width,height);
 	}
 
 	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: number, mipmapSelector: number) {
@@ -475,7 +475,7 @@ export class TextureContextWebGL {
 
 		// needs, because we rebound buffers to copy
 		// otherwith Stage not restore rebounds an we will draw to other framebuffer
-		this._context.restoreRenderTarget();
+		this.restoreRenderTarget();
 	}
 
 	/**
