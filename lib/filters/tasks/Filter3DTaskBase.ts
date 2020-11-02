@@ -7,7 +7,7 @@ import { IProgram } from '../../base/IProgram';
 import { ContextGLProfile } from '../../base/ContextGLProfile';
 import { Stage } from '../../Stage';
 import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
-import { VaoWebGL } from '../../webgl/VaoWebGL';
+import { IVao } from './../../base/IVao';
 
 export class Filter3DTaskBase {
 	public _registerCache: ShaderRegisterCache;
@@ -31,7 +31,7 @@ export class Filter3DTaskBase {
 	private _requireDepthRender: boolean;
 	private _textureScale: number = 1;
 
-	public vao: VaoWebGL;
+	public vao: IVao;
 
 	constructor(requireDepthRender: boolean = false) {
 		this._requireDepthRender = requireDepthRender;
@@ -134,8 +134,10 @@ export class Filter3DTaskBase {
 
 		this._registerCache.reset();
 
-		const vertexByteCode: ByteArray = (new AGALMiniAssembler().assemble('part vertex 1\n' + this.getVertexCode() + 'endpart'))['vertex'].data;
-		const fragmentByteCode: ByteArray = (new AGALMiniAssembler().assemble('part fragment 1\n' + this.getFragmentCode() + 'endpart'))['fragment'].data;
+		const vertexByteCode: ByteArray = (new AGALMiniAssembler()
+			.assemble('part vertex 1\n' + this.getVertexCode() + 'endpart'))['vertex'].data;
+		const fragmentByteCode: ByteArray = (new AGALMiniAssembler()
+			.assemble('part fragment 1\n' + this.getFragmentCode() + 'endpart'))['fragment'].data;
 
 		this._program3D.name = (<any> this.constructor).name;
 		this._program3D.upload(vertexByteCode, fragmentByteCode);
@@ -151,9 +153,7 @@ export class Filter3DTaskBase {
 
 		this._uvVarying = this._registerCache.getFreeVarying();
 
-		let code: string;
-
-		code = 'mov op, ' + position + '\n' +
+		const code = 'mov op, ' + position + '\n' +
 			'mov ' + this._uvVarying + ', ' + uv + '\n';
 
 		return code;

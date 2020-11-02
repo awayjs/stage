@@ -89,9 +89,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _color: number;
 	private _backBufferDirty: boolean;
 	private _sizeDirty: boolean;
-	private _bufferClear: boolean;
 
-	private _filterVao: VaoWebGL;
 	private _filterVertexBuffer: IVertexBuffer;
 	private _filterIndexBuffer: IIndexBuffer;
 
@@ -256,11 +254,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._initFilterElements();
 
-		const _rt = this._renderTarget;
-		const _rtss = this._renderSurfaceSelector;
-		const _rtms = this._renderMipmapSelector;
-		const _rtem = this._enableDepthAndStencil;
-
 		filter.init(this._context);
 		filter.setRenderTargets(target, this);
 
@@ -276,7 +269,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		if (len > 1 || tasks[0].target) {
 			this._context.setProgram(tasks[0].getProgram(this));
 
-			if (hasVao) {
+			if (hasVao && !tasks[0].vao) {
 				if (!tasks[0].vao) {
 					tasks[0].vao = (<ContextWebGL> this._context).createVertexArray();
 					needUploadVao = true;
@@ -318,6 +311,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 				task.vao && task.vao.bind();
 
+				// we should a bind a aatributes ONCE or every call, if not VAO
 				if (needUploadVao || !task.vao) {
 					vertexBuffer = this._filterVertexBuffer;
 					this._context.setVertexBufferAt(
@@ -327,9 +321,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 						task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
 				}
 
-				// we should bound index buffer to VAO
+				// we should bound index buffer to VAO to
+				// but for index buffer draw bound it internally when it no from VAO
 				if (needUploadVao) {
-					(<ContextWebGL> this._context).bindIndexBuffer(<IndexBufferWebGL> indexBuffer);
+					task.vao.attachIndexBuffer(<IndexBufferWebGL>indexBuffer);
 				}
 			}
 
@@ -341,19 +336,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		}
 
 		if (hasVao) {
-			// unbind any VAO because we still not support
-			// right VAO flips on other rendering commands
-			(<ContextWebGL> this._context)._vaoContext.unbindVertexArrays();
+			// mark that need unbind VAO if it present
+			// because otherwithe we can rewrite a buffers inside it
+			(<ContextWebGL> this._context)._vaoContext.bindVertexArray(null);
 		}
-
-		this._context.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL);
-		this._context.setTextureAt(0, null);
 
 		// disable vertex pointer because we not use a VAO
 		hasVao || this._context.setVertexBufferAt(0, null);
 		hasVao || this._context.setVertexBufferAt(1, null);
-
-		this.setRenderTarget(_rt, _rtem, _rtss, _rtms);
 	}
 
 	public copyPixels(

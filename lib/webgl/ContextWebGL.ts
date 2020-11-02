@@ -24,6 +24,7 @@ import { VertexBufferWebGL } from './VertexBufferWebGL';
 import { TextureContextWebGL } from './TextureContextWebGL';
 import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
+import { Settings } from '../Settings';
 
 export class ContextWebGL implements IContextGL {
 	public static MAX_SAMPLERS: number = 8;
@@ -238,11 +239,15 @@ export class ContextWebGL implements IContextGL {
 
 		this._texContext = new TextureContextWebGL(this);
 
-		if (VaoContextWebGL.isSupported(this._gl)) {
-			this._vaoContext = new VaoContextWebGL(this);
-			this._hasVao = true;
+		if (Settings.ENABLE_VAO) {
+			if (VaoContextWebGL.isSupported(this._gl)) {
+				this._vaoContext = new VaoContextWebGL(this);
+				this._hasVao = true;
+			} else {
+				console.warn('[ContextWebGL] VAO isn\'t supported');
+			}
 		} else {
-			console.warn('[ContextWebGL] VAO isn\'t supported');
+			console.debug('[ContextWebGL] Vao disabled by settings \'ENABLE_VAO\'');
 		}
 	}
 
@@ -358,8 +363,10 @@ export class ContextWebGL implements IContextGL {
 		this.updateBlendStatus();
 		this.updateDepthStatus();
 
-		// check, that VAO not bounded and bind buffer
-		if (this._hasVao && !this._vaoContext._lastBoundedVao) {
+		// check, that VAO not bounded
+		if (!this._hasVao
+			|| !this._vaoContext._lastBoundedVao) {
+
 			if (this.lastBoundedIndexBuffer !== indexBuffer.glBuffer) {
 				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 			}
@@ -577,6 +584,12 @@ export class ContextWebGL implements IContextGL {
 		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4): void {
 
 		const location: number = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
+
+		// when we try bind any buffers without VAO we should unbound VAO
+		// othwerwithe we bind a buffer to vao instead main contex
+		if (this.hasVao && this._vaoContext._isRequireUnbound) {
+			this._vaoContext.unbindVertexArrays();
+		}
 
 		// disable location, OS will fire error when loadings invalid buffer to it
 		// location - is index of buffer location inside shader

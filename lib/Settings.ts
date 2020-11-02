@@ -4,6 +4,7 @@ export interface IStageSettings {
 	ENABLE_UNLOAD_TEXTURE: boolean;
 	ENABLE_TEXTURE_POOLING: boolean;
 	MAX_BITMAP_UNLOAD_TASKS: number;
+	ENABLE_VAO: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -32,6 +33,11 @@ export const Settings: IStageSettings = {
 	 * @description How many task can be unloaded per run
 	 */
 	MAX_BITMAP_UNLOAD_TASKS: 50,
+
+	/**
+	 * @description ALLOW VAO SUPPORT
+	 */
+	ENABLE_VAO: true
 };
 
 // console.debug('[Stage settings]', Settings);

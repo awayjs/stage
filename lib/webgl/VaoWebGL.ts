@@ -1,10 +1,9 @@
+
+import { IVao } from '../base/IVao';
 import { ContextWebGL } from './ContextWebGL';
+import { IndexBufferWebGL } from './IndexBufferWebGL';
 
 type TWebGLVao = WebGLVertexArrayObjectOES | WebGLVertexArrayObject;
-
-export interface IVao {
-
-}
 
 export class VaoContextWebGL {
 	public static isSupported(gl: WebGLRenderingContext | WebGL2RenderingContext) {
@@ -23,7 +22,8 @@ export class VaoContextWebGL {
 	private readonly _deleteVertexArray: (e: TWebGLVao) => void;
 	private readonly _bindVertexArray: (e: TWebGLVao) => void;
 
-	/* internal */ _lastBoundedVao: TWebGLVao;
+	/* internal */ _lastBoundedVao: VaoWebGL;
+	/* internal */ _isRequireUnbound: boolean = false;
 
 	constructor (context: ContextWebGL) {
 		const gl = context._gl;
@@ -48,37 +48,56 @@ export class VaoContextWebGL {
 	unbindVertexArrays() {
 		this._bindVertexArray(null);
 		this._lastBoundedVao = null;
+		this._isRequireUnbound = false;
 	}
 
-	bindVertexArray (v: TWebGLVao) {
+	bindVertexArray (v: VaoWebGL) {
 		// not unbound vao, to reduce bound flips
-		if (!v || v === this._lastBoundedVao) {
+		if (v === this._lastBoundedVao) {
 			return;
 		}
 
+		if (!v) {
+			// mark that we require a unbound VAO as fast as possible
+			this._isRequireUnbound = false;
+		}
+
+		this._isRequireUnbound = false;
 		this._lastBoundedVao = v;
-		this._bindVertexArray(v);
+		this._bindVertexArray(v._vao);
 	}
 
-	deleteVertexArray (v: TWebGLVao) {
-		if (this._lastBoundedVao) {
+	deleteVertexArray (v: VaoWebGL) {
+		if (this._lastBoundedVao === v) {
 			this._bindVertexArray(null);
 		}
 
-		this._deleteVertexArray(v);
+		this._deleteVertexArray(v._vao);
 		this._lastBoundedVao = null;
 	}
 }
 
 export class VaoWebGL implements IVao {
 	/* internal */ _vao: TWebGLVao;
+	/* internal */ _indexBuffer: IndexBufferWebGL;
 
 	constructor (private _context: ContextWebGL) {
 		this._vao = _context._vaoContext.createVertexArray();
 	}
 
+	attachIndexBuffer(buffer: IndexBufferWebGL) {
+		if (this._indexBuffer) {
+			return;
+		}
+
+		this.bind();
+		this._context.bindIndexBuffer(buffer);
+
+		this._indexBuffer = buffer;
+	}
+
 	bind() {
-		this._context._vaoContext.bindVertexArray(this._vao);
+		this._context._vaoContext.bindVertexArray(this);
 	}
 
 	unbind(force = false) {
@@ -86,12 +105,12 @@ export class VaoWebGL implements IVao {
 			this._context._vaoContext.unbindVertexArrays();
 			return;
 		}
-		// not unbound a VAO, because context cached a last referenced VAO
-		// this._context._vaoContext.bindVertexArray(null);
+
+		this._context._vaoContext.bindVertexArray(null);
 	}
 
 	dispose() {
-		this._context._vaoContext.deleteVertexArray(this._vao);
+		this._context._vaoContext.deleteVertexArray(this);
 		this._vao = null;
 	}
 }

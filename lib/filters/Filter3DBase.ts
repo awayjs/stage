@@ -5,7 +5,6 @@ import { RTTBufferManager } from '../managers/RTTBufferManager';
 import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
 import { IContextGL } from '../base/IContextGL';
-import { ContextWebGL } from '../webgl/ContextWebGL';
 
 export class Filter3DBase {
 	private _tasks: Array<Filter3DTaskBase> = [];
