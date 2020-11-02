@@ -151,7 +151,10 @@ export class AttributesBuffer extends AssetBase {
 	}
 
 	public _setAttributes(viewIndex: number, arrayBufferView: ArrayBufferView, offset: number = 0): void {
-		const array: Uint8Array = (arrayBufferView instanceof Uint8Array) ? <Uint8Array> arrayBufferView : new Uint8Array(arrayBufferView.buffer);
+		const array: Uint8Array =
+			(arrayBufferView instanceof Uint8Array)
+				? <Uint8Array> arrayBufferView
+				: new Uint8Array(arrayBufferView.buffer);
 
 		const viewVO: ViewVO = this._viewVOs[viewIndex];
 		const vLength: number = viewVO.length;
@@ -169,8 +172,11 @@ export class AttributesBuffer extends AssetBase {
 		if (this._viewVOs.length == 1) {
 			this._bufferView.set(array);
 		} else {
-			for (let i: number = 0; i < vCount; i++)
-				this._bufferView.set(array.subarray(i * vLength, (i + 1) * vLength), (i + offset) * this._stride + vOffset);
+			for (let i = 0; i < vCount; i++) {
+				this._bufferView.set(
+					array.subarray(i * vLength, (i + 1) * vLength),
+					(i + offset) * this._stride + vOffset);
+			}
 		}
 
 		this.invalidate();
@@ -238,16 +244,23 @@ export class AttributesBuffer extends AssetBase {
 						vLength = viewVO.length;
 						vOffset = viewVO.offset;
 						vOldOffset = viewVO.oldOffset;
-						for (j = 0; j < this._count; j++)
-							if (vOldOffset != null)
-								newView.set(new Uint8Array(this._buffer, j * this._stride + vOldOffset, vLength), j * this._newStride + vOffset);
-
+						for (j = 0; j < this._count; j++) {
+							if (vOldOffset != null) {
+								newView.set(
+									new Uint8Array(
+										this._buffer,
+										j * this._stride + vOldOffset,
+										vLength),
+									j * this._newStride + vOffset);
+							}
+						}
 						viewVO.oldOffset = viewVO.offset;
 					}
 
 					this._stride = this._newStride;
 				} else {
-					newView.set(new Uint8Array(this._buffer, 0, Math.min(newLength, this._buffer.byteLength))); //TODO: bypass quantisation of bytearray on instantiation
+					//TODO: bypass quantisation of bytearray on instantiation
+					newView.set(new Uint8Array(this._buffer, 0, Math.min(newLength, this._buffer.byteLength)));
 				}
 			}
 
@@ -343,7 +356,8 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 	public _getIndexBuffer(): IIndexBuffer {
 		if (!this._indexBuffer) {
 			this._invalid = true;
-			this._indexBuffer = this._stage.context.createIndexBuffer(this._attributesBuffer.count * this._attributesBuffer.stride / 2); //hardcoded assuming UintArray
+			this._indexBuffer = this._stage.context.createIndexBuffer(
+				this._attributesBuffer.count * this._attributesBuffer.stride / 2); //hardcoded assuming UintArray
 		}
 
 		if (this._invalid) {
@@ -357,7 +371,8 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 	public _getVertexBuffer(): IVertexBuffer {
 		if (!this._vertexBuffer) {
 			this._invalid = true;
-			this._vertexBuffer = this._stage.context.createVertexBuffer(this._attributesBuffer.count, this._attributesBuffer.stride);
+			this._vertexBuffer = this._stage.context.createVertexBuffer(
+				this._attributesBuffer.count, this._attributesBuffer.stride);
 		}
 
 		if (this._invalid) {
