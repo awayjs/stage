@@ -38,6 +38,8 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
+import { VaoWebGL } from './webgl/VaoWebGL';
+import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
 
 declare class WeakMap<T extends Object, V = any> {
 	delete(key: T);
@@ -88,6 +90,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _backBufferDirty: boolean;
 	private _sizeDirty: boolean;
 	private _bufferClear: boolean;
+
+	private _filterVao: VaoWebGL;
 	private _filterVertexBuffer: IVertexBuffer;
 	private _filterIndexBuffer: IIndexBuffer;
 
@@ -219,7 +223,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		}
 	}
 
-	public renderFilter(target: Image2D, filter: Filter3DBase) {
+	private _initFilterElements() {
+
 		if (!this._filterVertexBuffer) {
 			this._filterVertexBuffer = this._context.createVertexBuffer(4, 20);
 			this._filterVertexBuffer.uploadFromArray(
@@ -245,6 +250,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		if (!this._filterSampler)
 			this._filterSampler = new ImageSampler(false, false, false);
+	}
+
+	public renderFilter(target: Image2D, filter: Filter3DBase) {
+
+		this._initFilterElements();
 
 		const _rt = this._renderTarget;
 		const _rtss = this._renderSurfaceSelector;
@@ -258,16 +268,36 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
 		const len = tasks.length;
+		const hasVao = this._context instanceof ContextWebGL && this._context.hasVao;
 
 		let vertexBuffer: IVertexBuffer = this._filterVertexBuffer;
+		let needUploadVao = false;
 
 		if (len > 1 || tasks[0].target) {
 			this._context.setProgram(tasks[0].getProgram(this));
-			this._context.setVertexBufferAt(
-				tasks[0]._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
 
-			this._context.setVertexBufferAt(
-				tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+			if (hasVao) {
+				if (!tasks[0].vao) {
+					tasks[0].vao = (<ContextWebGL> this._context).createVertexArray();
+					needUploadVao = true;
+				}
+			}
+
+			tasks[0].vao && tasks[0].vao.bind();
+
+			if (needUploadVao || !tasks[0].vao) {
+
+				this._context.setVertexBufferAt(
+					tasks[0]._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+
+				this._context.setVertexBufferAt(
+					tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+			}
+
+			// we should bound index buffer to VAO
+			if (needUploadVao) {
+				(<ContextWebGL> this._context).bindIndexBuffer(<IndexBufferWebGL> indexBuffer);
+			}
 		}
 
 		for (const task of tasks) {
@@ -281,13 +311,26 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			if (!task.target) {
 
-				vertexBuffer = this._filterVertexBuffer;
-				this._context.setVertexBufferAt(
-					task._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+				if (hasVao && !task.vao) {
+					tasks[0].vao = (<ContextWebGL> this._context).createVertexArray();
+					needUploadVao = true;
+				}
 
-				this._context.setVertexBufferAt(
-					task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+				task.vao && task.vao.bind();
 
+				if (needUploadVao || !task.vao) {
+					vertexBuffer = this._filterVertexBuffer;
+					this._context.setVertexBufferAt(
+						task._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+
+					this._context.setVertexBufferAt(
+						task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+				}
+
+				// we should bound index buffer to VAO
+				if (needUploadVao) {
+					(<ContextWebGL> this._context).bindIndexBuffer(<IndexBufferWebGL> indexBuffer);
+				}
 			}
 
 			task.activate(this, null, null);
@@ -297,10 +340,18 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			task.deactivate(this);
 		}
 
+		if (hasVao) {
+			// unbind any VAO because we still not support
+			// right VAO flips on other rendering commands
+			(<ContextWebGL> this._context)._vaoContext.unbindVertexArrays();
+		}
+
 		this._context.setDepthTest(true, ContextGLCompareMode.LESS_EQUAL);
 		this._context.setTextureAt(0, null);
-		this._context.setVertexBufferAt(0, null);
-		this._context.setVertexBufferAt(1, null);
+
+		// disable vertex pointer because we not use a VAO
+		hasVao || this._context.setVertexBufferAt(0, null);
+		hasVao || this._context.setVertexBufferAt(1, null);
 
 		this.setRenderTarget(_rt, _rtem, _rtss, _rtms);
 	}

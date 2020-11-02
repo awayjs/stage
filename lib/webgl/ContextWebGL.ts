@@ -73,7 +73,7 @@ export class ContextWebGL implements IContextGL {
 	private lastBoundedIndexBuffer = null;
 
 	private _hasVao = false;
-	private get hasVao() {
+	public get hasVao() {
 		return this._hasVao;
 	}
 
@@ -374,6 +374,11 @@ export class ContextWebGL implements IContextGL {
 			firstIndex * 2);
 	}
 
+	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
+		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
+		this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
+	}
+
 	public drawVertices(mode: ContextGLDrawMode, firstVertex: number = 0, numVertices: number = -1): void {
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
@@ -586,7 +591,7 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		//buffer may not have changed if concatenated buffers are being used
-		if (this._currentArrayBuffer != buffer) {
+		if (this._currentArrayBuffer != buffer || (this.hasVao && this._vaoContext._lastBoundedVao)) {
 			this._currentArrayBuffer = buffer;
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
 		}

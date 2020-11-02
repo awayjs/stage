@@ -7,6 +7,7 @@ import { IProgram } from '../../base/IProgram';
 import { ContextGLProfile } from '../../base/ContextGLProfile';
 import { Stage } from '../../Stage';
 import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
+import { VaoWebGL } from '../../webgl/VaoWebGL';
 
 export class Filter3DTaskBase {
 	public _registerCache: ShaderRegisterCache;
@@ -29,6 +30,8 @@ export class Filter3DTaskBase {
 	protected _target: Image2D;
 	private _requireDepthRender: boolean;
 	private _textureScale: number = 1;
+
+	public vao: VaoWebGL;
 
 	constructor(requireDepthRender: boolean = false) {
 		this._requireDepthRender = requireDepthRender;
@@ -112,6 +115,11 @@ export class Filter3DTaskBase {
 
 		if (this._program3D)
 			this._program3D.dispose();
+
+		if (this.vao) {
+			this.vao.dispose();
+			this.vao = null;
+		}
 	}
 
 	public invalidateProgram(): void {

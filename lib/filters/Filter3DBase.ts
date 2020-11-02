@@ -5,6 +5,7 @@ import { RTTBufferManager } from '../managers/RTTBufferManager';
 import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
 import { IContextGL } from '../base/IContextGL';
+import { ContextWebGL } from '../webgl/ContextWebGL';
 
 export class Filter3DBase {
 	private _tasks: Array<Filter3DTaskBase> = [];
@@ -13,6 +14,7 @@ export class Filter3DBase {
 	private _textureWidth: number;
 	private _textureHeight: number;
 	private _textureScale: number = 1;
+
 	protected _context: IContextGL;
 
 	public init(context: IContextGL) {

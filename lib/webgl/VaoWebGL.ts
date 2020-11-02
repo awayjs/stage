@@ -8,7 +8,7 @@ export interface IVao {
 
 export class VaoContextWebGL {
 	public static isSupported(gl: WebGLRenderingContext | WebGL2RenderingContext) {
-		if (gl instanceof WebGLRenderingContext) {
+		if (gl instanceof WebGL2RenderingContext) {
 			return true;
 		}
 
@@ -20,7 +20,6 @@ export class VaoContextWebGL {
 	}
 
 	public readonly createVertexArray: () => TWebGLVao;
-	
 	private readonly _deleteVertexArray: (e: TWebGLVao) => void;
 	private readonly _bindVertexArray: (e: TWebGLVao) => void;
 
