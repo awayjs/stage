@@ -25,6 +25,7 @@ export class ProgramWebGL implements IProgram {
 	private _uniforms: Array<NumberMap<WebGLUniformLocation>> = [{},{},{}];
 	private _nameToIndex: StringMap<number> = {};
 	private _attribs: Array<number> = [];
+	private _uniformCache: Array<string> = new Array(16);
 
 	constructor(gl: WebGLRenderingContext) {
 		this._gl = gl;
@@ -33,15 +34,22 @@ export class ProgramWebGL implements IProgram {
 
 	public upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void {
 		//detect whether highp can be used
-		const vertexPrecision: string =
-			(this._gl.getShaderPrecisionFormat(this._gl.VERTEX_SHADER, this._gl.HIGH_FLOAT).precision != 0) ? 'highp' : 'mediump';
-		const fragmentPrecision: string =
-			(this._gl.getShaderPrecisionFormat(this._gl.FRAGMENT_SHADER, this._gl.HIGH_FLOAT).precision != 0) ? 'highp' : 'mediump';
 
-		const vertexString: string =
-			ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram), vertexPrecision);
-		const fragmentString: string =
-			ProgramWebGL._aglslParser.parse(ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram), fragmentPrecision);
+		const vertexPrecision = this._gl.getShaderPrecisionFormat(
+			this._gl.VERTEX_SHADER,
+			this._gl.HIGH_FLOAT).precision;
+
+		const fragmentPrecision = this._gl.getShaderPrecisionFormat(
+			this._gl.FRAGMENT_SHADER,
+			this._gl.HIGH_FLOAT).precision;
+
+		const vertexString: string = ProgramWebGL._aglslParser.parse(
+			ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram),
+			vertexPrecision ? 'highp' : 'mediump');
+
+		const fragmentString: string = ProgramWebGL._aglslParser.parse(
+			ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram),
+			fragmentPrecision ? 'highp' : 'mediump');
 
 		if (!this.name) {
 			this.name = 'PROG_AGAL_' + this._id;
@@ -99,6 +107,7 @@ export class ProgramWebGL implements IProgram {
 		this._uniforms[1] = {};
 		this._uniforms[2] = {};
 		this._attribs.length = 0;
+		this._uniformCache.fill('');
 	}
 
 	public getUniformLocation(programType: number, indexOrName: number | string = -1): WebGLUniformLocation {
@@ -109,27 +118,56 @@ export class ProgramWebGL implements IProgram {
 			return this._uniforms[programType][index + 1];
 		}
 
-		let name = <string>indexOrName;
-
-		if (isIndex) {
-			name = (indexOrName === -1) ?
-				ProgramWebGL._uniformLocationNameDictionary[programType] :
-				ProgramWebGL._uniformLocationNameDictionary[programType] + indexOrName;
-		}
+		const name = isIndex
+			? ProgramWebGL._getAGALUniformName(programType, <number>indexOrName)
+			: <string>indexOrName;
 
 		this._nameToIndex[name] = index + 1;
 
 		return (this._uniforms[programType][index + 1] = this._gl.getUniformLocation(this._program, name));
 	}
 
-	//
-	// public getUniformLocation(programType:number, index:number):WebGLUniformLocation
-	// {
-	// 	if (this._uniforms[programType][index] != null)
-	// 		return this._uniforms[programType][index];
-	//
-	// 	return (this._uniforms[programType][index] = this._gl.getUniformLocation(this._program, ProgramWebGL._uniformLocationNameDictionary[programType] + index));
-	// }
+	private static _getAGALUniformName (type: number, index = -1) {
+		return (index === -1)
+			? this._uniformLocationNameDictionary[type]
+			: this._uniformLocationNameDictionary[type] + index;
+	}
+
+	private _needCache(index: number, value: Float32Array | number): string {
+		const cached = this._uniformCache[index];
+		const hash = value instanceof Float32Array
+			? new Uint32Array(value.buffer).join('')
+			: '' + value;
+
+		// already uploaded
+		return (cached && hash === cached) ? void 0 : hash;
+	}
+
+	public uniform1i(type: number, index: number, value: number) {
+		const location = this.getUniformLocation(type, index);
+		const hash = this._needCache(type * 4 + index + 1, value);
+
+		// return undef hash if not require to uppload;
+		if (hash === void 0) {
+			return;
+		}
+
+		this._uniformCache[type * 4 + index + 1] = hash;
+		this._gl.uniform1i(location, value);
+	}
+
+	public uniform4fv(type: number, value: Float32Array) {
+		const location = this.getUniformLocation(type);
+		const hash = this._needCache(type * 4, value);
+
+		// return undef hash if not require to uppload;
+		if (hash === void 0) {
+			return;
+		}
+
+		this._uniformCache[type * 4] = hash;
+		this._gl.uniform4fv(location, value);
+	}
 
 	public getAttribLocation(index: number): number {
 		if (this._attribs[index] != null)
@@ -143,6 +181,7 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	public focusProgram(): void {
+		this._uniformCache.fill('');
 		this._gl.useProgram(this._program);
 	}
 

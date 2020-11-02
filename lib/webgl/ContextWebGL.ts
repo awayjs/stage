@@ -545,8 +545,9 @@ export class ContextWebGL implements IContextGL {
 	public static modulo: number = 0;
 
 	public setProgramConstantsFromArray(programType: number, data: Float32Array): void {
-		if (data.length)
-			this._gl.uniform4fv(this._currentProgram.getUniformLocation(programType), data);
+		if (data.length) {
+			this._currentProgram.uniform4fv(programType, data);
+		}
 	}
 
 	public setScissorRectangle(rectangle: Rectangle): void {
@@ -569,7 +570,7 @@ export class ContextWebGL implements IContextGL {
 		// id - is real sampler id, because texture context can change id of sasmpler
 		// or return -1 when texture unbounded
 		if (id >= 0) {
-			this._gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), id);
+			this._currentProgram.uniform1i(ContextGLProgramType.SAMPLER, sampler, id);
 		}
 	}
 
