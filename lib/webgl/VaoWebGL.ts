@@ -59,7 +59,8 @@ export class VaoContextWebGL {
 
 		if (!v) {
 			// mark that we require a unbound VAO as fast as possible
-			this._isRequireUnbound = false;
+			this._isRequireUnbound = true;
+			return;
 		}
 
 		this._isRequireUnbound = false;
