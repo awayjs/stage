@@ -22,86 +22,8 @@ import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 import { VertexBufferWebGL } from './VertexBufferWebGL';
 import { TextureContextWebGL } from './TextureContextWebGL';
-
-interface IState <T> {
-	dirty: boolean;
-	values: T[];
-	locked: boolean;
-
-	set (...args: T[]): boolean;
-	setAt(index: number, value: T): boolean;
-	reset();
-}
-
-class State<T> implements IState<T> {
-	values: T[] = [];
-	fixedValues: T[] = [];
-	dirty: boolean = true;
-
-	private _deltaDirty: boolean[] = [];
-	private _locked: boolean = false;
-
-	set locked (v) {
-		this._locked = v;
-
-		if (v) {
-			const v = this.values;
-
-			for (let i = 0, l = v.length; i < l; i++) {
-				this.fixedValues[i] = v[i];
-			}
-
-			this.fixedValues.length = v.length;
-			this.dirty = false;
-		}
-	}
-
-	constructor (...args: T[]) {
-		// eslint-disable-next-line prefer-rest-params
-		this.values = Array.prototype.slice.call(arguments);
-	}
-
-	set(...args: T[]): boolean {
-		const v = this._locked ? this.fixedValues : this.values;
-
-		let dirty = false;
-
-		for (let i = 0; i < args.length; i++) {
-			dirty = dirty || v[i] !== args[i];
-			v[i] = args[i];
-		}
-
-		return this.dirty = dirty;
-	}
-
-	setAt(index: number, value: T): boolean {
-		const v = this._locked ? this.fixedValues : this.values;
-		const dirty = v[index] !== value;
-
-		this.values[index] = value;
-		this.dirty = this.dirty || dirty;
-
-		return dirty;
-	}
-
-	deltaDirty (): boolean[]  {
-		const delta = this._deltaDirty;
-		const v = this.values;
-		const f = this.fixedValues;
-
-		delta.length = v.length;
-
-		for (let i = 0; i < v.length; i++) {
-			delta[i] = v[i] !== f[i];
-		}
-
-		return delta;
-	}
-
-	reset() {
-		this.set();
-	}
-}
+import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
+import { State } from './State';
 
 export class ContextWebGL implements IContextGL {
 	public static MAX_SAMPLERS: number = 8;
@@ -116,9 +38,6 @@ export class ContextWebGL implements IContextGL {
 	private _width: number;
 	private _height: number;
 	private _drawing: boolean = true;
-	private _blendEnabled: boolean;
-	private _blendSourceFactor: number;
-	private _blendDestinationFactor: number;
 
 	private _standardDerivatives: boolean;
 
@@ -142,6 +61,7 @@ export class ContextWebGL implements IContextGL {
 	public _currentProgram: ProgramWebGL;
 
 	/* internal */ _texContext: TextureContextWebGL;
+	/* internal */ _vaoContext: VaoContextWebGL;
 
 	private _currentArrayBuffer: VertexBufferWebGL;
 	private _stencilCompareMode: number;
@@ -150,15 +70,19 @@ export class ContextWebGL implements IContextGL {
 	private _stencilReferenceValue: number = 0;
 	private _stencilReadMask: number = 0xff;
 	private _separateStencil: boolean = false;
-	private _pixelRatio: number;
-	private _glVersion: number;
-
 	private lastBoundedIndexBuffer = null;
 
+	private _hasVao = false;
+	private get hasVao() {
+		return this._hasVao;
+	}
+
+	private _glVersion: number;
 	public get glVersion(): number {
 		return this._glVersion;
 	}
 
+	private _pixelRatio: number;
 	public get pixelRatio(): number {
 		return this._pixelRatio;
 	}
@@ -313,6 +237,13 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		this._texContext = new TextureContextWebGL(this);
+
+		if (VaoContextWebGL.isSupported(this._gl)) {
+			this._vaoContext = new VaoContextWebGL(this);
+			this._hasVao = true;
+		} else {
+			console.warn('[ContextWebGL] VAO isn\'t supported');
+		}
 	}
 
 	public gl(): WebGLRenderingContext {
@@ -396,6 +327,12 @@ export class ContextWebGL implements IContextGL {
 		return new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
 	}
 
+	public createVertexArray(): VaoWebGL {
+		if (!this._hasVao) throw 'VAO isn\'n supported';
+
+		return new VaoWebGL(this);
+	}
+
 	public dispose(): void {
 		//
 	}
@@ -421,11 +358,14 @@ export class ContextWebGL implements IContextGL {
 		this.updateBlendStatus();
 		this.updateDepthStatus();
 
-		if (this.lastBoundedIndexBuffer !== indexBuffer.glBuffer) {
-			this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-		}
+		// check, that VAO not bounded and bind buffer
+		if (this._hasVao && !this._vaoContext._lastBoundedVao) {
+			if (this.lastBoundedIndexBuffer !== indexBuffer.glBuffer) {
+				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
+			}
 
-		this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
+			this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
+		}
 
 		this._gl.drawElements(
 			this._drawModeMap[mode],
