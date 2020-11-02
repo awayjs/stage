@@ -38,7 +38,6 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
-import { VaoWebGL } from './webgl/VaoWebGL';
 import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
 
 declare class WeakMap<T extends Object, V = any> {
@@ -702,8 +701,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		}
 
 		this._context.clear(red, green, blue, alpha, depth, stencil, mask);
-
-		this._bufferClear = true;
 	}
 
 	/**
