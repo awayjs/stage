@@ -54,6 +54,8 @@ export class ContextWebGL implements IContextGL {
 	private _depthState: State<number> = new State(0, 0, 0);
 	// [enable, mask, func]
 	private _stencilState: State<number> = new State(0, 0, 0);
+	// [enable, face]
+	private _cullState: State<number> = new State(0,0,0);
 
 	//@protected
 	public _gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -429,11 +431,12 @@ export class ContextWebGL implements IContextGL {
 		triangleFaceToCull: ContextGLTriangleFace,
 		coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void {
 
-		if (triangleFaceToCull == ContextGLTriangleFace.NONE) {
-			this._gl.disable(this._gl.CULL_FACE);
+		if (triangleFaceToCull === ContextGLTriangleFace.NONE) {
+			this._cullState.setAt(0, +false) && this._gl.disable(this._gl.CULL_FACE);
 		} else {
-			this._gl.enable(this._gl.CULL_FACE);
-			this._gl.cullFace(this.translateTriangleFace(triangleFaceToCull, coordinateSystem));
+			this._cullState.setAt(0, +true) && this._gl.enable(this._gl.CULL_FACE);
+			const face = this.translateTriangleFace(triangleFaceToCull, coordinateSystem);
+			this._cullState.setAt(1, face) && this._gl.cullFace(face);
 		}
 	}
 
