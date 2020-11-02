@@ -12,7 +12,7 @@ export class VaoContextWebGL {
 			return true;
 		}
 
-		if (gl.getSupportedExtensions().indexOf('OES_vertex_array_object ') > -1) {
+		if (gl.getSupportedExtensions().indexOf('OES_vertex_array_object') > -1) {
 			return true;
 		}
 
