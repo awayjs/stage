@@ -5,6 +5,7 @@ export interface IStageSettings {
 	ENABLE_TEXTURE_POOLING: boolean;
 	MAX_BITMAP_UNLOAD_TASKS: number;
 	ENABLE_VAO: boolean;
+	ENABLE_UNIFORM_CACHE: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -35,9 +36,13 @@ export const Settings: IStageSettings = {
 	MAX_BITMAP_UNLOAD_TASKS: 50,
 
 	/**
-	 * @description ALLOW VAO SUPPORT
+	 * @description Allow use VAO if supported
 	 */
-	ENABLE_VAO: true
+	ENABLE_VAO: true,
+	/**
+	 * @description Allow cache a uniforms
+	 */
+	ENABLE_UNIFORM_CACHE: false
 };
 
 // console.debug('[Stage settings]', Settings);

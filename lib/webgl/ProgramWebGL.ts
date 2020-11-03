@@ -3,6 +3,7 @@ import { ByteArray } from '@awayjs/core';
 import { AGALTokenizer } from '../aglsl/AGALTokenizer';
 import { AGLSLParser } from '../aglsl/AGLSLParser';
 import { IProgram } from '../base/IProgram';
+import { Settings } from '../Settings';
 
 const TEST_PLACE = /(#define|#version|precision).*\n/gi;
 
@@ -145,27 +146,33 @@ export class ProgramWebGL implements IProgram {
 
 	public uniform1i(type: number, index: number, value: number) {
 		const location = this.getUniformLocation(type, index);
-		const hash = this._needCache(type * 4 + index + 1, value);
 
-		// return undef hash if not require to uppload;
-		if (hash === void 0) {
-			return;
+		if (Settings.ENABLE_UNIFORM_CACHE) {
+			const hash = this._needCache(type * 4 + index + 1, value);
+			// return undef hash if not require to uppload;
+			if (hash === void 0) {
+				return;
+			}
+
+			this._uniformCache[type * 4 + index + 1] = hash;
 		}
 
-		this._uniformCache[type * 4 + index + 1] = hash;
 		this._gl.uniform1i(location, value);
 	}
 
 	public uniform4fv(type: number, value: Float32Array) {
 		const location = this.getUniformLocation(type);
-		const hash = this._needCache(type * 4, value);
 
-		// return undef hash if not require to uppload;
-		if (hash === void 0) {
-			return;
+		if (Settings.ENABLE_UNIFORM_CACHE) {
+			const hash = this._needCache(type * 4, value);
+
+			// return undef hash if not require to uppload;
+			if (hash === void 0) {
+				return;
+			}
+			this._uniformCache[type * 4] = hash;
 		}
 
-		this._uniformCache[type * 4] = hash;
 		this._gl.uniform4fv(location, value);
 	}
 
