@@ -7,7 +7,7 @@ type TWebGLVao = WebGLVertexArrayObjectOES | WebGLVertexArrayObject;
 
 export class VaoContextWebGL {
 	public static isSupported(gl: WebGLRenderingContext | WebGL2RenderingContext) {
-		if (gl instanceof WebGL2RenderingContext) {
+		if (window.WebGL2RenderingContext && gl instanceof window.WebGL2RenderingContext) {
 			return true;
 		}
 
@@ -32,7 +32,7 @@ export class VaoContextWebGL {
 			throw '[VaoContextWebGL] VAO not supported!';
 		}
 
-		if (gl instanceof WebGL2RenderingContext) {
+		if (window.WebGL2RenderingContext && gl instanceof window.WebGL2RenderingContext) {
 			this.createVertexArray = gl.createVertexArray.bind(gl);
 			this._deleteVertexArray = gl.deleteVertexArray.bind(gl);
 			this._bindVertexArray = gl.bindVertexArray.bind(gl);
