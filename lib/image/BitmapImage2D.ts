@@ -1253,7 +1253,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		asset.applySymbol();
 		super.getTexture();
 
-		const pixels = <Uint8Array>((<any> asset)._data);
+		const pixels = <Uint8ClampedArray>((<any> asset)._data);
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {
@@ -1261,7 +1261,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		}
 
 		if (this._invalid && pixels) {
-			t.uploadFromArray(pixels, 0, asset.unpackPMA);
+			t.uploadFromArray(new Uint8Array(pixels.buffer), 0, asset.unpackPMA);
 
 			asset.wasUpload = true;
 
