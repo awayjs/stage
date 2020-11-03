@@ -804,28 +804,29 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			height = ~~rect.height,
 			data = new Uint32Array(this._data.buffer);
 
-		let argb = 0;
+		let rgba = 0;
 		if (this._transparent) {
 			const [a, r, g, b] = ColorUtils.float32ColorToARGB(color);
 			// PMA
-			argb = ColorUtils.ARGBtoFloat32(
+			// we should FLIP bytes because a use UINT32
+			rgba = ColorUtils.ARGBtoFloat32(
 				a,
-				r * a / 0xff | 0,
+				b * a / 0xff | 0,
 				g * a / 0xff | 0,
-				b * a / 0xff | 0);
+				r * a / 0xff | 0) >>> 0;
 
 			/**
 			 * TW2 has bug with transition over timeline when used a PMA
 			 * I think that caused by invalid blend mode
 			 */
-			//this._unpackPMA = false;
+			this._unpackPMA = false;
 		} else {
-			argb = (color & 0xffffff) | 0xff000000;
+			rgba = fastARGB_to_ABGR(color & 0xffffff, false);
 		}
 
 		//fast path for complete fill
 		if (x == 0 && y == 0 && width == this._rect.width && height == this._rect.height) {
-			data.fill(argb);
+			data.fill(rgba);
 		} else {
 			let j: number;
 			let index: number;
@@ -833,7 +834,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 				index = x + (j + y) * this._rect.width;
 
-				data.fill(argb, index, index + width);
+				data.fill(rgba, index, index + width);
 			}
 		}
 
@@ -1031,11 +1032,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		const index: number = (x + y * this._rect.width) * 4, data: Uint8ClampedArray = this.data;
 
-		data[index + 0] = colors[1];
-		data[index + 1] = colors[2];
-		data[index + 2] = colors[3];
-		data[index + 3] = colors[0] * 0xff;
+		data[index + 0] = colors[1] * colors[0] | 0;
+		data[index + 1] = colors[2] * colors[0] | 0;
+		data[index + 2] = colors[3] * colors[0] | 0;
+		data[index + 3] = colors[0] * 0xff | 0;
 
+		this._unpackPMA = false;
 		this.invalidateGPU();
 	}
 
