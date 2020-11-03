@@ -47,13 +47,13 @@ export class ContextWebGL implements IContextGL {
 	// [enable, func, src, dst];
 	private _blendState: State<number> = new State(0,0,0,0);
 	// [r, g, b, a]
-	private _colorMapState: State<boolean> = new State(false, false, false, false);
+	private _colorMapState: State<boolean> = new State(true, true, true, true);
 	// [r, g, b, a]
 	private _clearColorState: State<number> = new State(0,0,0,0);
 	// [enable, mask, func]
 	private _depthState: State<number> = new State(0, 0, 0);
 	// [enable, mask, func]
-	private _stencilState: State<number> = new State(0, 0, 0);
+	private _stencilState: State<number> = new State(0, 1, 0);
 	// [enable, face]
 	private _cullState: State<number> = new State(0,0,0);
 
@@ -363,7 +363,6 @@ export class ContextWebGL implements IContextGL {
 		// updata blend before draw, because blend state can mutated a more times
 		// reduce a state changes
 		this.updateBlendStatus();
-		this.updateDepthStatus();
 
 		// check, that VAO not bounded
 		if (!this._hasVao
@@ -398,7 +397,6 @@ export class ContextWebGL implements IContextGL {
 		// updata blend before draw, because blend state can mutated a more times
 		// reduce a state changes
 		this.updateBlendStatus();
-		this.updateDepthStatus();
 
 		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 
@@ -444,10 +442,8 @@ export class ContextWebGL implements IContextGL {
 	public setDepthTest(depthMask: boolean, passCompareMode: ContextGLCompareMode): void {
 		const mode = this._compareModeMap[passCompareMode];
 
-		// last depth state was applyed in render command
-		// In 0 location we has a ENABLE/DISABLE flag
-		this._depthState.setAt(2, mode);
-		this._depthState.setAt(1, +depthMask);
+		this._depthState.setAt(1, +depthMask) && this._gl.depthMask(depthMask);
+		this._depthState.setAt(2, mode) && this._gl.depthFunc(mode);
 	}
 
 	public setViewport(x: number, y: number, width: number, height: number) {
@@ -458,15 +454,11 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public enableDepth() {
-		// last depth state was applyed in render command
-		// set state ENABLE and check dirty
-		this._depthState.setAt(0, +true);
+		this._depthState.setAt(0, +true) && this._gl.enable(this._gl.DEPTH_TEST);
 	}
 
 	public disableDepth() {
-		// last depth state was applyed in render command
-		// set state DISABLE and check dirty
-		this._depthState.setAt(0, +false);
+		this._depthState.setAt(0, +false) && this._gl.disable(this._gl.DEPTH_TEST);
 	}
 
 	public enableStencil() {
@@ -662,31 +654,11 @@ export class ContextWebGL implements IContextGL {
 
 		if (v[0]) {
 			delta[0] && this._gl.enable(this._gl.BLEND);
-			delta[1] && this._gl.blendEquation(v[1]);
+			// always ADD
+			// delta[1] && this._gl.blendEquation(v[1]);
 			delta[2] && this._gl.blendFunc(v[2], v[3]);
 		} else {
 			delta[0] && this._gl.disable(this._gl.BLEND);
-		}
-	}
-
-	private updateDepthStatus(): void {
-		const ds = this._depthState;
-
-		if (!ds.dirty) {
-			return;
-		}
-
-		const v = ds.values;
-		const delta = ds.deltaDirty();
-
-		ds.locked = true;
-
-		if (v[0]) {
-			delta[0] && this._gl.enable(this._gl.DEPTH_TEST);
-			delta[1] && this._gl.depthMask(!!v[1]);
-			delta[2] && this._gl.depthFunc(v[2]);
-		} else {
-			delta[0] && this._gl.disable(this._gl.DEPTH_TEST);
 		}
 	}
 
