@@ -4,6 +4,7 @@ export interface IUnloadable {
 	lastUsedTime: number;
 	canUnload: boolean;
 	unload(): void;
+	apply?(...args: any[]): void;
 }
 
 function sortManagersFunct(a: UnloadManager<IUnloadable>, b: UnloadManager<IUnloadable>) {

@@ -1,6 +1,27 @@
 import { IIndexBuffer } from '../base/IIndexBuffer';
+import { IUnloadable } from '../managers/UnloadManager';
+import { Settings } from '../Settings';
+import { BufferPool } from './BufferPool';
 
-export class IndexBufferWebGL implements IIndexBuffer {
+export class IndexBufferWebGL implements IIndexBuffer, IUnloadable {
+
+	private static _pool: BufferPool<IndexBufferWebGL>;
+
+	public static get pool() {
+		if (!Settings.ENABLE_BUFFER_POOLING) return null;
+		return this._pool || (this._pool = new BufferPool(IndexBufferWebGL));
+	}
+
+	public static create(gl: WebGLRenderingContext, numIndices: number) {
+		if (!Settings.ENABLE_BUFFER_POOLING) {
+			return new IndexBufferWebGL(gl, numIndices);
+		}
+
+		return this.pool.create(gl, numIndices);
+	}
+
+	public lastUsedTime: number;
+	public canUnload: boolean = true;
 
 	private _gl: WebGLRenderingContext;
 	private _numIndices: number;
@@ -31,6 +52,19 @@ export class IndexBufferWebGL implements IIndexBuffer {
 	}
 
 	public dispose(): void {
+		if (Settings.ENABLE_BUFFER_POOLING && IndexBufferWebGL.pool.store(this)) {
+			return;
+		}
+
+		this.unload();
+	}
+
+	public apply(gl: WebGLRenderingContext, numIndices: number) {
+		this._numIndices = numIndices;
+	}
+
+	public unload(): void {
+		Settings.ENABLE_BUFFER_POOLING && IndexBufferWebGL.pool.remove(this);
 		this._gl.deleteBuffer(this._buffer);
 	}
 

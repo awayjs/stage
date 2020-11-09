@@ -315,7 +315,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createIndexBuffer(numIndices: number): IndexBufferWebGL {
-		return new IndexBufferWebGL(this._gl, numIndices);
+		return IndexBufferWebGL.create(this._gl, numIndices);
 	}
 
 	public createProgram(): ProgramWebGL {
@@ -331,7 +331,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createVertexBuffer(numVertices: number, dataPerVertex: number): VertexBufferWebGL {
-		return new VertexBufferWebGL(this._gl, numVertices, dataPerVertex);
+		return VertexBufferWebGL.create(this._gl, numVertices, dataPerVertex);
 	}
 
 	public createVertexArray(): VaoWebGL {

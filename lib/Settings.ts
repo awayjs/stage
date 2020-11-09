@@ -3,6 +3,11 @@ export interface IStageSettings {
 	ENABLE_UNLOAD_BITMAP: boolean;
 	ENABLE_UNLOAD_TEXTURE: boolean;
 	ENABLE_TEXTURE_POOLING: boolean;
+	ENABLE_UNLOAD_BUFFER: boolean;
+	ENABLE_BUFFER_POOLING: boolean;
+	MAX_BUFFER_POOL_SIZE: number;
+	MAX_BUFFER_ALIVE_TIME: number;
+
 	MAX_BITMAP_UNLOAD_TASKS: number;
 	ENABLE_VAO: boolean;
 	ENABLE_UNIFORM_CACHE: boolean;
@@ -21,7 +26,7 @@ export const Settings: IStageSettings = {
 	ENABLE_UNLOAD_BITMAP: true,
 
 	/**
-	 * @description Enable UnloadManager for unloading unused Textures in pool
+	 * @description Enable UnloadManager for unloading unused Textures from pool
 	 * @see ENABLE_TEXTURE_POOLING
 	 */
 	ENABLE_UNLOAD_TEXTURE: true,
@@ -30,6 +35,28 @@ export const Settings: IStageSettings = {
 	 * @description Enable texture pooling to prevent a recreation
 	 */
 	ENABLE_TEXTURE_POOLING: true,
+
+	/**
+	 * @description Enable UnloadManager for unloading unused buffers from pool
+	 * @see ENABLE_BUFFER_POOLING
+	 */
+	ENABLE_UNLOAD_BUFFER: true,
+
+	/**
+	 * @description Max pool size
+	 */
+	MAX_BUFFER_POOL_SIZE: 300,
+
+	/**
+	 * @description Max allive time of buffer that stored in pool
+	 */
+	MAX_BUFFER_ALIVE_TIME: 5000,
+
+	/**
+	 * @description Enable buffer pooling to prevent a recreation
+	 */
+	ENABLE_BUFFER_POOLING: true,
+
 	/**
 	 * @description How many task can be unloaded per run
 	 */
