@@ -36,7 +36,8 @@ export { IContextGL } from './lib/base/IContextGL';
 export { ICubeTexture } from './lib/base/ICubeTexture';
 export { IIndexBuffer } from './lib/base/IIndexBuffer';
 export { IProgram } from './lib/base/IProgram';
-//export {ITexture} from "./lib/base/ITexture";
+export { IVao } from './lib/base/IVao';
+
 export { ITextureBase } from './lib/base/ITextureBase';
 export { IVertexBuffer } from './lib/base/IVertexBuffer';
 export { SamplerState } from './lib/base/SamplerState';
