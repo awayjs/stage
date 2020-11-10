@@ -42,6 +42,11 @@ export class ContextGLES implements IContextGL {
 	public _createBytes: Byte32Array;
 	public static _soundBytes: Byte32Array;
 
+	public readonly hasVao = false;
+	public createVao() {
+		return null;
+	}
+
 	// soundcommands are excuted on @away/player/AS2SoundAdapter, and stored here as binary data
 	// when context is executed, they get send to java along woth the oother data
 

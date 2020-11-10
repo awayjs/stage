@@ -260,7 +260,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
 		const len = tasks.length;
-		const hasVao = this._context instanceof ContextWebGL && this._context.hasVao;
+		const hasVao = this._context.hasVao;
 
 		let vertexBuffer: IVertexBuffer = this._filterVertexBuffer;
 		let needUploadVao = false;
@@ -270,7 +270,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			if (hasVao && !tasks[0].vao) {
 				if (!tasks[0].vao) {
-					tasks[0].vao = (<ContextWebGL> this._context).createVertexArray();
+					tasks[0].vao = this._context.createVao();
 					needUploadVao = true;
 				}
 			}
@@ -304,7 +304,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			if (!task.target) {
 
 				if (hasVao && !task.vao) {
-					tasks[0].vao = (<ContextWebGL> this._context).createVertexArray();
+					tasks[0].vao = this._context.createVao();
 					needUploadVao = true;
 				}
 

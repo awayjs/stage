@@ -4,7 +4,6 @@ import { BitmapImage2D } from '../image/BitmapImage2D';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
-import { ContextGLProgramType } from '../base/ContextGLProgramType';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
 import { ContextGLMipFilter } from '../base/ContextGLMipFilter';
 import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
@@ -19,6 +18,7 @@ import { IProgram } from './IProgram';
 import { ITexture } from './ITexture';
 import { ITextureBase } from './ITextureBase';
 import { IVertexBuffer } from './IVertexBuffer';
+import { IVao } from './IVao';
 
 export interface IContextGL
 {
@@ -28,17 +28,27 @@ export interface IContextGL
 
 	container: HTMLCanvasElement;
 
-	clear(red?: number, green?: number, blue?: number, alpha?: number, depth?: number, stencil?: number, mask?: ContextGLClearMask);
+	hasVao: boolean;
+
+	createVao(): IVao;
+
+	clear(
+		red?: number, green?: number, blue?: number, alpha?: number,
+		depth?: number, stencil?: number, mask?: ContextGLClearMask);
 
 	configureBackBuffer(width: number, height: number, antiAlias: number, enableDepthAndStencil?: boolean);
 
-	createCubeTexture(size: number, format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
+	createCubeTexture(
+		size: number, format: ContextGLTextureFormat,
+		optimizeForRenderToTexture: boolean, streamingLevels?: number): ICubeTexture;
 
 	createIndexBuffer(numIndices: number): IIndexBuffer;
 
 	createProgram(): IProgram;
 
-	createTexture(width: number, height: number, format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
+	createTexture(
+		width: number, height: number,
+		format: ContextGLTextureFormat, optimizeForRenderToTexture: boolean, streamingLevels?: number): ITexture;
 
 	createVertexBuffer(numVertices: number, dataPerVertex: number): IVertexBuffer;
 
@@ -56,7 +66,12 @@ export interface IContextGL
 
 	setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean);
 
-	setStencilActions(triangleFace?: ContextGLTriangleFace, compareMode?: ContextGLCompareMode, actionOnBothPass?: ContextGLStencilAction, actionOnDepthFail?: ContextGLStencilAction, actionOnDepthPassStencilFail?: ContextGLStencilAction, coordinateSystem?: CoordinateSystem);
+	setStencilActions(
+		triangleFace?: ContextGLTriangleFace,
+		compareMode?: ContextGLCompareMode,
+		actionOnBothPass?: ContextGLStencilAction,
+		actionOnDepthFail?: ContextGLStencilAction,
+		actionOnDepthPassStencilFail?: ContextGLStencilAction, coordinateSystem?: CoordinateSystem);
 
 	setStencilReferenceValue(referenceValue: number, readMask?: number, writeMask?: number);
 
@@ -68,7 +83,8 @@ export interface IContextGL
 
 	setProgramConstantsFromArray(programType: number, data: Float32Array);
 
-	setSamplerStateAt(sampler: number, wrap: ContextGLWrapMode, filter: ContextGLTextureFilter, mipfilter: ContextGLMipFilter);
+	setSamplerStateAt(
+		sampler: number, wrap: ContextGLWrapMode, filter: ContextGLTextureFilter, mipfilter: ContextGLMipFilter);
 
 	setScissorRectangle(rectangle: Rectangle);
 
@@ -76,7 +92,12 @@ export interface IContextGL
 
 	setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: number);
 
-	setRenderToTexture(target: ITextureBase, enableDepthAndStencil?: boolean, antiAlias?: number, surfaceSelector?: number, mipmapSelector?: number);
+	setRenderToTexture(
+		target: ITextureBase,
+		enableDepthAndStencil?: boolean,
+		antiAlias?: number,
+		surfaceSelector?: number,
+		mipmapSelector?: number);
 
 	setRenderToBackBuffer();
 
@@ -85,4 +106,5 @@ export interface IContextGL
 	enableStencil();
 
 	disableStencil();
+
 }

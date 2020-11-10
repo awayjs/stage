@@ -334,7 +334,7 @@ export class ContextWebGL implements IContextGL {
 		return VertexBufferWebGL.create(this._gl, numVertices, dataPerVertex);
 	}
 
-	public createVertexArray(): VaoWebGL {
+	public createVao(): VaoWebGL {
 		if (!this._hasVao) throw 'VAO isn\'n supported';
 
 		return new VaoWebGL(this);

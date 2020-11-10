@@ -87,6 +87,11 @@ export class ContextSoftware implements IContextGL {
 
 	private _antialias: number = 0;
 
+	public readonly hasVao = false;
+	public createVao() {
+		return null;
+	}
+
 	public get glVersion(): number {
 		return 1;
 	}
