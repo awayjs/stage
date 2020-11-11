@@ -38,7 +38,6 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
-import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
 
 declare class WeakMap<T extends Object, V = any> {
 	delete(key: T);
@@ -258,38 +257,17 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		//render
 		const indexBuffer = this._filterIndexBuffer;
+		const vertexBuffer = this._filterVertexBuffer;
+
 		const tasks = filter.tasks;
 		const len = tasks.length;
 		const hasVao = this._context.hasVao;
 
-		let vertexBuffer: IVertexBuffer = this._filterVertexBuffer;
-		let needUploadVao = false;
-
+		// WTF?
 		if (len > 1 || tasks[0].target) {
 			this._context.setProgram(tasks[0].getProgram(this));
 
-			if (hasVao && !tasks[0].vao) {
-				if (!tasks[0].vao) {
-					tasks[0].vao = this._context.createVao();
-					needUploadVao = true;
-				}
-			}
-
-			tasks[0].vao && tasks[0].vao.bind();
-
-			if (needUploadVao || !tasks[0].vao) {
-
-				this._context.setVertexBufferAt(
-					tasks[0]._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-
-				this._context.setVertexBufferAt(
-					tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
-			}
-
-			// we should bound index buffer to VAO
-			if (needUploadVao) {
-				(<ContextWebGL> this._context).bindIndexBuffer(<IndexBufferWebGL> indexBuffer);
-			}
+			tasks[0].attachBuffers(indexBuffer, vertexBuffer);
 		}
 
 		for (const task of tasks) {
@@ -302,29 +280,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 				.activate(task._inputTextureIndex, this._filterSampler);
 
 			if (!task.target) {
-
-				if (hasVao && !task.vao) {
-					tasks[0].vao = this._context.createVao();
-					needUploadVao = true;
-				}
-
-				task.vao && task.vao.bind();
-
-				// we should a bind a aatributes ONCE or every call, if not VAO
-				if (needUploadVao || !task.vao) {
-					vertexBuffer = this._filterVertexBuffer;
-					this._context.setVertexBufferAt(
-						task._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-
-					this._context.setVertexBufferAt(
-						task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
-				}
-
-				// we should bound index buffer to VAO to
-				// but for index buffer draw bound it internally when it no from VAO
-				if (needUploadVao) {
-					task.vao.attachIndexBuffer(<IndexBufferWebGL>indexBuffer);
-				}
+				task.attachBuffers(indexBuffer, vertexBuffer);
 			}
 
 			task.activate(this, null, null);

@@ -8,6 +8,10 @@ import { ContextGLProfile } from '../../base/ContextGLProfile';
 import { Stage } from '../../Stage';
 import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
 import { IVao } from './../../base/IVao';
+import { IIndexBuffer } from '../../base/IIndexBuffer';
+import { IVertexBuffer } from '../../base/IVertexBuffer';
+import { IContextGL } from '../../base/IContextGL';
+import { ContextGLVertexBufferFormat } from '../../base/ContextGLVertexBufferFormat';
 
 export class Filter3DTaskBase {
 	public _registerCache: ShaderRegisterCache;
@@ -31,12 +35,37 @@ export class Filter3DTaskBase {
 	private _requireDepthRender: boolean;
 	private _textureScale: number = 1;
 
+	public context: IContextGL;
 	public vao: IVao;
 
 	constructor(requireDepthRender: boolean = false) {
 		this._requireDepthRender = requireDepthRender;
 
 		this._registerCache = new ShaderRegisterCache(ContextGLProfile.BASELINE);
+	}
+
+	public attachBuffers(index: IIndexBuffer, vertex: IVertexBuffer) {
+		const needUpdate = (
+			!this.context.hasVao
+			|| !this.vao);
+
+		this.vao = this.vao || this.context.createVao();
+		this.vao && this.vao.bind();
+
+		if (needUpdate) {
+
+			this.context.setVertexBufferAt(
+				this._positionIndex, vertex, 0, ContextGLVertexBufferFormat.FLOAT_2);
+
+			this.context.setVertexBufferAt(
+				this._uvIndex, vertex, 8, ContextGLVertexBufferFormat.FLOAT_2);
+
+			// we should bound index buffer to VAO
+			if (this.vao) {
+				this.vao.attachIndexBuffer(index);
+			}
+		}
+
 	}
 
 	/**

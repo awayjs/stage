@@ -25,6 +25,7 @@ export class CopyPixelFilter3D extends Filter3DBase {
 			? new Filter3DCopyPixelTaskWebGL()
 			: new Filter3DCopyPixelTask();
 
+		this._copyPixelTask.context = context;
 		this.addTask(this._copyPixelTask);
 	}
 
