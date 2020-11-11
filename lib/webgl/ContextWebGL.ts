@@ -647,22 +647,17 @@ export class ContextWebGL implements IContextGL {
 		const properties = this._vertexBufferMap[format];
 		const perVertex = buffer.dataPerVertex;
 
-		// required for instanced when attrib more that 4 floats, like a.. mat4 =)
+		this._gl.enableVertexAttribArray(location);
+		this._gl.vertexAttribPointer(
+			location,
+			properties.size,
+			properties.type,
+			properties.normalized,
+			perVertex,
+			bufferOffset);
 
-		for (let i = 0; i < perVertex / 4; i++) {
-			this._gl.enableVertexAttribArray(location + i);
-
-			this._gl.vertexAttribPointer(
-				location + i,
-				properties.size,
-				properties.type,
-				properties.normalized,
-				buffer.dataPerVertex,
-				bufferOffset + i * 4);
-
-			if (this._instancedElems) {
-				this._instancedContext.vertexAttribDivisor(location + i, 1);
-			}
+		if (this._instancedElems) {
+			this._instancedContext.vertexAttribDivisor(location, 1);
 		}
 	}
 
