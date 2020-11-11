@@ -11,6 +11,7 @@ export interface IStageSettings {
 	MAX_BITMAP_UNLOAD_TASKS: number;
 	ENABLE_VAO: boolean;
 	ENABLE_UNIFORM_CACHE: boolean;
+	ENABLE_INSTANCED: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -66,10 +67,16 @@ export const Settings: IStageSettings = {
 	 * @description Allow use VAO if supported
 	 */
 	ENABLE_VAO: true,
+
 	/**
 	 * @description Allow cache a uniforms
 	 */
-	ENABLE_UNIFORM_CACHE: false
+	ENABLE_UNIFORM_CACHE: false,
+
+	/**
+	 * @description Allow instanced renderer when awailable
+	 */
+	ENABLE_INSTANCED: true,
 };
 
 // console.debug('[Stage settings]', Settings);

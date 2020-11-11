@@ -25,6 +25,7 @@ import { TextureContextWebGL } from './TextureContextWebGL';
 import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
 import { Settings } from '../Settings';
+import { InstancedContextWebGL } from './InstancedWebGL';
 
 export class ContextWebGL implements IContextGL {
 	public static MAX_SAMPLERS: number = 8;
@@ -65,6 +66,7 @@ export class ContextWebGL implements IContextGL {
 
 	/* internal */ _texContext: TextureContextWebGL;
 	/* internal */ _vaoContext: VaoContextWebGL;
+	/* internal */ _instancedContext: InstancedContextWebGL;
 
 	private _currentArrayBuffer: VertexBufferWebGL;
 	private _stencilCompareMode: number;
@@ -75,9 +77,26 @@ export class ContextWebGL implements IContextGL {
 	private _separateStencil: boolean = false;
 	private lastBoundedIndexBuffer = null;
 
-	private _hasVao = false;
 	public get hasVao() {
-		return this._hasVao;
+		return !!this._vaoContext;
+	}
+
+	public get hasInstansing() {
+		return !!this._instancedContext;
+	}
+
+	protected _instancedElems = 0;
+	public beginInstansing(count: number) {
+		if (count <= 0)
+			throw 'Elements counts should be more that 0';
+		if (!this._instancedContext)
+			throw 'Instancing not supported';
+
+		this._instancedElems = count;
+	}
+
+	public endInstancing() {
+		this._instancedElems = 0;
 	}
 
 	private _glVersion: number;
@@ -244,12 +263,21 @@ export class ContextWebGL implements IContextGL {
 		if (Settings.ENABLE_VAO) {
 			if (VaoContextWebGL.isSupported(this._gl)) {
 				this._vaoContext = new VaoContextWebGL(this);
-				this._hasVao = true;
 			} else {
 				console.warn('[ContextWebGL] VAO isn\'t supported');
 			}
 		} else {
 			console.debug('[ContextWebGL] Vao disabled by settings \'ENABLE_VAO\'');
+		}
+
+		if (Settings.ENABLE_INSTANCED) {
+			if (InstancedContextWebGL.isSupported(this._gl)) {
+				this._instancedContext = new InstancedContextWebGL(this);
+			} else {
+				console.warn('[ContextWebGL] Instancing isn\'t supported');
+			}
+		} else {
+			console.debug('[ContextWebGL] Instancing disabled by settings \'ENABLE_INSTANCED\'');
 		}
 	}
 
@@ -335,7 +363,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createVao(): VaoWebGL {
-		if (!this._hasVao) throw 'VAO isn\'n supported';
+		if (!this._vaoContext) throw 'VAO isn\'n supported';
 
 		return new VaoWebGL(this);
 	}
@@ -365,7 +393,7 @@ export class ContextWebGL implements IContextGL {
 		this.updateBlendStatus();
 
 		// check, that VAO not bounded
-		if (!this._hasVao
+		if (!this._vaoContext
 			|| !this._vaoContext._lastBoundedVao) {
 
 			if (this.lastBoundedIndexBuffer !== indexBuffer.glBuffer) {
@@ -375,11 +403,17 @@ export class ContextWebGL implements IContextGL {
 			this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
 		}
 
-		this._gl.drawElements(
-			this._drawModeMap[mode],
-			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
-			this._gl.UNSIGNED_SHORT,
-			firstIndex * 2);
+		numIndices = (numIndices == -1) ? indexBuffer.numIndices : numIndices;
+
+		if (this._instancedElems > 0 && this._instancedContext) {
+			this._instancedContext.drawElementsInstanced(
+				this._drawModeMap[mode], numIndices, this._gl.UNSIGNED_SHORT,
+				firstIndex * 2, this._instancedElems);
+
+		} else {
+			this._gl.drawElements(
+				this._drawModeMap[mode], numIndices, this._gl.UNSIGNED_SHORT, firstIndex * 2);
+		}
 	}
 
 	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
@@ -398,8 +432,13 @@ export class ContextWebGL implements IContextGL {
 		// reduce a state changes
 		this.updateBlendStatus();
 
-		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
-
+		if (this._instancedElems > 0 && this._instancedContext) {
+			this._instancedContext.drawArraysInstanced(
+				this._drawModeMap[mode], firstVertex, numVertices, this._instancedElems);
+			this._instancedElems = 0;
+		} else {
+			this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
+		}
 		// todo: this check should not be needed.
 		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
 		if (numVertices == 0)
@@ -606,11 +645,25 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		const properties = this._vertexBufferMap[format];
+		const perVertex = buffer.dataPerVertex;
 
-		this._gl.enableVertexAttribArray(location);
+		// required for instanced when attrib more that 4 floats, like a.. mat4 =)
 
-		this._gl.vertexAttribPointer(
-			location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
+		for (let i = 0; i < perVertex / 4; i++) {
+			this._gl.enableVertexAttribArray(location + i);
+
+			this._gl.vertexAttribPointer(
+				location + i,
+				properties.size,
+				properties.type,
+				properties.normalized,
+				buffer.dataPerVertex,
+				bufferOffset + i * 4);
+
+			if (this._instancedElems) {
+				this._instancedContext.vertexAttribDivisor(location + i, 1);
+			}
+		}
 	}
 
 	public setRenderToTexture(
