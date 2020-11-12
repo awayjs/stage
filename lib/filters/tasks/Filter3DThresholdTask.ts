@@ -226,6 +226,8 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+		super.activate(stage, projection, depthTexture);
+
 		let index: number = this._positionIndex;
 		let data: Float32Array = this._vertexConstantData;
 		data[index] = (2 * this.destPoint.x + this.rect.width) / this._target.width - 1;

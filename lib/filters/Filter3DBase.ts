@@ -14,7 +14,6 @@ export class Filter3DBase {
 	private _textureWidth: number;
 	private _textureHeight: number;
 	private _textureScale: number = 1;
-
 	protected _context: IContextGL;
 
 	public get supportInstancing() {

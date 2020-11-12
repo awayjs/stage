@@ -233,6 +233,8 @@ export class Filter3DFXAATask extends Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+		super.activate(stage, projection, depthTexture);
+
 		stage.context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._data);
 	}
 

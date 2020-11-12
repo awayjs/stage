@@ -138,6 +138,8 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+		super.activate(stage, projection, depthTexture);
+
 		const index = 0;//this._positionIndex;
 		const vd = this._vertexConstantData;
 		const dp = this.destPoint;

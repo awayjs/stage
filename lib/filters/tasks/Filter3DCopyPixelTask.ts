@@ -86,6 +86,8 @@ export class Filter3DCopyPixelTask extends Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+		super.activate(stage, projection, depthTexture);
+
 		const index = this._positionIndex;
 		const vd = this._vertexConstantData;
 		const dp = this.destPoint;

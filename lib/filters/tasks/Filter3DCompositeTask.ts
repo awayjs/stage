@@ -103,6 +103,8 @@ export class Filter3DCompositeTask extends Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+		super.activate(stage, projection, depthTexture);
+
 		this._data[4] = -0.5 * (this._textureWidth - this._overlayWidth) / this._overlayWidth;
 		this._data[5] = -0.5 * (this._textureHeight - this._overlayHeight) / this._overlayHeight;
 

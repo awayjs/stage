@@ -14,6 +14,8 @@ import { IContextGL } from '../../base/IContextGL';
 import { ContextGLVertexBufferFormat } from '../../base/ContextGLVertexBufferFormat';
 import { ContextGLDrawMode } from '../../base/ContextGLDrawMode';
 import { ContextWebGL } from '../../webgl/ContextWebGL';
+import { ImageSampler } from '../../image/ImageSampler';
+import { _Stage_ImageBase } from '../../image/ImageBase';
 
 export class Filter3DTaskBase {
 	public _registerCache: ShaderRegisterCache;
@@ -23,6 +25,7 @@ export class Filter3DTaskBase {
 	public _inputTextureIndex: number;
 	public _uvVarying: ShaderRegisterElement;
 
+	protected readonly _defaultSample: ImageSampler = new ImageSampler();
 	protected _mainInputTexture: Image2D;
 
 	public _scaledTextureWidth: number = -1;
@@ -229,6 +232,8 @@ export class Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+		const imgAbstr = <_Stage_ImageBase>stage.getAbstraction(this.getMainInputTexture(stage));
+		imgAbstr.activate(this._inputTextureIndex, this._defaultSample);
 	}
 
 	public deactivate(stage: Stage): void {

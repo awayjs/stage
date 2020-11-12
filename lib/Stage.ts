@@ -260,7 +260,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const vertexBuffer = this._filterVertexBuffer;
 
 		const tasks = filter.tasks;
-		const len = tasks.length;
+		//const len = tasks.length;
 		const hasVao = this._context.hasVao;
 
 		// WTF?
@@ -280,11 +280,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			this._context.setProgram(task.getProgram(this));
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
-			(<_Stage_ImageBase> this.getAbstraction(task.getMainInputTexture(this)))
-				.activate(task._inputTextureIndex, this._filterSampler);
 
 			//if (!task.target) {
-				task.attachBuffers(indexBuffer, vertexBuffer);
+			task.attachBuffers(indexBuffer, vertexBuffer);
 			//}
 
 			task.activate(this, null, null);
