@@ -12,6 +12,8 @@ import { IIndexBuffer } from '../../base/IIndexBuffer';
 import { IVertexBuffer } from '../../base/IVertexBuffer';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLVertexBufferFormat } from '../../base/ContextGLVertexBufferFormat';
+import { ContextGLDrawMode } from '../../base/ContextGLDrawMode';
+import { ContextWebGL } from '../../webgl/ContextWebGL';
 
 export class Filter3DTaskBase {
 	public _registerCache: ShaderRegisterCache;
@@ -37,6 +39,13 @@ export class Filter3DTaskBase {
 
 	public context: IContextGL;
 	public vao: IVao;
+	public supportInstancing = false;
+
+	protected _indexBuffer: IIndexBuffer;
+	protected _vertexBuffer: IVertexBuffer;
+
+	protected _instancedFrame: number = -1;
+	protected _isInstancedRender: boolean = false;
 
 	constructor(requireDepthRender: boolean = false) {
 		this._requireDepthRender = requireDepthRender;
@@ -44,10 +53,17 @@ export class Filter3DTaskBase {
 		this._registerCache = new ShaderRegisterCache(ContextGLProfile.BASELINE);
 	}
 
+	public invalidateVao() {
+		this.vao && this.vao.dispose();
+		this.vao = null;
+	}
+
 	public attachBuffers(index: IIndexBuffer, vertex: IVertexBuffer) {
 		const needUpdate = (
 			!this.context.hasVao
-			|| !this.vao);
+			|| !this.vao
+			|| this._indexBuffer !== this._indexBuffer
+			|| this._vertexBuffer !== this._vertexBuffer);
 
 		this.vao = this.vao || this.context.createVao();
 		this.vao && this.vao.bind();
@@ -66,6 +82,8 @@ export class Filter3DTaskBase {
 			}
 		}
 
+		this._indexBuffer = index;
+		this._vertexBuffer = vertex;
 	}
 
 	/**
@@ -202,8 +220,10 @@ export class Filter3DTaskBase {
 	}
 
 	public getProgram(stage: Stage): IProgram {
-		if (this._program3DInvalid)
+		if (this._program3DInvalid) {
 			this.updateProgram(stage);
+			this.invalidateVao();
+		}
 
 		return this._program3D;
 	}
@@ -218,4 +238,24 @@ export class Filter3DTaskBase {
 		return this._requireDepthRender;
 	}
 
+	public beginInstanceFrame(): number {
+		this._isInstancedRender = true;
+		return this._instancedFrame++;
+	}
+
+	public killInstanced(): void {
+		this._instancedFrame = -1;
+		this._isInstancedRender = false;
+	}
+
+	public flush(count = 1): void {
+		if (this._isInstancedRender) {
+			(<ContextWebGL> this.context).beginInstancing(count);
+		}
+
+		this.context.drawIndices(
+			ContextGLDrawMode.TRIANGLES, this._indexBuffer, 0, 6);
+
+		this.killInstanced();
+	}
 }

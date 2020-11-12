@@ -264,28 +264,33 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const hasVao = this._context.hasVao;
 
 		// WTF?
+		/*
 		if (len > 1 || tasks[0].target) {
 			this._context.setProgram(tasks[0].getProgram(this));
 
 			tasks[0].attachBuffers(indexBuffer, vertexBuffer);
-		}
+		}*/
 
 		for (const task of tasks) {
+
 			this.setRenderTarget(task.target, false);
 			this.setScissor(null);
+
+			task.beginInstanceFrame();
 
 			this._context.setProgram(task.getProgram(this));
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 			(<_Stage_ImageBase> this.getAbstraction(task.getMainInputTexture(this)))
 				.activate(task._inputTextureIndex, this._filterSampler);
 
-			if (!task.target) {
+			//if (!task.target) {
 				task.attachBuffers(indexBuffer, vertexBuffer);
-			}
+			//}
 
 			task.activate(this, null, null);
 
-			this._context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
+			task.flush();
+			//this._context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
 
 			task.deactivate(this);
 		}

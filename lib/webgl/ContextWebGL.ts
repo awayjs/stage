@@ -86,7 +86,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	protected _instancedElems = 0;
-	public beginInstansing(count: number) {
+	public beginInstancing(count: number) {
 		if (count <= 0)
 			throw 'Elements counts should be more that 0';
 		if (!this._instancedContext)

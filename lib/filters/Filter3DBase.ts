@@ -5,6 +5,7 @@ import { RTTBufferManager } from '../managers/RTTBufferManager';
 import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
 import { IContextGL } from '../base/IContextGL';
+import { ContextWebGL } from '../webgl/ContextWebGL';
 
 export class Filter3DBase {
 	private _tasks: Array<Filter3DTaskBase> = [];
@@ -15,6 +16,17 @@ export class Filter3DBase {
 	private _textureScale: number = 1;
 
 	protected _context: IContextGL;
+
+	public get supportInstancing() {
+		const w = <ContextWebGL> this._context;
+
+		if (!w.hasInstansing) {
+			return false;
+		}
+
+		// supported only for one tasked filters
+		return this.tasks.length === 1 && this.tasks[0].supportInstancing;
+	}
 
 	public init(context: IContextGL) {
 		this._context = context;
@@ -96,4 +108,5 @@ export class Filter3DBase {
 	public update(stage: Stage, projection: ProjectionBase): void {
 
 	}
+
 }

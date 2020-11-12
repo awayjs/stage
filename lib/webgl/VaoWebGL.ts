@@ -54,6 +54,7 @@ export class VaoContextWebGL {
 	bindVertexArray (v: VaoWebGL) {
 		// not unbound vao, to reduce bound flips
 		if (v === this._lastBoundedVao) {
+			this._isRequireUnbound = false;
 			return;
 		}
 
