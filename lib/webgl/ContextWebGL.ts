@@ -655,8 +655,8 @@ export class ContextWebGL implements IContextGL {
 		if (v[0]) {
 			delta[0] && this._gl.enable(this._gl.BLEND);
 			// always ADD
-			delta[1] && this._gl.blendEquation(v[1]);
-			(delta[2] || delta[3]) && this._gl.blendFunc(v[2], v[3]);
+			(delta[1] || delta[0]) && this._gl.blendEquation(v[1]);
+			(delta[2] || delta[3] || delta[0]) && this._gl.blendFunc(v[2], v[3]);
 		} else {
 			delta[0] && this._gl.disable(this._gl.BLEND);
 		}
