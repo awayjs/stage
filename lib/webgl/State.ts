@@ -2,8 +2,7 @@
 export interface IState <T> {
 	dirty: boolean;
 	values: T[];
-	locked: boolean;
-
+	lock(v: boolean): void;
 	set (...args: T[]): boolean;
 	setAt(index: number, value: T): boolean;
 	reset();
@@ -17,19 +16,20 @@ export class State<T> implements IState<T> {
 	private _deltaDirty: boolean[] = [];
 	private _locked: boolean = false;
 
-	set locked (v) {
-		this._locked = v;
+	lock(lock: boolean) {
+		this._locked = lock;
 
-		if (v) {
-			const v = this.values;
+		if (!lock)
+			return;
 
-			for (let i = 0, l = v.length; i < l; i++) {
-				this.fixedValues[i] = v[i];
-			}
+		const v = this.values;
 
-			this.fixedValues.length = v.length;
-			this.dirty = false;
+		for (let i = 0, l = v.length; i < l; i++) {
+			this.fixedValues[i] = v[i];
 		}
+
+		this.fixedValues.length = v.length;
+		this.dirty = false;
 	}
 
 	constructor (...args: T[]) {
@@ -38,13 +38,14 @@ export class State<T> implements IState<T> {
 	}
 
 	set(...args: T[]): boolean {
-		const v = this._locked ? this.fixedValues : this.values;
+		const ref = this._locked ? this.fixedValues : this.values;
+		const values = this.values;
 
 		let dirty = false;
 
 		for (let i = 0; i < args.length; i++) {
-			dirty = dirty || v[i] !== args[i];
-			v[i] = args[i];
+			dirty = dirty || ref[i] !== args[i];
+			values[i] = args[i];
 		}
 
 		return this.dirty = dirty;
