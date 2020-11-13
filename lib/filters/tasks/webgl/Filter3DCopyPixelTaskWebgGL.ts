@@ -9,7 +9,7 @@ import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);
 
-const VERTEX_INST = `
+const VERTEX_INST = (samples = 1) => `
 precision highp float;
 vec4 vt0;
 
@@ -19,6 +19,7 @@ attribute vec4 va1; // uv
 attribute vec4 va2; // position matrix
 attribute vec4 va3; // uv matrix
 
+${ samples > 1 ? 'varying float vSamplerId\n' : ''};
 varying vec2 vUv;
 
 void main() {
@@ -57,16 +58,44 @@ void main() {
 
 `;
 
-const FRAG = `
+function getSamplesU(samples = 1) {
+	if (samples === 1) {
+		return 'uniform sampler2D fs0;\n';
+	}
+
+	return Array.from({ length: samples }, (_, i) => {
+		return `uniform sampler2D fs${i};`;
+	}).join('\n');
+}
+
+function getSamplesS(samples = 1) {
+	if (samples === 1) {
+	//	return '\t color = texture2D(fs0, vUv);';
+	}
+
+	let s = '';
+	for (let i = 0; i < samples; i++) {
+		s += `\tif(vSamplerId < ${0.5 + i}) { color = texture2D(fs${i}, vUv); }\n`;
+		if (i !== samples - 1) {
+			s += ' else ';
+		}
+	}
+
+	return s;
+}
+
+const FRAG = (samples = 1) => `
 precision highp float;
 uniform vec4 fc[2];
 varying vec2 vUv;
 
+${ samples > 1 ? 'varying float vSamplerId\n' : ''};
 /* AGAL legacy attrib resolver require this names */
-uniform sampler2D fs0;
+${getSamplesU(samples)}
 
 void main() {
-	vec4 color = texture2D(fs0, vUv);
+	vec4 color;
+${getSamplesS(samples)}
 	
 	if (color.a > 0.0) {
 		color.rgb /= color.a;
@@ -126,11 +155,11 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 		this.name = this.constructor.name + (this._isInstancedRender  ? '_instanced' : '');
 
-		return this._isInstancedRender ? VERTEX_INST : VERTEX;
+		return this._isInstancedRender ? VERTEX_INST(4) : VERTEX;
 	}
 
 	public getFragmentCode(): string {
-		return FRAG;
+		return FRAG(this._isInstancedRender ? 4 : 1);
 	}
 
 	public getMainInputTexture(stage: Stage): Image2D {
