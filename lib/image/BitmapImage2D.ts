@@ -124,6 +124,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				name : 'BitmapImage2D',
 				priority: 0,
 				maxUnloadTasks: Settings.MAX_BITMAP_UNLOAD_TASKS,
+				exectionPeriod: 100, // every 100 ms GC will runs to unload bitmap
 			});
 		}
 
