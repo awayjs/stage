@@ -3,6 +3,7 @@ import { ContextGLProgramType } from '../../../base/ContextGLProgramType';
 import { ContextGLVertexBufferFormat } from '../../../base/ContextGLVertexBufferFormat';
 import { IVertexBuffer } from '../../../base/IVertexBuffer';
 import { Image2D } from '../../../image/Image2D';
+import { _Stage_ImageBase } from '../../../image/ImageBase';
 import { Stage } from '../../../Stage';
 import { ContextWebGL } from '../../../webgl/ContextWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
@@ -18,8 +19,10 @@ attribute vec4 va0; // position
 attribute vec4 va1; // uv 
 attribute vec4 va2; // position matrix
 attribute vec4 va3; // uv matrix
+attribute float va4; // samplerId
 
-${ samples > 1 ? 'varying float vSamplerId\n' : ''};
+${ samples > 1 ? 'varying float vSamplerId;' : ''}
+
 varying vec2 vUv;
 
 void main() {
@@ -29,6 +32,8 @@ void main() {
 	pos.z = pos.z * 2.0 - pos.w;
 
 	vUv = (va1.xy + va3.xy) * va3.zw;
+
+${ samples > 1 ? 'vSamplerId = va4;' : ''}
 
     gl_Position = pos;
 }
@@ -89,14 +94,16 @@ precision highp float;
 uniform vec4 fc[2];
 varying vec2 vUv;
 
-${ samples > 1 ? 'varying float vSamplerId\n' : ''};
+${ samples > 1 ? 'varying float vSamplerId;' : ''}
+
 /* AGAL legacy attrib resolver require this names */
 ${getSamplesU(samples)}
 
 void main() {
 	vec4 color;
+
 ${getSamplesS(samples)}
-	
+
 	if (color.a > 0.0) {
 		color.rgb /= color.a;
 	}
@@ -114,6 +121,7 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	private _vertexConstantData: Float32Array;
 	private _fragConstantData: Float32Array;
 	private _instancedBuffer: IVertexBuffer;
+	private _samplers: Image2D[] = [];
 
 	public rect: Rectangle = new Rectangle();
 	public destPoint: Point = new Point();
@@ -125,7 +133,7 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 	private _lastRenderIsInstanced = false;
 	private _instancedFrames: Array<{
-		buffer: Float32Array, image: Image2D
+		buffer: Float32Array, sampler: number
 	}> = [];
 
 	public supportInstancing = true;
@@ -167,8 +175,6 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
-		super.activate(stage, projection, depthTexture);
-
 		const index = 0;//this._positionIndex;
 		const vd = this._vertexConstantData;
 		const dp = this.destPoint;
@@ -206,17 +212,29 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 		}
 
 		if (this._isInstancedRender) {
+			let index = this._samplers.indexOf(this._mainInputTexture);
+
+			if (index === -1) {
+				index = this._samplers.length;
+				this._samplers.push(this._mainInputTexture);
+
+				(<_Stage_ImageBase> stage.getAbstraction(this._mainInputTexture))
+					.activate(index, this._defaultSample);
+			}
+
 			this._instancedFrames[this._instancedFrame] = {
 				buffer: vd,
-				image: this._mainInputTexture
+				sampler: index
 			};
 
 			this._vertexConstantData = new Float32Array(8);
 			return;
 		}
+
+		super.activate(stage, projection, depthTexture);
 	}
 
-	public flush(count: number = 1) {
+	public flush(count: number = this._instancedFrames.length) {
 		const context = this.context;
 
 		if (!this._isInstancedRender) {
@@ -225,11 +243,12 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			(<ContextWebGL> context).beginInstancing(count);
 
 			const frames = this._instancedFrames;
-			const size = frames.length * frames[0].buffer.length;
+			const size = frames.length * (frames[0].buffer.length + 1);
 			const data = new Float32Array(size);
 
 			for (let i = 0; i < frames.length; i++) {
-				data.set(frames[i].buffer, 4 * 2 * i);
+				data.set(frames[i].buffer, 5 * 2 * i);
+				data[5 * i + 4] = frames[i].sampler;
 			}
 
 			if (!this._instancedBuffer) {
@@ -248,9 +267,14 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			// matix uv
 			this.context.setVertexBufferAt(
 				3, this._instancedBuffer,  Float32Array.BYTES_PER_ELEMENT * 4, ContextGLVertexBufferFormat.FLOAT_4);
+
+			// matix uv
+			this.context.setVertexBufferAt(
+				4, this._instancedBuffer,  Float32Array.BYTES_PER_ELEMENT * 5, ContextGLVertexBufferFormat.FLOAT_1);
 		}
 
 		this._lastRenderIsInstanced = this._isInstancedRender;
+		this._samplers.length = 0;
 
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragConstantData);
 

@@ -27,6 +27,14 @@ import { State } from './State';
 import { Settings } from '../Settings';
 import { InstancedContextWebGL } from './InstancedWebGL';
 
+export enum GlCommands {
+	DRAW_ARRAY = 'draw_array',
+	DRAW_INDICES = 'draw_indices',
+	SET_PROGRAM = 'set_program',
+	SET_ATTRIB = 'set_attrib',
+	SET_RENDER_TARGET = 'set_render_target'
+}
+
 export class ContextWebGL implements IContextGL {
 	public static MAX_SAMPLERS: number = 8;
 
@@ -84,6 +92,13 @@ export class ContextWebGL implements IContextGL {
 	public get hasInstansing() {
 		return !!this._instancedContext;
 	}
+
+	private _drawCommandId = 0;
+	public get drawCommandId() {
+		return this._drawCommandId;
+	}
+
+	public beginCommand: (command: GlCommands, ...args: any[]) => void;
 
 	protected _instancedElems = 0;
 	public beginInstancing(count: number) {
@@ -388,6 +403,8 @@ export class ContextWebGL implements IContextGL {
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
 
+		this.beginCommand && this.beginCommand(GlCommands.DRAW_INDICES, indexBuffer);
+
 		// updata blend before draw, because blend state can mutated a more times
 		// reduce a state changes
 		this.updateBlendStatus();
@@ -414,6 +431,8 @@ export class ContextWebGL implements IContextGL {
 			this._gl.drawElements(
 				this._drawModeMap[mode], numIndices, this._gl.UNSIGNED_SHORT, firstIndex * 2);
 		}
+
+		this._drawCommandId++;
 	}
 
 	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
@@ -424,6 +443,8 @@ export class ContextWebGL implements IContextGL {
 	public drawVertices(mode: ContextGLDrawMode, firstVertex: number = 0, numVertices: number = -1): void {
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
+
+		this.beginCommand && this.beginCommand(GlCommands.DRAW_ARRAY);
 
 		if (numVertices == 0)
 			return;
@@ -439,10 +460,8 @@ export class ContextWebGL implements IContextGL {
 		} else {
 			this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 		}
-		// todo: this check should not be needed.
-		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
-		if (numVertices == 0)
-			return;
+
+		this._drawCommandId++;
 	}
 
 	public present(): void {
@@ -568,6 +587,7 @@ export class ContextWebGL implements IContextGL {
 			return;
 		}
 
+		this.beginCommand && this.beginCommand(GlCommands.SET_PROGRAM, program);
 		//TODO decide on construction/reference resposibilities
 		this._currentProgram = program;
 		program.focusProgram();
@@ -626,6 +646,8 @@ export class ContextWebGL implements IContextGL {
 			this._vaoContext.unbindVertexArrays();
 		}
 
+		this.beginCommand && this.beginCommand(GlCommands.SET_ATTRIB, index, buffer, bufferOffset);
+
 		// disable location, OS will fire error when loadings invalid buffer to it
 		// location - is index of buffer location inside shader
 		// index - attrib location for binding.
@@ -665,6 +687,7 @@ export class ContextWebGL implements IContextGL {
 		target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0,
 		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
 
+		this.beginCommand && this.beginCommand(GlCommands.SET_RENDER_TARGET, target);
 		// proxy
 		this._texContext.setRenderToTexture(
 			target,
@@ -676,6 +699,9 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setRenderToBackBuffer(): void {
+
+		this.beginCommand && this.beginCommand(GlCommands.SET_RENDER_TARGET, null);
+
 		this._texContext.setRenderToBackBuffer();
 	}
 

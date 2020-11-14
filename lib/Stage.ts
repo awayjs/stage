@@ -28,10 +28,9 @@ import { ProgramData } from './image/ProgramData';
 import { ProgramDataPool } from './image/ProgramDataPool';
 import { StageManager } from './managers/StageManager';
 import { ContextSoftware } from './software/ContextSoftware';
-import { ContextWebGL } from './webgl/ContextWebGL';
+import { ContextWebGL, GlCommands } from './webgl/ContextWebGL';
 import { ContextGLClearMask } from './base/ContextGLClearMask';
 import { Image2D } from './image/Image2D';
-import { IIndexBuffer } from './base/IIndexBuffer';
 import { CopyPixelFilter3D } from './filters/CopyPixelFilter3D';
 import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
@@ -66,6 +65,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _height: number;
 	private _x: number = 0;
 	private _y: number = 0;
+
+	private _lastTaskedFilter: Filter3DBase;
+	private _commandDelegate: (type: GlCommands) => void;
 
 	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver/request animation frame
 
@@ -161,6 +163,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
 
 		this.visible = true;
+
+		this._commandDelegate = this.runInstancedFilter.bind(this);
 	}
 
 	/**
@@ -191,6 +195,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			&& this._enableDepthAndStencil === enableDepthAndStencil)
 
 			return;
+
+		this.runInstancedFilter('switch rt');
 
 		this._renderTarget = target;
 		this._renderSurfaceSelector = surfaceSelector;
@@ -234,6 +240,36 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		}
 	}
 
+	private runInstancedFilter(state: GlCommands | string = null, ...args: any[]) {
+		if (!this._lastTaskedFilter) {
+			return;
+		}
+
+		console.debug('[Filter execution] Dropped by:', state ? state : 'manualy');
+
+		const filter = this._lastTaskedFilter;
+
+		this._lastTaskedFilter = null;
+		(<ContextWebGL> this._context).beginCommand = null;
+
+		filter.tasks[0].flush();
+
+		const hasVao = this._context.hasVao;
+
+		if (hasVao) {
+			(<ContextWebGL> this._context)._vaoContext?.bindVertexArray(null);
+		} else {
+			// disable vertex pointer because we not use a VAO
+			this._context.setVertexBufferAt(0, null);
+			this._context.setVertexBufferAt(1, null);
+
+			// 3 for instancing
+			this._context.setVertexBufferAt(2, null);
+			this._context.setVertexBufferAt(3, null);
+			this._context.setVertexBufferAt(4, null);
+		}
+	}
+
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
 
 		this._initFilterElements();
@@ -248,6 +284,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		//const len = tasks.length;
 		const hasVao = this._context.hasVao;
 
+		const instanced = filter.supportInstancing;
+
 		// WTF?
 		/*
 		if (len > 1 || tasks[0].target) {
@@ -256,12 +294,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			tasks[0].attachBuffers(indexBuffer, vertexBuffer);
 		}*/
 
+		(<ContextWebGL> this._context).beginCommand = null;
+
 		for (const task of tasks) {
 
 			this.setRenderTarget(task.target, false);
 			this.setScissor(null);
 
-			task.beginInstanceFrame();
+			instanced && task.beginInstanceFrame();
 
 			this._context.setProgram(task.getProgram(this));
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
@@ -272,21 +312,27 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			task.activate(this, null, null);
 
-			task.flush();
-			//this._context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
+			instanced && task.flush();
 
-			task.deactivate(this);
+			instanced || task.deactivate(this);
 		}
 
-		if (hasVao) {
-			// mark that need unbind VAO if it present
-			// because otherwithe we can rewrite a buffers inside it
-			(<ContextWebGL> this._context)._vaoContext.bindVertexArray(null);
+		if (instanced) {
+			this._lastTaskedFilter = filter;
+			(<ContextWebGL> this._context).beginCommand = this._commandDelegate;
 		}
 
-		// disable vertex pointer because we not use a VAO
-		hasVao || this._context.setVertexBufferAt(0, null);
-		hasVao || this._context.setVertexBufferAt(1, null);
+		if (!instanced) {
+			if (hasVao) {
+				// mark that need unbind VAO if it present
+				// because otherwithe we can rewrite a buffers inside it
+				(<ContextWebGL> this._context)._vaoContext.bindVertexArray(null);
+			}
+
+			// disable vertex pointer because we not use a VAO
+			hasVao || this._context.setVertexBufferAt(0, null);
+			hasVao || this._context.setVertexBufferAt(1, null);
+		}
 	}
 
 	public copyPixels(
@@ -310,12 +356,21 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 				this._copyPixelFilter.init(this._context);
 			}
 
+			// batch is dropped because source not same as in last
+			/*
+			if (this._lastTaskedFilter === this._copyPixelFilter
+				&& source !== this._copyPixelFilter.sourceTexture) {
+				this.runInstancedFilter('invalid texture');
+			}*/
+
 			this._copyPixelFilter.sourceTexture = source;
 			this._copyPixelFilter.rect = rect;
 			this._copyPixelFilter.destPoint = destPoint;
 
 			this.renderFilter(target, this._copyPixelFilter);
 		} else {
+			this.runInstancedFilter('texture copy');
+
 			rect = rect.clone();
 			destPoint = destPoint.clone();
 
@@ -352,6 +407,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		operation: string, threshold: number,
 		color: number, mask: number, copySource: boolean): void {
 
+		this.runInstancedFilter('threshold');
+
 		//early out for values that won't produce any visual update
 		if (destPoint.x < -rect.width
 			|| destPoint.x > target.width
@@ -380,6 +437,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this._copyPixelFilter = new CopyPixelFilter3D();
 			this._copyPixelFilter.init(this._context);
 		}
+
+		this.runInstancedFilter('transform');
 
 		this._copyPixelFilter.sourceTexture = source;
 		this._copyPixelFilter.rect = rect;
