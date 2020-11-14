@@ -31,7 +31,6 @@ import { ContextSoftware } from './software/ContextSoftware';
 import { ContextWebGL } from './webgl/ContextWebGL';
 import { ContextGLClearMask } from './base/ContextGLClearMask';
 import { Image2D } from './image/Image2D';
-import { ContextGLDrawMode } from './base/ContextGLDrawMode';
 import { IIndexBuffer } from './base/IIndexBuffer';
 import { CopyPixelFilter3D } from './filters/CopyPixelFilter3D';
 import { ContextGLCompareMode } from './base/ContextGLCompareMode';
@@ -89,11 +88,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _sizeDirty: boolean;
 
 	private _filterVertexBuffer: IVertexBuffer;
-	private _filterIndexBuffer: IIndexBuffer;
 
 	private _copyPixelFilter: CopyPixelFilter3D;
 	private _thresholdFilter: ThresholdFilter3D;
-	private _filterSampler: ImageSampler;
 
 	//private _mouse3DManager:away.managers.Mouse3DManager;
 	//private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
@@ -222,30 +219,19 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _initFilterElements() {
 
 		if (!this._filterVertexBuffer) {
-			this._filterVertexBuffer = this._context.createVertexBuffer(4, 20);
+			this._filterVertexBuffer = this._context.createVertexBuffer(4, 16);
 			this._filterVertexBuffer.uploadFromArray(
 				new Float32Array([
-					-1, -1,
-					0, 0,
-					0, 1,
-					-1, 1,
-					0, 1,
-					1, 1,
-					1, 1,
-					2, -1,
-					1, 0,
-					1, 3]), 0, 4);
-		}
+					// x, y, u, v
+					1, 1, 1, 1,
+					1, -1, 1, 0,
+					-1, -1, 0, 0,
 
-		if (!this._filterIndexBuffer) {
-			this._filterIndexBuffer = this._context.createIndexBuffer(6);
-			this._filterIndexBuffer.uploadFromArray(new Uint16Array([
-				2, 1, 0,
-				3, 2, 0]), 0, 6);
+					-1, 1, 0, 1,
+					1, 1, 1, 1,
+					-1, -1, 0, 0]
+				), 0, 4);
 		}
-
-		if (!this._filterSampler)
-			this._filterSampler = new ImageSampler(false, false, false);
 	}
 
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
@@ -256,7 +242,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		filter.setRenderTargets(target, this);
 
 		//render
-		const indexBuffer = this._filterIndexBuffer;
 		const vertexBuffer = this._filterVertexBuffer;
 
 		const tasks = filter.tasks;
@@ -282,7 +267,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
 			//if (!task.target) {
-			task.attachBuffers(indexBuffer, vertexBuffer);
+			task.attachBuffers(null, vertexBuffer);
 			//}
 
 			task.activate(this, null, null);

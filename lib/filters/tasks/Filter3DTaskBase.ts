@@ -65,8 +65,8 @@ export class Filter3DTaskBase {
 		const needUpdate = (
 			!this.context.hasVao
 			|| !this.vao
-			|| this._indexBuffer !== this._indexBuffer
-			|| this._vertexBuffer !== this._vertexBuffer);
+			|| this._indexBuffer !== index
+			|| this._vertexBuffer !== vertex);
 
 		this.vao = this.vao || this.context.createVao();
 		this.vao && this.vao.bind();
@@ -80,7 +80,7 @@ export class Filter3DTaskBase {
 				this._uvIndex, vertex, 8, ContextGLVertexBufferFormat.FLOAT_2);
 
 			// we should bound index buffer to VAO
-			if (this.vao) {
+			if (this.vao && index) {
 				this.vao.attachIndexBuffer(index);
 			}
 		}
@@ -258,9 +258,13 @@ export class Filter3DTaskBase {
 			(<ContextWebGL> this.context).beginInstancing(count);
 		}
 
-		this.context.drawIndices(
-			ContextGLDrawMode.TRIANGLES, this._indexBuffer, 0, 6);
-
+		if (this._indexBuffer) {
+			this.context.drawIndices(
+				ContextGLDrawMode.TRIANGLES, this._indexBuffer, 0, 6);
+		} else {
+			this.context.drawVertices(
+				ContextGLDrawMode.TRIANGLES, 0, 6);
+		}
 		this.killInstanced();
 	}
 }
