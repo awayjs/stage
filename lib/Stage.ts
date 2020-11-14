@@ -36,6 +36,7 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
+import { ContextGLBlendFactor } from './base/ContextGLBlendFactor';
 
 declare class WeakMap<T extends Object, V = any> {
 	delete(key: T);
@@ -196,7 +197,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			return;
 
-		this.runInstancedFilter('switch rt');
+		if (this._lastTaskedFilter && this._lastTaskedFilter.tasks[0].target !== target)
+			this.runInstancedFilter('switch rt');
 
 		this._renderTarget = target;
 		this._renderSurfaceSelector = surfaceSelector;
@@ -251,6 +253,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._lastTaskedFilter = null;
 		(<ContextWebGL> this._context).beginCommand = null;
+
+		//this.context.setBlendFactors(
+		//	ContextGLBlendFactor.ONE,
+		//	ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 
 		filter.tasks[0].flush();
 
@@ -312,7 +318,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			task.activate(this, null, null);
 
-			instanced && task.flush();
+			instanced || task.flush();
 
 			instanced || task.deactivate(this);
 		}

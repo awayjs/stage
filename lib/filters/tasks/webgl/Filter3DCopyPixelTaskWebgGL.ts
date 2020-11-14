@@ -247,12 +247,12 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			const data = new Float32Array(size);
 
 			for (let i = 0; i < frames.length; i++) {
-				data.set(frames[i].buffer, 5 * 2 * i);
+				data.set(frames[i].buffer, (4 + 4 + 1) * i);
 				data[5 * i + 4] = frames[i].sampler;
 			}
 
 			if (!this._instancedBuffer) {
-				this._instancedBuffer = context.createVertexBuffer(6, 4 * 2 * Float32Array.BYTES_PER_ELEMENT);
+				this._instancedBuffer = context.createVertexBuffer(6, (4  + 4 + 1) * Float32Array.BYTES_PER_ELEMENT);
 			}
 
 			this.vao && this.vao.bind();

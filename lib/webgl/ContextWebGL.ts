@@ -294,6 +294,8 @@ export class ContextWebGL implements IContextGL {
 		} else {
 			console.debug('[ContextWebGL] Instancing disabled by settings \'ENABLE_INSTANCED\'');
 		}
+
+		this._blendState.lock(true);
 	}
 
 	public gl(): WebGLRenderingContext {
