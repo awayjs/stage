@@ -247,7 +247,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			return;
 		}
 
-		console.debug('[Filter execution] Dropped by:', state ? state : 'manualy');
+		//console.debug('[Filter execution] Dropped by:', state ? state : 'manualy');
 
 		const filter = this._lastTaskedFilter;
 
@@ -277,6 +277,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
+
+		if (this._lastTaskedFilter
+			&& (<any> this._lastTaskedFilter.tasks[0]).requireFlush) {
+
+			this.runInstancedFilter('max samples');
+		}
 
 		this._initFilterElements();
 

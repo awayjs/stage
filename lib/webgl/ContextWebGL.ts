@@ -65,6 +65,8 @@ export class ContextWebGL implements IContextGL {
 	private _stencilState: State<number> = new State(0, 1, 0);
 	// [enable, face]
 	private _cullState: State<number> = new State(0,0,0);
+	// [enable]
+	private _scissorState: State<number> = new State(0);
 
 	//@protected
 	public _gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -605,11 +607,11 @@ export class ContextWebGL implements IContextGL {
 
 	public setScissorRectangle(rectangle: Rectangle): void {
 		if (!rectangle) {
-			this._gl.disable(this._gl.SCISSOR_TEST);
+			this._scissorState.set(0) && this._gl.disable(this._gl.SCISSOR_TEST);
 			return;
 		}
 
-		this._gl.enable(this._gl.SCISSOR_TEST);
+		this._scissorState.set(1) && this._gl.enable(this._gl.SCISSOR_TEST);
 		this._gl.scissor(
 			rectangle.x * this._pixelRatio,
 			this._height - (rectangle.y + rectangle.height) * this._pixelRatio, // flipped by Y

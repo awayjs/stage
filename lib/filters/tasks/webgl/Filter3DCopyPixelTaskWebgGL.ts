@@ -148,6 +148,10 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 		this._fragConstantData = EMPTY_TRANSFORM.slice();
 	}
 
+	public get requireFlush() {
+		return this._isInstancedRender && this._samplers.length >= ContextWebGL.MAX_SAMPLERS;
+	}
+
 	public get sourceTexture(): Image2D {
 		return this._mainInputTexture;
 	}
@@ -248,7 +252,7 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 			for (let i = 0; i < frames.length; i++) {
 				data.set(frames[i].buffer, (4 + 4 + 1) * i);
-				data[5 * i + 4] = frames[i].sampler;
+				data[9 * i + 8] = frames[i].sampler;
 			}
 
 			if (!this._instancedBuffer) {
@@ -270,11 +274,12 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 			// matix uv
 			this.context.setVertexBufferAt(
-				4, this._instancedBuffer,  Float32Array.BYTES_PER_ELEMENT * 5, ContextGLVertexBufferFormat.FLOAT_1);
+				4, this._instancedBuffer,  Float32Array.BYTES_PER_ELEMENT * 8, ContextGLVertexBufferFormat.FLOAT_1);
 		}
 
 		this._lastRenderIsInstanced = this._isInstancedRender;
 		this._samplers.length = 0;
+		this._instancedFrames.length = 0;
 
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragConstantData);
 
