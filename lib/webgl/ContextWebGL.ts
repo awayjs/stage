@@ -251,6 +251,9 @@ export class ContextWebGL implements IContextGL {
 		} else {
 			console.debug('[ContextWebGL] Vao disabled by settings \'ENABLE_VAO\'');
 		}
+
+		// first locked state 0,0,0,0
+		this._blendState.lock(true);
 	}
 
 	public gl(): WebGLRenderingContext {
