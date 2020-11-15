@@ -49,6 +49,7 @@ export class Filter3DTaskBase {
 
 	protected _instancedFrame: number = -1;
 	protected _isInstancedRender: boolean = false;
+	protected _needUpdateBuffers: boolean = true;
 
 	constructor(requireDepthRender: boolean = false) {
 		this._requireDepthRender = requireDepthRender;
@@ -61,32 +62,38 @@ export class Filter3DTaskBase {
 		this.vao = null;
 	}
 
-	public attachBuffers(index: IIndexBuffer, vertex: IVertexBuffer) {
-		const needUpdate = (
+	public attachBuffers(index: IIndexBuffer, vertex: IVertexBuffer): boolean {
+		this._needUpdateBuffers = this._needUpdateBuffers || (
 			!this.context.hasVao
 			|| !this.vao
 			|| this._indexBuffer !== index
 			|| this._vertexBuffer !== vertex);
 
+		this._indexBuffer = index;
+		this._vertexBuffer = vertex;
+
+		return this._needUpdateBuffers;
+	}
+
+	protected _updateBuffersInternal() {
 		this.vao = this.vao || this.context.createVao();
 		this.vao && this.vao.bind();
 
-		if (needUpdate) {
+		if (this._needUpdateBuffers) {
 
 			this.context.setVertexBufferAt(
-				this._positionIndex, vertex, 0, ContextGLVertexBufferFormat.FLOAT_2);
+				this._positionIndex, this._vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
 
 			this.context.setVertexBufferAt(
-				this._uvIndex, vertex, 8, ContextGLVertexBufferFormat.FLOAT_2);
+				this._uvIndex, this._vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
 
 			// we should bound index buffer to VAO
-			if (this.vao && index) {
-				this.vao.attachIndexBuffer(index);
+			if (this.vao && this._indexBuffer) {
+				this.vao.attachIndexBuffer(this._indexBuffer);
 			}
 		}
 
-		this._indexBuffer = index;
-		this._vertexBuffer = vertex;
+		this._needUpdateBuffers = false;
 	}
 
 	/**
@@ -254,6 +261,8 @@ export class Filter3DTaskBase {
 	}
 
 	public flush(count = 1): void {
+		this._updateBuffersInternal();
+
 		if (this._isInstancedRender) {
 			(<ContextWebGL> this.context).beginInstancing(count);
 		}

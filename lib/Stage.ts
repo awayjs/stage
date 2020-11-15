@@ -36,8 +36,6 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
-import { ContextGLBlendFactor } from './base/ContextGLBlendFactor';
-
 declare class WeakMap<T extends Object, V = any> {
 	delete(key: T);
 	get(key: T): V;
@@ -179,6 +177,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	 * @description Should be executed AFTER rendering process
 	 */
 	public onRenderEnd() {
+		this.runInstancedFilter('frame end');
+
 		UnloadService.executeAll();
 	}
 
@@ -258,7 +258,13 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		//	ContextGLBlendFactor.ONE,
 		//	ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 
-		filter.tasks[0].flush();
+		const task = filter.tasks[0];
+
+		this._context.setProgram(task.getProgram(this));
+
+		task.attachBuffers(null, this._filterVertexBuffer);
+		task.flush();
+		task.deactivate(this);
 
 		const hasVao = this._context.hasVao;
 
@@ -308,15 +314,21 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		(<ContextWebGL> this._context).beginCommand = null;
 
+		this.setScissor(null);
+		this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
+
 		for (const task of tasks) {
 
 			this.setRenderTarget(task.target, false);
-			this.setScissor(null);
 
-			instanced && task.beginInstanceFrame();
+			if (instanced) {
+				task.beginInstanceFrame();
+				task.activate(this, null, null);
+				// drop loop for instanced, because not require run other
+				continue;
+			}
 
 			this._context.setProgram(task.getProgram(this));
-			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
 			//if (!task.target) {
 			task.attachBuffers(null, vertexBuffer);
@@ -324,17 +336,19 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			task.activate(this, null, null);
 
-			instanced || task.flush();
+			task.flush();
 
-			instanced || task.deactivate(this);
+			task.deactivate(this);
 		}
 
 		if (instanced) {
 			this._lastTaskedFilter = filter;
 			(<ContextWebGL> this._context).beginCommand = this._commandDelegate;
-		}
 
-		if (!instanced) {
+			if ((<any> filter.tasks[0]).requireFlush) {
+				this.runInstancedFilter('dropped by filter');
+			}
+		} else {
 			if (hasVao) {
 				// mark that need unbind VAO if it present
 				// because otherwithe we can rewrite a buffers inside it

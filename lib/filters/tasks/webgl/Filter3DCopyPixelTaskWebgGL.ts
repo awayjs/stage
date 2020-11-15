@@ -117,11 +117,15 @@ ${getSamplesS(samples)}
     gl_FragColor = color;
 }`;
 
+const MAX_SAMPLERS = ContextWebGL.MAX_SAMPLERS;
+const FRAME_SIZE = 9;
+
 export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
+	private _instancingData: Float32Array;
 	private _vertexConstantData: Float32Array;
 	private _fragConstantData: Float32Array;
-	private _instancedBuffer: IVertexBuffer;
-	private _samplers: Image2D[] = [];
+	private _instancingBuffer: IVertexBuffer;
+	private _boundedImages: _Stage_ImageBase[] = [];
 
 	public rect: Rectangle = new Rectangle();
 	public destPoint: Point = new Point();
@@ -132,11 +136,10 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	public _uvIndex = 1;
 
 	private _lastRenderIsInstanced = false;
-	private _instancedFrames: Array<{
-		buffer: Float32Array, sampler: number
-	}> = [];
+	private _instancedFrames: number = 0;
+	private _blockSync = false;
 
-	public supportInstancing = true;
+	public readonly supportInstancing = true;
 
 	constructor() {
 		super();
@@ -149,7 +152,8 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	}
 
 	public get requireFlush() {
-		return this._isInstancedRender && this._samplers.length >= ContextWebGL.MAX_SAMPLERS;
+		return this._isInstancedRender
+			&& this._boundedImages.length >= MAX_SAMPLERS;
 	}
 
 	public get sourceTexture(): Image2D {
@@ -167,11 +171,13 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 		this.name = this.constructor.name + (this._isInstancedRender  ? '_instanced' : '');
 
-		return this._isInstancedRender ? VERTEX_INST(4) : VERTEX;
+		return this._isInstancedRender
+			? VERTEX_INST(MAX_SAMPLERS)
+			: VERTEX;
 	}
 
 	public getFragmentCode(): string {
-		return FRAG(this._isInstancedRender ? 4 : 1);
+		return FRAG(this._isInstancedRender ? MAX_SAMPLERS : 1);
 	}
 
 	public getMainInputTexture(stage: Stage): Image2D {
@@ -179,33 +185,63 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
-		const index = 0;//this._positionIndex;
-		const vd = this._vertexConstantData;
+		const isInstanced = this._isInstancedRender;
 		const dp = this.destPoint;
 		const sr = this.rect;
 		const tr = this._target;
 		const tex = this._mainInputTexture;
 
+		let vd = isInstanced
+			? this._instancingData
+			: this._vertexConstantData;
+		const framesCount = this._instancedFrames;
+		const dataIndex = isInstanced
+			? framesCount * FRAME_SIZE
+			: 0;
+
+		if (isInstanced && (!vd || vd.length < dataIndex + FRAME_SIZE)) {
+			const newData = new Float32Array(dataIndex + FRAME_SIZE);
+
+			vd && newData.set(vd);
+			vd = this._instancingData = newData;
+		}
+
 		// mul to vertex
-		vd[index + 0] = (2 * dp.x + sr.width) / tr.width - 1;
-		vd[index + 1] = (2 * dp.y + sr.height) / tr.height - 1;
+		vd[dataIndex + 0] = (2 * dp.x + sr.width) / tr.width - 1;
+		vd[dataIndex + 1] = (2 * dp.y + sr.height) / tr.height - 1;
 
 		// add to vertex
-		vd[index + 2] = sr.width / tr.width;
-		vd[index + 3] = sr.height / tr.height;
+		vd[dataIndex + 2] = sr.width / tr.width;
+		vd[dataIndex + 3] = sr.height / tr.height;
 
 		// add to uv
-		vd[index + 4] = sr.x / sr.width;
-		vd[index + 5] = sr.y / sr.height;
+		vd[dataIndex + 4] = sr.x / sr.width;
+		vd[dataIndex + 5] = sr.y / sr.height;
 
 		// mul to uv
-		vd[index + 6] = sr.width / tex.width;
-		vd[index + 7] = sr.height / tex.height;
+		vd[dataIndex + 6] = sr.width / tex.width;
+		vd[dataIndex + 7] = sr.height / tex.height;
 
-		let fd = EMPTY_TRANSFORM;
+		if (isInstanced) {
+			const images = this._boundedImages;
+			const image = <_Stage_ImageBase> stage.getAbstraction(this._mainInputTexture);
+
+			let index = images.indexOf(image);
+
+			if (index === -1) {
+				index = images.length;
+				images.push(image);
+			}
+
+			// sampler index
+			vd[dataIndex + 8] = index;
+
+			this._instancedFrames++;
+			return;
+		}
 
 		if (this.transform) {
-			fd = this._fragConstantData;
+			const fd = this._fragConstantData;
 			fd.set(this.transform._rawData);
 			for (let i = 0; i < 4; i++) fd[i + 4] /= 255;
 
@@ -215,73 +251,68 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			this._fragConstantData.set(EMPTY_TRANSFORM);
 		}
 
-		if (this._isInstancedRender) {
-			let index = this._samplers.indexOf(this._mainInputTexture);
-
-			if (index === -1) {
-				index = this._samplers.length;
-				this._samplers.push(this._mainInputTexture);
-
-				(<_Stage_ImageBase> stage.getAbstraction(this._mainInputTexture))
-					.activate(index, this._defaultSample);
-			}
-
-			this._instancedFrames[this._instancedFrame] = {
-				buffer: vd,
-				sampler: index
-			};
-
-			this._vertexConstantData = new Float32Array(8);
-			return;
-		}
-
 		super.activate(stage, projection, depthTexture);
 	}
 
-	public flush(count: number = this._instancedFrames.length) {
+	public _updateBuffersInternal() {
+		const needUpdate = this._needUpdateBuffers;
+
+		super._updateBuffersInternal();
+
+		if (!this._isInstancedRender || !needUpdate) {
+			return;
+		}
+
+		const BPE = Float32Array.BYTES_PER_ELEMENT;
+
+		if (!this._instancingBuffer) {
+			this._instancingBuffer = this.context.createVertexBuffer(6, FRAME_SIZE * BPE);
+		}
+
+		// need call, otherwise divider willn't applied
+		(<ContextWebGL> this.context).beginInstancing(1);
+
+		// matrix position
+		this.context.setVertexBufferAt(
+			2, this._instancingBuffer, 0, ContextGLVertexBufferFormat.FLOAT_4);
+
+		// matix uv
+		this.context.setVertexBufferAt(
+			3, this._instancingBuffer,  BPE * 4, ContextGLVertexBufferFormat.FLOAT_4);
+
+		// matix uv
+		this.context.setVertexBufferAt(
+			4, this._instancingBuffer,  BPE * 8, ContextGLVertexBufferFormat.FLOAT_1);
+	}
+
+	public flush(count: number = this._instancedFrames) {
+		this._updateBuffersInternal();
+
 		const context = this.context;
 
 		if (!this._isInstancedRender) {
-			context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
+			context.setProgramConstantsFromArray(
+				ContextGLProgramType.VERTEX,
+				this._vertexConstantData);
+
 		} else {
 			(<ContextWebGL> context).beginInstancing(count);
 
-			const frames = this._instancedFrames;
-			const size = frames.length * (frames[0].buffer.length + 1);
-			const data = new Float32Array(size);
-
-			for (let i = 0; i < frames.length; i++) {
-				data.set(frames[i].buffer, (4 + 4 + 1) * i);
-				data[9 * i + 8] = frames[i].sampler;
+			// bind image late
+			for (let i = 0; i < this._boundedImages.length; i++) {
+				this._boundedImages[i].activate(i, this._defaultSample);
 			}
 
-			if (!this._instancedBuffer) {
-				this._instancedBuffer = context.createVertexBuffer(6, (4  + 4 + 1) * Float32Array.BYTES_PER_ELEMENT);
-			}
-
-			this.vao && this.vao.bind();
-
-			// SubData not works, good =))
-			this._instancedBuffer.uploadFromArray(data, 0, 0);
-
-			// matrix position
-			this.context.setVertexBufferAt(
-				2, this._instancedBuffer, 0, ContextGLVertexBufferFormat.FLOAT_4);
-
-			// matix uv
-			this.context.setVertexBufferAt(
-				3, this._instancedBuffer,  Float32Array.BYTES_PER_ELEMENT * 4, ContextGLVertexBufferFormat.FLOAT_4);
-
-			// matix uv
-			this.context.setVertexBufferAt(
-				4, this._instancedBuffer,  Float32Array.BYTES_PER_ELEMENT * 8, ContextGLVertexBufferFormat.FLOAT_1);
+			this._instancingBuffer.uploadFromArray(this._instancingData, 0, 0);
 		}
 
 		this._lastRenderIsInstanced = this._isInstancedRender;
-		this._samplers.length = 0;
-		this._instancedFrames.length = 0;
+		this._boundedImages.length = 0;
+		this._instancedFrames = 0;
 
-		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragConstantData);
+		context.setProgramConstantsFromArray(
+			ContextGLProgramType.FRAGMENT,
+			this._fragConstantData);
 
 		super.flush(count);
 	}
