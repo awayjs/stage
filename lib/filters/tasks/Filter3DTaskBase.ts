@@ -76,7 +76,7 @@ export class Filter3DTaskBase {
 	}
 
 	protected _updateBuffersInternal() {
-		this.vao = this.vao || this.context.createVao();
+		this.vao = this.vao || (this.context.hasVao ? this.context.createVao() : null);
 		this.vao && this.vao.bind();
 
 		if (this._needUpdateBuffers) {
