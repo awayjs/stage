@@ -49,6 +49,7 @@ vec4 vt0;
 attribute vec4 va0; // position
 attribute vec4 va1; // uv 
 
+varying vec2 vUv;
 
 void main() {
 	vec4 pos = va0;
@@ -75,7 +76,7 @@ function getSamplesU(samples = 1) {
 
 function getSamplesS(samples = 1) {
 	if (samples === 1) {
-	//	return '\t color = texture2D(fs0, vUv);';
+		return '\t color = texture2D(fs0, vUv);';
 	}
 
 	let s = '';
