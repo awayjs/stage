@@ -24,12 +24,12 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Enable UnloadManager for unloading unused BitmapImage
 	 */
-	ENABLE_UNLOAD_BITMAP: false,
+	ENABLE_UNLOAD_BITMAP: true,
 
 	/**
 	 * @description How many task can be unloaded per run
 	 */
-	MAX_BITMAP_UNLOAD_TASKS: 50,
+	MAX_BITMAP_UNLOAD_TASKS: 10,
 
 	/**
 	 * @description Enable UnloadManager for unloading unused Textures from pool
