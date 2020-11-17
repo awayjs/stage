@@ -56,6 +56,7 @@ export class UnloadService {
 }
 
 export class UnloadManager<T extends IUnloadable> {
+	static MIN_QUANT = 32; // minimal time between task
 	_tasks: Set<T> = new Set();
 
 	public name = UnloadManager.name;
@@ -76,9 +77,16 @@ export class UnloadManager<T extends IUnloadable> {
 	}
 
 	private _lastExecutionTime = 0;
+	private _lastCorrectedTime = -1;
 
 	public get correctedTime() {
-		return performance.now();
+		let time = performance.now();
+
+		if (this._lastCorrectedTime < 0 || this._lastCorrectedTime - time >= UnloadManager.MIN_QUANT) {
+			time += UnloadManager.MIN_QUANT;
+		}
+
+		return this._lastCorrectedTime = time;
 	}
 
 	public addTask(task: T): boolean {
