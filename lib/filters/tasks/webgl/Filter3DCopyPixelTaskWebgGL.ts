@@ -5,6 +5,7 @@ import { IVertexBuffer } from '../../../base/IVertexBuffer';
 import { BitmapImage2D } from '../../../image/BitmapImage2D';
 import { Image2D } from '../../../image/Image2D';
 import { _Stage_ImageBase } from '../../../image/ImageBase';
+import { Settings } from '../../../Settings';
 import { Stage } from '../../../Stage';
 import { ContextWebGL } from '../../../webgl/ContextWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
@@ -139,9 +140,8 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 	private _lastRenderIsInstanced = false;
 	private _instancedFrames: number = 0;
-	private _blockSync = false;
 
-	public readonly supportInstancing = true;
+	public readonly supportInstancing = Settings.ALLOW_INSTANCED_COPY;
 
 	constructor() {
 		super();

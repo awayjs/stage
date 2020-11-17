@@ -1,4 +1,9 @@
-export interface IStageSettings {
+import { ContextWebGLFlags } from './webgl/ContextWebGLFlags';
+
+type TContextSettings = typeof ContextWebGLFlags;
+
+export interface IStageSettings extends  TContextSettings {
+	PREFER_GL_VERSION: 1 | 2,
 	ENABLE_WEAK_REF: boolean;
 	ENABLE_UNLOAD_BITMAP: boolean;
 	ENABLE_UNLOAD_TEXTURE: boolean;
@@ -12,9 +17,15 @@ export interface IStageSettings {
 	ENABLE_VAO: boolean;
 	ENABLE_UNIFORM_CACHE: boolean;
 	ENABLE_INSTANCED: boolean;
+	ALLOW_INSTANCED_COPY: boolean;
 }
 
 export const Settings: IStageSettings = {
+	...ContextWebGLFlags,
+	/**
+	 * @description Prefered WebGL version
+	 */
+	PREFER_GL_VERSION: 2,
 	/**
 	 * @description Enable weak reference for track when adatpee is remove by GC
 	 * and trigering a dispose
@@ -77,6 +88,16 @@ export const Settings: IStageSettings = {
 	 * @description Allow instanced renderer when awailable
 	 */
 	ENABLE_INSTANCED: true,
+
+	/**
+	 * @decription Use instanced render for copy filter
+	 */
+	ALLOW_INSTANCED_COPY: true,
+
+	/**
+	 * @see {ContextWebGLFlags}
+	 */
+	PREF_VERSION: 2
 };
 
 // console.debug('[Stage settings]', Settings);
