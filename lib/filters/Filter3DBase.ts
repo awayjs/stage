@@ -35,6 +35,10 @@ export class Filter3DBase {
 		return this._requireDepthRender;
 	}
 
+	get main() {
+		return this._tasks[this.tasks.length - 1];
+	}
+
 	public addTask(filter: Filter3DTaskBase): void {
 		this._tasks.push(filter);
 

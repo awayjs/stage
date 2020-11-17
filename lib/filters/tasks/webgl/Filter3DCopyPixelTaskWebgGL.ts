@@ -2,6 +2,7 @@ import { ProjectionBase, Rectangle, Point, ColorTransform } from '@awayjs/core';
 import { ContextGLProgramType } from '../../../base/ContextGLProgramType';
 import { ContextGLVertexBufferFormat } from '../../../base/ContextGLVertexBufferFormat';
 import { IVertexBuffer } from '../../../base/IVertexBuffer';
+import { BitmapImage2D } from '../../../image/BitmapImage2D';
 import { Image2D } from '../../../image/Image2D';
 import { _Stage_ImageBase } from '../../../image/ImageBase';
 import { Stage } from '../../../Stage';
@@ -225,6 +226,11 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 
 		if (isInstanced) {
 			const images = this._boundedImages;
+			if (this._mainInputTexture instanceof BitmapImage2D) {
+				// otherwith it can drop render
+				this._mainInputTexture.unmarkToUnload();
+			}
+
 			const image = <_Stage_ImageBase> stage.getAbstraction(this._mainInputTexture);
 
 			let index = images.indexOf(image);

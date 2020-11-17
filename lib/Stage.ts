@@ -197,8 +197,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			return;
 
-		if (this._lastTaskedFilter && this._lastTaskedFilter.tasks[0].target !== target)
+		if (this._lastTaskedFilter && this._lastTaskedFilter.main.target !== target) {
 			this.runInstancedFilter('switch rt');
+		}
 
 		this._renderTarget = target;
 		this._renderSurfaceSelector = surfaceSelector;
@@ -242,7 +243,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		}
 	}
 
-	private runInstancedFilter(state: GlCommands | string = null, ...args: any[]) {
+	private runInstancedFilter(reason: GlCommands | string = null, ...args: any[]) {
 		if (!this._lastTaskedFilter) {
 			return;
 		}
@@ -254,11 +255,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._lastTaskedFilter = null;
 		(<ContextWebGL> this._context).beginCommand = null;
 
-		//this.context.setBlendFactors(
-		//	ContextGLBlendFactor.ONE,
-		//	ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
-
-		const task = filter.tasks[0];
+		const task = filter.main;
 
 		this._context.setProgram(task.getProgram(this));
 
@@ -284,15 +281,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
 
-		if (this._lastTaskedFilter
-			&& (<any> this._lastTaskedFilter.tasks[0]).requireFlush) {
+		this._initFilterElements();
+		filter.init(this._context);
 
-			this.runInstancedFilter('max samples');
+		if (this._lastTaskedFilter && this._lastTaskedFilter.main.target !== target) {
+
+			this.runInstancedFilter('invalid target for RT');
 		}
 
-		this._initFilterElements();
-
-		filter.init(this._context);
 		filter.setRenderTargets(target, this);
 
 		//render
@@ -321,14 +317,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			this.setRenderTarget(task.target, false);
 
-			if (instanced) {
+			if (!instanced) {
+				this._context.setProgram(task.getProgram(this));
+			} else {
 				task.beginInstanceFrame();
 				task.activate(this, null, null);
 				// drop loop for instanced, because not require run other
 				continue;
 			}
-
-			this._context.setProgram(task.getProgram(this));
 
 			//if (!task.target) {
 			task.attachBuffers(null, vertexBuffer);
@@ -345,7 +341,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this._lastTaskedFilter = filter;
 			(<ContextWebGL> this._context).beginCommand = this._commandDelegate;
 
-			if ((<any> filter.tasks[0]).requireFlush) {
+			if ((<any> filter.main).requireFlush) {
 				this.runInstancedFilter('dropped by filter');
 			}
 		} else {
