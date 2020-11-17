@@ -24,7 +24,12 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Enable UnloadManager for unloading unused BitmapImage
 	 */
-	ENABLE_UNLOAD_BITMAP: true,
+	ENABLE_UNLOAD_BITMAP: false,
+
+	/**
+	 * @description How many task can be unloaded per run
+	 */
+	MAX_BITMAP_UNLOAD_TASKS: 50,
 
 	/**
 	 * @description Enable UnloadManager for unloading unused Textures from pool
@@ -57,11 +62,6 @@ export const Settings: IStageSettings = {
 	 * @description Enable buffer pooling to prevent a recreation
 	 */
 	ENABLE_BUFFER_POOLING: true,
-
-	/**
-	 * @description How many task can be unloaded per run
-	 */
-	MAX_BITMAP_UNLOAD_TASKS: 50,
 
 	/**
 	 * @description Allow use VAO if supported
