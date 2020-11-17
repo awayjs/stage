@@ -291,7 +291,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		super(width, height, powerOfTwo);
 
-		this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
+		//this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
 		this._transparent = transparent;
 		this._stage = stage;
 
@@ -1111,6 +1111,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
 		this.dropAllReferences();
+
+		if (!this._data) {
+			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+		}
 
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
