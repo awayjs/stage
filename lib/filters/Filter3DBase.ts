@@ -28,7 +28,13 @@ export class Filter3DBase {
 	}
 
 	public init(context: IContextGL) {
+		if (this._context === context)
+			return;
+
 		this._context = context;
+		for (const t of this._tasks) {
+			t.context = this._context;
+		}
 	}
 
 	public get requireDepthRender(): boolean {
@@ -42,6 +48,7 @@ export class Filter3DBase {
 	public addTask(filter: Filter3DTaskBase): void {
 		this._tasks.push(filter);
 
+		filter.context = this._context;
 		if (this._requireDepthRender == null)
 			this._requireDepthRender = filter.requireDepthRender;
 	}

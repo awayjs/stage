@@ -439,8 +439,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			return;
 		}
 
-		if (!this._thresholdFilter)
+		if (!this._thresholdFilter) {
 			this._thresholdFilter = new ThresholdFilter3D();
+			this._thresholdFilter.init(this._context);
+		}
 
 		this._thresholdFilter.sourceTexture = source;
 		this._thresholdFilter.rect = rect;
