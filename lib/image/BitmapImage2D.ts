@@ -635,7 +635,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		let has = false;
 
-		const start = performance.now();
+		// const start = performance.now();
 
 		for (let j = 0; j < size.height; j++) {
 			for (let i = 0; i < size.width; i++) {
@@ -659,6 +659,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			? new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1)
 			: new Rectangle(0, 0, 0, 0);
 
+		/*
 		const delta = performance.now() - start;
 
 		console.debug(
@@ -667,7 +668,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			color.toString(16),
 			d._rawData,
 			delta);
-
+		*/
 		return d;
 	}
 
