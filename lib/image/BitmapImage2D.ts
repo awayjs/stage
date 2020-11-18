@@ -69,8 +69,8 @@ declare global {
 
 	class FinalizationRegistry {
 		constructor(callback: (v: any) => void);
-		register(target: object, heldValue: any, token?: object);
-		unregister(token: object);
+		register(target: object, heldValue: any, token?: object): void;
+		unregister(token: object): void;
 	}
 
 }
