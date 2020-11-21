@@ -605,18 +605,21 @@ export class ContextWebGL implements IContextGL {
 		}
 	}
 
-	public setScissorRectangle(rectangle: Rectangle): void {
-		if (!rectangle) {
+	public setScissorRectangle(rect: Rectangle): void {
+		if (!rect) {
 			this._scissorState.set(0) && this._gl.disable(this._gl.SCISSOR_TEST);
 			return;
 		}
 
+		const pr = this._pixelRatio;
+		const targetY = this._texContext._renderTarget
+			? rect.y // not require flip when renderer to RT, because already flipped
+			: this._height - (rect.y + rect.height) * pr; // need flip for framebuffer
+
 		this._scissorState.set(1) && this._gl.enable(this._gl.SCISSOR_TEST);
 		this._gl.scissor(
-			rectangle.x * this._pixelRatio,
-			this._height - (rectangle.y + rectangle.height) * this._pixelRatio, // flipped by Y
-			rectangle.width * this._pixelRatio,
-			rectangle.height * this._pixelRatio);
+			rect.x * pr, targetY,
+			rect.width * pr, rect.height * pr);
 	}
 
 	public setTextureAt(sampler: number, texture: TextureBaseWebGL): void {
