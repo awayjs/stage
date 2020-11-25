@@ -226,14 +226,16 @@ export class ContextWebGL implements IContextGL {
 
 			const dpr: number = window.devicePixelRatio || 1;
 
+			// deprecated a long time ago.
+			/*
 			const bsr: number = gl['webkitBackingStorePixelRatio'] ||
 				gl['mozBackingStorePixelRatio'] ||
 				gl['msBackingStorePixelRatio'] ||
 				gl['oBackingStorePixelRatio'] ||
 				gl['backingStorePixelRatio'] || 1;
-				//this._gl["backingStorePixelRatio"] || (/\bCrOS\b/.test(navigator.userAgent))? 0.5 : 1;
+			*/
 
-			this._pixelRatio = dpr / bsr;
+			this._pixelRatio = dpr;
 		} else {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 			alert('WebGL is not available.');
@@ -551,10 +553,15 @@ export class ContextWebGL implements IContextGL {
 			return;
 		}
 
-		const pr = this._pixelRatio;
-		const targetY = this._texContext._renderTarget
-			? rect.y // not require flip when renderer to RT, because already flipped
-			: this._height - (rect.y + rect.height) * pr; // need flip for framebuffer
+		const isRT = !!this._texContext._renderTarget;
+
+		// for framebuffer we use framebuffer size without internal scale
+		const pr = isRT ? 1 : this._pixelRatio;
+
+		// not require flip when renderer to RT, because already flipped
+		const targetY = isRT
+			? rect.y
+			: this._height - (rect.y + rect.height) * pr;
 
 		this._gl.enable(this._gl.SCISSOR_TEST);
 		this._gl.scissor(
