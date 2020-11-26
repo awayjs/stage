@@ -56,10 +56,7 @@ declare class WeakMap<T extends Object, V = any> {
  *
  */
 export class Stage extends EventDispatcher implements IAbstractionPool {
-	private static _abstractionClassPool: Object = new Object();
-
-	private _abstractionPool: WeakMap<IAsset, AbstractionBase> = new WeakMap();
-
+	public static readonly abstractionClassPool: Object = new Object();
 	private _programData: Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool: ProgramDataPool;
 	private _context: IContextGL;
@@ -114,6 +111,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		return this._context.glVersion;
 	}
 
+	public readonly id:number;
+
 	constructor(
 		container: HTMLCanvasElement, stageIndex: number,
 		stageManager: StageManager, forceSoftware: boolean = false,
@@ -121,6 +120,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		super();
 
+		this.id = AbstractionBase.ID_COUNT++;
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
@@ -202,7 +202,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._enableDepthAndStencil = enableDepthAndStencil;
 
 		if (target) {
-			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> this.getAbstraction(target);
+			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> target.getAbstraction(this, Stage.abstractionClassPool[target.assetType]);
 			this._context.setRenderToTexture(
 				targetStage.getTexture(),
 				enableDepthAndStencil,
@@ -298,7 +298,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			this._context.setProgram(task.getProgram(this));
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
-			(<_Stage_ImageBase> this.getAbstraction(task.getMainInputTexture(this)))
+			(<_Stage_ImageBase> task.getMainInputTexture(this).getAbstraction(this, Stage.abstractionClassPool[target.assetType]))
 				.activate(task._inputTextureIndex, this._filterSampler);
 
 			if (!task.target) {
@@ -396,7 +396,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this.setRenderTarget(source, false);
 			this.setScissor(null);
 
-			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> this.getAbstraction(target);
+			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> target.getAbstraction(this, Stage.abstractionClassPool[target.assetType]);
 
 			this._context.copyToTexture(targetStage.getTexture(), rect, destPoint);
 		}
@@ -447,31 +447,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._copyPixelFilter.colorTransform = null;
 	}
 
-	public getAbstraction(asset: IAsset): AbstractionBase {
-		let abst = this._abstractionPool.get(asset);
-
-		if (!abst) {
-			abst = new (<IAbstractionClass> Stage._abstractionClassPool[asset.assetType])(asset, this);
-			this._abstractionPool.set(asset, abst);
-		}
-
-		return abst;
-	}
-
-	/**
-	 *
-	 * @param image
-	 */
-	public clearAbstraction(asset: IAsset): void {
-		this._abstractionPool.delete(asset);
-	}
-
 	/**
 	 *
 	 * @param imageObjectClass
 	 */
 	public static registerAbstraction(abstractionClass: IAbstractionClass, assetClass: IAssetClass): void {
-		Stage._abstractionClassPool[assetClass.assetType] = abstractionClass;
+		Stage.abstractionClassPool[assetClass.assetType] = abstractionClass;
 	}
 
 	/**
@@ -633,8 +614,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			if(this._abstractionPool[id].clear)
 				this._abstractionPool[id].clear();
 		}*/
-
-		this._abstractionPool = new WeakMap();
 
 		this._stageManager.iRemoveStage(this);
 		this.freeContext();
