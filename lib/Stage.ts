@@ -111,7 +111,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		return this._context.glVersion;
 	}
 
-	public readonly id:number;
+	public readonly id: number;
 
 	constructor(
 		container: HTMLCanvasElement, stageIndex: number,
