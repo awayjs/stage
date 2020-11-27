@@ -59,6 +59,9 @@ export class ContextWebGL implements IContextGL {
 	private _colorMapState: State<boolean> = new State(true, true, true, true);
 	// [r, g, b, a]
 	private _clearColorState: State<number> = new State(0,0,0,0);
+	// [stencil, depth], i don't know default a depth value, set -1, to force change it
+	private _clearSD: State<number> = new State(0,-1);
+
 	// [enable, mask, func]
 	private _depthState: State<number> = new State(0, 0, 0);
 	// [enable, mask, func]
@@ -323,13 +326,13 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		if (mask & ContextGLClearMask.STENCIL) {
-			this._gl.clearStencil(stencil);
 			glmask |= this._gl.STENCIL_BUFFER_BIT;
+			this._clearSD.setAt(0, stencil) && this._gl.clearStencil(stencil);
 		}
 
 		if (mask & ContextGLClearMask.DEPTH) {
 			glmask |= this._gl.DEPTH_BUFFER_BIT;
-			this._gl.clearDepth(depth);
+			this._clearSD.setAt(0, depth) && this._gl.clearDepth(depth);
 		}
 
 		this._gl.clear(glmask);
