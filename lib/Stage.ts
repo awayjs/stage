@@ -2,7 +2,6 @@ import {
 	EventDispatcher,
 	Rectangle,
 	AbstractionBase,
-	IAsset,
 	IAssetClass,
 	IAbstractionPool,
 	IAbstractionClass,
@@ -40,13 +39,6 @@ import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
 import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
 
-declare class WeakMap<T extends Object, V = any> {
-	delete(key: T);
-	get(key: T): V;
-	has(key: T): boolean;
-	set(key: T, value: V): this;
-}
-
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
  * (and in turn the back buffer) it uses. Stage should never be created directly,
@@ -56,7 +48,16 @@ declare class WeakMap<T extends Object, V = any> {
  *
  */
 export class Stage extends EventDispatcher implements IAbstractionPool {
-	public static readonly abstractionClassPool: Object = new Object();
+	// Forget a AS3. This is not AS3
+	// This is not a class, this is class constructor.
+	// Class constructor !== Class
+	// And, STRICT TYPES is REQUIRED
+	// When you don't know what a type need - nothing doing!
+	public static readonly abstractionClassPool: Record<string, IAbstractionClass> = {};
+
+	// reref static to instance
+	public readonly abstractionClassPool = Stage.abstractionClassPool;
+
 	private _programData: Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool: ProgramDataPool;
 	private _context: IContextGL;
@@ -202,7 +203,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._enableDepthAndStencil = enableDepthAndStencil;
 
 		if (target) {
-			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> target.getAbstraction(this, Stage.abstractionClassPool[target.assetType]);
+			const targetStage = target.getAbstraction<_Stage_ImageBase>(this);
+
 			this._context.setRenderToTexture(
 				targetStage.getTexture(),
 				enableDepthAndStencil,
@@ -298,7 +300,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			this._context.setProgram(task.getProgram(this));
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
-			(<_Stage_ImageBase> task.getMainInputTexture(this).getAbstraction(this, Stage.abstractionClassPool[target.assetType]))
+			task.getMainInputTexture(this)
+				.getAbstraction<_Stage_ImageBase>(this)
 				.activate(task._inputTextureIndex, this._filterSampler);
 
 			if (!task.target) {
@@ -396,9 +399,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this.setRenderTarget(source, false);
 			this.setScissor(null);
 
-			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> target.getAbstraction(this, Stage.abstractionClassPool[target.assetType]);
+			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
+			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this);
 
-			this._context.copyToTexture(targetStage.getTexture(), rect, destPoint);
+			this._context.copyToTexture(targetImageAbst.getTexture(), rect, destPoint);
 		}
 	}
 
