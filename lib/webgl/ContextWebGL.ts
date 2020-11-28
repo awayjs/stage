@@ -1,5 +1,4 @@
 import { Rectangle, CoordinateSystem, Point } from '@awayjs/core';
-
 import { BitmapImage2D } from '../image/BitmapImage2D';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
@@ -25,6 +24,15 @@ import { TextureContextWebGL } from './TextureContextWebGL';
 import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
 import { Settings } from '../Settings';
+
+let _DEBUG_renderMode: '' | 'line' = '';
+
+//@ts-ignore
+window._AWAY_DEBUG_ = Object.assign(window._AWAY_DEBUG_ || {}, {
+	forceLineMode(lineMode = false) {
+		_DEBUG_renderMode = lineMode ? 'line' : '';
+	}
+});
 
 export class ContextWebGL implements IContextGL {
 	public static MAX_SAMPLERS: number = 8;
@@ -383,6 +391,8 @@ export class ContextWebGL implements IContextGL {
 			this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
 		}
 
+		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
+
 		this._gl.drawElements(
 			this._drawModeMap[mode],
 			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
@@ -405,6 +415,8 @@ export class ContextWebGL implements IContextGL {
 		// updata blend before draw, because blend state can mutated a more times
 		// reduce a state changes
 		this.updateBlendStatus();
+
+		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
 
 		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 
