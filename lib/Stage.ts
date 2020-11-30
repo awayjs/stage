@@ -443,8 +443,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._copyPixelFilter.colorTransform = null;
 	}
 
-	public requestAbstraction(asset: IAsset): IAbstractionClass
-	{
+	public requestAbstraction(asset: IAsset): IAbstractionClass {
 		return Stage._abstractionClassPool[asset.assetType];
 	}
 
