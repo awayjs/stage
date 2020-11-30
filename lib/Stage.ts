@@ -7,7 +7,8 @@ import {
 	IAbstractionClass,
 	CSS,
 	Point,
-	ColorTransform
+	ColorTransform,
+	IAsset
 } from '@awayjs/core';
 
 import { ContextMode } from './base/ContextMode';
@@ -48,16 +49,7 @@ import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
  *
  */
 export class Stage extends EventDispatcher implements IAbstractionPool {
-	// Forget a AS3. This is not AS3
-	// This is not a class, this is class constructor.
-	// Class constructor !== Class
-	// And, STRICT TYPES is REQUIRED
-	// When you don't know what a type need - nothing doing!
-	public static readonly abstractionClassPool: Record<string, IAbstractionClass> = {};
-
-	// reref static to instance
-	public readonly abstractionClassPool = Stage.abstractionClassPool;
-
+	private static _abstractionClassPool: Record<string, IAbstractionClass> = {};
 	private _programData: Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool: ProgramDataPool;
 	private _context: IContextGL;
@@ -451,12 +443,17 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._copyPixelFilter.colorTransform = null;
 	}
 
+	public requestAbstraction(asset: IAsset): IAbstractionClass
+	{
+		return Stage._abstractionClassPool[asset.assetType];
+	}
+
 	/**
 	 *
 	 * @param imageObjectClass
 	 */
 	public static registerAbstraction(abstractionClass: IAbstractionClass, assetClass: IAssetClass): void {
-		Stage.abstractionClassPool[assetClass.assetType] = abstractionClass;
+		Stage._abstractionClassPool[assetClass.assetType] = abstractionClass;
 	}
 
 	/**

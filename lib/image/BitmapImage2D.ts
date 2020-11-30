@@ -1248,7 +1248,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		const sourceBitmap = asset.sourceBitmap;
 
 		if (sourceBitmap) {
-			return (<_Stage_BitmapImage2D> sourceBitmap.getAbstraction(this._stage, Stage.abstractionClassPool[sourceBitmap.assetType])).getTexture();
+			return (<_Stage_BitmapImage2D> sourceBitmap.getAbstraction(this._stage)).getTexture();
 		}
 
 		asset.markToUnload();
