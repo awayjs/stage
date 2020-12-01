@@ -5,12 +5,15 @@ export interface IStageSettings {
 	ENABLE_TEXTURE_POOLING: boolean;
 	ENABLE_UNLOAD_BUFFER: boolean;
 	ENABLE_BUFFER_POOLING: boolean;
+
 	MAX_BUFFER_POOL_SIZE: number;
 	MAX_BUFFER_ALIVE_TIME: number;
-
 	MAX_BITMAP_UNLOAD_TASKS: number;
+	MAX_BITMAP_UNLOAD_TASKS_ASYNC: number;
+
 	ENABLE_VAO: boolean;
 	ENABLE_UNIFORM_CACHE: boolean;
+	ENABLE_ASYNC_READ: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -29,6 +32,12 @@ export const Settings: IStageSettings = {
 	 * @description How many task can be unloaded per run
 	 */
 	MAX_BITMAP_UNLOAD_TASKS: 10,
+
+	/**
+	 * @description How many task can be unloaded per run when fence is supported.
+	 * @see ENABLE_ASYNC_READ
+	 */
+	MAX_BITMAP_UNLOAD_TASKS_ASYNC: 50,
 
 	/**
 	 * @description Enable UnloadManager for unloading unused Textures from pool
@@ -69,7 +78,14 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Allow cache a uniforms
 	 */
-	ENABLE_UNIFORM_CACHE: false
+	ENABLE_UNIFORM_CACHE: false,
+
+	/**
+	 * @description Allow async read from texture when unload it from GPU,
+	 * used a fenceSync on WebGL2
+	 * @see ENABLE_UNLOAD_BITMAP
+	 */
+	ENABLE_ASYNC_READ: true
 };
 
 // console.debug('[Stage settings]', Settings);

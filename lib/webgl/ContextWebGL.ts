@@ -88,6 +88,10 @@ export class ContextWebGL implements IContextGL {
 	private _separateStencil: boolean = false;
 	private lastBoundedIndexBuffer = null;
 
+	public get hasFence() {
+		return !!this._fenceContext;
+	}
+
 	private _hasVao = false;
 	public get hasVao() {
 		return this._hasVao;
@@ -267,8 +271,14 @@ export class ContextWebGL implements IContextGL {
 			console.debug('[ContextWebGL] Vao disabled by settings \'ENABLE_VAO\'');
 		}
 
-		if (FenceContextWebGL.isSupported(this._gl)) {
-			this._fenceContext = new FenceContextWebGL(<WebGL2RenderingContext> this._gl);
+		if (Settings.ENABLE_ASYNC_READ) {
+			if (FenceContextWebGL.isSupported(this._gl)) {
+				this._fenceContext = new FenceContextWebGL(<WebGL2RenderingContext> this._gl);
+			} else {
+				console.warn('[ContextWebGL] FenceSync isn\'t supported');
+			}
+		} else {
+			console.debug('[ContextWebGL] FenceSync disabled by settings \'ENABLE_ASYNC_READ\'');
 		}
 
 		// first locked state 0,0,0,0

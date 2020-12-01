@@ -115,20 +115,20 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	public static assetType: string = '[image BitmapImage2D]';
 
-	private static _unloadManager: UnloadManager<BitmapImage2D>;
+	public static unloadManager: UnloadManager<BitmapImage2D>;
 
-	public static get unloadManager() {
+	public static initManager(stage: Stage) {
+		const hasFence = (<ContextWebGL> stage.context).hasFence;
 
-		if (!this._unloadManager) {
-			this._unloadManager = UnloadService.createManager({
-				name : 'BitmapImage2D',
-				priority: 0,
-				maxUnloadTasks: Settings.MAX_BITMAP_UNLOAD_TASKS,
-				exectionPeriod: 100, // every 100 ms GC will runs to unload bitmap
-			});
-		}
+		this.unloadManager = UnloadService.createManager({
+			name : 'BitmapImage2D' + (hasFence ? 'async' : ''),
+			priority: 0,
+			maxUnloadTasks: (hasFence
+				? Settings.MAX_BITMAP_UNLOAD_TASKS_ASYNC
+				: Settings.MAX_BITMAP_UNLOAD_TASKS),
+			exectionPeriod: 100, // every 100 ms GC will runs to unload bitmap
+		});
 
-		return this._unloadManager;
 	}
 
 	public _lazySymbol: LazyImageSymbolTag;
@@ -300,6 +300,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		fillColor: number = null, powerOfTwo: boolean = true, stage: Stage = null) {
 
 		super(width, height, powerOfTwo);
+
+		if (!BitmapImage2D.unloadManager) {
+			BitmapImage2D.initManager(stage);
+		}
 
 		this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
 		this._transparent = transparent;
@@ -1227,6 +1231,7 @@ import { ITextureBase } from '../base/ITextureBase';
 import { BitmapImageUtils } from '../utils/BitmapImageUtils';
 
 import { _Stage_Image2D } from './Image2D';
+import { ContextWebGL } from '../webgl/ContextWebGL';
 
 /**
  *
