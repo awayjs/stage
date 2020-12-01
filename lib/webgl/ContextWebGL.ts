@@ -25,7 +25,6 @@ import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
 import { Settings } from '../Settings';
 import { FenceContextWebGL } from './FenceContextWebGL';
-import { PixelBufferWebGL } from './PixelBufferWebGL';
 
 let _DEBUG_renderMode: '' | 'line' = '';
 
@@ -387,6 +386,7 @@ export class ContextWebGL implements IContextGL {
 				.readPixels(0,0, width, height)
 				.then((pbo) => {
 					pbo.read(pixels);
+
 					if (invalidate) {
 						destination.invalidateGPU();
 					}
@@ -730,6 +730,11 @@ export class ContextWebGL implements IContextGL {
 		} else {
 			delta[0] && this._gl.disable(this._gl.BLEND);
 		}
+	}
+
+	public finish() {
+		this._gl.flush();
+		this._gl.finish();
 	}
 
 	private translateTriangleFace(triangleFace: ContextGLTriangleFace, coordinateSystem: CoordinateSystem) {

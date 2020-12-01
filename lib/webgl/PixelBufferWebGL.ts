@@ -33,9 +33,12 @@ export class PixelBufferWebGL {
 		const gl = this._gl;
 		if (PixelBufferWebGL._lastBounded !== this) {
 			gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._buffer);
+			PixelBufferWebGL._lastBounded = this;
 		}
 
 		gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, buffer);
+
+		//this.unbind();
 	}
 
 	/**

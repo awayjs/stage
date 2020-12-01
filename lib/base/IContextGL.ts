@@ -107,4 +107,5 @@ export interface IContextGL
 
 	disableStencil();
 
+	finish();
 }
