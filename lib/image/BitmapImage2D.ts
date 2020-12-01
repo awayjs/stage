@@ -196,11 +196,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public unmarkToUnload() {
-		Settings.ENABLE_UNLOAD_BITMAP && BitmapImage2D.unloadManager.removeTask(this);
+		if (BitmapImage2D.unloadManager)
+			BitmapImage2D.unloadManager.removeTask(this);
 	}
 
 	public markToUnload() {
-		if (!Settings.ENABLE_UNLOAD_BITMAP) return;
+		if (!BitmapImage2D.unloadManager) return;
 		if (this._isSymbolSource) return;
 
 		this.lastUsedTime = BitmapImage2D.unloadManager.correctedTime;
@@ -301,7 +302,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		super(width, height, powerOfTwo);
 
-		if (!BitmapImage2D.unloadManager) {
+		if (Settings.ENABLE_UNLOAD_BITMAP && !BitmapImage2D.unloadManager) {
 			BitmapImage2D.initManager(stage);
 		}
 
@@ -620,7 +621,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *
 	 */
 	public dispose(): void {
-		BitmapImage2D.unloadManager.removeTask(this);
+		if (BitmapImage2D.unloadManager)
+			BitmapImage2D.unloadManager.removeTask(this);
 
 		if (this._isWeakRef) {
 			this._finalizer.unregister(this);
