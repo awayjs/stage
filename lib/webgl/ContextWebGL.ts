@@ -24,6 +24,8 @@ import { TextureContextWebGL } from './TextureContextWebGL';
 import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
 import { Settings } from '../Settings';
+import { FenceContextWebGL } from './FenceContextWebGL';
+import { PixelBufferWebGL } from './PixelBufferWebGL';
 
 let _DEBUG_renderMode: '' | 'line' = '';
 
@@ -76,6 +78,7 @@ export class ContextWebGL implements IContextGL {
 
 	/* internal */ _texContext: TextureContextWebGL;
 	/* internal */ _vaoContext: VaoContextWebGL;
+	/* internal */ _fenceContext: FenceContextWebGL;
 
 	private _currentArrayBuffer: VertexBufferWebGL;
 	private _stencilCompareMode: number;
@@ -265,6 +268,10 @@ export class ContextWebGL implements IContextGL {
 			console.debug('[ContextWebGL] Vao disabled by settings \'ENABLE_VAO\'');
 		}
 
+		if (FenceContextWebGL.isSupported(this._gl)) {
+			this._fenceContext = new FenceContextWebGL(<WebGL2RenderingContext> this._gl);
+		}
+
 		// first locked state 0,0,0,0
 		this._blendState.lock(true);
 	}
@@ -360,14 +367,49 @@ export class ContextWebGL implements IContextGL {
 		//
 	}
 
-	public drawToBitmapImage2D(destination: BitmapImage2D): void {
-		const pixels: Uint8Array = new Uint8Array(destination.width * destination.height * 4);
+	public drawToBitmapImage2D(
+		destination: BitmapImage2D, invalidate = true, async: boolean = false): undefined | Promise<boolean> {
 
-		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
+		const pixels = new Uint8Array(destination.getDataInternal().buffer);
+		const fence = this._fenceContext;
+		const { width, height } = destination;
 
-		destination.setPixels(
-			new Rectangle(0, 0, destination.width, destination.height),
-			new Uint8ClampedArray(pixels.buffer));
+		let promise: Promise<boolean>;
+
+		if (async && !fence) {
+			promise = Promise.resolve(false);
+		}
+
+		if (async && fence) {
+			// tasking a PBO read async
+			// http://www.songho.ca/opengl/gl_pbo.html
+			promise = fence
+				.readPixels(0,0, width, height)
+				.then((pbo) => {
+					pbo.read(pixels);
+					if (invalidate) {
+						destination.invalidateGPU();
+					}
+
+					// restore PBO to fence pool
+					// but we can destroy it too
+					fence.release(pbo);
+
+					return true;
+				});
+
+		} else {
+			// no support or not required as async, use sync operation
+			this._gl.readPixels(
+				0, 0, width, height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
+
+			if (invalidate) {
+				destination.invalidateGPU();
+			}
+		}
+
+		// for any case return a promise, nut for sync it will be undef;
+		return promise;
 	}
 
 	public drawIndices(

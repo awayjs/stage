@@ -147,6 +147,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	protected _nestedBitmap: BitmapImage2D[] = [];
 	protected _sourceBitmap: BitmapImage2D;
 
+	// request a _data field without a calling getter of 'data'
+
+	/*internal*/ getDataInternal(): Uint8ClampedArray {
+		if (!this._data) {
+			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+		}
+
+		return this._data;
+	}
+
 	/**
 	 * @description Upload flag, marking a image that it was uploaded on GPU
 	 * and can use GPU operations
