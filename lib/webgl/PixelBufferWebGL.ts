@@ -1,5 +1,13 @@
 export class PixelBufferWebGL {
-	private static _lastBounded: PixelBufferWebGL;
+	static _lastBounded: PixelBufferWebGL;
+
+	public static unboundAll() {
+		// if there are bounded, we should unbound it
+		if (this._lastBounded) {
+			this._lastBounded.unbind();
+		}
+	}
+
 	public static isSuported(gl: WebGL2RenderingContext | WebGLRenderingContext) {
 		return (window.WebGL2RenderingContext && gl instanceof window.WebGL2RenderingContext);
 	}
@@ -31,8 +39,10 @@ export class PixelBufferWebGL {
 		}
 
 		const gl = this._gl;
+
 		if (PixelBufferWebGL._lastBounded !== this) {
 			gl.bindBuffer(gl.PIXEL_PACK_BUFFER, this._buffer);
+
 			PixelBufferWebGL._lastBounded = this;
 		}
 

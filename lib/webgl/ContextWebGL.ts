@@ -399,6 +399,12 @@ export class ContextWebGL implements IContextGL {
 				});
 
 		} else {
+
+			// we MUST unbound all bounded PIXEL_PACK buffer to avoid warnings
+			if (fence) {
+				fence.unboundAll();
+			}
+
 			// no support or not required as async, use sync operation
 			this._gl.readPixels(
 				0, 0, width, height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);

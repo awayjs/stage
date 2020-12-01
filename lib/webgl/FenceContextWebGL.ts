@@ -82,6 +82,10 @@ export class FenceContextWebGL {
 		}
 	}
 
+	unboundAll () {
+		PixelBufferWebGL.unboundAll();
+	}
+
 	dispose() {
 		this._tasks = null;
 		this.pool.forEach((e) => e.dispose());
