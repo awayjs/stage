@@ -115,12 +115,20 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	public static assetType: string = '[image BitmapImage2D]';
 
-	public static unloadManager: UnloadManager<BitmapImage2D>;
+	public static _unloadManager: UnloadManager<BitmapImage2D>;
 
-	public static initManager(stage: Stage) {
+	public static getManager(stage: Stage): UnloadManager<BitmapImage2D> {
+		if (!Settings.ENABLE_UNLOAD_BITMAP || !stage) {
+			return null;
+		}
+
+		if (this._unloadManager) {
+			return this._unloadManager;
+		}
+
 		const hasFence = (<ContextWebGL> stage.context).hasFence;
 
-		this.unloadManager = UnloadService.createManager({
+		this._unloadManager = UnloadService.createManager({
 			name : 'BitmapImage2D' + (hasFence ? 'async' : ''),
 			priority: 0,
 			maxUnloadTasks: (hasFence
@@ -129,6 +137,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			exectionPeriod: 100, // every 100 ms GC will runs to unload bitmap
 		});
 
+		return this._unloadManager;
 	}
 
 	public _lazySymbol: LazyImageSymbolTag;
@@ -196,19 +205,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public unmarkToUnload() {
-		if (BitmapImage2D.unloadManager)
-			BitmapImage2D.unloadManager.removeTask(this);
+		BitmapImage2D.getManager(this._stage)?.removeTask(this);
 	}
 
 	public markToUnload() {
-		if (!BitmapImage2D.unloadManager) return;
+		if (!BitmapImage2D.getManager(this._stage)) return;
 		if (this._isSymbolSource) return;
 
-		this.lastUsedTime = BitmapImage2D.unloadManager.correctedTime;
+		this.lastUsedTime = BitmapImage2D._unloadManager.correctedTime;
 
 		// add before, because task can be already exist
 		// and if we a run GC before - it kill texture
-		BitmapImage2D.unloadManager.addTask(this);
+		BitmapImage2D._unloadManager.addTask(this);
 
 		// run execution when is marked that used
 		// const count = BitmapImage2D.unloadManager.execute();
@@ -302,8 +310,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		super(width, height, powerOfTwo);
 
-		if (Settings.ENABLE_UNLOAD_BITMAP && !BitmapImage2D.unloadManager) {
-			BitmapImage2D.initManager(stage);
+		if (stage) {
+			// init
+			BitmapImage2D.getManager(stage);
 		}
 
 		this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
@@ -621,8 +630,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *
 	 */
 	public dispose(): void {
-		if (BitmapImage2D.unloadManager)
-			BitmapImage2D.unloadManager.removeTask(this);
+		BitmapImage2D.getManager(this._stage)?.removeTask(this);
 
 		if (this._isWeakRef) {
 			this._finalizer.unregister(this);
