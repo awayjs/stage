@@ -92,7 +92,7 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Allow parsing via createImageBitmap on supported platforms
 	 */
-	ENABLE_PARSER_NATIVE_BITMAP: false,
+	ENABLE_PARSER_NATIVE_BITMAP: true,
 };
 
 // console.debug('[Stage settings]', Settings);
