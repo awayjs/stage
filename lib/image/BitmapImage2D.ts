@@ -331,7 +331,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this._transparent = transparent;
 		this._stage = stage;
 
-		if (fillColor != null && fillColor != 0x0)
+		if (fillColor != null)
 			this.fillRect(this._rect, fillColor);
 	}
 
@@ -1197,11 +1197,29 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	set alphaChannel(buff: Uint8Array) {
 		this.dropAllReferences();
-		if (!buff) return;
+
+		if (!buff) {
+			return;
+		}
+
 		if (buff.length !== this.width * this.height) {
 			throw (
 				'error when trying to merge the alpha channel into the image.' +
 				'the length of the alpha channel should be 1/4 of the length of the imageData');
+		}
+
+		// if assigments after initialiszation, apply it immediate
+		if (this._data && this.wasUpload) {
+			const buff = this._alphaChannel;
+
+			for (let i = 0; i < buff.length; i++) {
+				this._data[i * 4 + 3] = buff[i];
+			}
+
+			this._unpackPMA = false;
+			this.invalidateGPU();
+
+			return;
 		}
 
 		this._alphaChannel = buff;
