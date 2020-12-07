@@ -518,18 +518,12 @@ export class TextureContextWebGL {
 		// delete texture
 		gl.deleteTexture(texture._glTexture);
 
-		// delete all framebuffers
-		Object.keys(texture._frameBuffer)
-			.forEach((key) => gl.deleteFramebuffer(texture._frameBuffer[key]));
-		Object.keys(texture._frameBufferDraw)
-			.forEach((key) => gl.deleteFramebuffer(texture._frameBufferDraw[key]));
-
-		// delete all renderbuffers
-		Object.keys(texture._renderBuffer)
-			.forEach((key) => gl.deleteRenderbuffer(texture._renderBuffer[key]));
-
-		Object.keys(texture._renderBufferDepth)
-			.forEach((key) => gl.deleteRenderbuffer(texture._renderBufferDepth[key]));
+		for (const key in texture._frameBuffer) {
+			gl.deleteFramebuffer(texture._frameBuffer[key]);
+			gl.deleteFramebuffer(texture._frameBufferDraw[key]);
+			gl.deleteRenderbuffer(texture._renderBuffer[key]);
+			gl.deleteRenderbuffer(texture._renderBufferDepth[key]);
+		}
 	}
 
 }

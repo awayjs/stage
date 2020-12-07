@@ -153,7 +153,9 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	 * @inheritdoc
 	 */
 	public dispose(): void {
-		if (Settings.ENABLE_TEXTURE_POOLING && TextureWebGL.store(this))
+		if (!this.multisampled
+				&& Settings.ENABLE_TEXTURE_POOLING
+				&& TextureWebGL.store(this))
 			return;
 
 		this.unload();
