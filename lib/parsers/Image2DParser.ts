@@ -1,22 +1,52 @@
-import { IAsset, URLLoaderDataFormat, ParserBase, ParserUtils, ByteArray, URLRequest } from '@awayjs/core';
+import { IAsset, URLLoaderDataFormat, ParserBase, ByteArray, URLRequest } from '@awayjs/core';
 
 import { Image2D } from '../image/Image2D';
 import { ExternalImage2D } from '../image/ExternalImage2D';
 import { ImageUtils } from '../utils/ImageUtils';
 import { DefaultGraphicsFactory } from '../factories/DefaultGraphicsFactory';
 import { IGraphicsFactory } from '../factories/IGraphicsFactory';
+import { Settings } from '../Settings';
 
 /**
  * Image2DParser provides a "parser" for natively supported image types (jpg, png). While it simply loads bytes into
  * a loader object, it wraps it in a BitmapDataResource so resource management can happen consistently without
  * exception cases.
  */
+
+type TImage = HTMLImageElement | ImageBitmap;
+
+function getImageFromData (blob: Blob, callback: (arg: TImage) => boolean): TImage {
+	// self is window for main ui or self for worker, need use it
+	const supportImageBitmap = Settings.ENABLE_PARSER_NATIVE_BITMAP && ('createImageBitmap' in self);
+
+	if (supportImageBitmap) {
+		createImageBitmap(blob).then(callback);
+		return null;
+	}
+
+	const url = URL.createObjectURL(blob);
+	const image = new Image();
+	image.src = url;
+
+	if (!image.naturalWidth) {
+		image.onload = (event) => {
+			callback(image);
+			URL.revokeObjectURL(url);
+		};
+
+		return null;
+	}
+
+	return image;
+}
 export class Image2DParser extends ParserBase {
+	public static SUPPORTED_TYPES = ['jpg', 'jpeg', 'png', 'gif'];
+
 	private _factory: IGraphicsFactory;
 	private _startedParsing: boolean;
 	private _doneParsing: boolean;
 	private _loadingImage: boolean;
-	private _htmlImageElement: HTMLImageElement;
+	private _htmlImageElement: HTMLImageElement | ImageBitmap;
 
 	private _alphaChannel: Uint8Array;
 
@@ -38,9 +68,8 @@ export class Image2DParser extends ParserBase {
 	 */
 	public static supportsType(extension: string): boolean {
 
-		extension = extension.toLowerCase();
-		return extension == 'jpg' || extension == 'jpeg' || extension == 'png' || extension == 'gif';//|| extension == "bmp";//|| extension == "atf";
-
+		extension = extension.toLowerCase().trim();
+		return this.SUPPORTED_TYPES.includes(extension);
 	}
 
 	/**
@@ -94,78 +123,72 @@ export class Image2DParser extends ParserBase {
 	 */
 	public _pProceedParsing(): boolean {
 
-		let asset: Image2D;
-		const sizeError: boolean = false;
-
 		if (this._loadingImage) {
 			return ParserBase.MORE_TO_PARSE;
-		} else if (this._htmlImageElement) {
-			//if (ImageUtils.isHTMLImageElementValid(this._htmlImageElement)) {
-			asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
-			//}
-		} else if (this.data instanceof HTMLImageElement) {// Parse HTMLImageElement
-			const htmlImageElement: HTMLImageElement = <HTMLImageElement> this.data;
-			//if (ImageUtils.isHTMLImageElementValid(htmlImageElement)) {
+		}
 
-			asset = ImageUtils.imageToBitmapImage2D(htmlImageElement, false, this._factory);
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
-			//} else {
-			//	sizeError = true;
-			//}
+		let asset: Image2D;
 
-		} else if (this.data instanceof ByteArray) { // Parse a ByteArray
+		if (!this._htmlImageElement && this.data instanceof HTMLImageElement) {
+			this._htmlImageElement = this.data;
+		}
+
+		if (this._htmlImageElement) {
+			const asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
+
+			this._pFinalizeAsset(asset, this._iFileName);
+			this._pContent = asset;
+
+			return ParserBase.PARSING_DONE;
+
+		}
+
+		if (this.data instanceof URLRequest) {
+			asset = new ExternalImage2D(<URLRequest> this.data);
+
+			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
+			this._pContent = asset;
+
+			return ParserBase.PARSING_DONE;
+		}
+
+		let blob: Blob;
+
+		if (this.data instanceof ByteArray) { // Parse a ByteArray
 
 			const ba: ByteArray = this.data;
 			ba.position = 0;
-			this._htmlImageElement = ParserUtils.byteArrayToImage(this.data);
-
-			if (!this._htmlImageElement.naturalWidth) {
-				this._htmlImageElement.onload = (event) => this.onLoadComplete(event);
-				this._loadingImage = true;
-
-				return ParserBase.MORE_TO_PARSE;
-			}
-
-			//if (ImageUtils.isHTMLImageElementValid(this._htmlImageElement)) {
-			asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
-			//} else {
-			//	sizeError = true;
-			//
-			//}
+			blob =  new Blob([this.data.arraybytes]);
 
 		} else if (this.data instanceof ArrayBuffer) {// Parse an ArrayBuffer
+			blob = new Blob([this.data]);
 
-			this._htmlImageElement = ParserUtils.arrayBufferToImage(this.data);
+		} else if (this.data instanceof Blob) {
+			blob = this.data;
+
+		} else {
+			throw 'Unknow data';
+		}
+
+		const task = getImageFromData(blob, (image) => {
+			this._htmlImageElement = image;
+			this.onLoadComplete(null);
+
+			return true;
+		});
+
+		if (task instanceof HTMLImageElement && task.naturalWidth) {
+			this._htmlImageElement = task;
 
 			asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
+
 			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
+			this._pContent = asset;
 
-		} else if (this.data instanceof Blob) { // Parse a Blob
-
-			this._htmlImageElement = ParserUtils.blobToImage(this.data);
-
-			this._htmlImageElement.onload = (event) => this.onLoadComplete(event);
-			this._loadingImage = true;
-
-			return ParserBase.MORE_TO_PARSE;
-		} else if (this.data instanceof URLRequest) { // Parse a URLRequest
-			asset = new ExternalImage2D(<URLRequest> this.data);
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
 		}
 
-		if (sizeError) // Generate new Checkerboard texture material
-		{
-			//				asset = new BitmapTexture(DefaultMaterialManager.createCheckeredBitmapData(), false);
-			//				this._pFinalizeAsset(<IAsset> asset, this._iFileName);
-			//				this.dispatchEvent(new away.events.AssetEvent(away.events.AssetEvent.TEXTURE_SIZE_ERROR, <IAsset> asset));
-		}
-
-		this._pContent = asset;
-
-		return ParserBase.PARSING_DONE;
-
+		this._loadingImage = true;
+		return ParserBase.MORE_TO_PARSE;
 	}
 
 	public onLoadComplete(event): void {

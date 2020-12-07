@@ -14,6 +14,8 @@ export interface IStageSettings {
 	ENABLE_VAO: boolean;
 	ENABLE_UNIFORM_CACHE: boolean;
 	ENABLE_ASYNC_READ: boolean;
+
+	ENABLE_PARSER_NATIVE_BITMAP: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -85,7 +87,12 @@ export const Settings: IStageSettings = {
 	 * used a fenceSync on WebGL2
 	 * @see ENABLE_UNLOAD_BITMAP
 	 */
-	ENABLE_ASYNC_READ: true
+	ENABLE_ASYNC_READ: true,
+
+	/**
+	 * @description Allow parsing via createImageBitmap on supported platforms
+	 */
+	ENABLE_PARSER_NATIVE_BITMAP: false,
 };
 
 // console.debug('[Stage settings]', Settings);

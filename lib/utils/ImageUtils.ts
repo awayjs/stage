@@ -12,26 +12,68 @@ export class ImageUtils {
 	private static _defaultBitmapImage2D: BitmapImage2D;
 	private static _defaultBitmapImageCube: BitmapImageCube;
 
-	/**
-	 *
-	 */
-	public static imageToBitmapImage2D(
-		img: HTMLImageElement, powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
-
-		if (!factory)
-			factory = new DefaultGraphicsFactory();
-
-		const image2D = <BitmapImage2D> factory.createImage2D(
-			img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
+	private static getImageBuffer(img: HTMLImageElement | ImageBitmap): Uint8ClampedArray {
 
 		const canvas = this.CANVAS || (this.CANVAS = document.createElement('canvas'));
 		const context = canvas.getContext('2d');
 
-		canvas.width = img.naturalWidth;
-		canvas.height = img.naturalHeight;
+		if (img instanceof ImageBitmap) {
+			canvas.width = img.width;
+			canvas.height = img.height;
+		} else {
+			canvas.width  = img.naturalWidth;
+			canvas.height = img.naturalHeight;
+		}
 
 		context.drawImage(img, 0, 0);
-		image2D.setPixels(image2D.rect, context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data);
+
+		return context.getImageData(0, 0, canvas.width, canvas.height).data;
+	}
+
+	/**
+	 *
+	 */
+	public static imageToBitmapImage2D(
+		img: HTMLImageElement | ImageBitmap,
+		powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
+
+		if (!factory)
+			factory = new DefaultGraphicsFactory();
+
+		let width: number;
+		let height: number;
+
+		if (img instanceof ImageBitmap) {
+			width = img.width;
+			height = img.height;
+		} else {
+			width = img.naturalWidth;
+			height = img.naturalHeight;
+		}
+
+		const image2D = <BitmapImage2D> factory.createImage2D(
+			width,
+			height,
+			true,
+			null,
+			powerOfTwo
+		);
+
+		image2D.addLazySymbol({
+			needParse: true,
+			definition: {
+				width,
+				height,
+				isPMA: true,
+				data: null
+			},
+			lazyParser() {
+				this.needParse = false;
+				this.definition.data = ImageUtils.getImageBuffer(img);
+				this.lazyParser = null;
+				return this;
+			}
+		});
 
 		return image2D;
 	}

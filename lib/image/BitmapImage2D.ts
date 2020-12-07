@@ -158,9 +158,21 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	// request a _data field without a calling getter of 'data'
 
-	/*internal*/ getDataInternal(): Uint8ClampedArray {
-		if (!this._data) {
+	/*internal*/ getDataInternal(constructEmpty = true): Uint8ClampedArray {
+		this.applySymbol();
+
+		if (!this._data && (constructEmpty || this._alphaChannel)) {
 			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+		}
+
+		if (this._alphaChannel) {
+			const buff = this._alphaChannel;
+			for (let i = 0; i < buff.length; i++) {
+				this._data[i * 4 + 3] = buff[i];
+			}
+
+			//remove alpha data once applied
+			this._alphaChannel = null;
 		}
 
 		return this._data;
@@ -315,7 +327,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			BitmapImage2D.getManager(stage);
 		}
 
-		this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
+		//this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
 		this._transparent = transparent;
 		this._stage = stage;
 
@@ -330,9 +342,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.invalidateGPU();
 	}
 
-	public applySymbol() {
+	public applySymbol(): boolean {
 		if (!this._lazySymbol || !this._lazySymbol.needParse) {
-			return;
+			return false;
 		}
 
 		this._lazySymbol.lazyParser();
@@ -345,6 +357,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		// hop
 		this._lazySymbol = null;
 
+		return true;
 	}
 
 	/**
@@ -585,7 +598,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public merge(source: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, redMultiplier: number, greenMultiplier: number, blueMultiplier: number, alphaMultiplier: number) {
 		this.dropAllReferences();
 
-		const dest: Uint8ClampedArray = this.data;
+		const dest: Uint8ClampedArray = this.getDataInternal(true);
 		const src: Uint8ClampedArray = source.data;
 
 		redMultiplier = ~~redMultiplier;
@@ -646,7 +659,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public getColorBoundsRect(mask: number, color: number, findColor: boolean = true): Rectangle {
-		const buffer = new Uint32Array(this.data.buffer);
+		const buffer = new Uint32Array(this.getDataInternal(true).buffer);
 		const size = this.rect;
 
 		color = fastARGB_to_ABGR(color, this._transparent);
@@ -708,7 +721,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		//const start = performance.now();
 
 		// needs update data when it use GL rendering mode
-		const data = new Uint32Array(this.data.buffer);
+		const data = new Uint32Array(this.getDataInternal(true).buffer);
 
 		const width = this._rect.width;
 		const height = this._rect.height;
@@ -1185,21 +1198,13 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	set alphaChannel(buff: Uint8Array) {
 		this.dropAllReferences();
 		if (!buff) return;
-
-		this.applySymbol();
-
-		if (this._data.length !== buff.length * 4)
+		if (buff.length !== this.width * this.height) {
 			throw (
 				'error when trying to merge the alpha channel into the image.' +
 				'the length of the alpha channel should be 1/4 of the length of the imageData');
-
-		for (let i = 0; i < buff.length; i++) {
-			this._data[i * 4 + 3] = buff[i];
 		}
 
-		//remove alpha data once applied
-		this._alphaChannel = null;
-		// disable PMA because it is a cause black halo bag on JPEG3 images
+		this._alphaChannel = buff;
 		this._unpackPMA = false;
 	}
 
@@ -1208,8 +1213,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @returns {ImageData}
 	 */
 	public get data(): Uint8ClampedArray {
-		this.applySymbol();
-		return this._data || (this._data = new Uint8ClampedArray(this.width * this.height * 4));
+		return this.getDataInternal(true);
 	}
 
 	/**
@@ -1277,10 +1281,11 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		}
 
 		asset.markToUnload();
-		asset.applySymbol();
 		super.getTexture();
 
-		const pixels = <Uint8ClampedArray>((<any> asset)._data);
+		// not requred for empty buffer, becasue maybe RT that not has it by defalut
+		const pixels = <Uint8ClampedArray>(asset.getDataInternal(false));
+
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {
