@@ -158,7 +158,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	// request a _data field without a calling getter of 'data'
 
-	/*internal*/ getDataInternal(constructEmpty = true): Uint8ClampedArray {
+	/*internal*/ getDataInternal(constructEmpty = true, skipSync = false): Uint8ClampedArray {
 		this.applySymbol();
 
 		if (!this._data && (constructEmpty || this._alphaChannel)) {
@@ -963,7 +963,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	public getPixelData(x, y, imagePixel: Uint8ClampedArray): void {
 		let index: number = (x + y * this._rect.width) * 4;
-		const data: Uint8ClampedArray = this._data;
+		const data: Uint8ClampedArray = this.getDataInternal(true);
 
 		imagePixel[0] = data[index++];
 		imagePixel[1] = data[index++];
@@ -975,7 +975,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		const index: number = (x + y * this._rect.width) * 4;
-		const data: Uint8ClampedArray = this.data;
+		const data: Uint8ClampedArray = this.getDataInternal(true);
 
 		data[index + 0] = imagePixel[0];
 		data[index + 1] = imagePixel[1];
@@ -1016,7 +1016,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		let i: number, j: number, index: number, argb: number[];
-		const data = this.data;
+		const data = this.getDataInternal(true);
 
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
@@ -1056,7 +1056,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		const
 			index = (~~x + ~~y * this._rect.width) * 4,
 			argb = ColorUtils.float32ColorToARGB(color),
-			data = this.data;
+			data = this.getDataInternal(true);
 
 		data[index + 0] = argb[1];
 		data[index + 1] = argb[2];
@@ -1069,7 +1069,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixelFromArray(x: number, y: number, colors: number[]): void {
 		this.dropAllReferences();
 
-		const index: number = (x + y * this._rect.width) * 4, data: Uint8ClampedArray = this.data;
+		const
+			index: number = (x + y * this._rect.width) * 4, 
+			data: Uint8ClampedArray = this.getDataInternal(true);
 
 		data[index + 0] = colors[1] * colors[0] | 0;
 		data[index + 1] = colors[2] * colors[0] | 0;
@@ -1116,7 +1118,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		const index = (~~x + ~~y * this._rect.width) * 4;
 		const argb = ColorUtils.float32ColorToARGB(color);
-		const data = this.data;
+		const data = this.getDataInternal(true);
 
 		const factor = this._transparent ? argb[0] / 0xff : 1;
 
@@ -1150,15 +1152,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
 		this.dropAllReferences();
 
+		const data = this.getDataInternal(true);
+
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
-			this._data.set(input);
+			data.set(input);
 			this._unpackPMA = true;
 		} else {
 			const
 				imageWidth: number = this._rect.width,
-				inputWidth: number = rect.width,
-				data: Uint8ClampedArray = this._data;
+				inputWidth: number = rect.width;
 
 			for (let i = 0; i < rect.height; ++i)
 				data.set(
@@ -1302,7 +1305,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		super.getTexture();
 
 		// not requred for empty buffer, becasue maybe RT that not has it by defalut
-		const pixels = <Uint8ClampedArray>(asset.getDataInternal(false));
+		const pixels = <Uint8ClampedArray>(asset.getDataInternal(false, true));
 
 		const t = <ITexture> this._texture;
 
