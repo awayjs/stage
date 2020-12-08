@@ -1070,7 +1070,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		const
-			index: number = (x + y * this._rect.width) * 4, 
+			index: number = (x + y * this._rect.width) * 4,
 			data: Uint8ClampedArray = this.getDataInternal(true);
 
 		data[index + 0] = colors[1] * colors[0] | 0;
