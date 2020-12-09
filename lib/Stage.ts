@@ -180,7 +180,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public setRenderTarget(
-		target: ImageBase, enableDepthAndStencil: boolean = false,
+		target: ImageBase & {antialiasQuality?: number}, enableDepthAndStencil: boolean = false,
 		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
 
 		if (this._renderTarget === target
@@ -196,18 +196,21 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._enableDepthAndStencil = enableDepthAndStencil;
 
 		if (target) {
-			const targetStage = target.getAbstraction<_Stage_ImageBase>(this);
+			const targetStageElement = target.getAbstraction<_Stage_ImageBase>(this);
+			const antiallias = typeof target.antialiasQuality === 'number' // for SceneImage2D MSAA
+				? target.antialiasQuality
+				: this._antiAlias;
 
 			this._context.setRenderToTexture(
-				targetStage.getTexture(),
+				targetStageElement.getTexture(),
 				enableDepthAndStencil,
-				this._antiAlias,
+				antiallias,
 				surfaceSelector,
 				mipmapSelector);
 
 			if (mipmapSelector != 0 && this._context.glVersion != 1) { //hack to stop auto generated mipmaps
-				targetStage._invalidMipmaps = false;
-				targetStage._mipmap = true;
+				targetStageElement._invalidMipmaps = false;
+				targetStageElement._mipmap = true;
 			}
 		} else {
 			this._context.setRenderToBackBuffer();
@@ -241,7 +244,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		}
 
 		if (!this._filterSampler)
-			this._filterSampler = new ImageSampler(false, false, false);
+			this._filterSampler = new ImageSampler(false, true, false);
 	}
 
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
