@@ -39,6 +39,7 @@ import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
 import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
+import { ImageUtils } from './utils/ImageUtils';
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -786,6 +787,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	private _callback(context: IContextGL): void {
+		const gl = (<ContextWebGL>context)._gl;
+		ImageUtils.MAX_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+
 		this._context = context;
 
 		this._container = this._context.container;

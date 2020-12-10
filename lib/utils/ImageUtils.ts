@@ -7,7 +7,7 @@ import { IGraphicsFactory } from '../factories/IGraphicsFactory';
 
 export class ImageUtils {
 	private static CANVAS: HTMLCanvasElement;
-	private static MAX_SIZE: number = 8192;
+	public static MAX_SIZE: number = 8192;
 	private static _defaultSampler: ImageSampler;
 	private static _defaultBitmapImage2D: BitmapImage2D;
 	private static _defaultBitmapImageCube: BitmapImageCube;
