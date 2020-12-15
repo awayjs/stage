@@ -765,8 +765,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	public interactionHandler(event) {
 
-		let screenX: number = (event.clientX != null) ? event.clientX : event.changedTouches[0].clientX;
-		let screenY: number = (event.clientY != null) ? event.clientY : event.changedTouches[0].clientY;
+		const screenX: number = (event.clientX != null) ? event.clientX : event.changedTouches[0].clientX;
+		const screenY: number = (event.clientY != null) ? event.clientY : event.changedTouches[0].clientY;
 
 		let point = this._mapWindowToStage(screenX, screenY, TMP_POINT);
 		this._screenX = point.x;
@@ -775,7 +775,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._touchPoints.length = 0;
 
 		if (event.touches) {
-			var touch;
+			let touch;
 			const len_touches: number = event.touches.length;
 			for (let t: number = 0; t < len_touches; t++) {
 				touch = event.touches[t];
@@ -792,7 +792,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		let rect;
 		const container = this.container;
 		// IE 11 fix
-		rect = (!container.parentElement)? { x: 0, y: 0, width: 0, height: 0 } : container.getBoundingClientRect();
+		rect = (!container.parentElement) ? { x: 0, y: 0, width: 0, height: 0 } : container.getBoundingClientRect();
 
 		out.x = (x - rect.left) * container.clientWidth / rect.width;
 		out.y = (y - rect.top) * container.clientHeight / rect.height;
