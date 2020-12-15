@@ -40,6 +40,9 @@ import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
 import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
 import { ImageUtils } from './utils/ImageUtils';
+import { TouchPoint } from './base/TouchPoint';
+
+const TMP_POINT = { x: 0, y: 0 };
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -59,6 +62,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _height: number;
 	private _x: number = 0;
 	private _y: number = 0;
+
+	public _screenX: number;
+	public _screenY: number;
+	public _touchPoints: Array<TouchPoint> = new Array<TouchPoint>();
 
 	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver/request animation frame
 
@@ -103,6 +110,18 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	public get glVersion(): number {
 		return this._context.glVersion;
+	}
+
+	public get screenX(): number {
+		return this._screenX;
+	}
+
+	public get screenY(): number {
+		return this._screenY;
+	}
+
+	public get touchPoints(): Array<TouchPoint> {
+		return this._touchPoints;
 	}
 
 	public readonly id: number;
@@ -742,6 +761,43 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	public unRegisterProgram(programData: ProgramData): void {
 		this._programData[programData.id] = null;
 		programData.id = -1;
+	}
+
+	public interactionHandler(event) {
+
+		let screenX: number = (event.clientX != null) ? event.clientX : event.changedTouches[0].clientX;
+		let screenY: number = (event.clientY != null) ? event.clientY : event.changedTouches[0].clientY;
+
+		let point = this._mapWindowToStage(screenX, screenY, TMP_POINT);
+		this._screenX = point.x;
+		this._screenY = point.y;
+
+		this._touchPoints.length = 0;
+
+		if (event.touches) {
+			var touch;
+			const len_touches: number = event.touches.length;
+			for (let t: number = 0; t < len_touches; t++) {
+				touch = event.touches[t];
+
+				point = this._mapWindowToStage(touch.clientX, touch.clientY, TMP_POINT);
+
+				this._touchPoints.push(new TouchPoint(point.x, point.y, touch.identifier));
+			}
+		}
+
+	}
+
+	private _mapWindowToStage(x: number, y: number, out: {x: number, y: number} = { x: 0, y: 0 }) {
+		let rect;
+		const container = this.container;
+		// IE 11 fix
+		rect = (!container.parentElement)? { x: 0, y: 0, width: 0, height: 0 } : container.getBoundingClientRect();
+
+		out.x = (x - rect.left) * container.clientWidth / rect.width;
+		out.y = (y - rect.top) * container.clientHeight / rect.height;
+
+		return out;
 	}
 
 	/**

@@ -41,6 +41,7 @@ export { IVao } from './lib/base/IVao';
 export { ITextureBase } from './lib/base/ITextureBase';
 export { IVertexBuffer } from './lib/base/IVertexBuffer';
 export { SamplerState } from './lib/base/SamplerState';
+export { TouchPoint } from './lib/base/TouchPoint';
 
 export { ImageEvent } from './lib/events/ImageEvent';
 export { StageEvent } from './lib/events/StageEvent';
