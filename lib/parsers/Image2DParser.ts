@@ -20,7 +20,7 @@ function getImageFromData (blob: Blob, callback: (arg: TImage) => boolean): TIma
 	const supportImageBitmap = Settings.ENABLE_PARSER_NATIVE_BITMAP && ('createImageBitmap' in self);
 
 	if (supportImageBitmap) {
-		createImageBitmap(blob).then(callback);
+		self.createImageBitmap(blob).then(callback);
 		return null;
 	}
 
