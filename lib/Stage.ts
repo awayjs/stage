@@ -181,17 +181,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	/**
-	 * @description Should be executed AFTER maing rendering process
-	 */
-	public onRenderBegin() {
-
-	}
-
-	/**
 	 * @description Should be executed AFTER rendering process
 	 */
-	public onRenderEnd() {
-		this._context.finish();
+	public present() {
+		this._context.present();
 		UnloadService.executeAll();
 	}
 
