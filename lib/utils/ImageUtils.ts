@@ -17,14 +17,13 @@ export class ImageUtils {
 		const canvas = this.CANVAS || (this.CANVAS = document.createElement('canvas'));
 		const context = canvas.getContext('2d');
 
-		if (img instanceof ImageBitmap) {
+		if (img instanceof HTMLImageElement) {
+			canvas.width = img.naturalWidth;
+			canvas.height = img.naturalHeight;
+		} else {
 			canvas.width = img.width;
 			canvas.height = img.height;
-		} else {
-			canvas.width  = img.naturalWidth;
-			canvas.height = img.naturalHeight;
 		}
-
 		context.drawImage(img, 0, 0);
 
 		return context.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -43,12 +42,12 @@ export class ImageUtils {
 		let width: number;
 		let height: number;
 
-		if (img instanceof ImageBitmap) {
-			width = img.width;
-			height = img.height;
-		} else {
+		if (img instanceof HTMLImageElement) {
 			width = img.naturalWidth;
 			height = img.naturalHeight;
+		} else {
+			width = img.width;
+			height = img.height;
 		}
 
 		const image2D = <BitmapImage2D> factory.createImage2D(
