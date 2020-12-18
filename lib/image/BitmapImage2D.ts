@@ -833,7 +833,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		if (!this._data) {
-			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+			try {
+				this._data = new Uint8ClampedArray(this.width * this.height * 4);
+			} catch (e) {
+				console.error(this.width, this.height);
+			}
 		}
 
 		const
@@ -905,6 +909,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public getPixel(x, y): number {
 
+		if (!this._rect.contains(x, y)) {
+			return 0x0;
+		}
+
 		const
 			index = (~~x + ~~y * this._rect.width) * 4,
 			data = this._data;
@@ -959,6 +967,30 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			return 0x0;
 
 		return ((a << 24) | (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a) >>> 0;
+	}
+
+	public getPixels(rect: Rectangle): Uint8ClampedArray {
+		if (rect.equals(this._rect)) {
+			return this.getDataInternal(true, false);
+		}
+
+		const data = this.getDataInternal(true, false);
+		const target = new Uint8ClampedArray(rect.width * rect.height * 4);
+
+		const x = rect.x | 0;
+		const y = rect.y | 0;
+		const width = rect.width | 0;
+		const height = rect.height | 0;
+
+		let index: number;
+		for (let j = 0; j < height; ++j) {
+
+			index = x + (j + y) * this._rect.width;
+
+			target.set(data.subarray(index * 4, (index + width) * 4), j * width * 4);
+		}
+
+		return target;
 	}
 
 	public getPixelData(x, y, imagePixel: Uint8ClampedArray): void {
@@ -1051,6 +1083,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @param color The resulting RGB color for the pixel.
 	 */
 	public setPixel(x: number, y: number, color: number): void {
+
+		if (!this._rect.contains(x, y)) {
+			return;
+		}
+
 		this.dropAllReferences();
 
 		const
