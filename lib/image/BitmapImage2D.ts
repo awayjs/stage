@@ -909,9 +909,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public getPixel(x, y): number {
 
-		if (!this._rect.contains(x, y)) {
+		if (!this._rect.contains(x, y))
 			return 0x0;
-		}
 
 		const
 			index = (~~x + ~~y * this._rect.width) * 4,
@@ -953,6 +952,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *         returned.
 	 */
 	public getPixel32(x, y): number {
+		
+		if (!this._rect.contains(x, y))
+			return 0x0;
 
 		let index: number = (~~x + ~~y * this._rect.width) * 4;
 		const data: Uint8ClampedArray = this._data;
@@ -1084,9 +1086,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public setPixel(x: number, y: number, color: number): void {
 
-		if (!this._rect.contains(x, y)) {
+		if (!this._rect.contains(x, y))
 			return;
-		}
 
 		this.dropAllReferences();
 
@@ -1151,6 +1152,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *              this color value is ignored.
 	 */
 	public setPixel32(x: number, y: number, color: number): void {
+
+		if (!this._rect.contains(x, y))
+			return;
+
 		this.dropAllReferences();
 
 		const index = (~~x + ~~y * this._rect.width) * 4;
