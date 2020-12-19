@@ -952,7 +952,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *         returned.
 	 */
 	public getPixel32(x, y): number {
-		
+
 		if (!this._rect.contains(x, y))
 			return 0x0;
 
