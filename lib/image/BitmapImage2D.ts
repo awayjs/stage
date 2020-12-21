@@ -204,6 +204,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			return;
 		}
 
+		// WE should reset a flag
+		// because in next pass it will damage mem
+		// not all operations require invalidate a mem
+		this._needUpload = false;
 		super.invalidate();
 	}
 
