@@ -733,6 +733,10 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public copyToTexture(target: TextureBaseWebGL, rect: Rectangle, destPoint: Point): void {
+		if (!this._texContext._renderTarget) {
+			throw '[ContextWebGL] Try to copy from invalid frambuffer';
+		}
+
 		this._texContext.presentFrameBufferTo(this._texContext._renderTarget, <TextureWebGL>target, rect, destPoint);
 	}
 

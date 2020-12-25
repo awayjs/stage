@@ -16,6 +16,8 @@ export interface IStageSettings {
 	ENABLE_ASYNC_READ: boolean;
 
 	ENABLE_PARSER_NATIVE_BITMAP: boolean;
+
+	ENABLE_TEXTURE_REF_CLONE: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -93,6 +95,11 @@ export const Settings: IStageSettings = {
 	 * @description Allow parsing via createImageBitmap on supported platforms
 	 */
 	ENABLE_PARSER_NATIVE_BITMAP: true,
+
+	/**
+	 * @description Allow reference clonnig of BitmapImage2D
+	 */
+	ENABLE_TEXTURE_REF_CLONE: false
 };
 
 // console.debug('[Stage settings]', Settings);

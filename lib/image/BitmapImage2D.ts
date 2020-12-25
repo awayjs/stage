@@ -476,7 +476,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public copyTo(target: BitmapImage2D): BitmapImage2D {
-		this.addNestedReference(target);
+		if (Settings.ENABLE_TEXTURE_REF_CLONE) {
+			this.addNestedReference(target);
+		} else {
+			target.deepClone(this);
+		}
+
 		return target;
 	}
 
@@ -487,8 +492,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @return A new BitmapImage2D object that is identical to the original.
 	 */
 	public clone(): BitmapImage2D {
-		const clone = new BitmapImage2D(this._rect.width, this._rect.height, this._transparent, null, this._powerOfTwo);
-		this.addNestedReference(clone);
+		const clone = new BitmapImage2D(
+			this._rect.width,
+			this._rect.height,
+			this._transparent,
+			null,
+			this._powerOfTwo);
+
+		if (Settings.ENABLE_TEXTURE_REF_CLONE) {
+			this.addNestedReference(clone);
+		} else {
+			clone.deepClone(this);
+		}
 
 		return clone;
 	}
