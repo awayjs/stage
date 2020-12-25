@@ -734,6 +734,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public floodFill(x: number, y: number, color: number): void {
 		this.dropAllReferences();
 
+		const startX = x, startY = y;
 		x = x | 0;
 		y = y | 0;
 
@@ -762,6 +763,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
 
+		if (newc32 === oldc32) {
+			// same, return to avoid infinity loop
+			return;
+		}
+
 		let x1 = 0;
 		let spanAbove, spanBelow;
 		let stackIndex = 0;
@@ -770,6 +776,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		stack[stackIndex++] = y;
 
 		while (stackIndex > 0) {
+			if (stackIndex / 2 > data.length) {
+				throw `[BitmapImage2D] FloodFill bug, to many interation: ${startX}:${startY}`;
+			}
+
 			y = stack[--stackIndex];
 			x1 = x = stack[--stackIndex];
 
