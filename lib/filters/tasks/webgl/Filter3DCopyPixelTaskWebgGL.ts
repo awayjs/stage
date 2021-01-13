@@ -231,13 +231,17 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 				this._mainInputTexture.unmarkToUnload();
 			}
 
-			const image = <_Stage_ImageBase> stage.getAbstraction(this._mainInputTexture);
+			const image = this._mainInputTexture.getAbstraction<_Stage_ImageBase>(stage);
 
 			let index = images.indexOf(image);
 
 			if (index === -1) {
 				index = images.length;
 				images.push(image);
+
+				// call for upload only
+				// because texture can be removed from GPU ny GC, need to restore
+				image.getTexture();
 			}
 
 			// sampler index

@@ -239,7 +239,7 @@ export class Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
-		const imgAbstr = <_Stage_ImageBase>stage.getAbstraction(this.getMainInputTexture(stage));
+		const imgAbstr = this.getMainInputTexture(stage).getAbstraction<_Stage_ImageBase>(stage);
 		imgAbstr.activate(this._inputTextureIndex, this._defaultSample);
 	}
 

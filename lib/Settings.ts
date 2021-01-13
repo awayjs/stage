@@ -112,21 +112,22 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Allow reference clonnig of BitmapImage2D
 	 */
-	ENABLE_TEXTURE_REF_CLONE: false
-	PREF_VERSION: 2
-	 */
-	 * @see {ContextWebGLFlags}
-	/**
+	ENABLE_TEXTURE_REF_CLONE: false,
 
+	/**
+	* @see {ContextWebGLFlags}
+	*/
+	PREF_VERSION: 2,
+
+	/**
+	* @decription Use instanced render for copy filter
+   	*/
 	ALLOW_INSTANCED_COPY: true,
-	 */
-	 * @decription Use instanced render for copy filter
-	/**
 
-	ENABLE_INSTANCED: true,
-	 */
-	 * @description Allow instanced renderer when awailable
 	/**
+	* @description Allow instanced renderer when awailable
+    */
+	ENABLE_INSTANCED: true,
 };
 
 // console.debug('[Stage settings]', Settings);
