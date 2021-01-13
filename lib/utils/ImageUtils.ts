@@ -7,31 +7,72 @@ import { IGraphicsFactory } from '../factories/IGraphicsFactory';
 
 export class ImageUtils {
 	private static CANVAS: HTMLCanvasElement;
-	private static MAX_SIZE: number = 8192;
+	public static MAX_SIZE: number = 8192;
 	private static _defaultSampler: ImageSampler;
 	private static _defaultBitmapImage2D: BitmapImage2D;
 	private static _defaultBitmapImageCube: BitmapImageCube;
+
+	private static getImageBuffer(img: HTMLImageElement | ImageBitmap): Uint8ClampedArray {
+
+		const canvas = this.CANVAS || (this.CANVAS = document.createElement('canvas'));
+		const context = canvas.getContext('2d');
+
+		if (img instanceof HTMLImageElement) {
+			canvas.width = img.naturalWidth;
+			canvas.height = img.naturalHeight;
+		} else {
+			canvas.width = img.width;
+			canvas.height = img.height;
+		}
+		context.drawImage(img, 0, 0);
+
+		return context.getImageData(0, 0, canvas.width, canvas.height).data;
+	}
 
 	/**
 	 *
 	 */
 	public static imageToBitmapImage2D(
-		img: HTMLImageElement, powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
+		img: HTMLImageElement | ImageBitmap,
+		powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
 
 		if (!factory)
 			factory = new DefaultGraphicsFactory();
 
+		let width: number;
+		let height: number;
+
+		if (img instanceof HTMLImageElement) {
+			width = img.naturalWidth;
+			height = img.naturalHeight;
+		} else {
+			width = img.width;
+			height = img.height;
+		}
+
 		const image2D = <BitmapImage2D> factory.createImage2D(
-			img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
+			width,
+			height,
+			true,
+			null,
+			powerOfTwo
+		);
 
-		const canvas = this.CANVAS || (this.CANVAS = document.createElement('canvas'));
-		const context = canvas.getContext('2d');
-
-		canvas.width = img.naturalWidth;
-		canvas.height = img.naturalHeight;
-
-		context.drawImage(img, 0, 0);
-		image2D.setPixels(image2D.rect, context.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data);
+		image2D.addLazySymbol({
+			needParse: true,
+			definition: {
+				width,
+				height,
+				isPMA: true,
+				data: null
+			},
+			lazyParser() {
+				this.needParse = false;
+				this.definition.data = ImageUtils.getImageBuffer(img);
+				this.lazyParser = null;
+				return this;
+			}
+		});
 
 		return image2D;
 	}

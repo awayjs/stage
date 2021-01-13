@@ -2,13 +2,13 @@ import {
 	EventDispatcher,
 	Rectangle,
 	AbstractionBase,
-	IAsset,
 	IAssetClass,
 	IAbstractionPool,
 	IAbstractionClass,
 	CSS,
 	Point,
-	ColorTransform
+	ColorTransform,
+	IAsset
 } from '@awayjs/core';
 
 import { ContextMode } from './base/ContextMode';
@@ -36,12 +36,11 @@ import { ContextGLCompareMode } from './base/ContextGLCompareMode';
 import { Filter3DBase } from './filters/Filter3DBase';
 import { ThresholdFilter3D } from './filters/ThresholdFilter3D';
 import { UnloadService } from './managers/UnloadManager';
-declare class WeakMap<T extends Object, V = any> {
-	delete(key: T);
-	get(key: T): V;
-	has(key: T): boolean;
-	set(key: T, value: V): this;
-}
+import { IndexBufferWebGL } from './webgl/IndexBufferWebGL';
+import { ImageUtils } from './utils/ImageUtils';
+import { TouchPoint } from './base/TouchPoint';
+
+const TMP_POINT = { x: 0, y: 0 };
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -52,10 +51,7 @@ declare class WeakMap<T extends Object, V = any> {
  *
  */
 export class Stage extends EventDispatcher implements IAbstractionPool {
-	private static _abstractionClassPool: Object = new Object();
-
-	private _abstractionPool: WeakMap<IAsset, AbstractionBase> = new WeakMap();
-
+	private static _abstractionClassPool: Record<string, IAbstractionClass> = {};
 	private _programData: Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool: ProgramDataPool;
 	private _context: IContextGL;
@@ -67,6 +63,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	private _lastTaskedFilter: Filter3DBase;
 	private _commandDelegate: (type: GlCommands) => void;
+
+	public _screenX: number;
+	public _screenY: number;
+	public _touchPoints: Array<TouchPoint> = new Array<TouchPoint>();
 
 	//private static _frameEventDriver:Shape = new Shape(); // TODO: add frame driver/request animation frame
 
@@ -111,6 +111,20 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		return this._context.glVersion;
 	}
 
+	public get screenX(): number {
+		return this._screenX;
+	}
+
+	public get screenY(): number {
+		return this._screenY;
+	}
+
+	public get touchPoints(): Array<TouchPoint> {
+		return this._touchPoints;
+	}
+
+	public readonly id: number;
+
 	constructor(
 		container: HTMLCanvasElement, stageIndex: number,
 		stageManager: StageManager, forceSoftware: boolean = false,
@@ -118,6 +132,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		super();
 
+		this.id = AbstractionBase.ID_COUNT++;
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
@@ -167,18 +182,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	/**
-	 * @description Should be executed AFTER maing rendering process
-	 */
-	public onRenderBegin() {
-
-	}
-
-	/**
 	 * @description Should be executed AFTER rendering process
 	 */
-	public onRenderEnd() {
+	public present() {
 		this.runInstancedFilter('frame end');
-
+		this._context.present();
 		UnloadService.executeAll();
 	}
 
@@ -187,7 +195,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public setRenderTarget(
-		target: ImageBase, enableDepthAndStencil: boolean = false,
+		target: ImageBase & {antialiasQuality?: number}, enableDepthAndStencil: boolean = false,
 		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
 
 		if (this._renderTarget === target
@@ -207,17 +215,21 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._enableDepthAndStencil = enableDepthAndStencil;
 
 		if (target) {
-			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> this.getAbstraction(target);
+			const targetStageElement = target.getAbstraction<_Stage_ImageBase>(this);
+			const antiallias = typeof target.antialiasQuality === 'number' // for SceneImage2D MSAA
+				? target.antialiasQuality
+				: this._antiAlias;
+
 			this._context.setRenderToTexture(
-				targetStage.getTexture(),
+				targetStageElement.getTexture(),
 				enableDepthAndStencil,
-				this._antiAlias,
+				antiallias,
 				surfaceSelector,
 				mipmapSelector);
 
 			if (mipmapSelector != 0 && this._context.glVersion != 1) { //hack to stop auto generated mipmaps
-				targetStage._invalidMipmaps = false;
-				targetStage._mipmap = true;
+				targetStageElement._invalidMipmaps = false;
+				targetStageElement._mipmap = true;
 			}
 		} else {
 			this._context.setRenderToBackBuffer();
@@ -417,9 +429,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this.setRenderTarget(source, false);
 			this.setScissor(null);
 
-			const targetStage: _Stage_ImageBase = <_Stage_ImageBase> this.getAbstraction(target);
+			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
+			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this);
 
-			this._context.copyToTexture(targetStage.getTexture(), rect, destPoint);
+			this._context.copyToTexture(targetImageAbst.getTexture(), rect, destPoint);
 		}
 	}
 
@@ -474,23 +487,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._copyPixelFilter.colorTransform = null;
 	}
 
-	public getAbstraction(asset: IAsset): AbstractionBase {
-		let abst = this._abstractionPool.get(asset);
-
-		if (!abst) {
-			abst = new (<IAbstractionClass> Stage._abstractionClassPool[asset.assetType])(asset, this);
-			this._abstractionPool.set(asset, abst);
-		}
-
-		return abst;
-	}
-
-	/**
-	 *
-	 * @param image
-	 */
-	public clearAbstraction(asset: IAsset): void {
-		this._abstractionPool.delete(asset);
+	public requestAbstraction(asset: IAsset): IAbstractionClass {
+		return Stage._abstractionClassPool[asset.assetType];
 	}
 
 	/**
@@ -661,8 +659,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 				this._abstractionPool[id].clear();
 		}*/
 
-		this._abstractionPool = new WeakMap();
-
 		this._stageManager.iRemoveStage(this);
 		this.freeContext();
 		this._stageManager = null;
@@ -787,6 +783,43 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		programData.id = -1;
 	}
 
+	public interactionHandler(event) {
+
+		const screenX: number = (event.clientX != null) ? event.clientX : event.changedTouches[0].clientX;
+		const screenY: number = (event.clientY != null) ? event.clientY : event.changedTouches[0].clientY;
+
+		let point = this._mapWindowToStage(screenX, screenY, TMP_POINT);
+		this._screenX = point.x;
+		this._screenY = point.y;
+
+		this._touchPoints.length = 0;
+
+		if (event.touches) {
+			let touch;
+			const len_touches: number = event.touches.length;
+			for (let t: number = 0; t < len_touches; t++) {
+				touch = event.touches[t];
+
+				point = this._mapWindowToStage(touch.clientX, touch.clientY, TMP_POINT);
+
+				this._touchPoints.push(new TouchPoint(point.x, point.y, touch.identifier));
+			}
+		}
+
+	}
+
+	private _mapWindowToStage(x: number, y: number, out: {x: number, y: number} = { x: 0, y: 0 }) {
+		let rect;
+		const container = this.container;
+		// IE 11 fix
+		rect = (!container.parentElement) ? { x: 0, y: 0, width: 0, height: 0 } : container.getBoundingClientRect();
+
+		out.x = (x - rect.left) * container.clientWidth / rect.width;
+		out.y = (y - rect.top) * container.clientHeight / rect.height;
+
+		return out;
+	}
+
 	/**
 	 * Frees the Context associated with this StageProxy.
 	 */
@@ -830,6 +863,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	private _callback(context: IContextGL): void {
+		const gl = (<ContextWebGL>context)._gl;
+		ImageUtils.MAX_SIZE = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+
 		this._context = context;
 
 		this._container = this._context.container;

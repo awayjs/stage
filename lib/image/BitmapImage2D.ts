@@ -69,8 +69,8 @@ declare global {
 
 	class FinalizationRegistry {
 		constructor(callback: (v: any) => void);
-		register(target: object, heldValue: any, token?: object);
-		unregister(token: object);
+		register(target: object, heldValue: any, token?: object): void;
+		unregister(token: object): void;
 	}
 
 }
@@ -115,18 +115,27 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	public static assetType: string = '[image BitmapImage2D]';
 
-	private static _unloadManager: UnloadManager<BitmapImage2D>;
+	public static _unloadManager: UnloadManager<BitmapImage2D>;
 
-	public static get unloadManager() {
-
-		if (!this._unloadManager) {
-			this._unloadManager = UnloadService.createManager({
-				name : 'BitmapImage2D',
-				priority: 0,
-				maxUnloadTasks: Settings.MAX_BITMAP_UNLOAD_TASKS,
-				exectionPeriod: 100, // every 100 ms GC will runs to unload bitmap
-			});
+	public static getManager(stage: Stage): UnloadManager<BitmapImage2D> {
+		if (!Settings.ENABLE_UNLOAD_BITMAP || !stage) {
+			return null;
 		}
+
+		if (this._unloadManager) {
+			return this._unloadManager;
+		}
+
+		const hasFence = (<ContextWebGL> stage.context).hasFence;
+
+		this._unloadManager = UnloadService.createManager({
+			name : 'BitmapImage2D' + (hasFence ? 'async' : ''),
+			priority: 0,
+			maxUnloadTasks: (hasFence
+				? Settings.MAX_BITMAP_UNLOAD_TASKS_ASYNC
+				: Settings.MAX_BITMAP_UNLOAD_TASKS),
+			exectionPeriod: 100, // every 100 ms GC will runs to unload bitmap
+		});
 
 		return this._unloadManager;
 	}
@@ -146,6 +155,28 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	protected _nestedBitmap: BitmapImage2D[] = [];
 	protected _sourceBitmap: BitmapImage2D;
+
+	// request a _data field without a calling getter of 'data'
+
+	/*internal*/ getDataInternal(constructEmpty = true, skipSync = false): Uint8ClampedArray {
+		this.applySymbol();
+
+		if (!this._data && (constructEmpty || this._alphaChannel)) {
+			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+		}
+
+		if (this._alphaChannel) {
+			const buff = this._alphaChannel;
+			for (let i = 0; i < buff.length; i++) {
+				this._data[i * 4 + 3] = buff[i];
+			}
+
+			//remove alpha data once applied
+			this._alphaChannel = null;
+		}
+
+		return this._data;
+	}
 
 	/**
 	 * @description Upload flag, marking a image that it was uploaded on GPU
@@ -173,6 +204,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			return;
 		}
 
+		// WE should reset a flag
+		// because in next pass it will damage mem
+		// not all operations require invalidate a mem
+		this._needUpload = false;
 		super.invalidate();
 	}
 
@@ -186,18 +221,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public unmarkToUnload() {
-		Settings.ENABLE_UNLOAD_BITMAP && BitmapImage2D.unloadManager.removeTask(this);
+		BitmapImage2D.getManager(this._stage)?.removeTask(this);
 	}
 
 	public markToUnload() {
-		if (!Settings.ENABLE_UNLOAD_BITMAP) return;
+		if (!BitmapImage2D.getManager(this._stage)) return;
 		if (this._isSymbolSource) return;
 
-		this.lastUsedTime = BitmapImage2D.unloadManager.correctedTime;
+		this.lastUsedTime = BitmapImage2D._unloadManager.correctedTime;
 
 		// add before, because task can be already exist
 		// and if we a run GC before - it kill texture
-		BitmapImage2D.unloadManager.addTask(this);
+		BitmapImage2D._unloadManager.addTask(this);
 
 		// run execution when is marked that used
 		// const count = BitmapImage2D.unloadManager.execute();
@@ -291,11 +326,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		super(width, height, powerOfTwo);
 
-		this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
+		if (stage) {
+			// init
+			BitmapImage2D.getManager(stage);
+		}
+
+		//this._data = new Uint8ClampedArray(4 * this._rect.width * this._rect.height);
 		this._transparent = transparent;
 		this._stage = stage;
 
-		if (fillColor != null && fillColor != 0x0)
+		if (fillColor != null)
 			this.fillRect(this._rect, fillColor);
 	}
 
@@ -306,9 +346,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.invalidateGPU();
 	}
 
-	public applySymbol() {
+	public applySymbol(): boolean {
 		if (!this._lazySymbol || !this._lazySymbol.needParse) {
-			return;
+			return false;
 		}
 
 		this._lazySymbol.lazyParser();
@@ -321,6 +361,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		// hop
 		this._lazySymbol = null;
 
+		return true;
 	}
 
 	/**
@@ -435,7 +476,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public copyTo(target: BitmapImage2D): BitmapImage2D {
-		this.addNestedReference(target);
+		if (Settings.ENABLE_TEXTURE_REF_CLONE) {
+			this.addNestedReference(target);
+		} else {
+			target.deepClone(this);
+		}
+
 		return target;
 	}
 
@@ -446,8 +492,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @return A new BitmapImage2D object that is identical to the original.
 	 */
 	public clone(): BitmapImage2D {
-		const clone = new BitmapImage2D(this._rect.width, this._rect.height, this._transparent, null, this._powerOfTwo);
-		this.addNestedReference(clone);
+		const clone = new BitmapImage2D(
+			this._rect.width,
+			this._rect.height,
+			this._transparent,
+			null,
+			this._powerOfTwo);
+
+		if (Settings.ENABLE_TEXTURE_REF_CLONE) {
+			this.addNestedReference(clone);
+		} else {
+			clone.deepClone(this);
+		}
 
 		return clone;
 	}
@@ -561,7 +617,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public merge(source: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, redMultiplier: number, greenMultiplier: number, blueMultiplier: number, alphaMultiplier: number) {
 		this.dropAllReferences();
 
-		const dest: Uint8ClampedArray = this.data;
+		const dest: Uint8ClampedArray = this.getDataInternal(true);
 		const src: Uint8ClampedArray = source.data;
 
 		redMultiplier = ~~redMultiplier;
@@ -606,7 +662,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *
 	 */
 	public dispose(): void {
-		BitmapImage2D.unloadManager.removeTask(this);
+		BitmapImage2D.getManager(this._stage)?.removeTask(this);
 
 		if (this._isWeakRef) {
 			this._finalizer.unregister(this);
@@ -622,7 +678,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public getColorBoundsRect(mask: number, color: number, findColor: boolean = true): Rectangle {
-		const buffer = new Uint32Array(this.data.buffer);
+		const buffer = new Uint32Array(this.getDataInternal(true).buffer);
 		const size = this.rect;
 
 		color = fastARGB_to_ABGR(color, this._transparent);
@@ -678,13 +734,14 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public floodFill(x: number, y: number, color: number): void {
 		this.dropAllReferences();
 
+		const startX = x, startY = y;
 		x = x | 0;
 		y = y | 0;
 
 		//const start = performance.now();
 
 		// needs update data when it use GL rendering mode
-		const data = new Uint32Array(this.data.buffer);
+		const data = new Uint32Array(this.getDataInternal(true).buffer);
 
 		const width = this._rect.width;
 		const height = this._rect.height;
@@ -706,6 +763,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
 
+		if (newc32 === oldc32) {
+			// same, return to avoid infinity loop
+			return;
+		}
+
 		let x1 = 0;
 		let spanAbove, spanBelow;
 		let stackIndex = 0;
@@ -714,6 +776,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		stack[stackIndex++] = y;
 
 		while (stackIndex > 0) {
+			if (stackIndex / 2 > data.length) {
+				throw `[BitmapImage2D] FloodFill bug, to many interation: ${startX}:${startY}`;
+			}
+
 			y = stack[--stackIndex];
 			x1 = x = stack[--stackIndex];
 
@@ -796,7 +862,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		if (!this._data) {
-			this._data = new Uint8ClampedArray(this.width * this.height * 4);
+			try {
+				this._data = new Uint8ClampedArray(this.width * this.height * 4);
+			} catch (e) {
+				console.error(this.width, this.height);
+			}
 		}
 
 		const
@@ -868,6 +938,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public getPixel(x, y): number {
 
+		if (!this._rect.contains(x, y))
+			return 0x0;
+
 		const
 			index = (~~x + ~~y * this._rect.width) * 4,
 			data = this._data;
@@ -909,6 +982,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public getPixel32(x, y): number {
 
+		if (!this._rect.contains(x, y))
+			return 0x0;
+
 		let index: number = (~~x + ~~y * this._rect.width) * 4;
 		const data: Uint8ClampedArray = this._data;
 
@@ -924,9 +1000,33 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		return ((a << 24) | (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a) >>> 0;
 	}
 
+	public getPixels(rect: Rectangle): Uint8ClampedArray {
+		if (rect.equals(this._rect)) {
+			return this.getDataInternal(true, false);
+		}
+
+		const data = this.getDataInternal(true, false);
+		const target = new Uint8ClampedArray(rect.width * rect.height * 4);
+
+		const x = rect.x | 0;
+		const y = rect.y | 0;
+		const width = rect.width | 0;
+		const height = rect.height | 0;
+
+		let index: number;
+		for (let j = 0; j < height; ++j) {
+
+			index = x + (j + y) * this._rect.width;
+
+			target.set(data.subarray(index * 4, (index + width) * 4), j * width * 4);
+		}
+
+		return target;
+	}
+
 	public getPixelData(x, y, imagePixel: Uint8ClampedArray): void {
 		let index: number = (x + y * this._rect.width) * 4;
-		const data: Uint8ClampedArray = this._data;
+		const data: Uint8ClampedArray = this.getDataInternal(true);
 
 		imagePixel[0] = data[index++];
 		imagePixel[1] = data[index++];
@@ -938,7 +1038,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		const index: number = (x + y * this._rect.width) * 4;
-		const data: Uint8ClampedArray = this.data;
+		const data: Uint8ClampedArray = this.getDataInternal(true);
 
 		data[index + 0] = imagePixel[0];
 		data[index + 1] = imagePixel[1];
@@ -979,7 +1079,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dropAllReferences();
 
 		let i: number, j: number, index: number, argb: number[];
-		const data = this.data;
+		const data = this.getDataInternal(true);
 
 		for (i = 0; i < rect.width; ++i) {
 			for (j = 0; j < rect.height; ++j) {
@@ -1014,12 +1114,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @param color The resulting RGB color for the pixel.
 	 */
 	public setPixel(x: number, y: number, color: number): void {
+
+		if (!this._rect.contains(x, y))
+			return;
+
 		this.dropAllReferences();
 
 		const
 			index = (~~x + ~~y * this._rect.width) * 4,
 			argb = ColorUtils.float32ColorToARGB(color),
-			data = this.data;
+			data = this.getDataInternal(true);
 
 		data[index + 0] = argb[1];
 		data[index + 1] = argb[2];
@@ -1032,7 +1136,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixelFromArray(x: number, y: number, colors: number[]): void {
 		this.dropAllReferences();
 
-		const index: number = (x + y * this._rect.width) * 4, data: Uint8ClampedArray = this.data;
+		const
+			index: number = (x + y * this._rect.width) * 4,
+			data: Uint8ClampedArray = this.getDataInternal(true);
 
 		data[index + 0] = colors[1] * colors[0] | 0;
 		data[index + 1] = colors[2] * colors[0] | 0;
@@ -1075,11 +1181,15 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *              this color value is ignored.
 	 */
 	public setPixel32(x: number, y: number, color: number): void {
+
+		if (!this._rect.contains(x, y))
+			return;
+
 		this.dropAllReferences();
 
 		const index = (~~x + ~~y * this._rect.width) * 4;
 		const argb = ColorUtils.float32ColorToARGB(color);
-		const data = this.data;
+		const data = this.getDataInternal(true);
 
 		const factor = this._transparent ? argb[0] / 0xff : 1;
 
@@ -1113,15 +1223,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
 		this.dropAllReferences();
 
+		const data = this.getDataInternal(true);
+
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
-			this._data.set(input);
+			data.set(input);
 			this._unpackPMA = true;
 		} else {
 			const
 				imageWidth: number = this._rect.width,
-				inputWidth: number = rect.width,
-				data: Uint8ClampedArray = this._data;
+				inputWidth: number = rect.width;
 
 			for (let i = 0; i < rect.height; ++i)
 				data.set(
@@ -1160,22 +1271,32 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	set alphaChannel(buff: Uint8Array) {
 		this.dropAllReferences();
-		if (!buff) return;
 
-		this.applySymbol();
+		if (!buff) {
+			return;
+		}
 
-		if (this._data.length !== buff.length * 4)
+		if (buff.length !== this.width * this.height) {
 			throw (
 				'error when trying to merge the alpha channel into the image.' +
 				'the length of the alpha channel should be 1/4 of the length of the imageData');
-
-		for (let i = 0; i < buff.length; i++) {
-			this._data[i * 4 + 3] = buff[i];
 		}
 
-		//remove alpha data once applied
-		this._alphaChannel = null;
-		// disable PMA because it is a cause black halo bag on JPEG3 images
+		// if assigments after initialiszation, apply it immediate
+		if (this._data && this.wasUpload) {
+			const buff = this._alphaChannel;
+
+			for (let i = 0; i < buff.length; i++) {
+				this._data[i * 4 + 3] = buff[i];
+			}
+
+			this._unpackPMA = false;
+			this.invalidateGPU();
+
+			return;
+		}
+
+		this._alphaChannel = buff;
 		this._unpackPMA = false;
 	}
 
@@ -1184,8 +1305,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @returns {ImageData}
 	 */
 	public get data(): Uint8ClampedArray {
-		this.applySymbol();
-		return this._data || (this._data = new Uint8ClampedArray(this.width * this.height * 4));
+		return this.getDataInternal(true);
 	}
 
 	/**
@@ -1217,6 +1337,7 @@ import { ITextureBase } from '../base/ITextureBase';
 import { BitmapImageUtils } from '../utils/BitmapImageUtils';
 
 import { _Stage_Image2D } from './Image2D';
+import { ContextWebGL } from '../webgl/ContextWebGL';
 
 /**
  *
@@ -1248,14 +1369,15 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		const sourceBitmap = asset.sourceBitmap;
 
 		if (sourceBitmap) {
-			return (<_Stage_BitmapImage2D> this._stage.getAbstraction(sourceBitmap)).getTexture();
+			return (<_Stage_BitmapImage2D> sourceBitmap.getAbstraction(this._stage)).getTexture();
 		}
 
 		asset.markToUnload();
-		asset.applySymbol();
 		super.getTexture();
 
-		const pixels = <Uint8ClampedArray>((<any> asset)._data);
+		// not requred for empty buffer, becasue maybe RT that not has it by defalut
+		const pixels = <Uint8ClampedArray>(asset.getDataInternal(false, true));
+
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {

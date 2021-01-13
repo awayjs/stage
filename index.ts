@@ -1,4 +1,4 @@
-console.debug('AwayJS - Stage - 0.11.50');
+console.debug('AwayJS - Stage - 0.11.70');
 
 export { AGALMiniAssembler } from './lib/aglsl/assembler/AGALMiniAssembler';
 export { Flags } from './lib/aglsl/assembler/Flags';
@@ -41,6 +41,7 @@ export { IVao } from './lib/base/IVao';
 export { ITextureBase } from './lib/base/ITextureBase';
 export { IVertexBuffer } from './lib/base/IVertexBuffer';
 export { SamplerState } from './lib/base/SamplerState';
+export { TouchPoint } from './lib/base/TouchPoint';
 
 export { ImageEvent } from './lib/events/ImageEvent';
 export { StageEvent } from './lib/events/StageEvent';

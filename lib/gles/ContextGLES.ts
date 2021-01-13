@@ -464,6 +464,8 @@ export class ContextGLES implements IContextGL {
 
 		}
 	}
+
+	public finish() {}
 }
 
 export class VertexBufferProperties {

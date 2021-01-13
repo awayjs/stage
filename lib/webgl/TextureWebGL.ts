@@ -85,6 +85,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	/*internal*/ _isFilled: boolean = false;
 	/*internal*/ _isPMA: boolean = false;
 	/*internal*/ _isRT: boolean = false;
+	/*internal*/ _skipPresent: boolean = false;
 
 	//keepAliveTime: number = 30_000;
 	lastUsedTime: number = 0;
@@ -154,8 +155,9 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	 */
 	public dispose(): void {
 		this._state.dispose();
-
-		if (Settings.ENABLE_TEXTURE_POOLING && TextureWebGL.store(this))
+		if (!this.multisampled
+				&& Settings.ENABLE_TEXTURE_POOLING
+				&& TextureWebGL.store(this))
 			return;
 
 		this.unload();

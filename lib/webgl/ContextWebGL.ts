@@ -25,6 +25,7 @@ import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
 import { Settings } from '../Settings';
 import { InstancedContextWebGL } from './InstancedWebGL';
+import { FenceContextWebGL } from './FenceContextWebGL';
 
 export enum GlCommands {
 	DRAW_ARRAY = 'draw_array',
@@ -87,6 +88,7 @@ export class ContextWebGL implements IContextGL {
 
 	/* internal */ _texContext: TextureContextWebGL;
 	/* internal */ _vaoContext: VaoContextWebGL;
+	/* internal */ _fenceContext: FenceContextWebGL;
 	/* internal */ _instancedContext: InstancedContextWebGL;
 
 	private _currentArrayBuffer: VertexBufferWebGL;
@@ -98,6 +100,11 @@ export class ContextWebGL implements IContextGL {
 	private _separateStencil: boolean = false;
 	private lastBoundedIndexBuffer = null;
 
+	public get hasFence() {
+		return !!this._fenceContext;
+	}
+
+	private _hasVao = false;
 	public get hasVao() {
 		return !!this._vaoContext;
 	}
@@ -273,14 +280,16 @@ export class ContextWebGL implements IContextGL {
 
 			const dpr: number = window.devicePixelRatio || 1;
 
+			// deprecated a long time ago.
+			/*
 			const bsr: number = gl['webkitBackingStorePixelRatio'] ||
 				gl['mozBackingStorePixelRatio'] ||
 				gl['msBackingStorePixelRatio'] ||
 				gl['oBackingStorePixelRatio'] ||
 				gl['backingStorePixelRatio'] || 1;
-				//this._gl["backingStorePixelRatio"] || (/\bCrOS\b/.test(navigator.userAgent))? 0.5 : 1;
+			*/
 
-			this._pixelRatio = dpr / bsr;
+			this._pixelRatio = dpr;
 		} else {
 			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 			alert('WebGL is not available.');
@@ -308,6 +317,17 @@ export class ContextWebGL implements IContextGL {
 			console.debug('[ContextWebGL] Instancing disabled by settings \'ENABLE_INSTANCED\'');
 		}
 
+		if (Settings.ENABLE_ASYNC_READ) {
+			if (FenceContextWebGL.isSupported(this._gl)) {
+				this._fenceContext = new FenceContextWebGL(<WebGL2RenderingContext> this._gl);
+			} else {
+				console.warn('[ContextWebGL] FenceSync isn\'t supported');
+			}
+		} else {
+			console.debug('[ContextWebGL] FenceSync disabled by settings \'ENABLE_ASYNC_READ\'');
+		}
+
+		// first locked state 0,0,0,0
 		this._blendState.lock(true);
 	}
 
@@ -402,14 +422,67 @@ export class ContextWebGL implements IContextGL {
 		//
 	}
 
-	public drawToBitmapImage2D(destination: BitmapImage2D): void {
-		const pixels: Uint8Array = new Uint8Array(destination.width * destination.height * 4);
+	public drawToBitmapImage2D(
+		destination: BitmapImage2D, invalidate = true, async: boolean = false): undefined | Promise<boolean> {
 
-		this._gl.readPixels(0, 0, destination.width, destination.height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
+		const pixels = new Uint8Array(destination.getDataInternal().buffer);
+		const rt = this._texContext._renderTarget;
+		const fence = this._fenceContext;
+		const { width, height } = destination;
 
-		destination.setPixels(
-			new Rectangle(0, 0, destination.width, destination.height),
-			new Uint8ClampedArray(pixels.buffer));
+		let promise: Promise<boolean>;
+
+		if (async && !fence) {
+			promise = Promise.resolve(false);
+		}
+
+		if (rt?.multisampled) {
+			// because RT is MSAA, we should blit it to no-MSAA and use noMSAA framebufer for reading
+			this._texContext.presentFrameBuffer(rt);
+			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, rt.textureFramebuffer);
+		}
+
+		if (async && fence) {
+			// tasking a PBO read async
+			// http://www.songho.ca/opengl/gl_pbo.html
+			promise = fence
+				.readPixels(0,0, width, height)
+				.then((pbo) => {
+					pbo.read(pixels);
+
+					if (invalidate) {
+						destination.invalidateGPU();
+					}
+
+					// restore PBO to fence pool
+					// but we can destroy it too
+					fence.release(pbo);
+
+					return true;
+				});
+
+		} else {
+
+			// we MUST unbound all bounded PIXEL_PACK buffer to avoid warnings
+			if (fence) {
+				fence.unboundAll();
+			}
+
+			// no support or not required as async, use sync operation
+			this._gl.readPixels(
+				0, 0, width, height, this._gl.RGBA, this._gl.UNSIGNED_BYTE, pixels);
+
+			if (invalidate) {
+				destination.invalidateGPU();
+			}
+		}
+
+		// restore back buffer bounding to draw framebufer, but only for sync opps
+		if (rt?.multisampled && !async) {
+			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, rt.framebuffer);
+		}
+		// for any case return a promise, nut for sync it will be undef;
+		return promise;
 	}
 
 	public drawIndices(
@@ -731,6 +804,10 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public copyToTexture(target: TextureBaseWebGL, rect: Rectangle, destPoint: Point): void {
+		if (!this._texContext._renderTarget) {
+			throw '[ContextWebGL] Try to copy from invalid frambuffer';
+		}
+
 		this._texContext.presentFrameBufferTo(this._texContext._renderTarget, <TextureWebGL>target, rect, destPoint);
 	}
 
@@ -755,6 +832,11 @@ export class ContextWebGL implements IContextGL {
 		} else {
 			delta[0] && this._gl.disable(this._gl.BLEND);
 		}
+	}
+
+	public finish() {
+		this._gl.flush();
+		this._gl.finish();
 	}
 
 	private translateTriangleFace(triangleFace: ContextGLTriangleFace, coordinateSystem: CoordinateSystem) {

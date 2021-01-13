@@ -208,20 +208,37 @@ export class TextureContextWebGL {
 		}
 	}
 
-	public unsafeCopyToTexture(target: TextureWebGL, rect: IRectangle, destPoint: IPoint): void {
+	public unsafeCopyToTexture(
+		target: TextureWebGL, rect: IRectangle, destPoint: IPoint, scale: boolean = false): void {
+
 		const gl = this._context._gl;
 
 		gl.bindTexture(gl.TEXTURE_2D, target.glTexture);
-		gl.copyTexSubImage2D(
-			gl.TEXTURE_2D,
-			0,
-			destPoint.x,
-			destPoint.y,
-			rect.x,
-			rect.y,
-			rect.width,
-			rect.height);
 
+		if (!scale) {
+			gl.copyTexSubImage2D(
+				gl.TEXTURE_2D,
+				0,
+				destPoint.x,
+				destPoint.y,
+				rect.x,
+				rect.y,
+				rect.width,
+				rect.height);
+		} else {
+			// this method allow scale up/down for texture with it configuration.
+			// need set a sampler state to linear for this texture
+			gl.copyTexImage2D(
+				gl.TEXTURE_2D,
+				0,
+				gl.RGBA,
+				rect.x,
+				rect.y,
+				rect.width,
+				rect.height,
+				0
+			);
+		}
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
@@ -257,6 +274,7 @@ export class TextureContextWebGL {
 			mipmapSelector
 		};
 
+		this._renderTarget._skipPresent = false;
 		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
@@ -403,7 +421,7 @@ export class TextureContextWebGL {
 		const gl = this._context._gl;
 
 		//no Multisample buffers with WebGL1
-		if (gl instanceof WebGLRenderingContext || !source._multisampled)
+		if (gl instanceof WebGLRenderingContext || !source._multisampled || source._skipPresent)
 			return;
 
 		const width: number = source._width >>> source._mipmapSelector;
@@ -442,6 +460,9 @@ export class TextureContextWebGL {
 			console.error('Framebuffer loop `presentFrameBufferTo`');
 			return;
 		}
+
+		// disable next present to avoid dirty texture
+		source._skipPresent = true;
 
 		if (!source || !source._multisampled || gl instanceof WebGLRenderingContext) {
 			// direct copy to target texture.
@@ -518,18 +539,12 @@ export class TextureContextWebGL {
 		// delete texture
 		gl.deleteTexture(texture._glTexture);
 
-		// delete all framebuffers
-		Object.keys(texture._frameBuffer)
-			.forEach((key) => gl.deleteFramebuffer(texture._frameBuffer[key]));
-		Object.keys(texture._frameBufferDraw)
-			.forEach((key) => gl.deleteFramebuffer(texture._frameBufferDraw[key]));
-
-		// delete all renderbuffers
-		Object.keys(texture._renderBuffer)
-			.forEach((key) => gl.deleteRenderbuffer(texture._renderBuffer[key]));
-
-		Object.keys(texture._renderBufferDepth)
-			.forEach((key) => gl.deleteRenderbuffer(texture._renderBufferDepth[key]));
+		for (const key in texture._frameBuffer) {
+			gl.deleteFramebuffer(texture._frameBuffer[key]);
+			gl.deleteFramebuffer(texture._frameBufferDraw[key]);
+			gl.deleteRenderbuffer(texture._renderBuffer[key]);
+			gl.deleteRenderbuffer(texture._renderBufferDepth[key]);
+		}
 	}
 
 }

@@ -774,4 +774,6 @@ export class ContextSoftware implements IContextGL {
 		if (mask & ContextGLClearMask.DEPTH)
 			this._backBufferZ.set(this._backBufferZClear); //fast memcpy
 	}
+
+	public finish() {}
 }
