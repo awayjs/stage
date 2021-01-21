@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es5",
     "module": "es2015",
-    "lib": ["DOM","ScriptHost", "ESNext"],
+    "lib": ["DOM","ScriptHost", "ES2018"],
     "moduleResolution": "node",
     "noImplicitUseStrict": true,
     "noEmitHelpers": true,
