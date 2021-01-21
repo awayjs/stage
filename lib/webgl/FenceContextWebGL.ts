@@ -43,7 +43,7 @@ export class FenceContextWebGL {
 		if (this._tickerId === -1) {
 			// if we will use sync every time - we will spam GPU,
 			// need use something in between
-			this._tickerId = setInterval(this.tick.bind(this), TICK_PERIOD);
+			this._tickerId = self.setInterval(this.tick.bind(this), TICK_PERIOD);
 		}
 
 		return p;
