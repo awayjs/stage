@@ -173,6 +173,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 			//remove alpha data once applied
 			this._alphaChannel = null;
+			this._transparent = true;
+			this._unpackPMA = false;
 		}
 
 		return this._data;
@@ -1228,7 +1230,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
 			data.set(input);
-			this._unpackPMA = true;
+			this._unpackPMA = false;
 		} else {
 			const
 				imageWidth: number = this._rect.width,
