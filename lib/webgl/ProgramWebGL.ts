@@ -4,8 +4,21 @@ import { AGALTokenizer } from '../aglsl/AGALTokenizer';
 import { AGLSLParser } from '../aglsl/AGLSLParser';
 import { IProgram } from '../base/IProgram';
 import { Settings } from '../Settings';
+import { WEBGL_METHOD_MAP } from './WebGLDataMapping';
 
 const TEST_PLACE = /(#define|#version|precision).*\n/gi;
+
+export interface IUniformMeta {
+	location: WebGLUniformLocation;
+	type: number;
+	size: number;
+}
+
+export interface IAttrMeta {
+	location: number;
+	type: number;
+	size: number;
+}
 
 export class ProgramWebGL implements IProgram {
 	private static ProgramID = 0;
@@ -23,10 +36,20 @@ export class ProgramWebGL implements IProgram {
 	private _program: WebGLProgram;
 	private _vertexShader: WebGLShader;
 	private _fragmentShader: WebGLShader;
-	private _uniforms: Array<NumberMap<WebGLUniformLocation>> = [{},{},{}];
-	private _nameToIndex: StringMap<number> = {};
 	private _attribs: Array<number> = [];
 	private _uniformCache: Array<string> = new Array(16);
+
+	private _focusId: number = 0;
+	/**
+	 * @description Changed only after rebound a shader. Can be used for partial upload
+	 */
+	public get focuseId() {
+		return this._focusId;
+	}
+
+	private _rawUniforms: Record<string, IUniformMeta> = {};
+
+	private _rawAttrs: Record<string, IAttrMeta> = {};
 
 	constructor(gl: WebGLRenderingContext) {
 		this._gl = gl;
@@ -90,6 +113,39 @@ export class ProgramWebGL implements IProgram {
 			throw new Error(this._gl.getProgramInfoLog(this._program));
 
 		this.reset();
+
+		this.grabLocationData();
+	}
+
+	private grabLocationData() {
+		this._rawUniforms = {};
+		this._rawAttrs = {};
+
+		const gl = this._gl;
+		const p = this._program;
+		const ucount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+		const acount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
+
+		for (let i = 0; i < ucount; i++) {
+			const info = gl.getActiveUniform(p, i);
+			const idx = info.name.indexOf('[');
+
+			this._rawUniforms[ idx === -1 ? info.name : info.name.substring(0, idx)] = {
+				type: info.type,
+				size: info.size,
+				location: gl.getUniformLocation(p, info.name)
+			};
+		}
+
+		for (let i = 0; i < acount; i++) {
+			const info = gl.getActiveAttrib(p, i);
+
+			this._rawAttrs[info.name] = {
+				type: info.type,
+				size: info.size,
+				location: gl.getAttribLocation(p, info.name)
+			};
+		}
 	}
 
 	protected insertName(shader: string): string {
@@ -103,29 +159,35 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	protected reset() {
-
-		this._uniforms[0] = {};
-		this._uniforms[1] = {};
-		this._uniforms[2] = {};
 		this._attribs.length = 0;
 		this._uniformCache.fill('');
 	}
 
-	public getUniformLocation(programType: number, indexOrName: number | string = -1): WebGLUniformLocation {
+	public getUniformLocation(
+		programType: number,
+		indexOrName: number | string = -1
+	): WebGLUniformLocation | null  {
 		const isIndex = typeof indexOrName === 'number';
-		const index = isIndex ? <number>indexOrName : this._nameToIndex[<string>indexOrName];
-
-		if (typeof index !== 'undefined' && this._uniforms[programType][index + 1] != null) {
-			return this._uniforms[programType][index + 1];
-		}
 
 		const name = isIndex
 			? ProgramWebGL._getAGALUniformName(programType, <number>indexOrName)
 			: <string>indexOrName;
 
-		this._nameToIndex[name] = index + 1;
+		const info = this._rawUniforms[name];
 
-		return (this._uniforms[programType][index + 1] = this._gl.getUniformLocation(this._program, name));
+		if (!info)
+			return null;
+
+		return info.location;
+	}
+
+	public getAttribLocation(index: number): number {
+		const info = this._rawAttrs['va' + index];
+
+		if (!info)
+			return -1;
+
+		return info.location;
 	}
 
 	private static _getAGALUniformName (type: number, index = -1) {
@@ -144,8 +206,40 @@ export class ProgramWebGL implements IProgram {
 		return (cached && hash === cached) ? void 0 : hash;
 	}
 
+	public uploadUniform(name: string, data: number | number[] | Float32Array): boolean {
+		const info = this._rawUniforms[name];
+
+		if (!info)
+			return false;
+
+		if (!WEBGL_METHOD_MAP[info.type]) {
+			throw ('[ProgramWebGL] Unsupported uniform type:' + info.type);
+		}
+
+		const {
+			size, method
+		} = WEBGL_METHOD_MAP[info.type];
+
+		if (size === 1) {
+			this._gl[method](info.location, typeof data === 'number' ? data : data[0]);
+			return true;
+		}
+
+		const arr: ArrayLike<number> = <any> data;
+
+		if (arr.length !== info.size * size) {
+			throw (`[ProgramWebGL] Invalid data length, expected ${info.size * size}, actual ${arr.length}`);
+		}
+
+		this._gl[method](info.location, arr);
+	}
+
 	public uniform1i(type: number, index: number, value: number) {
 		const location = this.getUniformLocation(type, index);
+
+		if (!location) {
+			return;
+		}
 
 		if (Settings.ENABLE_UNIFORM_CACHE) {
 			const hash = this._needCache(type * 4 + index + 1, value);
@@ -163,6 +257,10 @@ export class ProgramWebGL implements IProgram {
 	public uniform4fv(type: number, value: Float32Array) {
 		const location = this.getUniformLocation(type);
 
+		if (!location) {
+			return;
+		}
+
 		if (Settings.ENABLE_UNIFORM_CACHE) {
 			const hash = this._needCache(type * 4, value);
 
@@ -176,18 +274,12 @@ export class ProgramWebGL implements IProgram {
 		this._gl.uniform4fv(location, value);
 	}
 
-	public getAttribLocation(index: number): number {
-		if (this._attribs[index] != null)
-			return this._attribs[index];
-
-		return (this._attribs[index] = this._gl.getAttribLocation(this._program, 'va' + index));
-	}
-
 	public dispose(): void {
 		this._gl.deleteProgram(this._program);
 	}
 
 	public focusProgram(): void {
+		this._focusId++;
 		this._uniformCache.fill('');
 		this._gl.useProgram(this._program);
 	}
