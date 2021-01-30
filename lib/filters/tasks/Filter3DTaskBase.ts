@@ -10,6 +10,7 @@ import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
 import { IVao } from './../../base/IVao';
 
 export class Filter3DTaskBase {
+	public activateInternaly = false;
 	public _registerCache: ShaderRegisterCache;
 
 	public _positionIndex: number;

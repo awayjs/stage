@@ -1,16 +1,14 @@
 import { ProjectionBase, Rectangle, Point, ColorTransform } from '@awayjs/core';
-import { ContextGLProgramType } from '../../../base/ContextGLProgramType';
-import { IContextGL } from '../../../base/IContextGL';
 import { Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
+import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);
 
 const VERTEX = `
 precision highp float;
-uniform float yflip;
-uniform vec4 vc[2];
+uniform vec4 uTexMatrix[2];
 vec4 vt0;
 
 /* AGAL legacy atrib resolver require this names */
@@ -22,10 +20,10 @@ varying vec2 vUv;
 void main() {
 	vec4 pos = va0;
 
-	pos.xy = pos.xy * vc[0].zw + vc[0].xy;
+	pos.xy = pos.xy * uTexMatrix[0].zw + uTexMatrix[0].xy;
 	pos.z = pos.z * 2.0 - pos.w;
 
-	vUv = (va1.xy + vc[1].xy) * vc[1].zw;
+	vUv = (va1.xy + uTexMatrix[1].xy) * uTexMatrix[1].zw;
 
     gl_Position = pos;
 }
@@ -34,7 +32,7 @@ void main() {
 
 const FRAG = `
 precision highp float;
-uniform vec4 fc[2];
+uniform vec4 uColorTransform[2];
 varying vec2 vUv;
 
 /* AGAL legacy attrib resolver require this names */
@@ -42,14 +40,14 @@ uniform sampler2D fs0;
 
 void main() {
 	vec4 color = texture2D(fs0, vUv);
-	
+
 	if (color.a > 0.0) {
 		color.rgb /= color.a;
 	}
 
 	// mult
-	color *= clamp(fc[0], 0.0, 1.0);	
-	color += fc[1];
+	color *= clamp(uColorTransform[0], 0.0, 1.0);	
+	color += uColorTransform[1];
 
 	color.rgb *= color.a;
 
@@ -57,6 +55,8 @@ void main() {
 }`;
 
 export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
+	readonly activateInternaly = false;
+
 	private _vertexConstantData: Float32Array;
 	private _fragConstantData: Float32Array;
 
@@ -67,6 +67,8 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	public _inputTextureIndex = 0;
 	public _positionIndex = 0;
 	public _uvIndex = 1;
+
+	public _focusId = -1;
 
 	constructor() {
 		super();
@@ -94,11 +96,11 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 		return FRAG;
 	}
 
-	public getMainInputTexture(stage: Stage): Image2D {
+	public getMainInputTexture(_stage: Stage): Image2D {
 		return this._mainInputTexture;
 	}
 
-	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
 		const index = 0;//this._positionIndex;
 		const vd = this._vertexConstantData;
 		const dp = this.destPoint;
@@ -133,11 +135,24 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			fd[7] = 0;
 		}
 
+		const p = <ProgramWebGL> this._program3D;
+		// const ctx = (<ContextWebGL> _stage.context)._texContext;
+
+		p.uploadUniform('uTexMatrix', vd);
+
+		if (this.transform || p.focusId !== this._focusId) {
+			this._focusId = p.focusId;
+
+			p.uploadUniform('uColorTransform', fd);
+		}
+
+		//p.uploadUniform('uTex', ctx.setTextureAt(0, ))
+		/*
 		const context: IContextGL = stage.context;
 
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, vd);
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, fd);
-
+		*/
 	}
 
 	public deactivate(stage: Stage): void {

@@ -43,7 +43,7 @@ export class ProgramWebGL implements IProgram {
 	/**
 	 * @description Changed only after rebound a shader. Can be used for partial upload
 	 */
-	public get focuseId() {
+	public get focusId() {
 		return this._focusId;
 	}
 

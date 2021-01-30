@@ -309,9 +309,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 			this._context.setProgram(task.getProgram(this));
 			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
-			task.getMainInputTexture(this)
-				.getAbstraction<_Stage_ImageBase>(this)
-				.activate(task._inputTextureIndex, this._filterSampler);
+
+			if (!task.activateInternaly) {
+				task.getMainInputTexture(this)
+					.getAbstraction<_Stage_ImageBase>(this)
+					.activate(task._inputTextureIndex, this._filterSampler);
+			}
 
 			if (!task.target) {
 
