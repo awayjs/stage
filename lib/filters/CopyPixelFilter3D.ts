@@ -1,14 +1,12 @@
-import { Filter3DCopyPixelTask } from './tasks/Filter3DCopyPixelTask';
 import { Filter3DCopyPixelTaskWebGL } from './tasks/webgl/Filter3DCopyPixelTaskWebgGL';
 
 import { Filter3DBase } from './Filter3DBase';
 import { Image2D } from '../image/Image2D';
 import { Rectangle, Point, ColorTransform } from '@awayjs/core';
 import { IContextGL } from '../base/IContextGL';
-import { ContextWebGL } from '../webgl/ContextWebGL';
 
 export class CopyPixelFilter3D extends Filter3DBase {
-	private _copyPixelTask: Filter3DCopyPixelTask | Filter3DCopyPixelTaskWebGL;
+	private _copyPixelTask: Filter3DCopyPixelTaskWebGL;
 
 	/**
 	 * Creates a new CopyPixelFilter3D object
@@ -18,13 +16,9 @@ export class CopyPixelFilter3D extends Filter3DBase {
 		if (this._context === context) {
 			return;
 		}
-
 		super.init(context);
 
-		this._copyPixelTask = context instanceof ContextWebGL
-			? new Filter3DCopyPixelTaskWebGL()
-			: new Filter3DCopyPixelTask();
-
+		this._copyPixelTask = new Filter3DCopyPixelTaskWebGL();
 		this.addTask(this._copyPixelTask);
 	}
 
