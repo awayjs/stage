@@ -166,9 +166,20 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		}
 
 		if (this._alphaChannel) {
-			const buff = this._alphaChannel;
-			for (let i = 0; i < buff.length; i++) {
-				this._data[i * 4 + 3] = buff[i];
+			const alpha = this._alphaChannel;
+			const data = this._data;
+
+			for (let i = 0; i < alpha.length; i++) {
+
+				// fix JPEG compresiion bug
+				// it shown when color transform is disabled
+				if (alpha[i] <= 1) {
+					data[i * 4 + 0]
+						= data[i * 4 + 1]
+							= data[i * 4 + 2] = 0;
+				}
+
+				data[i * 4 + 3] = alpha[i];
 			}
 
 			//remove alpha data once applied
