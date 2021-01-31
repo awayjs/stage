@@ -18,6 +18,8 @@ export interface IStageSettings {
 	ENABLE_PARSER_NATIVE_BITMAP: boolean;
 
 	ENABLE_TEXTURE_REF_CLONE: boolean;
+
+	UNSAFE_USE_AUTOINDEXED_SAMPLER: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -99,7 +101,14 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Allow reference clonnig of BitmapImage2D
 	 */
-	ENABLE_TEXTURE_REF_CLONE: false
+	ENABLE_TEXTURE_REF_CLONE: false,
+
+	/**
+	 * @description Use sampler index as index of SAMPLER2D location instead of name.
+	 * This measn that a shader with SAMPLER2D like a names `uTex, uTex1` will be like `fs0, fs1`
+	 * This needed for bound texture by id instead of uniform name for allow use on AGAL pipeline
+	 */
+	UNSAFE_USE_AUTOINDEXED_SAMPLER: true
 };
 
 // console.debug('[Stage settings]', Settings);

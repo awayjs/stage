@@ -126,15 +126,32 @@ export class ProgramWebGL implements IProgram {
 		const ucount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
 		const acount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
 
+		let samplersCount = 0;
+
 		for (let i = 0; i < ucount; i++) {
 			const info = gl.getActiveUniform(p, i);
 			const idx = info.name.indexOf('[');
 
-			this._rawUniforms[ idx === -1 ? info.name : info.name.substring(0, idx)] = {
+			const record = {
 				type: info.type,
 				size: info.size,
 				location: gl.getUniformLocation(p, info.name)
 			};
+
+			this._rawUniforms [
+				idx === -1
+					? info.name
+					: info.name.substring(0, idx)
+			] = record;
+
+			if (info.type === gl.SAMPLER_2D) {
+
+				if (Settings.UNSAFE_USE_AUTOINDEXED_SAMPLER && info.name !== ('fs' + samplersCount)) {
+					this._rawUniforms ['fs' + samplersCount] = record;
+				}
+
+				samplersCount++;
+			}
 		}
 
 		for (let i = 0; i < acount; i++) {
