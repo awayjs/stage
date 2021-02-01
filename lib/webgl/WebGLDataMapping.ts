@@ -47,7 +47,7 @@ export const WEBGL_METHOD_MAP: Record<number, {size: number, method: string}> = 
 		size: 9, method: 'uniformMatrix3fv'
 	},
 	0x8B5C : {
-		size: 9, method: 'uniformMatrix4fv'
+		size: 16, method: 'uniformMatrix4fv'
 	},
 	0x8B5E : {
 		size: 1, method: 'uniform1i'

@@ -245,10 +245,20 @@ export class ProgramWebGL implements IProgram {
 		const arr: ArrayLike<number> = <any> data;
 
 		if (arr.length !== info.size * size) {
-			throw (`[ProgramWebGL] Invalid data length, expected ${info.size * size}, actual ${arr.length}`);
+
+			throw (
+				`[ProgramWebGL] Invalid data length for ${name}, expected ${info.size * size}, actual ${arr.length}`
+			);
 		}
 
-		this._gl[method](info.location, arr);
+		if (info.type === this._gl.FLOAT_MAT2 ||
+			info.type === this._gl.FLOAT_MAT3 ||
+			info.type === this._gl.FLOAT_MAT4
+		) {
+			this._gl[method](info.location, false, arr);
+		} else {
+			this._gl[method](info.location, arr);
+		}
 	}
 
 	public uniform1i(type: number, index: number, value: number) {
