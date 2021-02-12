@@ -58,11 +58,40 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	readonly activateInternaly = false;
 
 	private _vertexConstantData: Float32Array;
-	private _fragConstantData: Float32Array;
+	private _colorTransformUData: Float32Array;
 
 	public rect: Rectangle = new Rectangle();
 	public destPoint: Point = new Point();
-	public transform: ColorTransform;
+
+	private _transformChanged: boolean = false;
+	private _transform: ColorTransform;
+	public get transform(): ColorTransform {
+		return this._transform;
+	}
+
+	public set transform(value: ColorTransform) {
+		if (this._transform === value && !value) {
+			return;
+		}
+
+		this._transform = value;
+		this._transformChanged = true;
+
+		if (!value) {
+			this._colorTransformUData.set(EMPTY_TRANSFORM);
+		} else {
+			const fd = this._colorTransformUData;
+
+			fd.set(this.transform._rawData);
+
+			for (let i = 0; i < 4; i++) {
+				fd[i + 4] /= 255;
+			}
+
+			// disable ALPHA offset, because can't allowed in PMA mode
+			fd[7] = 0;
+		}
+	}
 
 	public _inputTextureIndex = 0;
 	public _positionIndex = 0;
@@ -77,7 +106,7 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			0.0, 0.0, 0.0, 0.0,
 			0.0, 0.0, 0.0, 0.0]
 		);
-		this._fragConstantData = EMPTY_TRANSFORM.slice();
+		this._colorTransformUData = EMPTY_TRANSFORM.slice();
 	}
 
 	public get sourceTexture(): Image2D {
@@ -124,26 +153,17 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 		vd[index + 6] = sr.width / tex.width;
 		vd[index + 7] = sr.height / tex.height;
 
-		let fd = EMPTY_TRANSFORM;
-
-		if (this.transform) {
-			fd = this._fragConstantData;
-			fd.set(this.transform._rawData);
-			for (let i = 0; i < 4; i++) fd[i + 4] /= 255;
-
-			// disable ALPHA offset, because can't allowed in PMA mode
-			fd[7] = 0;
-		}
-
 		const p = <ProgramWebGL> this._program3D;
 		// const ctx = (<ContextWebGL> _stage.context)._texContext;
 
 		p.uploadUniform('uTexMatrix', vd);
 
-		if (this.transform || p.focusId !== this._focusId) {
+		// upload only when a transfrom a REAL changed or after shader rebound
+		if (this._transformChanged || p.focusId !== this._focusId) {
 			this._focusId = p.focusId;
+			this._transformChanged = false;
 
-			p.uploadUniform('uColorTransform', fd);
+			p.uploadUniform('uColorTransform', this._colorTransformUData);
 		}
 
 		//p.uploadUniform('uTex', ctx.setTextureAt(0, ))
