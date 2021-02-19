@@ -93,6 +93,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _copyPixelFilter: CopyPixelFilter3D;
 	private _thresholdFilter: ThresholdFilter3D;
 	private _filterSampler: ImageSampler;
+	private _lastScissorBox: Rectangle;
 
 	//private _mouse3DManager:away.managers.Mouse3DManager;
 	//private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
@@ -785,13 +786,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	private _mapWindowToStage(x: number, y: number, out: {x: number, y: number} = { x: 0, y: 0 }) {
-		let rect;
 		const container = this.container;
 		// IE 11 fix
-		rect = (!container.parentElement) ? { x: 0, y: 0, width: 0, height: 0 } : container.getBoundingClientRect();
+		const rect = (!container.parentElement)
+			? { x: 0, y: 0, width: 0, height: 0 }
+			: container.getBoundingClientRect();
 
-		out.x = (x - rect.left) * container.clientWidth / rect.width;
-		out.y = (y - rect.top) * container.clientHeight / rect.height;
+		out.x = (x - rect.x) * container.clientWidth / rect.width;
+		out.y = (y - rect.y) * container.clientHeight / rect.height;
 
 		return out;
 	}
@@ -875,6 +877,24 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this._backBufferDirty = false;
 
 			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+		}
+
+		if (!this._lastScissorBox && !rectangle) {
+			return;
+		}
+
+		if (rectangle && this._lastScissorBox && this._lastScissorBox.equals(rectangle)) {
+			return;
+		}
+
+		if (!rectangle) {
+			this._lastScissorBox = null;
+		} else {
+			if (!this._lastScissorBox) {
+				this._lastScissorBox = new Rectangle();
+			}
+
+			this._lastScissorBox.copyFrom(rectangle);
 		}
 
 		this._context.setScissorRectangle(rectangle);
