@@ -95,6 +95,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _filterSampler: ImageSampler;
 	private _lastScissorBox: Rectangle;
 
+	private _frameEndCallbackOnce: Array<() => void> = [];
+
 	//private _mouse3DManager:away.managers.Mouse3DManager;
 	//private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
 
@@ -181,12 +183,26 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this.visible = true;
 	}
 
+	// for avoid using a Dispather, because it has big overhead
+	public requiestFrameEnd(func: () => void) {
+		if (this._frameEndCallbackOnce.indexOf(func) > -1 || typeof func !== 'function') {
+			return;
+		}
+
+		this._frameEndCallbackOnce.push(func);
+	}
+
 	/**
 	 * @description Should be executed AFTER rendering process
 	 */
 	public present() {
 		this._context.present();
 		UnloadService.executeAll();
+
+		for (const call of this._frameEndCallbackOnce) {
+			call();
+		}
+		this._frameEndCallbackOnce.length = 0;
 	}
 
 	public getProgramData(vertexString: string, fragmentString: string): ProgramData {
@@ -214,7 +230,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			const antiallias = typeof target.antialiasQuality === 'number' // for SceneImage2D MSAA
 				? target.antialiasQuality
 				: this._antiAlias;
-
 			this._context.setRenderToTexture(
 				targetStageElement.getTexture(),
 				enableDepthAndStencil,
