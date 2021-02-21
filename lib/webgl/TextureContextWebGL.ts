@@ -365,7 +365,7 @@ export class TextureContextWebGL {
 
 			target._multisampled = false;
 		} else {
-
+			antiAlias = Math.min(antiAlias, gl.getParameter(gl.MAX_SAMPLES));
 			// create framebuffer for DRAW
 			const drawFrameBuffer = target._frameBufferDraw[mipmapSelector] = gl.createFramebuffer();
 			// compute levels for texture
