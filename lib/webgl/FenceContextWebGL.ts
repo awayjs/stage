@@ -35,6 +35,11 @@ export class FenceContextWebGL {
 
 		const fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
 
+		if (!gl.isSync(fence)) {
+			console.warn('[FenceContextWebGL] Fence return invalid state, closig task immediate:', fence);
+			return Promise.resolve(pbo);
+		}
+
 		// return a promise that was used for requesting a data
 		const p = new Promise((task: TPBOTask) => {
 			this._tasks.push({ task, pbo, fence });
@@ -54,19 +59,27 @@ export class FenceContextWebGL {
 
 		const gl = this._gl;
 		const tasks = this._tasks;
+		this._tasks = [];
 
 		for (let i = 0; i < this._tasks.length; i++) {
 			const t = tasks[i];
 
-			if (gl.getSyncParameter(t.fence, gl.SYNC_STATUS) === gl.SIGNALED) {
+			let closeTask = false;
+
+			if (!gl.isSync(t.fence)) {
+				console.warn('[FenceContextWebGL] Task has invalid fence state, closig task immediate:', t.fence);
+				closeTask = true;
+			}
+
+			if (closeTask || gl.getSyncParameter(t.fence, gl.SYNC_STATUS) === gl.SIGNALED) {
 				t.task(t.pbo);
 				gl.deleteSync(t.fence);
 
 				tasks[i] = undefined;
+			} else {
+				this._tasks.push(t);
 			}
 		}
-
-		this._tasks = tasks.filter(e => !!e);
 
 		if (this._tasks.length === 0) {
 			// stop ticker
