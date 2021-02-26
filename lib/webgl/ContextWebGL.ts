@@ -766,6 +766,8 @@ export class ContextWebGL implements IContextGL {
 	public finish() {
 		this._gl.flush();
 		this._gl.finish();
+
+		this._fenceContext && this._fenceContext.tick();
 	}
 
 	private translateTriangleFace(triangleFace: ContextGLTriangleFace, coordinateSystem: CoordinateSystem) {

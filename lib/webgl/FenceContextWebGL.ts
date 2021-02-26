@@ -2,13 +2,10 @@ import { PixelBufferWebGL } from './PixelBufferWebGL';
 
 type TPBOTask = (pbo: PixelBufferWebGL) => void;
 
-const TICK_PERIOD = 10;
-
 export class FenceContextWebGL {
 	public static isSupported = PixelBufferWebGL.isSuported;
 
 	private pool: PixelBufferWebGL[] = [];
-	private _tickerId: number = -1;
 
 	private _tasks: Array<{
 		task: TPBOTask,
@@ -45,12 +42,6 @@ export class FenceContextWebGL {
 			this._tasks.push({ task, pbo, fence });
 		});
 
-		if (this._tickerId === -1) {
-			// if we will use sync every time - we will spam GPU,
-			// need use something in between
-			this._tickerId = self.setInterval(this.tick.bind(this), TICK_PERIOD);
-		}
-
 		return p;
 	}
 
@@ -79,12 +70,6 @@ export class FenceContextWebGL {
 			} else {
 				this._tasks.push(t);
 			}
-		}
-
-		if (this._tasks.length === 0) {
-			// stop ticker
-			clearInterval(this._tickerId);
-			this._tickerId = -1;
 		}
 	}
 
