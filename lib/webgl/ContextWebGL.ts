@@ -257,7 +257,7 @@ export class ContextWebGL implements IContextGL
 
 		var glmask:number = 0;
 		if (mask & ContextGLClearMask.COLOR) glmask |= this._gl.COLOR_BUFFER_BIT;
-		if (mask & ContextGLClearMask.STENCIL) glmask |= (this._gl.STENCIL_BUFFER_BIT | this._gl.DEPTH_BUFFER_BIT);
+		if (mask & ContextGLClearMask.STENCIL) glmask |= this._gl.STENCIL_BUFFER_BIT;
 		if (mask & ContextGLClearMask.DEPTH) glmask |= this._gl.DEPTH_BUFFER_BIT;
 
 		this._gl.clearColor(red, green, blue, alpha);
