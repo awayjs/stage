@@ -497,6 +497,8 @@ export class ContextWebGL implements IContextGL {
 
 	public present(): void {
 		//this._drawing = false;
+
+		this._fenceContext && this._fenceContext.tick();
 	}
 
 	public setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor): void {

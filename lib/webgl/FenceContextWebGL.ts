@@ -52,7 +52,7 @@ export class FenceContextWebGL {
 		const tasks = this._tasks;
 		this._tasks = [];
 
-		for (let i = 0; i < this._tasks.length; i++) {
+		for (let i = 0; i < tasks.length; i++) {
 			const t = tasks[i];
 
 			let closeTask = false;

@@ -439,7 +439,10 @@ export class TextureContextWebGL {
 		// ckear
 		gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 		// copy renderbuffer to texture
-		gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+		gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height,
+			gl.COLOR_BUFFER_BIT,
+			gl.LINEAR
+		);
 	}
 
 	/*internal*/ presentFrameBufferTo(
@@ -489,7 +492,9 @@ export class TextureContextWebGL {
 				(point.x + rect.width) | 0,
 				(point.y + rect.height) | 0 ,
 
-				gl.COLOR_BUFFER_BIT, gl.NEAREST);
+				gl.COLOR_BUFFER_BIT,
+				gl.LINEAR
+			);
 		}
 
 		this.blitTextureToRenderbuffer(target);
@@ -524,7 +529,7 @@ export class TextureContextWebGL {
 		// clear
 		gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 		// copy texture to renderbuffer!
-		gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+		gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.LINEAR);
 	}
 
 	/*internal*/ disposeTexture(texture: TextureWebGL) {
