@@ -57,7 +57,7 @@ void main() {
 export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	readonly activateInternaly = false;
 
-	private _vertexConstantData: Float32Array;
+	protected _vertexConstantData: Float32Array;
 	private _colorTransformUData: Float32Array;
 
 	public rect: Rectangle = new Rectangle();
