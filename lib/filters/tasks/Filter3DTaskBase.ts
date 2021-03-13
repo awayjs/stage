@@ -19,6 +19,7 @@ export class Filter3DTaskBase {
 	public _uvVarying: ShaderRegisterElement;
 
 	protected _mainInputTexture: Image2D;
+	protected _externalInput: boolean = false;
 
 	public _scaledTextureWidth: number = -1;
 	public _scaledTextureHeight: number = -1;
@@ -103,6 +104,18 @@ export class Filter3DTaskBase {
 		this._textureDimensionsInvalid = true;
 	}
 
+	public setMainInputTexture (image: Image2D, stage: Stage) {
+		this._mainInputTexture = image;
+		this._externalInput = !!image;
+
+		if (this._externalInput) {
+			this.textureWidth = image.width;
+			this.textureHeight = image.height;
+		}
+
+		this.updateTextures(stage);
+	}
+
 	public getMainInputTexture(stage: Stage): Image2D {
 		if (this._textureDimensionsInvalid)
 			this.updateTextures(stage);
@@ -165,10 +178,13 @@ export class Filter3DTaskBase {
 	}
 
 	public updateTextures(stage: Stage): void {
-		if (this._mainInputTexture)
-			this._mainInputTexture.dispose();
 
-		this._mainInputTexture = new Image2D(this._scaledTextureWidth, this._scaledTextureHeight);
+		if (!this._externalInput) {
+			if (this._mainInputTexture)
+				this._mainInputTexture.dispose();
+
+			this._mainInputTexture = new Image2D(this._scaledTextureWidth, this._scaledTextureHeight);
+		}
 
 		this._textureDimensionsInvalid = false;
 	}

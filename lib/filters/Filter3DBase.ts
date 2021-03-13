@@ -83,8 +83,10 @@ export class Filter3DBase {
 			this._tasks[i].textureScale = value;
 	}
 
+	public setSource(_target: Image2D) {}
+
 	// link up the filters correctly with the next filter
-	public setRenderTargets(mainTarget: Image2D, stage: Stage): void {
+	public setRenderTargets(mainTarget: Image2D, _stage: Stage): void {
 		this._tasks[this._tasks.length - 1].target = mainTarget;
 	}
 

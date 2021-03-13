@@ -6,8 +6,8 @@ import { Image2D } from '../image/Image2D';
 import { Stage } from '../Stage';
 
 export class BlurFilter3D extends Filter3DBase {
-	private _hBlurTask: Filter3DHBlurTask;
-	private _vBlurTask: Filter3DVBlurTask;
+	protected _hBlurTask: Filter3DHBlurTask;
+	protected _vBlurTask: Filter3DVBlurTask;
 
 	/**
 	 * Creates a new BlurFilter3D object

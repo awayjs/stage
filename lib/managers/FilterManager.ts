@@ -1,10 +1,12 @@
 import { ColorTransform, Point, Rectangle } from '@awayjs/core';
-import { ContextGLDrawMode } from '../..';
+
+import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat';
-import { IVertexBuffer } from '../base/IVertexBuffer';
 import { CopyPixelFilter3D } from '../filters/CopyPixelFilter3D';
 import { Filter3DBase } from '../filters/Filter3DBase';
+import { Filter3DBevel } from '../filters/Filter3DBevel';
+import { IUniversalFilter } from '../filters/IUniversalFilter';
 import { ThresholdFilter3D } from '../filters/ThresholdFilter3D';
 import { Image2D } from '../image/Image2D';
 import { _Stage_ImageBase } from '../image/ImageBase';
@@ -16,23 +18,30 @@ import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
 
 export class FilterManager {
-	public readonly filterCache: Record<string, Filter3DBase> = {};
 
-	private _filterVertexBuffer: any;
-	private _filterIndexBuffer: any;
-	private _filterSampler: any;
-	private _copyPixelFilter: any;
-	private _thresholdFilter: any;
-	private _context: ContextWebGL;
+	private _filterVertexBuffer: VertexBufferWebGL;
+	private _filterIndexBuffer: IndexBufferWebGL;
+	private _filterSampler: ImageSampler;
+	private _copyPixelFilter: CopyPixelFilter3D;
+	private _thresholdFilter: ThresholdFilter3D;
+
+	private get context(): ContextWebGL {
+		return  <ContextWebGL> this._stage.context;
+	}
+
+	private readonly _filterCache: Record<string, IUniversalFilter> = {};
+	private _filterConstructors: Record<string, { new(opt?: any): IUniversalFilter }> = {
+		//@ts-ignore
+		'bevel': Filter3DBevel
+	}
 
 	constructor (private _stage: Stage) {
-		this._context = <ContextWebGL> _stage.context;
 	}
 
 	private _initFilterElements() {
 
 		if (!this._filterVertexBuffer) {
-			this._filterVertexBuffer = this._context.createVertexBuffer(4, 20);
+			this._filterVertexBuffer = this.context.createVertexBuffer(4, 20);
 			this._filterVertexBuffer.uploadFromArray(
 				new Float32Array([
 					-1, -1,
@@ -47,8 +56,8 @@ export class FilterManager {
 					1, 3]), 0, 4);
 		}
 
-		if (!this._filterVertexBuffer) {
-			this._filterIndexBuffer = this._context.createIndexBuffer(6);
+		if (!this._filterIndexBuffer) {
+			this._filterIndexBuffer = this.context.createIndexBuffer(6);
 			this._filterIndexBuffer.uploadFromArray(new Uint16Array([
 				2, 1, 0,
 				3, 2, 0]), 0, 6);
@@ -58,28 +67,47 @@ export class FilterManager {
 			this._filterSampler = new ImageSampler(false, true, false);
 	}
 
+	public applyFilter (source: Image2D, target: Image2D, filterName: string, options: any): boolean {
+		if (!this._filterCache[filterName] && !this._filterConstructors[filterName]) {
+			console.warn('[FilterManager] Filter not implemented:', filterName);
+			return false;
+		}
+
+		let filter = this._filterCache[filterName];
+
+		if (filter) {
+			filter.applyModel(options);
+		} else {
+			filter = this._filterCache[filterName] = new this._filterConstructors[filterName](options);
+		}
+
+		(<Filter3DBase><any>filter).setSource(source);
+
+		this.renderFilter(target,<Filter3DBase><any>filter);
+	}
+
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
 
 		this._initFilterElements();
 
-		filter.init(this._context);
+		filter.init(this.context);
 		filter.setRenderTargets(target, this._stage);
 
 		//render
 		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
 		const len = tasks.length;
-		const hasVao = this._context.hasVao;
+		const hasVao = this.context.hasVao;
 
-		let vertexBuffer: IVertexBuffer = this._filterVertexBuffer;
+		let vertexBuffer: VertexBufferWebGL = this._filterVertexBuffer;
 		let needUploadVao = false;
 
 		if (len > 1 || tasks[0].target) {
-			this._context.setProgram(tasks[0].getProgram(this._stage));
+			this.context.setProgram(tasks[0].getProgram(this._stage));
 
 			if (hasVao && !tasks[0].vao) {
 				if (!tasks[0].vao) {
-					tasks[0].vao = this._context.createVao();
+					tasks[0].vao = this.context.createVao();
 					needUploadVao = true;
 				}
 			}
@@ -88,16 +116,16 @@ export class FilterManager {
 
 			if (needUploadVao || !tasks[0].vao) {
 
-				this._context.setVertexBufferAt(
-					tasks[0]._positionIndex, <VertexBufferWebGL> vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+				this.context.setVertexBufferAt(
+					tasks[0]._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
 
-				this._context.setVertexBufferAt(
-					tasks[0]._uvIndex, <VertexBufferWebGL> vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+				this.context.setVertexBufferAt(
+					tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
 			}
 
 			// we should bound index buffer to VAO
 			if (needUploadVao) {
-				(<ContextWebGL> this._context).bindIndexBuffer(<IndexBufferWebGL> indexBuffer);
+				(<ContextWebGL> this.context).bindIndexBuffer(indexBuffer);
 			}
 		}
 
@@ -105,8 +133,8 @@ export class FilterManager {
 			this._stage.setRenderTarget(task.target, false);
 			this._stage.setScissor(null);
 
-			this._context.setProgram(task.getProgram(this._stage));
-			this._context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
+			this.context.setProgram(task.getProgram(this._stage));
+			this.context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
 			if (!task.activateInternaly) {
 				task.getMainInputTexture(this._stage)
@@ -117,7 +145,7 @@ export class FilterManager {
 			if (!task.target) {
 
 				if (hasVao && !task.vao) {
-					tasks[0].vao = this._context.createVao();
+					tasks[0].vao = this.context.createVao();
 					needUploadVao = true;
 				}
 
@@ -126,11 +154,11 @@ export class FilterManager {
 				// we should a bind a aatributes ONCE or every call, if not VAO
 				if (needUploadVao || !task.vao) {
 					vertexBuffer = this._filterVertexBuffer;
-					this._context.setVertexBufferAt(
-						task._positionIndex, <VertexBufferWebGL> vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+					this.context.setVertexBufferAt(
+						task._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
 
-					this._context.setVertexBufferAt(
-						task._uvIndex, <VertexBufferWebGL> vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+					this.context.setVertexBufferAt(
+						task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
 				}
 
 				// we should bound index buffer to VAO to
@@ -142,7 +170,7 @@ export class FilterManager {
 
 			task.activate(this._stage, null, null);
 
-			this._context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
+			this.context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
 
 			task.deactivate(this._stage);
 		}
@@ -150,12 +178,12 @@ export class FilterManager {
 		if (hasVao) {
 			// mark that need unbind VAO if it present
 			// because otherwithe we can rewrite a buffers inside it
-			(<ContextWebGL> this._context)._vaoContext.bindVertexArray(null);
+			(<ContextWebGL> this.context)._vaoContext.bindVertexArray(null);
 		}
 
 		// disable vertex pointer because we not use a VAO
-		hasVao || this._context.setVertexBufferAt(0, null);
-		hasVao || this._context.setVertexBufferAt(1, null);
+		hasVao || this.context.setVertexBufferAt(0, null);
+		hasVao || this.context.setVertexBufferAt(1, null);
 	}
 
 	public copyPixels(
@@ -176,7 +204,7 @@ export class FilterManager {
 
 			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = new CopyPixelFilter3D();
-				this._copyPixelFilter.init(this._context);
+				this._copyPixelFilter.init(this.context);
 			}
 
 			this._copyPixelFilter.sourceTexture = source;
@@ -212,7 +240,7 @@ export class FilterManager {
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this._stage);
 
-			this._context.copyToTexture(<TextureBaseWebGL> targetImageAbst.getTexture(), rect, destPoint);
+			this.context.copyToTexture(<TextureBaseWebGL> targetImageAbst.getTexture(), rect, destPoint);
 		}
 	}
 
@@ -248,7 +276,7 @@ export class FilterManager {
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {
 		if (!this._copyPixelFilter) {
 			this._copyPixelFilter = new CopyPixelFilter3D();
-			this._copyPixelFilter.init(this._context);
+			this._copyPixelFilter.init(this.context);
 		}
 
 		this._copyPixelFilter.sourceTexture = source;
