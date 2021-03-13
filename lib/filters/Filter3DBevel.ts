@@ -1,3 +1,4 @@
+import { Point, Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
 import { Stage } from '../Stage';
 import { BlurFilter3D } from './BlurFilter3D';
@@ -98,7 +99,6 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 	public setRenderTargets(mainTarget: Image2D, stage: Stage): void {
 		this._hBlurTask.setMainInputTexture(this._source, stage);
 		this._vBlurTask.target = this._bevelTask.getMainInputTexture(stage);
-
 		this._bevelTask.sourceImage = this._source;
 
 		super.setRenderTargets(mainTarget, stage);

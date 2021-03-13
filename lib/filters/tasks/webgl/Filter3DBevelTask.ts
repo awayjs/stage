@@ -53,6 +53,11 @@ uniform sampler2D fs1;
 
 void main() {
 	vec4 color = texture2D(fs1, vUv[0]);
+	
+	float a = color.a;
+
+	// LOOL.. there are a bug - we PMA it twice, devide to compense
+	if (a > 0.) color.a /= a;
 
 	float high = texture2D(fs0, vUv[1]).a;
 	float shadow = texture2D(fs0, vUv[2]).a;
@@ -68,6 +73,7 @@ void main() {
 	) * cut;
 
 	gl_FragColor = color * (1. - outColor.a) * uType[0] + outColor;
+	gl_FragColor *= a;
 }`;
 
 export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {

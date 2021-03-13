@@ -1,4 +1,4 @@
-import { AbstractMethodError, ByteArray, ProjectionBase } from '@awayjs/core';
+import { AbstractMethodError, ByteArray, Point, ProjectionBase, Rectangle } from '@awayjs/core';
 import { ShaderRegisterCache } from '../../shaders/ShaderRegisterCache';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { Image2D } from '../../image/Image2D';
@@ -8,8 +8,12 @@ import { ContextGLProfile } from '../../base/ContextGLProfile';
 import { Stage } from '../../Stage';
 import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
 import { IVao } from './../../base/IVao';
+import { IContextGL } from '../../base/IContextGL';
+import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 
 export class Filter3DTaskBase {
+	protected _vertexConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+
 	public activateInternaly = false;
 	public _registerCache: ShaderRegisterCache;
 
@@ -32,6 +36,9 @@ export class Filter3DTaskBase {
 	protected _target: Image2D;
 	private _requireDepthRender: boolean;
 	private _textureScale: number = 1;
+
+	public rect: Rectangle = new Rectangle();
+	public destPoint: Point = new Point();
 
 	public vao: IVao;
 
@@ -100,7 +107,7 @@ export class Filter3DTaskBase {
 			return;
 
 		this._textureHeight = value;
-		this._scaledTextureHeight = this._textureHeight / this._textureScale;
+		this._scaledTextureHeight = (this._textureHeight) / this._textureScale;
 		this._textureDimensionsInvalid = true;
 	}
 
@@ -159,16 +166,25 @@ export class Filter3DTaskBase {
 	}
 
 	public getVertexCode(): string {
+		const temp1: ShaderRegisterElement = this._registerCache.getFreeVertexVectorTemp();
+
+		const rect: ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
+
 		const position: ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
 		this._positionIndex = position.index;
+
+		const offset: ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
 
 		const uv: ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
 		this._uvIndex = uv.index;
 
 		this._uvVarying = this._registerCache.getFreeVarying();
 
-		const code = 'mov op, ' + position + '\n' +
-			'mov ' + this._uvVarying + ', ' + uv + '\n';
+		const code = 'mul ' + temp1 + '.xy, ' + position + ', ' + rect + '.zw\n' +
+			'add ' + temp1 + '.xy, ' + temp1 + ', ' + rect + '.xy\n' +
+			'mov ' + temp1 + '.w, ' + position + '.w\n' +
+			'mov op, ' + temp1 + '\n' +
+			'add ' + this._uvVarying + ', ' + uv + ', ' + offset + '.xy\n';
 
 		return code;
 	}
@@ -196,7 +212,28 @@ export class Filter3DTaskBase {
 		return <T> this._program3D;
 	}
 
-	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
+	public activate(stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
+		const data = this._vertexConstantData;
+		const index = this._positionIndex;
+
+		if (this.rect.width === 0 || this.rect.height === 0) {
+			this.rect.width = this._scaledTextureWidth;
+			this.rect.height = this._scaledTextureHeight;
+		}
+
+		const paddedX = this.destPoint.x;
+		const paddedY = this.destPoint.y;
+
+		data[index + 0] = (paddedX * 2 + this.rect.width) / this._target.width - 1;
+		data[index + 1] = (paddedY * 2 + this.rect.height) / this._target.height - 1;
+		data[index + 2] = this.rect.width / this._target.width;
+		data[index + 3] = this.rect.height / this._target.height;
+
+		data[index + 4] = this.rect.x / this._mainInputTexture.width;
+		data[index + 5] = this.rect.y / this._mainInputTexture.height;
+
+		const context: IContextGL = stage.context;
+		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, data);
 	}
 
 	public deactivate(stage: Stage): void {

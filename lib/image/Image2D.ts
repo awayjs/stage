@@ -71,6 +71,10 @@ export class Image2D extends ImageBase {
 		this._testDimensions();
 	}
 
+	public dispose() {
+		this.clear();
+	}
+
 	/**
 	 *
 	 * @param width

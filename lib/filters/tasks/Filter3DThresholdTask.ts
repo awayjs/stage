@@ -1,16 +1,14 @@
-import { ProjectionBase, Rectangle, Point, ColorUtils, Vector3D } from '@awayjs/core';
+import { ProjectionBase, Rectangle, Point, Vector3D } from '@awayjs/core';
 
 import { Filter3DTaskBase } from './Filter3DTaskBase';
 import { Image2D } from '../../image/Image2D';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
-import { _Stage_ImageBase } from '../../image/ImageBase';
 import { Stage } from '../../Stage';
 
 export class Filter3DThresholdTask extends Filter3DTaskBase {
 	private _fragmentConstantData: Float32Array;
-	private _vertexConstantData: Float32Array;
 
 	private _fragmentConstantsIndex: number;
 
@@ -133,7 +131,6 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	constructor() {
 		super();
 
-		this._vertexConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 		this._fragmentConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 65025.0, 255.0, 1.0, 16581375.0]);
 	}
 
