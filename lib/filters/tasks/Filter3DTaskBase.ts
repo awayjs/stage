@@ -173,11 +173,11 @@ export class Filter3DTaskBase {
 		this._textureDimensionsInvalid = false;
 	}
 
-	public getProgram(stage: Stage): IProgram {
+	public getProgram<T extends IProgram = IProgram>(stage: Stage): T {
 		if (this._program3DInvalid)
 			this.updateProgram(stage);
 
-		return this._program3D;
+		return <T> this._program3D;
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
