@@ -183,7 +183,7 @@ export class Filter3DTaskBase {
 			if (this._mainInputTexture)
 				this._mainInputTexture.dispose();
 
-			this._mainInputTexture = new Image2D(this._scaledTextureWidth, this._scaledTextureHeight);
+			this._mainInputTexture = new Image2D(this._scaledTextureWidth, this._scaledTextureHeight, false);
 		}
 
 		this._textureDimensionsInvalid = false;

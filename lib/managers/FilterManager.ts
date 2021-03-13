@@ -84,6 +84,8 @@ export class FilterManager {
 		(<Filter3DBase><any>filter).setSource(source);
 
 		this.renderFilter(target,<Filter3DBase><any>filter);
+
+		return true;
 	}
 
 	public renderFilter(target: Image2D, filter: Filter3DBase) {
@@ -145,7 +147,7 @@ export class FilterManager {
 			if (!task.target) {
 
 				if (hasVao && !task.vao) {
-					tasks[0].vao = this.context.createVao();
+					task.vao = this.context.createVao();
 					needUploadVao = true;
 				}
 

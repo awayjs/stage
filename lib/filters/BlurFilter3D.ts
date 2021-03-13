@@ -8,7 +8,6 @@ import { Stage } from '../Stage';
 export class BlurFilter3D extends Filter3DBase {
 	protected _hBlurTask: Filter3DHBlurTask;
 	protected _vBlurTask: Filter3DVBlurTask;
-
 	/**
 	 * Creates a new BlurFilter3D object
 	 * @param blurX The amount of horizontal blur to apply
