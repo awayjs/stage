@@ -1258,6 +1258,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.invalidateGPU();
 	}
 
+	public applyFilter (source: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, filter: any): boolean {
+		return false;
+	}
+
 	/**
 	 * Unlocks an image so that any objects that reference the BitmapImage2D object,
 	 * such as Bitmap objects, are updated when this BitmapImage2D object changes.
