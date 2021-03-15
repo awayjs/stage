@@ -105,8 +105,8 @@ export const Settings: IStageSettings = {
 
 	/**
 	 * @description Use sampler index as index of SAMPLER2D location instead of name.
-	 * This measn that a shader with SAMPLER2D like a names `uTex, uTex1` will be like `fs0, fs1`
-	 * This needed for bound texture by id instead of uniform name for allow use on AGAL pipeline
+	 * This means that in shader with SAMPLER2D uniforms `uTex, uTex1` will be like `fs0, fs1`
+	 * This required for bound texture by id instead of uniform name on AGAL pipeline
 	 */
 	UNSAFE_USE_AUTOINDEXED_SAMPLER: true
 };

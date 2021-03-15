@@ -133,11 +133,11 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	}
 
 	public get sourceTexture(): Image2D {
-		return this._mainInputTexture;
+		return this._source;
 	}
 
 	public set sourceTexture(value: Image2D) {
-		this._mainInputTexture = value;
+		this._source = value;
 	}
 
 	public getFragmentCode(): string {
@@ -191,7 +191,7 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	}
 
 	public getMainInputTexture(stage: Stage): Image2D {
-		return this._mainInputTexture;
+		return this._source;
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {

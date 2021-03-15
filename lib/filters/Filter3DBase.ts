@@ -1,24 +1,14 @@
-import { ProjectionBase } from '@awayjs/core';
+import { ProjectionBase, Rectangle } from '@awayjs/core';
 
 import { Filter3DTaskBase } from './tasks/Filter3DTaskBase';
-import { RTTBufferManager } from '../managers/RTTBufferManager';
 import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
-import { IContextGL } from '../base/IContextGL';
+import { FilterManager } from '../managers/FilterManager';
 
 export class Filter3DBase {
 	private _tasks: Array<Filter3DTaskBase> = [];
 	private _requireDepthRender: boolean;
-	private _rttManager: RTTBufferManager;
-	private _textureWidth: number;
-	private _textureHeight: number;
-	private _textureScale: number = 1;
-
-	protected _context: IContextGL;
-
-	public init(context: IContextGL) {
-		this._context = context;
-	}
+	protected _temp: Image2D[] = [];
 
 	public get requireDepthRender(): boolean {
 		return this._requireDepthRender;
@@ -35,58 +25,14 @@ export class Filter3DBase {
 		return this._tasks;
 	}
 
-	public getMainInputTexture(stage: Stage): Image2D {
-		return this._tasks[0].getMainInputTexture(stage);
-	}
-
-	public get textureWidth(): number {
-		return this._textureWidth;
-	}
-
-	public set textureWidth(value: number) {
-		this._textureWidth = value;
-
-		for (let i: number = 0; i < this._tasks.length; ++i)
-			this._tasks[i].textureWidth = value;
-	}
-
-	public get rttManager(): RTTBufferManager {
-		return this._rttManager;
-	}
-
-	public set rttManager(value: RTTBufferManager) {
-		this._rttManager = value;
-
-		for (let i: number = 0; i < this._tasks.length; ++i)
-			this._tasks[i].rttManager = value;
-	}
-
-	public get textureHeight(): number {
-		return this._textureHeight;
-	}
-
-	public set textureHeight(value: number) {
-		this._textureHeight = value;
-
-		for (let i: number = 0; i < this._tasks.length; ++i)
-			this._tasks[i].textureHeight = value;
-	}
-
-	public get textureScale(): number {
-		return this._textureScale;
-	}
-
-	public set textureScale(value: number) {
-		this._textureScale = value;
-
-		for (let i: number = 0; i < this._tasks.length; ++i)
-			this._tasks[i].textureScale = value;
-	}
-
-	public setSource(_target: Image2D) {}
-
 	// link up the filters correctly with the next filter
-	public setRenderTargets(mainTarget: Image2D, _stage: Stage): void {
+	public setRenderState (
+		source: Image2D,
+		mainTarget: Image2D,
+		sourceRect: Rectangle,
+		destRect: Rectangle,
+		filterManage: FilterManager
+	): void {
 		this._tasks[this._tasks.length - 1].target = mainTarget;
 	}
 
@@ -97,5 +43,10 @@ export class Filter3DBase {
 
 	public update(stage: Stage, projection: ProjectionBase): void {
 
+	}
+
+	public clear (_manage: FilterManager) {
+		this._temp.forEach((e) =>  _manage.pushTemp(e));
+		this._temp.length = 0;
 	}
 }

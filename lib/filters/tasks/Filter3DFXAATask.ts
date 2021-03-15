@@ -237,19 +237,13 @@ export class Filter3DFXAATask extends Filter3DTaskBase {
 	}
 
 	public updateTextures(stage: Stage): void {
-		super.updateTextures(stage);
-
 		this.updateBlurData();
 	}
 
 	private updateBlurData(): void {
 		// todo: must be normalized using view size ratio instead of texture
-		if (this._rttManager) {
-			this._data[8] = 1 / this._textureWidth;
-			this._data[9] = 1 / this._textureHeight;
-			//this._data[8] = 1/this._rttManager.viewWidth;
-			//this._data[9] = 1/this._rttManager.viewHeight;
-		}
+		this._data[8] = 1 / this._source.width;
+		this._data[9] = 1 / this._source.height;
 	}
 
 	private calculateStepSize(): void {

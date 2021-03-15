@@ -79,11 +79,11 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	}
 
 	public get sourceTexture(): Image2D {
-		return this._mainInputTexture;
+		return this._source;
 	}
 
 	public set sourceTexture(value: Image2D) {
-		this._mainInputTexture = value;
+		this._source = value;
 	}
 
 	public getFragmentCode(): string {
@@ -91,7 +91,7 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 	}
 
 	public getMainInputTexture(_stage: Stage): Image2D {
-		return this._mainInputTexture;
+		return this._source;
 	}
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {

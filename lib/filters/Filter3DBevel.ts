@@ -1,6 +1,7 @@
-import { Point, Rectangle } from '@awayjs/core';
+import { Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
-import { Stage } from '../Stage';
+import { FilterManager } from '../managers/FilterManager';
+import { FilterUtils } from '../utils/FilterUtils';
 import { BlurFilter3D } from './BlurFilter3D';
 import { IUniversalFilter } from './IUniversalFilter';
 import { Filter3DBevelTask } from './tasks/webgl/Filter3DBevelTask';
@@ -82,13 +83,6 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 		this.applyModel(options);
 	}
 
-	public setSource(image: Image2D) {
-		this._source = image;
-
-		this.textureHeight = image.height; // Math.pow(2, Math.ceil(Math.log2(image.height)));
-		this.textureWidth = image.width; // Math.pow(2, Math.ceil(Math.log2(image.width)));
-	}
-
 	public applyModel(model: Partial<IBevelFilterModel>): void {
 		// run all model field that changed
 		for (const key in model) {
@@ -96,11 +90,48 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 		}
 	}
 
-	public setRenderTargets(mainTarget: Image2D, stage: Stage): void {
-		this._hBlurTask.setMainInputTexture(this._source, stage);
-		this._vBlurTask.target = this._bevelTask.getMainInputTexture(stage);
-		this._bevelTask.sourceImage = this._source;
+	public setRenderState (
+		source: Image2D,
+		target: Image2D,
+		inputRect: Rectangle,
+		outRect: Rectangle,
+		filterManage: FilterManager
+	) {
 
-		super.setRenderTargets(mainTarget, stage);
+		const size = FilterUtils.meashureBlurBounds(
+			inputRect,
+			this.blurX,
+			this.blurY,
+			this.quality,
+			true
+		);
+
+		const firstPass = filterManage.popTemp(size.width, size.height);
+		const secondPass = filterManage.popTemp(size.width, size.height);
+
+		this._hBlurTask.destRect.setTo(
+			inputRect.x - size.x,
+			inputRect.y - size.y,
+			inputRect.width, inputRect.height
+		);
+
+		this._hBlurTask.inputRect = inputRect;
+
+		this._bevelTask.inputRect = this._hBlurTask.destRect;
+		this._bevelTask.destRect = outRect;
+
+		this._hBlurTask.source = source;
+		this._hBlurTask.target = firstPass;
+		this._vBlurTask.source = firstPass;
+		this._vBlurTask.target = secondPass;
+		this._bevelTask.source = secondPass;
+		this._bevelTask.sourceImage = source;
+		this._bevelTask.target = target;
+
+		this._temp = [firstPass, secondPass];
+
+		this._hBlurTask.needClear = true;
+		this._vBlurTask.needClear = true;
+		this._bevelTask.needClear = true;
 	}
 }

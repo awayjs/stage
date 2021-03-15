@@ -105,11 +105,13 @@ export class Filter3DCompositeTask extends Filter3DTaskBase {
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
 		super.activate(stage, projection, depthTexture);
 
-		this._data[4] = -0.5 * (this._textureWidth - this._overlayWidth) / this._overlayWidth;
-		this._data[5] = -0.5 * (this._textureHeight - this._overlayHeight) / this._overlayHeight;
+		const tex = this._source;
 
-		this._data[6] = this._textureWidth / this._overlayWidth;
-		this._data[7] = this._textureHeight / this._overlayHeight;
+		this._data[4] = -0.5 * (this._source.width - this._overlayWidth) / this._overlayWidth;
+		this._data[5] = -0.5 * (this._source.height - this._overlayHeight) / this._overlayHeight;
+
+		this._data[6] = this.source.width / this._overlayWidth;
+		this._data[7] = this._source.height / this._overlayHeight;
 
 		const context: IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._data);

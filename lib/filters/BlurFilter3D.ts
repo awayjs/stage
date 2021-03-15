@@ -52,9 +52,4 @@ export class BlurFilter3D extends Filter3DBase {
 		this._hBlurTask.stepSize = value;
 		this._vBlurTask.stepSize = value;
 	}
-
-	public setRenderTargets(mainTarget: Image2D, stage: Stage): void {
-		this._hBlurTask.target = this._vBlurTask.getMainInputTexture(stage);
-		super.setRenderTargets(mainTarget, stage);
-	}
 }

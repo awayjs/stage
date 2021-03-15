@@ -3,23 +3,16 @@ import { Filter3DCopyPixelTaskWebGL } from './tasks/webgl/Filter3DCopyPixelTaskW
 import { Filter3DBase } from './Filter3DBase';
 import { Image2D } from '../image/Image2D';
 import { Rectangle, Point, ColorTransform } from '@awayjs/core';
-import { IContextGL } from '../base/IContextGL';
 
 export class CopyPixelFilter3D extends Filter3DBase {
 	private _copyPixelTask: Filter3DCopyPixelTaskWebGL;
 
-	/**
-	 * Creates a new CopyPixelFilter3D object
-	 */
-
-	public init (context: IContextGL) {
-		if (this._context === context) {
-			return;
-		}
-		super.init(context);
+	constructor () {
+		super();
 
 		this._copyPixelTask = new Filter3DCopyPixelTaskWebGL();
 		this.addTask(this._copyPixelTask);
+
 	}
 
 	public get colorTransform() {
@@ -53,5 +46,9 @@ export class CopyPixelFilter3D extends Filter3DBase {
 
 	public set sourceTexture(value: Image2D) {
 		this._copyPixelTask.sourceTexture = value;
+	}
+
+	public setRenderState (source: Image2D, target: Image2D,) {
+
 	}
 }

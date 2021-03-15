@@ -4,6 +4,30 @@ import { Stage } from '../../../Stage';
 import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
 
+const VERTEX = `
+precision highp float;
+uniform vec4 uTexMatrix[2];
+uniform vec4 uTexMatrixSource;
+
+/* AGAL legacy atrib resolver require this names */
+attribute vec4 va0; // position
+
+varying vec2 vUv[2];
+
+void main() {
+	vec4 pos = va0;
+
+	pos.xy = pos.xy * uTexMatrix[0].zw + uTexMatrix[0].xy;
+	pos.z = pos.z * 2.0 - pos.w;
+
+    gl_Position = pos;
+
+	vUv[0] = clamp((va0.xy + uTexMatrix[1].xy) * uTexMatrix[1].zw, 0., 1.);
+	vUv[1] = clamp((va0.xy + uTexMatrixSource.xy) * uTexMatrixSource.zw , 0., 1.);
+}
+
+`;
+
 const FRAG = `
 precision highp float;
 
@@ -13,7 +37,7 @@ uniform float uStrength;
 uniform vec3 uType;
 uniform vec2 uDir;
 
-varying vec2 vUv;
+varying vec2 vUv[2];
 
 /* AGAL legacy attrib resolver require this names */
 // blur
@@ -24,15 +48,15 @@ uniform sampler2D fs0;
 uniform sampler2D fs1;
 
 void main() {
-	vec4 color = texture2D(fs1, vUv);
+	vec4 color = texture2D(fs1, vUv[1]);
 	
 	float a = color.a;
 
 	// LOOL.. there are a bug - we PMA it twice, devide to compense
 	if (a > 0.) color.a /= a;
 
-	float high = texture2D(fs0, vUv - uDir).a;
-	float shadow = texture2D(fs0, vUv + uDir).a;
+	float high = texture2D(fs0, vUv[0] - uDir).a;
+	float shadow = texture2D(fs0, vUv[0] + uDir).a;
 	float factor = high - shadow;
 
 	shadow = min(1., max(0., factor) * uStrength) * uSColor.a;
@@ -51,7 +75,6 @@ void main() {
 export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 	readonly activateInternaly = false;
 
-	private _uMatrix: Float32Array = new Float32Array([0,0,0,0,0,0,0,0]);
 	private _uSColor: Float32Array = new Float32Array([0,0,0,1]);
 	private _uHColor: Float32Array = new Float32Array([1,1,1,1]);
 
@@ -162,6 +185,10 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 		super();
 	}
 
+	public getVertexCode(): string {
+		return VERTEX;
+	}
+
 	public getFragmentCode(): string {
 		return FRAG;
 	}
@@ -169,7 +196,7 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
 		super.computeVertexData();
 
-		const tex = this._mainInputTexture;
+		const tex = this._source;
 		const prog = <ProgramWebGL> this._program3D;
 		const needUpload = prog.focusId !== this._focusId;
 
@@ -191,6 +218,12 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 			this.knockout ? 0 : 1,
 			this.type !== 'outer' ? 1 : 0,
 			this.type !== 'inner' ? 1 : 0
+		]);
+
+		prog.uploadUniform('uTexMatrixSource', [
+			0, 0,
+			this._source.width / this.sourceImage.width,
+			this._source.height / this.sourceImage.height,
 		]);
 
 		this.sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);

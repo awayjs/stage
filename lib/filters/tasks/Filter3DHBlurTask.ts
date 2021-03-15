@@ -37,7 +37,6 @@ export class Filter3DHBlurTask extends Filter3DTaskBase {
 		this._amount = value;
 
 		this.invalidateProgram();
-		this.updateBlurData();
 		this.calculateStepSize();
 	}
 
@@ -52,7 +51,6 @@ export class Filter3DHBlurTask extends Filter3DTaskBase {
 		this._stepSize = value;
 		this.calculateStepSize();
 		this.invalidateProgram();
-		this.updateBlurData();
 	}
 
 	public getFragmentCode(): string {
@@ -96,15 +94,13 @@ export class Filter3DHBlurTask extends Filter3DTaskBase {
 		stage.context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._data);
 	}
 
-	public updateTextures(stage: Stage): void {
-		super.updateTextures(stage);
-
+	public preActivate(_stage: Stage) {
 		this.updateBlurData();
 	}
 
 	private updateBlurData(): void {
 		// todo: must be normalized using view size ratio instead of texture
-		const invW: number = 1 / this._textureWidth;
+		const invW: number = 1 / this._source.width;
 
 		this._data[0] = this._amount * .5 * invW;
 		this._data[1] = this._realStepSize * invW;
