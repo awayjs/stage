@@ -214,7 +214,7 @@ export class FilterManager {
 			this._stage.setScissor(null);
 
 			// because we use TMP image, need clear it
-			if (!renderToSelf || task.needClear) {
+			if (renderToSelf || task.needClear) {
 				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
 

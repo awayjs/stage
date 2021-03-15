@@ -33,6 +33,10 @@ export class Filter3DBase {
 		destRect: Rectangle,
 		filterManage: FilterManager
 	): void {
+		this._tasks[0].inputRect = sourceRect;
+		this._tasks[0].source = source;
+
+		this._tasks[this._tasks.length - 1].destRect = destRect;
 		this._tasks[this._tasks.length - 1].target = mainTarget;
 	}
 

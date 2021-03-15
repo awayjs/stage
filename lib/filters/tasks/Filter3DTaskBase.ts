@@ -38,7 +38,7 @@ export class Filter3DTaskBase {
 		this._registerCache = new ShaderRegisterCache(ContextGLProfile.BASELINE);
 	}
 
-	public needClear = true;
+	public needClear: boolean = false;
 
 	public get source(): Image2D {
 		return this._source;

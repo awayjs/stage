@@ -132,6 +132,6 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 
 		this._hBlurTask.needClear = true;
 		this._vBlurTask.needClear = true;
-		this._bevelTask.needClear = true;
+		this._bevelTask.needClear = false;
 	}
 }

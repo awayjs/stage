@@ -3,6 +3,7 @@ import { Filter3DCopyPixelTaskWebGL } from './tasks/webgl/Filter3DCopyPixelTaskW
 import { Filter3DBase } from './Filter3DBase';
 import { Image2D } from '../image/Image2D';
 import { Rectangle, Point, ColorTransform } from '@awayjs/core';
+import { FilterManager } from '../managers/FilterManager';
 
 export class CopyPixelFilter3D extends Filter3DBase {
 	private _copyPixelTask: Filter3DCopyPixelTaskWebGL;
@@ -46,5 +47,15 @@ export class CopyPixelFilter3D extends Filter3DBase {
 
 	public set sourceTexture(value: Image2D) {
 		this._copyPixelTask.sourceTexture = value;
+	}
+
+	setRenderState(
+		source: Image2D,
+		target: Image2D,
+		sourceRect: Rectangle,
+		targetRect: Rectangle,
+		_manager: FilterManager)
+	{
+		super.setRenderState(source, target, sourceRect, targetRect, _manager);
 	}
 }
