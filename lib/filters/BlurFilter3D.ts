@@ -1,13 +1,9 @@
-import { Filter3DHBlurTask } from './tasks/Filter3DHBlurTask';
-import { Filter3DVBlurTask } from './tasks/Filter3DVBlurTask';
-
+import { Filter3DBlurTask } from './tasks/Filter3DBlurTask';
 import { Filter3DBase } from './Filter3DBase';
-import { Image2D } from '../image/Image2D';
-import { Stage } from '../Stage';
 
 export class BlurFilter3D extends Filter3DBase {
-	protected _hBlurTask: Filter3DHBlurTask;
-	protected _vBlurTask: Filter3DVBlurTask;
+	protected _hBlurTask: Filter3DBlurTask;
+	protected _vBlurTask: Filter3DBlurTask;
 	/**
 	 * Creates a new BlurFilter3D object
 	 * @param blurX The amount of horizontal blur to apply
@@ -17,8 +13,8 @@ export class BlurFilter3D extends Filter3DBase {
 	constructor(blurX: number = 3, blurY: number = 3, stepSize: number = -1) {
 		super();
 
-		this._hBlurTask = new Filter3DHBlurTask(blurX, stepSize);
-		this._vBlurTask = new Filter3DVBlurTask(blurY, stepSize);
+		this._hBlurTask = new Filter3DBlurTask(blurX, stepSize, true);
+		this._vBlurTask = new Filter3DBlurTask(blurY, stepSize, false);
 
 		this.addTask(this._hBlurTask);
 		this.addTask(this._vBlurTask);

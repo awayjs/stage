@@ -1,7 +1,6 @@
 import { ProjectionBase } from '@awayjs/core';
 import { Image2D, _Stage_Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
-import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
 
 const VERTEX = `
@@ -197,7 +196,7 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 		super.computeVertexData();
 
 		const tex = this._source;
-		const prog = <ProgramWebGL> this._program3D;
+		const prog = this._program3D;
 		const needUpload = prog.focusId !== this._focusId;
 
 		prog.uploadUniform('uTexMatrix', this._vertexConstantData);
@@ -231,8 +230,5 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 
 		this._shadowInvalid = this._highlightInvalid = this._dirInvalid = false;
 
-	}
-
-	public deactivate(stage: Stage): void {
 	}
 }

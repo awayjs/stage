@@ -110,7 +110,4 @@ export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
 			p.uploadUniform('uColorTransform', this._colorTransformUData);
 		}
 	}
-
-	public deactivate(stage: Stage): void {
-	}
 }

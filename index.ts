@@ -65,9 +65,8 @@ export { IGraphicsFactory } from './lib/factories/IGraphicsFactory';
 
 export { Filter3DCompositeTask } from './lib/filters/tasks/Filter3DCompositeTask';
 export { Filter3DFXAATask } from './lib/filters/tasks/Filter3DFXAATask';
-export { Filter3DHBlurTask } from './lib/filters/tasks/Filter3DHBlurTask';
+export { Filter3DBlurTask } from './lib/filters/tasks/Filter3DBlurTask';
 export { Filter3DTaskBase } from './lib/filters/tasks/Filter3DTaskBase';
-export { Filter3DVBlurTask } from './lib/filters/tasks/Filter3DVBlurTask';
 export { BlurFilter3D } from './lib/filters/BlurFilter3D';
 export { CompositeFilter3D } from './lib/filters/CompositeFilter3D';
 export { Filter3DBase } from './lib/filters/Filter3DBase';

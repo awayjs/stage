@@ -18,7 +18,7 @@ void main() {
 
     gl_Position = pos;
 
-	vUv = clamp((va0.xy * uTexMatrix[1].zw) * uTexMatrix[1].xy, 0., 1.);
+	vUv = clamp((va0.xy * uTexMatrix[1].zw) + uTexMatrix[1].xy, 0., 1.);
 }
 
 `;
@@ -37,18 +37,28 @@ void main() {
 `;
 
 export class Filter3DTaskBaseWebGL extends Filter3DTaskBase {
+	_program3D: ProgramWebGL;
+
+	public get name() {
+		return this.constructor.name;
+	}
+
 	public updateProgram(stage: Stage): void {
 		if (this._program3D)
 			this._program3D.dispose();
 
-		this._program3D = stage.context.createProgram();
-		this._registerCache.reset();
+		this._program3D = <ProgramWebGL> stage.context.createProgram();
+		this._program3D.name = this.name;
 
-		this._program3D.name = (<any> this.constructor).name;
 		(<ProgramWebGL> this._program3D).uploadRaw(
 			this.getVertexCode(),
 			this.getFragmentCode());
 		this._program3DInvalid = false;
+	}
+
+	public activate(_stage: Stage, _projection: any, _depthTexture: any): void {
+		this.computeVertexData();
+		this._program3D.uploadUniform('uTexMatrix', this._vertexConstantData);
 	}
 
 	getVertexCode() {
