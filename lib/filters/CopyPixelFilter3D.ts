@@ -47,8 +47,4 @@ export class CopyPixelFilter3D extends Filter3DBase {
 	public set sourceTexture(value: Image2D) {
 		this._copyPixelTask.sourceTexture = value;
 	}
-
-	public setRenderState (source: Image2D, target: Image2D,) {
-
-	}
 }
