@@ -98,8 +98,8 @@ export class Filter3DTaskBase {
 			'add ' + temp1 + '.xy, ' + temp1 + ', ' + posRect + '.xy\n' +
 			'mov ' + temp1 + '.w, ' + position + '.w\n' +
 			'mov op, ' + temp1 + '\n' +
-			'add ' + temp1 + '.xy, ' + position + ', ' + uvRect + '.xy\n' +
-			'mul ' + this._uvVarying + ', ' + temp1 + ', ' + uvRect + '.zw\n';
+			'mul ' + temp1 + '.xy, ' + position + ', ' + uvRect + '.zw\n' +
+			'add ' + this._uvVarying + ', ' + temp1 + ', ' + uvRect + '.xy\n';
 
 		return code;
 	}

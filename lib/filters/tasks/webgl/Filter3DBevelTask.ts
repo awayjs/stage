@@ -22,8 +22,8 @@ void main() {
 
     gl_Position = pos;
 
-	vUv[0] = clamp((va0.xy + uTexMatrix[1].xy) * uTexMatrix[1].zw, 0., 1.);
-	vUv[1] = clamp((va0.xy + uTexMatrixSource.xy) * uTexMatrixSource.zw , 0., 1.);
+	vUv[0] = clamp((va0.xy * uTexMatrix[1].zw) + uTexMatrix[1].xy, 0., 1.);
+	vUv[1] = clamp((va0.xy * uTexMatrixSource.zw) + uTexMatrixSource.xy , 0., 1.);
 }
 
 `;

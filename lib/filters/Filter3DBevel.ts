@@ -68,10 +68,10 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 	quality: number;
 
 	@proxyTo('_bevelTask')
-	type?: 'inner' | 'outer' = 'inner';
+	type: 'inner' | 'outer' = 'inner';
 
 	@proxyTo('_bevelTask')
-	knockout?: boolean = false;
+	knockout: boolean = false;
 
 	protected _source: Image2D;
 

@@ -35,10 +35,10 @@ export class FilterUtils {
 		target = target || new Rectangle();
 		target.copyFrom(bounds);
 
-		target.x -= bh;
-		target.y -= bv;
-		target.width += 2 * bh;
-		target.height += 2 * bv;
+		target.x -= bh / 2;
+		target.y -= bv / 2;
+		target.width += bh;
+		target.height +=  bv;
 
 		return target;
 	}
