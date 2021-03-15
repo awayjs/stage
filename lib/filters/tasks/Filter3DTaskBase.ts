@@ -136,8 +136,8 @@ export class Filter3DTaskBase {
 		// pos in viewport MUST be -1 - 0, for this we multiple at 2 and decrease 1
 
 		// pos offset (-1, 1)
-		data[0] = dest.x / target.width - 1;
-		data[1] = dest.y / target.height - 1;
+		data[0] = 2. * dest.x / target.width - 1;
+		data[1] = 2. * dest.y / target.height - 1;
 
 		// pos scale
 		data[2] = 2. * dest.width / target.width;
