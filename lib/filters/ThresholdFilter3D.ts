@@ -22,19 +22,20 @@ export class ThresholdFilter3D extends Filter3DBase {
 	}
 
 	public get rect(): Rectangle {
-		return this._thresholdTask.rect;
+		return this._thresholdTask.inputRect;
 	}
 
 	public set rect(value: Rectangle) {
-		this._thresholdTask.rect = value;
+		this._thresholdTask.inputRect = value;
 	}
 
 	public get destPoint(): Point {
-		return this._thresholdTask.destPoint;
+		return this._thresholdTask.destRect.topLeft;
 	}
 
 	public set destPoint(value: Point) {
-		this._thresholdTask.destPoint = value;
+		this._thresholdTask.destRect.x = value.x;
+		this._thresholdTask.destRect.y = value.y;
 	}
 
 	public get operation(): string {

@@ -1,4 +1,4 @@
-import { AbstractMethodError, ByteArray, Point, ProjectionBase, Rectangle } from '@awayjs/core';
+import { AbstractMethodError, ByteArray, ProjectionBase, Rectangle } from '@awayjs/core';
 import { ShaderRegisterCache } from '../../shaders/ShaderRegisterCache';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { Image2D } from '../../image/Image2D';
@@ -12,7 +12,10 @@ import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 
 export class Filter3DTaskBase {
-	protected _vertexConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+	protected _vertexConstantData = new Float32Array([
+		0.0, 0.0, 0.0, 0.0,
+		0.0, 0.0, 0.0, 0.0
+	]);
 
 	public activateInternaly = false;
 	public _registerCache: ShaderRegisterCache;
@@ -37,8 +40,8 @@ export class Filter3DTaskBase {
 	private _requireDepthRender: boolean;
 	private _textureScale: number = 1;
 
-	public rect: Rectangle = new Rectangle();
-	public destPoint: Point = new Point();
+	public inputRect: Rectangle = new Rectangle();
+	public destRect: Rectangle = new Rectangle();
 
 	public vao: IVao;
 
@@ -166,25 +169,22 @@ export class Filter3DTaskBase {
 	}
 
 	public getVertexCode(): string {
-		const temp1: ShaderRegisterElement = this._registerCache.getFreeVertexVectorTemp();
+		const temp1 = this._registerCache.getFreeVertexVectorTemp();
+		const posRect = this._registerCache.getFreeVertexConstant();
 
-		const rect: ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
-
-		const position: ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
+		const position = this._registerCache.getFreeVertexAttribute();
 		this._positionIndex = position.index;
 
-		const offset: ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
-
-		const uv: ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
-		this._uvIndex = uv.index;
+		const uvRect = this._registerCache.getFreeVertexConstant();
 
 		this._uvVarying = this._registerCache.getFreeVarying();
 
-		const code = 'mul ' + temp1 + '.xy, ' + position + ', ' + rect + '.zw\n' +
-			'add ' + temp1 + '.xy, ' + temp1 + ', ' + rect + '.xy\n' +
+		const code = 'mul ' + temp1 + '.xy, ' + position + ', ' + posRect + '.zw\n' +
+			'add ' + temp1 + '.xy, ' + temp1 + ', ' + posRect + '.xy\n' +
 			'mov ' + temp1 + '.w, ' + position + '.w\n' +
 			'mov op, ' + temp1 + '\n' +
-			'add ' + this._uvVarying + ', ' + uv + ', ' + offset + '.xy\n';
+			'mul ' + temp1 + '.xy, ' + position + ', ' + uvRect + '.zw\n' +
+			'add ' + this._uvVarying + ', ' + temp1 + ', ' + uvRect + '.xy\n';
 
 		return code;
 	}
@@ -212,28 +212,49 @@ export class Filter3DTaskBase {
 		return <T> this._program3D;
 	}
 
-	public activate(stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
+	protected computeVertexData() {
 		const data = this._vertexConstantData;
-		const index = this._positionIndex;
+		const dest = this.destRect;
+		const input = this.inputRect;
+		const target = this._target;
+		const source = this._mainInputTexture;
 
-		if (this.rect.width === 0 || this.rect.height === 0) {
-			this.rect.width = this._scaledTextureWidth;
-			this.rect.height = this._scaledTextureHeight;
+		if (input.width * input.height === 0) {
+			input.width = this._scaledTextureWidth;
+			input.height = this._scaledTextureHeight;
 		}
 
-		const paddedX = this.destPoint.x;
-		const paddedY = this.destPoint.y;
+		if (dest.width * dest.height === 0) {
+			dest.width = input.width;
+			dest.height = input.height;
+		}
 
-		data[index + 0] = (paddedX * 2 + this.rect.width) / this._target.width - 1;
-		data[index + 1] = (paddedY * 2 + this.rect.height) / this._target.height - 1;
-		data[index + 2] = this.rect.width / this._target.width;
-		data[index + 3] = this.rect.height / this._target.height;
+		// pos = scale * pos + offset
+		// pos in viewport MUST be -1 - 0, for this we multiple at 2 and decrease 1
 
-		data[index + 4] = this.rect.x / this._mainInputTexture.width;
-		data[index + 5] = this.rect.y / this._mainInputTexture.height;
+		// pos offset (-1, 1)
+		data[0] = dest.x / this._target.width - 1;
+		data[1] = dest.y / this._target.height - 1;
+
+		// pos scale
+		data[2] = 2. * dest.width / target.width;
+		data[3] = 2. * dest.height / target.height;
+
+		// uv already from 0,1, not require remap it
+		// uv offset
+		data[4] = input.x / source.width;
+		data[5] = input.y / source.height;
+
+		// uv scale
+		data[6] = input.width / source.width;
+		data[7] = input.height / source.height;
+	}
+
+	public activate(stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
+		this.computeVertexData();
 
 		const context: IContextGL = stage.context;
-		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, data);
+		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
 	}
 
 	public deactivate(stage: Stage): void {

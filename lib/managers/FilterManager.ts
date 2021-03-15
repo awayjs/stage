@@ -17,8 +17,54 @@ import { IndexBufferWebGL } from '../webgl/IndexBufferWebGL';
 import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
 import { IVao } from '../base/IVao';
+import { ContextGLClearMask } from '../base/ContextGLClearMask';
 
+type TmpImage2D = Image2D & {poolKey: number, antialiasQuality: number};
 export class FilterManager {
+	private static MAX_TMP_TEXTURE = 4096;
+	private static MIN_TMP_TEXTURE = 128;
+
+	private static blurFilterStepWidths: number[] = [
+		0.5, 1.05, 1.35, 1.55, 1.75, 1.9, 2, 2.1, 2.2, 2.3, 2.5, 3, 3, 3.5, 3.5
+	];
+
+	private static _updateBlurBounds (
+		bounds: Rectangle,
+		blurX: number,
+		blurY: number,
+		quality: ui8,
+		isBlurFilter: boolean = false
+	): Rectangle {
+		const stepWidth = this.blurFilterStepWidths[quality - 1];
+
+		if (isBlurFilter) {
+			// BlurFilter behaves slightly different from other blur based filters:
+			// Given ascending blurX/blurY values, generateFilterRect with BlurFilter
+			// expands the source rect later than with i.e. GlowFilter. The difference
+			// appears to be stepWidth / 4 for all quality values.
+			const stepWidth4 = stepWidth / 4;
+			blurX -= stepWidth4;
+			blurY -= stepWidth4;
+		}
+
+		// Calculate horizontal and vertical borders:
+		// blurX/blurY values <= 1 are always rounded up to 1,
+		// which means that generateFilterRect always expands the source rect,
+		// even when blurX/blurY is 0.
+		const bh = Math.ceil((blurX < 1 ? 1 : blurX) * stepWidth);
+		const bv = Math.ceil((blurY < 1 ? 1 : blurY) * stepWidth);
+
+		bounds.inflate(bh, bv);
+
+		return bounds;
+	}
+
+	private _texturePool: Record<number, TmpImage2D[]> = {};
+
+	private static _instance: FilterManager;
+	public static get instance() {
+		return this._instance;
+	}
 
 	private _filterVertexBuffer: VertexBufferWebGL;
 	private _filterIndexBuffer: IndexBufferWebGL;
@@ -39,6 +85,48 @@ export class FilterManager {
 	}
 
 	constructor (private _stage: Stage) {
+		FilterManager._instance = this;
+	}
+
+	public popTemp (width: number, height: number): TmpImage2D {
+		width = Math.min(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(width - 1));
+		height = Math.min(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(height - 1));
+
+		if (width > FilterManager.MAX_TMP_TEXTURE || height > FilterManager.MAX_TMP_TEXTURE) {
+
+			// eslint-disable-next-line max-len
+			console.warn(`[Filter manager] Temporary texture size ${width}x${height} is bigger that limit, clamp to ${FilterManager.MAX_TMP_TEXTURE}`);
+
+			width = Math.min(width, FilterManager.MAX_TMP_TEXTURE);
+			height = Math.max(height, FilterManager.MAX_TMP_TEXTURE);
+		}
+
+		const key = width << 4 + height;
+
+		let image: TmpImage2D;
+
+		if (!this._texturePool[key]) {
+			this._texturePool[key] = [];
+		} else {
+			image = this._texturePool[key].pop();
+		}
+
+		if (!image) {
+			// TODO
+			// we have problems with cyclic imports
+			// and can't create TmpImage2D class, use a regular Image2D with mixin
+			image = <TmpImage2D>(new Image2D(width, height, true));
+			image.poolKey = key;
+			image.antialiasQuality = 0;
+		}
+
+		return image;
+	}
+
+	public pushTemp (image: TmpImage2D) {
+		if (image.poolKey > 0) {
+			this._texturePool[image.poolKey].push(image);
+		}
 	}
 
 	private _initFilterElements() {
@@ -47,13 +135,13 @@ export class FilterManager {
 			return;
 		}
 
-		this._filterVertexBuffer = this.context.createVertexBuffer(4, 20);
+		this._filterVertexBuffer = this.context.createVertexBuffer(4, 8);
 		this._filterVertexBuffer.uploadFromArray(
 			new Float32Array([
-				-1, -1, 0, 0, 0,
-				1, -1, 1, 0, 1,
-				1, 1, 1, 1, 2,
-				-1, 1, 0, 1, 3
+				0, 0,
+				1, 0,
+				1, 1,
+				0, 1
 			]), 0, 4);
 
 		this._filterIndexBuffer = this.context.createIndexBuffer(6);
@@ -73,7 +161,7 @@ export class FilterManager {
 			vao && vao.bind();
 
 			ctx.setVertexBufferAt(0, this._filterVertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-			ctx.setVertexBufferAt(1, this._filterVertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+			ctx.setVertexBufferAt(1, this._filterVertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
 
 			// we can bound index buffer directly, but to track index rebound state should attach it to vao
 			vao
@@ -109,17 +197,26 @@ export class FilterManager {
 
 		(<Filter3DBase><any>filter).setSource(source);
 
-		this.renderFilter(target, <Filter3DBase><any>filter);
+		this.renderFilter(source, target, <Filter3DBase><any>filter);
 
 		return true;
 	}
 
-	public renderFilter(target: Image2D, filter: Filter3DBase) {
-
+	public renderFilter(source: Image2D, target: Image2D, filter: Filter3DBase) {
 		this._initFilterElements();
+
+		const renderToSelf = source === target;
+
+		// tmp texture, avoid framebuffer loop
+		const output = renderToSelf
+			? this.popTemp(target.width, target.height)
+			: target;
 
 		filter.init(this.context);
 		filter.setRenderTargets(target, this._stage);
+
+		// because we render to tmp, need flush
+		const needClear = !renderToSelf;
 
 		//render
 		const indexBuffer = this._filterIndexBuffer;
@@ -132,6 +229,10 @@ export class FilterManager {
 		for (const task of tasks) {
 			this._stage.setRenderTarget(task.target, false);
 			this._stage.setScissor(null);
+
+			if (task.target === output && needClear) {
+				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
+			}
 
 			this.context.setProgram(task.getProgram(this._stage));
 			this.context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
@@ -147,6 +248,12 @@ export class FilterManager {
 			this.context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
 
 			task.deactivate(this._stage);
+		}
+
+		if (renderToSelf) {
+			// copy output to target texture
+			this.copyPixels(output, target, target.rect, new Point(0,0), null, null, false);
+			this.pushTemp(output as TmpImage2D);
 		}
 
 		this._unbindFilterElemens();
@@ -177,7 +284,7 @@ export class FilterManager {
 			this._copyPixelFilter.rect = rect;
 			this._copyPixelFilter.destPoint = destPoint;
 
-			this.renderFilter(target, this._copyPixelFilter);
+			this.renderFilter(source, target, this._copyPixelFilter);
 		} else {
 			rect = rect.clone();
 			destPoint = destPoint.clone();
@@ -236,7 +343,7 @@ export class FilterManager {
 		this._thresholdFilter.mask = mask;
 		this._thresholdFilter.copySource = copySource;
 
-		this.renderFilter(target, this._thresholdFilter);
+		this.renderFilter(source, target, this._thresholdFilter);
 	}
 
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {
@@ -250,7 +357,7 @@ export class FilterManager {
 		this._copyPixelFilter.destPoint = new Point(0,0);
 		this._copyPixelFilter.colorTransform = colorTransform;
 
-		this.renderFilter(target, this._copyPixelFilter);
+		this.renderFilter(source, target, this._copyPixelFilter);
 
 		this._copyPixelFilter.colorTransform = null;
 	}

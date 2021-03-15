@@ -1,37 +1,8 @@
-import { ProjectionBase, Rectangle, Point } from '@awayjs/core';
+import { ProjectionBase } from '@awayjs/core';
 import { Image2D, _Stage_Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
 import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
-
-const VERTEX = `
-precision highp float;
-
-uniform vec4 uTexMatrix[2];
-uniform vec2 uDir;
-
-vec4 vt0;
-
-/* AGAL legacy atrib resolver require this names */
-attribute vec4 va0; // position
-attribute vec4 va1; // uv 
-
-varying vec2 vUv[3];
-
-void main() {
-	vec4 pos = va0;
-
-	pos.xy = pos.xy * uTexMatrix[0].zw + uTexMatrix[0].xy;
-	pos.z = pos.z * 2.0 - pos.w;
-
-	vUv[0] = (va1.xy + uTexMatrix[1].xy) * uTexMatrix[1].zw;
-	vUv[1] = vUv[0] - uDir;//, 0., 1.);
-	vUv[2] = vUv[0] + uDir;//, 0., 1.);
-
-    gl_Position = pos;
-}
-
-`;
 
 const FRAG = `
 precision highp float;
@@ -40,8 +11,9 @@ uniform vec4 uHColor;
 uniform vec4 uSColor;
 uniform float uStrength;
 uniform vec3 uType;
+uniform vec2 uDir;
 
-varying vec2 vUv[3];
+varying vec2 vUv;
 
 /* AGAL legacy attrib resolver require this names */
 // blur
@@ -52,15 +24,15 @@ uniform sampler2D fs0;
 uniform sampler2D fs1;
 
 void main() {
-	vec4 color = texture2D(fs1, vUv[0]);
+	vec4 color = texture2D(fs1, vUv);
 	
 	float a = color.a;
 
 	// LOOL.. there are a bug - we PMA it twice, devide to compense
 	if (a > 0.) color.a /= a;
 
-	float high = texture2D(fs0, vUv[1]).a;
-	float shadow = texture2D(fs0, vUv[2]).a;
+	float high = texture2D(fs0, vUv - uDir).a;
+	float shadow = texture2D(fs0, vUv + uDir).a;
 	float factor = high - shadow;
 
 	shadow = min(1., max(0., factor) * uStrength) * uSColor.a;
@@ -82,9 +54,6 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 	private _uMatrix: Float32Array = new Float32Array([0,0,0,0,0,0,0,0]);
 	private _uSColor: Float32Array = new Float32Array([0,0,0,1]);
 	private _uHColor: Float32Array = new Float32Array([1,1,1,1]);
-
-	public rect: Rectangle = new Rectangle();
-	public destPoint: Point = new Point();
 
 	public sourceImage: Image2D;
 
@@ -193,64 +162,39 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 		super();
 	}
 
-	public getVertexCode(): string {
-		return VERTEX;
-	}
-
 	public getFragmentCode(): string {
 		return FRAG;
 	}
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
-		const index = 0;//this._positionIndex;
-		const vd = this._uMatrix;
-		const dp = this.destPoint;
-		const sr = this.rect;
-		const tr = this._target;
+		super.computeVertexData();
+
 		const tex = this._mainInputTexture;
+		const prog = <ProgramWebGL> this._program3D;
+		const needUpload = prog.focusId !== this._focusId;
 
-		// add to vertex
-		vd[index + 0] = 0;//(2 * dp.x + sr.width) / tr.width - 1;
-		vd[index + 1] = 0;//(2 * dp.y + sr.height) / tr.height - 1;
+		prog.uploadUniform('uTexMatrix', this._vertexConstantData);
 
-		// mull to vertex
-		vd[index + 2] = 1;//sr.width / tr.width;
-		vd[index + 3] = 1;//sr.height / tr.height;
-
-		// add to uv
-		vd[index + 4] = 0;//sr.x / sr.width;
-		vd[index + 5] = 0;//sr.y / sr.height;
-
-		// mul to uv
-		vd[index + 6] = 1;//sr.width / tex.width;
-		vd[index + 7] = 1;//sr.height / tex.height;
-
-		const p = <ProgramWebGL> this._program3D;
-
-		const needUpload = p.focusId !== this._focusId;
-
-		p.uploadUniform('uTexMatrix', vd);
-
-		(needUpload || this._shadowInvalid) && p.uploadUniform('uSColor', this._uSColor);
-		(needUpload || this._highlightInvalid) && p.uploadUniform('uHColor', this._uHColor);
+		(needUpload || this._shadowInvalid) && prog.uploadUniform('uSColor', this._uSColor);
+		(needUpload || this._highlightInvalid) && prog.uploadUniform('uHColor', this._uHColor);
 
 		if (needUpload || this._dirInvalid) {
 			const rad = this.angle * Math.PI / 180;
-			p.uploadUniform('uDir', [
+			prog.uploadUniform('uDir', [
 				Math.cos(rad) * this.distance / tex.width,
 				Math.sin(rad) * this.distance / tex.height
 			]);
 		}
 
-		p.uploadUniform('uStrength', this.strength);
-		p.uploadUniform('uType', [
+		prog.uploadUniform('uStrength', this.strength);
+		prog.uploadUniform('uType', [
 			this.knockout ? 0 : 1,
 			this.type !== 'outer' ? 1 : 0,
 			this.type !== 'inner' ? 1 : 0
 		]);
 
 		this.sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
-		this._focusId = p.focusId;
+		this._focusId = prog.focusId;
 
 		this._shadowInvalid = this._highlightInvalid = this._dirInvalid = false;
 

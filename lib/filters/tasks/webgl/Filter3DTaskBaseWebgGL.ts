@@ -4,18 +4,23 @@ import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 
 const VERTEX_DEF = `
 precision highp float;
-uniform float yflip;
-attribute vec4 aPosition;
-attribute vec4 aUv;
+uniform vec4 uTexMatrix[2];
 
-varying vec4 vUv;
+/* AGAL legacy atrib resolver require this names */
+attribute vec4 va0; // position
 
+varying vec2 vUv;
 void main() {
-	vUv = aUv;
-	vec4 pos = aPosition;
+	vec4 pos = va0;
+
+	pos.xy = pos.xy * uTexMatrix[0].zw + uTexMatrix[0].xy;
 	pos.z = pos.z * 2.0 - pos.w;
-	gl_Position = pos;
+
+    gl_Position = pos;
+
+	vUv = clamp(va0.xy * uTexMatrix[1].zw + uTexMatrix[1].xy, 0., 1.);
 }
+
 `;
 
 const FRAG_DEF = `

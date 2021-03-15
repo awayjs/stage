@@ -31,19 +31,20 @@ export class CopyPixelFilter3D extends Filter3DBase {
 	}
 
 	public get rect(): Rectangle {
-		return this._copyPixelTask.rect;
+		return this._copyPixelTask.inputRect;
 	}
 
 	public set rect(value: Rectangle) {
-		this._copyPixelTask.rect = value;
+		this._copyPixelTask.inputRect = value;
 	}
 
 	public get destPoint(): Point {
-		return this._copyPixelTask.destPoint;
+		return this._copyPixelTask.destRect.topLeft;
 	}
 
 	public set destPoint(value: Point) {
-		this._copyPixelTask.destPoint = value;
+		this._copyPixelTask.destRect.x  = value.x;
+		this._copyPixelTask.destRect.y  = value.y;
 	}
 
 	public get sourceTexture(): Image2D {

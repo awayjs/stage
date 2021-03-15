@@ -91,12 +91,12 @@ export class Filter3DVBlurTask extends Filter3DTaskBase {
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
 		super.activate(stage, projection, depthTexture);
+
 		stage.context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._data);
 	}
 
 	public updateTextures(stage: Stage): void {
 		super.updateTextures(stage);
-
 		this.updateBlurData();
 	}
 

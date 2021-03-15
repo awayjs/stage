@@ -1,4 +1,4 @@
-import { ProjectionBase, Rectangle, Point, Vector3D } from '@awayjs/core';
+import { ProjectionBase, Vector3D } from '@awayjs/core';
 
 import { Filter3DTaskBase } from './Filter3DTaskBase';
 import { Image2D } from '../../image/Image2D';
@@ -46,10 +46,6 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	private _copySource: boolean = false;
 
 	private _decodeVector: Vector3D = new Vector3D(65025.0, 255.0, 1.0, 16581375.0);
-
-	public rect: Rectangle = new Rectangle();
-
-	public destPoint: Point = new Point();
 
 	public get operation(): string {
 		return this._operation;
@@ -131,7 +127,9 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	constructor() {
 		super();
 
-		this._fragmentConstantData = new Float32Array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 65025.0, 255.0, 1.0, 16581375.0]);
+		this._fragmentConstantData = new Float32Array([
+			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 65025.0, 255.0, 1.0, 16581375.0
+		]);
 	}
 
 	public get sourceTexture(): Image2D {
@@ -140,32 +138,6 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 
 	public set sourceTexture(value: Image2D) {
 		this._mainInputTexture = value;
-	}
-
-	public getVertexCode(): string {
-		const temp1: ShaderRegisterElement = this._registerCache.getFreeVertexVectorTemp();
-
-		const rect: ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
-
-		const position: ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
-		this._positionIndex = position.index;
-
-		const offset: ShaderRegisterElement = this._registerCache.getFreeVertexConstant();
-
-		const uv: ShaderRegisterElement = this._registerCache.getFreeVertexAttribute();
-		this._uvIndex = uv.index;
-
-		this._uvVarying = this._registerCache.getFreeVarying();
-
-		let code: string;
-
-		code = 'mul ' + temp1 + '.xy, ' + position + ', ' + rect + '.zw\n' +
-			'add ' + temp1 + '.xy, ' + temp1 + ', ' + rect + '.xy\n' +
-			'mov ' + temp1 + '.w, ' + position + '.w\n' +
-			'mov op, ' + temp1 + '\n' +
-			'add ' + this._uvVarying + ', ' + uv + ', ' + offset + '.xy\n';
-
-		return code;
 	}
 
 	public getFragmentCode(): string {
@@ -223,20 +195,18 @@ export class Filter3DThresholdTask extends Filter3DTaskBase {
 	}
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
-		let index: number = this._positionIndex;
-		let data: Float32Array = this._vertexConstantData;
-		data[index] = (2 * this.destPoint.x + this.rect.width) / this._target.width - 1;
-		data[index + 1] = (2 * this.destPoint.y + this.rect.height) / this._target.height - 1;
-		data[index + 2] = this.rect.width / this._target.width;
-		data[index + 3] = this.rect.height / this._target.height;
+		super.computeVertexData();
 
-		data[index + 4] = this.rect.x / this._mainInputTexture.width;
-		data[index + 5] = this.rect.y / this._mainInputTexture.height;
-
-		const tVector: Vector3D = new Vector3D(this._thresholdRGBA.x * this._maskRGBA.x, this._thresholdRGBA.y * this._maskRGBA.y, this._thresholdRGBA.z * this._maskRGBA.z, this._thresholdRGBA.w * this._maskRGBA.w);
+		const tVector: Vector3D = new Vector3D(
+			this._thresholdRGBA.x * this._maskRGBA.x,
+			this._thresholdRGBA.y * this._maskRGBA.y,
+			this._thresholdRGBA.z * this._maskRGBA.z,
+			this._thresholdRGBA.w * this._maskRGBA.w);
 		const tValue: number = tVector.dotProduct(this._decodeVector);
-		index = this._fragmentConstantsIndex;
-		data = this._fragmentConstantData;
+
+		const index = this._fragmentConstantsIndex;
+		const data = this._fragmentConstantData;
+
 		data[index] = tValue;
 		data[index + 1] = tValue;
 		data[index + 2] = tValue;
