@@ -16,11 +16,14 @@ import { ContextWebGL } from '../webgl/ContextWebGL';
 import { IndexBufferWebGL } from '../webgl/IndexBufferWebGL';
 import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
+import { IVao } from '../base/IVao';
 
 export class FilterManager {
 
 	private _filterVertexBuffer: VertexBufferWebGL;
 	private _filterIndexBuffer: IndexBufferWebGL;
+	private _filterVAO: IVao;
+
 	private _filterSampler: ImageSampler;
 	private _copyPixelFilter: CopyPixelFilter3D;
 	private _thresholdFilter: ThresholdFilter3D;
@@ -40,31 +43,54 @@ export class FilterManager {
 
 	private _initFilterElements() {
 
-		if (!this._filterVertexBuffer) {
-			this._filterVertexBuffer = this.context.createVertexBuffer(4, 20);
-			this._filterVertexBuffer.uploadFromArray(
-				new Float32Array([
-					-1, -1,
-					0, 0,
-					0, 1,
-					-1, 1,
-					0, 1,
-					1, 1,
-					1, 1,
-					2, -1,
-					1, 0,
-					1, 3]), 0, 4);
+		if (this._filterVertexBuffer) {
+			return;
 		}
 
-		if (!this._filterIndexBuffer) {
-			this._filterIndexBuffer = this.context.createIndexBuffer(6);
-			this._filterIndexBuffer.uploadFromArray(new Uint16Array([
-				2, 1, 0,
-				3, 2, 0]), 0, 6);
-		}
+		this._filterVertexBuffer = this.context.createVertexBuffer(4, 20);
+		this._filterVertexBuffer.uploadFromArray(
+			new Float32Array([
+				-1, -1, 0, 0, 0,
+				1, -1, 1, 0, 1,
+				1, 1, 1, 1, 2,
+				-1, 1, 0, 1, 3
+			]), 0, 4);
 
-		if (!this._filterSampler)
-			this._filterSampler = new ImageSampler(false, true, false);
+		this._filterIndexBuffer = this.context.createIndexBuffer(6);
+		this._filterIndexBuffer.uploadFromArray(new Uint16Array([
+			2, 1, 0,
+			3, 2, 0]), 0, 6);
+
+		this._filterSampler = new ImageSampler(false, true, false);
+	}
+
+	private _bindFilterElements() {
+		const ctx = this.context;
+
+		if (!this._filterVAO) {
+			// if there are not VAO, but support - create it and bind for attach attributes
+			const vao = ctx.hasVao ? ctx.createVao() : null;
+			vao && vao.bind();
+
+			ctx.setVertexBufferAt(0, this._filterVertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
+			ctx.setVertexBufferAt(1, this._filterVertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
+
+			// we can bound index buffer directly, but to track index rebound state should attach it to vao
+			vao
+				? vao.attachIndexBuffer(this._filterIndexBuffer)
+				: ctx.bindIndexBuffer(this._filterIndexBuffer);
+
+			this._filterVAO = vao;
+
+		} else {
+			// already init, bind it
+			this._filterVAO.bind();
+		}
+	}
+
+	private _unbindFilterElemens() {
+		// to be sure that VAO wasn't corrupted by next shader
+		this._filterVAO && this._filterVAO.unbind(true);
 	}
 
 	public applyFilter (source: Image2D, target: Image2D, filterName: string, options: any): boolean {
@@ -83,7 +109,7 @@ export class FilterManager {
 
 		(<Filter3DBase><any>filter).setSource(source);
 
-		this.renderFilter(target,<Filter3DBase><any>filter);
+		this.renderFilter(target, <Filter3DBase><any>filter);
 
 		return true;
 	}
@@ -98,38 +124,10 @@ export class FilterManager {
 		//render
 		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
-		const len = tasks.length;
-		const hasVao = this.context.hasVao;
 
-		let vertexBuffer: VertexBufferWebGL = this._filterVertexBuffer;
-		let needUploadVao = false;
-
-		if (len > 1 || tasks[0].target) {
-			this.context.setProgram(tasks[0].getProgram(this._stage));
-
-			if (hasVao && !tasks[0].vao) {
-				if (!tasks[0].vao) {
-					tasks[0].vao = this.context.createVao();
-					needUploadVao = true;
-				}
-			}
-
-			tasks[0].vao && tasks[0].vao.bind();
-
-			if (needUploadVao || !tasks[0].vao) {
-
-				this.context.setVertexBufferAt(
-					tasks[0]._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-
-				this.context.setVertexBufferAt(
-					tasks[0]._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
-			}
-
-			// we should bound index buffer to VAO
-			if (needUploadVao) {
-				(<ContextWebGL> this.context).bindIndexBuffer(indexBuffer);
-			}
-		}
+		// bound a require shader, other shader MUST use same locations
+		this.context.setProgram(tasks[0].getProgram(this._stage));
+		this._bindFilterElements();
 
 		for (const task of tasks) {
 			this._stage.setRenderTarget(task.target, false);
@@ -144,32 +142,6 @@ export class FilterManager {
 					.activate(task._inputTextureIndex, this._filterSampler);
 			}
 
-			if (!task.target) {
-
-				if (hasVao && !task.vao) {
-					task.vao = this.context.createVao();
-					needUploadVao = true;
-				}
-
-				task.vao && task.vao.bind();
-
-				// we should a bind a aatributes ONCE or every call, if not VAO
-				if (needUploadVao || !task.vao) {
-					vertexBuffer = this._filterVertexBuffer;
-					this.context.setVertexBufferAt(
-						task._positionIndex, vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-
-					this.context.setVertexBufferAt(
-						task._uvIndex, vertexBuffer, 8, ContextGLVertexBufferFormat.FLOAT_2);
-				}
-
-				// we should bound index buffer to VAO to
-				// but for index buffer draw bound it internally when it no from VAO
-				if (needUploadVao) {
-					task.vao.attachIndexBuffer(<IndexBufferWebGL>indexBuffer);
-				}
-			}
-
 			task.activate(this._stage, null, null);
 
 			this.context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
@@ -177,15 +149,7 @@ export class FilterManager {
 			task.deactivate(this._stage);
 		}
 
-		if (hasVao) {
-			// mark that need unbind VAO if it present
-			// because otherwithe we can rewrite a buffers inside it
-			(<ContextWebGL> this.context)._vaoContext.bindVertexArray(null);
-		}
-
-		// disable vertex pointer because we not use a VAO
-		hasVao || this.context.setVertexBufferAt(0, null);
-		hasVao || this.context.setVertexBufferAt(1, null);
+		this._unbindFilterElemens();
 	}
 
 	public copyPixels(
