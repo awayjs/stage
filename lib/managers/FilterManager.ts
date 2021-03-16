@@ -18,11 +18,12 @@ import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
 import { IVao } from '../base/IVao';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
+import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
+import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 
 type TmpImage2D = Image2D & {poolKey: number, antialiasQuality: number};
 
 const tmpRect0 = new Rectangle();
-const tmpRect1 = new Rectangle();
 
 export class FilterManager {
 	private static MAX_TMP_TEXTURE = 4096;
@@ -172,6 +173,7 @@ export class FilterManager {
 			filter = this._filterCache[filterName] = new this._filterConstructors[filterName](options);
 		}
 
+		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 		this.renderFilter(
 			source,
 			target,
@@ -187,7 +189,8 @@ export class FilterManager {
 		sourceRect: Rectangle,
 		targetRect: Rectangle | Point,
 		filter: Filter3DBase
-	) {
+	): void {
+
 		this._initFilterElements();
 
 		const outRect = tmpRect0;
@@ -224,7 +227,9 @@ export class FilterManager {
 		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
 
-		// bound a require shader, other shader MUST use same locations
+		this.context.setCulling(ContextGLTriangleFace.NONE);
+
+		// vao binds require shader, other shader MUST use same locations
 		this.context.setProgram(tasks[0].getProgram(this._stage));
 		this._bindFilterElements();
 
@@ -270,7 +275,10 @@ export class FilterManager {
 		source: Image2D, target: Image2D,
 		rect: Rectangle, destPoint: Point,
 		alphaBitmapData: Image2D = null, alphaPoint: Point = null,
-		mergeAlpha: boolean = false): void {
+		mergeAlpha: boolean = false
+	): void {
+
+		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 
 		//early out for values that won't produce any visual update
 		if (destPoint.x < -rect.width
@@ -353,6 +361,8 @@ export class FilterManager {
 		this._thresholdFilter.mask = mask;
 		this._thresholdFilter.copySource = copySource;
 
+		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
+
 		this.renderFilter(source, target, rect, destPoint, this._thresholdFilter);
 	}
 
@@ -365,6 +375,8 @@ export class FilterManager {
 		//this._copyPixelFilter.rect = rect;
 		//this._copyPixelFilter.destPoint = new Point(0,0);
 		this._copyPixelFilter.colorTransform = colorTransform;
+
+		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 
 		this.renderFilter(source, target, rect, rect, this._copyPixelFilter);
 
