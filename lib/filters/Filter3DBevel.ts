@@ -93,29 +93,36 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 	public setRenderState (
 		source: Image2D,
 		target: Image2D,
-		inputRect: Rectangle,
+		sourceRect: Rectangle,
 		outRect: Rectangle,
 		filterManage: FilterManager
 	) {
 
-		const size = FilterUtils.meashureBlurBounds(
-			inputRect,
+		const size = FilterUtils.meashureBlurPad(
 			this.blurX,
 			this.blurY,
 			this.quality,
 			true
 		);
 
-		const firstPass = filterManage.popTemp(size.width, size.height);
-		const secondPass = filterManage.popTemp(size.width, size.height);
-
-		this._hBlurTask.destRect.setTo(
-			inputRect.x - size.x,
-			inputRect.y - size.y,
-			inputRect.width, inputRect.height
+		const firstPass = filterManage.popTemp(
+			sourceRect.width + size.x,
+			sourceRect.height + size.y
+		);
+		const secondPass = filterManage.popTemp(
+			sourceRect.width + size.x,
+			sourceRect.height + size.y
 		);
 
-		this._hBlurTask.inputRect = inputRect;
+		this._hBlurTask.inputRect = sourceRect;
+		this._hBlurTask.destRect.setTo(
+			sourceRect.x + size.x / 2,
+			sourceRect.y + size.y / 2,
+			sourceRect.width, sourceRect.height
+		);
+
+		this._vBlurTask.inputRect.setTo(0,0,0,0);
+		this._vBlurTask.destRect.setTo(0,0,0,0);
 
 		this._bevelTask.inputRect = this._hBlurTask.destRect;
 		this._bevelTask.destRect = outRect;

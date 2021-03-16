@@ -20,6 +20,10 @@ import { IVao } from '../base/IVao';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
 
 type TmpImage2D = Image2D & {poolKey: number, antialiasQuality: number};
+
+const tmpRect0 = new Rectangle();
+const tmpRect1 = new Rectangle();
+
 export class FilterManager {
 	private static MAX_TMP_TEXTURE = 4096;
 	private static MIN_TMP_TEXTURE = 128;
@@ -53,8 +57,8 @@ export class FilterManager {
 	}
 
 	public popTemp (width: number, height: number): TmpImage2D {
-		width = Math.min(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(width - 1));
-		height = Math.min(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(height - 1));
+		width = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(width - 1));
+		height = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(height - 1));
 
 		if (width > FilterManager.MAX_TMP_TEXTURE || height > FilterManager.MAX_TMP_TEXTURE) {
 
@@ -62,7 +66,7 @@ export class FilterManager {
 			console.warn(`[Filter manager] Temporary texture size ${width}x${height} is bigger that limit, clamp to ${FilterManager.MAX_TMP_TEXTURE}`);
 
 			width = Math.min(width, FilterManager.MAX_TMP_TEXTURE);
-			height = Math.max(height, FilterManager.MAX_TMP_TEXTURE);
+			height = Math.min(height, FilterManager.MAX_TMP_TEXTURE);
 		}
 
 		const key = width << 4 + height;
@@ -149,7 +153,11 @@ export class FilterManager {
 	public applyFilter (
 		source: Image2D,
 		target: Image2D,
-		filterName: string, options: any): boolean {
+		sourceRect: Rectangle,
+		destRectOrPoint: Rectangle | Point,
+		filterName: string,
+		options: any,
+	): boolean {
 
 		if (!this._filterCache[filterName] && !this._filterConstructors[filterName]) {
 			console.warn('[FilterManager] Filter not implemented:', filterName);
@@ -164,8 +172,11 @@ export class FilterManager {
 			filter = this._filterCache[filterName] = new this._filterConstructors[filterName](options);
 		}
 
-		(<any>filter).sourceImage = source;
-		this.renderFilter(source, target, source.rect, source.rect, <Filter3DBase><any>filter);
+		this.renderFilter(
+			source,
+			target,
+			sourceRect || source.rect,
+			destRectOrPoint || source.rect, <Filter3DBase><any>filter);
 
 		return true;
 	}
@@ -179,19 +190,29 @@ export class FilterManager {
 	) {
 		this._initFilterElements();
 
-		const outRect = targetRect instanceof Point
-			? new Rectangle(
+		const outRect = tmpRect0;
+
+		if (targetRect instanceof Point) {
+			outRect.setTo(
 				targetRect.x,
 				targetRect.y,
 				sourceRect.width,
-				sourceRect.height)
-			: targetRect;
+				sourceRect.height
+			);
+		} else {
+			outRect.copyFrom(targetRect);
+		}
 
 		const renderToSelf = source === target;
+
 		// tmp texture, avoid framebuffer loop
-		const output = renderToSelf
-			? this.popTemp(outRect.width, outRect.height)
-			: target;
+		let output = target;
+		if (renderToSelf) {
+			// we render to tmp, not require use offset
+			output = this.popTemp(outRect.width, outRect.height);
+			outRect.x = 0;
+			outRect.y = 0;
+		}
 
 		filter.setRenderState(
 			source, output,
@@ -236,7 +257,7 @@ export class FilterManager {
 
 		if (renderToSelf) {
 			// copy output to target texture
-			this.copyPixels(output, target, sourceRect, outRect.topLeft, null, null, false);
+			this.copyPixels(output, target, outRect, targetRect as Point, null, null, false);
 			this.pushTemp(output as TmpImage2D);
 		}
 
@@ -340,8 +361,8 @@ export class FilterManager {
 		}
 
 		this._copyPixelFilter.sourceTexture = source;
-		this._copyPixelFilter.rect = rect;
-		this._copyPixelFilter.destPoint = new Point(0,0);
+		//this._copyPixelFilter.rect = rect;
+		//this._copyPixelFilter.destPoint = new Point(0,0);
 		this._copyPixelFilter.colorTransform = colorTransform;
 
 		this.renderFilter(source, target, rect, rect, this._copyPixelFilter);
