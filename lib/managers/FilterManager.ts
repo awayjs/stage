@@ -227,6 +227,13 @@ export class FilterManager {
 		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
 
+		if (filter.requireBlend) {
+			// context will enable blend when it was changed
+			this.context.setBlendFactors(filter.blendSrc, filter.blendDst);
+		} else {
+			this.context.setBlendState(false);
+		}
+
 		this.context.setCulling(ContextGLTriangleFace.NONE);
 
 		// vao binds require shader, other shader MUST use same locations
@@ -240,7 +247,8 @@ export class FilterManager {
 			this._stage.setScissor(task.clipRect);
 
 			// because we use TMP image, need clear it
-			if (renderToSelf || task.needClear) {
+			// but this is needed only when a blend composer is required, for ex, when a copy filter used
+			if ((renderToSelf || task.needClear) && filter.requireBlend) {
 				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
 
@@ -277,8 +285,6 @@ export class FilterManager {
 		alphaBitmapData: Image2D = null, alphaPoint: Point = null,
 		mergeAlpha: boolean = false
 	): void {
-
-		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 
 		//early out for values that won't produce any visual update
 		if (destPoint.x < -rect.width
@@ -361,8 +367,6 @@ export class FilterManager {
 		this._thresholdFilter.mask = mask;
 		this._thresholdFilter.copySource = copySource;
 
-		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
-
 		this.renderFilter(source, target, rect, destPoint, this._thresholdFilter);
 	}
 
@@ -375,8 +379,6 @@ export class FilterManager {
 		//this._copyPixelFilter.rect = rect;
 		//this._copyPixelFilter.destPoint = new Point(0,0);
 		this._copyPixelFilter.colorTransform = colorTransform;
-
-		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ZERO);
 
 		this.renderFilter(source, target, rect, rect, this._copyPixelFilter);
 

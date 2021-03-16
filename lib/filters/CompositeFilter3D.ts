@@ -2,9 +2,18 @@ import { Filter3DCompositeTask } from './tasks/Filter3DCompositeTask';
 
 import { Filter3DBase } from './Filter3DBase';
 import { Image2D } from '../image/Image2D';
+import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 
 export class CompositeFilter3D extends Filter3DBase {
 	private _compositeTask: Filter3DCompositeTask;
+
+	public get blendDst() {
+		return ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA;
+	}
+
+	public get requireBlend() {
+		return true;
+	}
 
 	/**
 	 * Creates a new CompositeFilter3D object
