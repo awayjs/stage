@@ -26,7 +26,7 @@ const tmpRect1 = new Rectangle();
 
 export class FilterManager {
 	private static MAX_TMP_TEXTURE = 4096;
-	private static MIN_TMP_TEXTURE = 128;
+	private static MIN_TMP_TEXTURE = 64;
 	private _texturePool: Record<number, TmpImage2D[]> = {};
 
 	private static _instance: FilterManager;
@@ -69,7 +69,7 @@ export class FilterManager {
 			height = Math.min(height, FilterManager.MAX_TMP_TEXTURE);
 		}
 
-		const key = width << 4 + height;
+		const key = height + (width << 16);
 
 		let image: TmpImage2D;
 
@@ -232,7 +232,7 @@ export class FilterManager {
 
 			task.preActivate(this._stage);
 			this._stage.setRenderTarget(task.target, false);
-			this._stage.setScissor(null);
+			this._stage.setScissor(task.clipRect);
 
 			// because we use TMP image, need clear it
 			if (renderToSelf || task.needClear) {
@@ -262,6 +262,7 @@ export class FilterManager {
 		}
 
 		filter.clear(this);
+		this._stage.setScissor(null);
 		this._unbindFilterElemens();
 	}
 
