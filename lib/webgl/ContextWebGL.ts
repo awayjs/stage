@@ -501,6 +501,10 @@ export class ContextWebGL implements IContextGL {
 		this._fenceContext && this._fenceContext.tick();
 	}
 
+	public setBlendState(enable: boolean) {
+		this._blendState.setAt(0, +enable);
+	}
+
 	public setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor): void {
 		const src = this._blendFactorMap[sourceFactor];
 		const dst = this._blendFactorMap[destinationFactor];
