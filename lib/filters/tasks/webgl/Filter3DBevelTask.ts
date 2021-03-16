@@ -221,8 +221,8 @@ export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
 
 		prog.uploadUniform('uTexMatrixSource', [
 			0, 0,
-			this._source.width / this.sourceImage.width,
-			this._source.height / this.sourceImage.height,
+			this.inputRect.width / this.sourceImage.width,
+			this.inputRect.height / this.sourceImage.height,
 		]);
 
 		this.sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);

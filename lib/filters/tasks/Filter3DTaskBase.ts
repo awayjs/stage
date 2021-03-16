@@ -38,7 +38,14 @@ export class Filter3DTaskBase {
 		this._registerCache = new ShaderRegisterCache(ContextGLProfile.BASELINE);
 	}
 
+	/**
+	 * Used for determine that this pass requrie clear target before render to it
+	 */
 	public needClear: boolean = false;
+	/**
+	 * Used for determine that this pass require scissor clip
+	 */
+	public clipRect: Rectangle;
 
 	public get source(): Image2D {
 		return this._source;

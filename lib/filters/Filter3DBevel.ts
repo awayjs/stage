@@ -98,33 +98,52 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 		filterManage: FilterManager
 	) {
 
-		const size = FilterUtils.meashureBlurPad(
+		const pad = FilterUtils.meashureBlurPad(
 			this.blurX,
 			this.blurY,
-			this.quality,
-			true
+			3,
+			false
 		);
 
 		const firstPass = filterManage.popTemp(
-			sourceRect.width + size.x,
-			sourceRect.height + size.y
+			source.width + pad.x,
+			source.height + pad.y
 		);
 		const secondPass = filterManage.popTemp(
-			sourceRect.width + size.x,
-			sourceRect.height + size.y
+			source.width + pad.x,
+			source.height + pad.y
 		);
 
-		this._hBlurTask.inputRect = sourceRect;
+		// we not cut region, because in this case blur will emit invalid data on edge
+		this._hBlurTask.inputRect.setTo(
+			0,0,
+			source.width,
+			source.height
+		);
+
+		// apply padding
 		this._hBlurTask.destRect.setTo(
-			sourceRect.x + size.x / 2,
-			sourceRect.y + size.y / 2,
-			sourceRect.width, sourceRect.height
+			pad.x, pad.y,
+			source.width,
+			source.height
 		);
 
+		// but we can use a clip to kill non-used
+		this._hBlurTask.clipRect = new Rectangle(
+			0,0,
+			source.width + pad.x,
+			source.height + pad.y
+		);
+
+		this._vBlurTask.clipRect = this._hBlurTask.clipRect;
+
+		// will be as target size
 		this._vBlurTask.inputRect.setTo(0,0,0,0);
 		this._vBlurTask.destRect.setTo(0,0,0,0);
 
-		this._bevelTask.inputRect = this._hBlurTask.destRect;
+		// emit real
+		// crop a dest rectanle
+		this._bevelTask.inputRect.setTo(pad.x, pad.y, outRect.width, outRect.height);
 		this._bevelTask.destRect = outRect;
 
 		this._hBlurTask.source = source;
