@@ -7,6 +7,7 @@ import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 import { Stage } from '../../Stage';
 
+export type TThresholdOperator = '<' | '<=' | '>' | '>=' | '==' | '!=';
 export class ThresholdTask extends TaskBase {
 	private _fragmentConstantData: Float32Array;
 
@@ -30,7 +31,7 @@ export class ThresholdTask extends TaskBase {
 		'!=' : false
 	}
 
-	private _operation: string = '<';
+	private _operation: TThresholdOperator = '<';
 	private _op: string;
 	private _th: boolean;
 
@@ -47,11 +48,11 @@ export class ThresholdTask extends TaskBase {
 
 	private _decodeVector: Vector3D = new Vector3D(65025.0, 255.0, 1.0, 16581375.0);
 
-	public get operation(): string {
+	public get operation(): TThresholdOperator {
 		return this._operation;
 	}
 
-	public set operation(value: string) {
+	public set operation(value: TThresholdOperator) {
 		if (this._operation == value)
 			return;
 
@@ -132,14 +133,6 @@ export class ThresholdTask extends TaskBase {
 		]);
 	}
 
-	public get sourceTexture(): Image2D {
-		return this._source;
-	}
-
-	public set sourceTexture(value: Image2D) {
-		this._source = value;
-	}
-
 	public getFragmentCode(): string {
 		const temp1: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
 		this._registerCache.addFragmentTempUsages(temp1, 1);
@@ -190,10 +183,6 @@ export class ThresholdTask extends TaskBase {
 		return code;
 	}
 
-	public getMainInputTexture(stage: Stage): Image2D {
-		return this._source;
-	}
-
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
 		super.computeVertexData();
 
@@ -225,8 +214,5 @@ export class ThresholdTask extends TaskBase {
 		const context: IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragmentConstantData);
-	}
-
-	public deactivate(stage: Stage): void {
 	}
 }

@@ -1,39 +1,47 @@
 import { BlurTask } from './tasks/BlurTask';
 import { FilterBase } from './FilterBase';
+import { FilterUtils, proxyTo } from '../utils/FilterUtils';
+import { Image2D } from '../image/Image2D';
+import { Rectangle } from '@awayjs/core';
+import { FilterManager } from '../managers/FilterManager';
+import { IBitmapFilter, IBitmapFilterProps } from './IBitmapFilter';
 
-export class BlurFilter extends FilterBase {
+export interface IBlurFilterProps extends IBitmapFilterProps {
+	blurX: number;
+	blurY: number;
+	// not supported yet
+	quality: number;
+}
+export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlurFilterProps> {
+	public static readonly filterName: string = 'blur';
+
 	protected _hBlurTask: BlurTask;
 	protected _vBlurTask: BlurTask;
-	/**
-	 * Creates a new BlurFilter3D object
-	 * @param blurX The amount of horizontal blur to apply
-	 * @param blurY The amount of vertical blur to apply
-	 * @param stepSize The distance between samples. Set to -1 to autodetect with acceptable quality.
-	 */
-	constructor(blurX: number = 3, blurY: number = 3, stepSize: number = -1) {
+
+	@proxyTo('_hBlurTask', 'amount')
+	public blurX: number;
+
+	@proxyTo('_vBlurTask', 'amount')
+	public blurY: number;
+
+	constructor(props?: Partial<IBlurFilterProps>) {
 		super();
 
-		this._hBlurTask = new BlurTask(blurX, stepSize, true);
-		this._vBlurTask = new BlurTask(blurY, stepSize, false);
+		this._hBlurTask = new BlurTask(props?.blurX || 4, -1, true);
+		this._vBlurTask = new BlurTask(props?.blurY || 4, -1, false);
 
 		this.addTask(this._hBlurTask);
 		this.addTask(this._vBlurTask);
 	}
 
-	public get blurX(): number {
-		return this._hBlurTask.amount;
-	}
+	public applyProps(props: Partial<IBlurFilterProps>) {
+		if ('blurX' in props) {
+			this.blurX = props.blurX;
+		}
 
-	public set blurX(value: number) {
-		this._hBlurTask.amount = value;
-	}
-
-	public get blurY(): number {
-		return this._vBlurTask.amount;
-	}
-
-	public set blurY(value: number) {
-		this._vBlurTask.amount = value;
+		if ('blurY' in props) {
+			this.blurY = props.blurY;
+		}
 	}
 
 	/**
@@ -47,5 +55,61 @@ export class BlurFilter extends FilterBase {
 	public set stepSize(value: number) {
 		this._hBlurTask.stepSize = value;
 		this._vBlurTask.stepSize = value;
+	}
+
+	public setRenderState (
+		source: Image2D,
+		target: Image2D,
+		sourceRect: Rectangle,
+		outRect: Rectangle,
+		filterManage: FilterManager
+	) {
+
+		const pad = FilterUtils.meashureBlurPad(
+			this.blurX,
+			this.blurY,
+			3,
+			false
+		);
+
+		const subPassTarget = filterManage.popTemp(
+			source.width + pad.x,
+			source.height + pad.y
+		);
+
+		// we not cut region, because in this case blur will emit invalid data on edge
+		this._hBlurTask.inputRect.setTo(
+			0,0,
+			source.width,
+			source.height
+		);
+
+		// apply padding
+		this._hBlurTask.destRect.setTo(
+			pad.x, pad.y,
+			source.width,
+			source.height
+		);
+
+		// but we can use a clip to kill non-used
+		this._hBlurTask.clipRect = new Rectangle(
+			0,0,
+			source.width + pad.x,
+			source.height + pad.y
+		);
+
+		this._vBlurTask.clipRect = this._hBlurTask.clipRect;
+
+		// emit real
+		// crop a dest rectanle
+		this._vBlurTask.inputRect.setTo(pad.x, pad.y, outRect.width, outRect.height);
+		this._vBlurTask.destRect.copyFrom(outRect);
+
+		this._hBlurTask.source = source;
+		this._hBlurTask.target = subPassTarget;
+		this._vBlurTask.source = subPassTarget;
+		this._vBlurTask.target = target;
+
+		this._temp = [subPassTarget];
 	}
 }

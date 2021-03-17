@@ -37,3 +37,28 @@ export class FilterUtils {
 		return target;
 	}
 }
+
+/**
+ * Decorator that allow proxify field get/set to another
+ * for ex: obj.name => obj.target.name
+ * @param fieldName target field name wich will be proxed
+ * @param subFieldName target object destination field name, can ovveride source field name
+ */
+export function proxyTo(fieldName: string, subFieldName?: string): any {
+	return function (
+		target: any,
+		propertyKey: string,
+		_descriptor: TypedPropertyDescriptor<any>
+	) {
+		subFieldName = propertyKey;
+
+		Object.defineProperty(target, propertyKey, {
+			set: function (v: any) {
+				this[fieldName][subFieldName] = v;
+			},
+			get: function () {
+				return this[fieldName][subFieldName];
+			}
+		});
+	};
+}

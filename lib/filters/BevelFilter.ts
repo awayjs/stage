@@ -1,46 +1,25 @@
 import { Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
-import { FilterUtils } from '../utils/FilterUtils';
-import { BlurFilter } from './BlurFilter';
-import { IUniversalFilter } from './IUniversalFilter';
+import { proxyTo } from '../utils/FilterUtils';
+import { BlurFilter, IBlurFilterProps } from './BlurFilter';
+import { IBitmapFilter } from './IBitmapFilter';
 import { BevelTask } from './tasks/webgl/BevelTask';
 
-function proxyTo(fieldName: string, subFieldName?: string): any {
-	return function (
-		target: any,
-		propertyKey: string,
-		_descriptor: TypedPropertyDescriptor<any>
-	) {
-		subFieldName = propertyKey;
-
-		Object.defineProperty(target, propertyKey, {
-			set: function (v: any) {
-				this[fieldName][subFieldName] = v;
-			},
-			get: function () {
-				return this[fieldName][subFieldName];
-			}
-		});
-	};
-}
-export interface IBevelFilterModel {
+export interface IBevelFilterProps extends IBlurFilterProps {
 	distance: number;
 	angle: number;
 	highlightColor: ui32;
 	highlightAlpha: ui32;
 	shadowColor: ui32;
 	shadowAlpha: number;
-	blurX: ui32;
-	blurY: ui32;
 	strength: number;
-	quality: ui8;
-	type?: 'inner';
+	type: 'inner' | 'outer' | 'both';
 	knockout?: number;
 }
 
-export class BevelFilter extends BlurFilter implements IUniversalFilter<IBevelFilterModel> {
-	public readonly filterName = 'bevel';
+export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IBevelFilterProps> {
+	public static readonly filterName: string = 'bevel';
 
 	protected _bevelTask = new BevelTask();
 
@@ -68,22 +47,20 @@ export class BevelFilter extends BlurFilter implements IUniversalFilter<IBevelFi
 	quality: number;
 
 	@proxyTo('_bevelTask')
-	type: 'inner' | 'outer' = 'inner';
+	type: 'inner' | 'outer' | 'both' = 'inner';
 
 	@proxyTo('_bevelTask')
 	knockout: boolean = false;
 
-	protected _source: Image2D;
-
-	constructor(options?: Partial <IBevelFilterModel>) {
-		super();
+	constructor(options?: Partial <IBevelFilterProps>) {
+		super(options);
 
 		this.addTask(this._bevelTask);
 
 		this.applyProps(options);
 	}
 
-	public applyProps(model: Partial<IBevelFilterModel>): void {
+	public applyProps(model: Partial<IBevelFilterProps>): void {
 		// run all model field that changed
 		for (const key in model) {
 			this[key] = model[key];
@@ -95,69 +72,36 @@ export class BevelFilter extends BlurFilter implements IUniversalFilter<IBevelFi
 		target: Image2D,
 		sourceRect: Rectangle,
 		outRect: Rectangle,
-		filterManage: FilterManager
+		filterManager: FilterManager
 	) {
 
-		const pad = FilterUtils.meashureBlurPad(
-			this.blurX,
-			this.blurY,
-			3,
-			false
-		);
+		super.setRenderState(source, target, sourceRect, outRect, filterManager);
 
-		const firstPass = filterManage.popTemp(
-			source.width + pad.x,
-			source.height + pad.y
+		const subtarget = this._hBlurTask.target;
+		const secondPass = filterManager.popTemp(
+			subtarget.width,
+			subtarget.height
 		);
-		const secondPass = filterManage.popTemp(
-			source.width + pad.x,
-			source.height + pad.y
-		);
-
-		// we not cut region, because in this case blur will emit invalid data on edge
-		this._hBlurTask.inputRect.setTo(
-			0,0,
-			source.width,
-			source.height
-		);
-
-		// apply padding
-		this._hBlurTask.destRect.setTo(
-			pad.x, pad.y,
-			source.width,
-			source.height
-		);
-
-		// but we can use a clip to kill non-used
-		this._hBlurTask.clipRect = new Rectangle(
-			0,0,
-			source.width + pad.x,
-			source.height + pad.y
-		);
-
-		this._vBlurTask.clipRect = this._hBlurTask.clipRect;
-
-		// will be as target size
-		this._vBlurTask.inputRect.setTo(0,0,0,0);
-		this._vBlurTask.destRect.setTo(0,0,0,0);
 
 		// emit real
 		// crop a dest rectanle
-		this._bevelTask.inputRect.setTo(pad.x, pad.y, outRect.width, outRect.height);
-		this._bevelTask.destRect = outRect;
+		// ovveride blur target
+		// we use a copyFrom, because if we will use referece - we can corrupt instance
+		this._bevelTask.inputRect.copyFrom(this._vBlurTask.inputRect);
+		this._bevelTask.destRect.copyFrom(outRect);
 
-		this._hBlurTask.source = source;
-		this._hBlurTask.target = firstPass;
-		this._vBlurTask.source = firstPass;
+		//reset output size
+		this._vBlurTask.inputRect.setTo(0,0,0,0);
+		this._vBlurTask.destRect.setTo(0,0,0,0);
+
+		// and reset target
 		this._vBlurTask.target = secondPass;
+
 		this._bevelTask.source = secondPass;
 		this._bevelTask.sourceImage = source;
 		this._bevelTask.target = target;
 
-		this._temp = [firstPass, secondPass];
+		this._temp.push(secondPass);
 
-		this._hBlurTask.needClear = true;
-		this._vBlurTask.needClear = true;
-		this._bevelTask.needClear = false;
 	}
 }

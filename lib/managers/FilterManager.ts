@@ -3,11 +3,6 @@ import { ColorTransform, Point, Rectangle } from '@awayjs/core';
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat';
-import { CopyPixelFilter } from '../filters/CopyPixelFilter';
-import { FilterBase } from '../filters/FilterBase';
-import { BevelFilter } from '../filters/BevelFilter';
-import { IUniversalFilter } from '../filters/IUniversalFilter';
-import { ThresholdFilter } from '../filters/ThresholdFilter';
 import { Image2D } from '../image/Image2D';
 import { _Stage_ImageBase } from '../image/ImageBase';
 import { ImageSampler } from '../image/ImageSampler';
@@ -20,6 +15,14 @@ import { IVao } from '../base/IVao';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import {
+	BlurFilter,
+	BevelFilter,
+	ThresholdFilter,
+	CopyPixelFilter,
+	FilterBase,
+	IBitmapFilter
+} from '../filters';
 
 type TmpImage2D = Image2D & {poolKey: number, antialiasQuality: number};
 
@@ -47,10 +50,10 @@ export class FilterManager {
 		return  <ContextWebGL> this._stage.context;
 	}
 
-	private readonly _filterCache: Record<string, IUniversalFilter> = {};
-	private _filterConstructors: Record<string, { new(opt?: any): IUniversalFilter }> = {
-		//@ts-ignore
-		'bevel': BevelFilter
+	private readonly _filterCache: Record<string, IBitmapFilter<any, any>> = {};
+	private _filterConstructors: Record<string, { new(opt?: any): IBitmapFilter<any, any> }> = {
+		[BevelFilter.filterName]: BevelFilter,
+		[BlurFilter.filterName]: BlurFilter
 	}
 
 	constructor (private _stage: Stage) {
@@ -300,15 +303,7 @@ export class FilterManager {
 				this._copyPixelFilter = new CopyPixelFilter();
 			}
 
-			this._copyPixelFilter.sourceTexture = source;
-			this._copyPixelFilter.rect = rect;
-			this._copyPixelFilter.destPoint = destPoint;
-
-			const targetRect = rect.clone();
-			targetRect.x = destPoint.x;
-			targetRect.y = destPoint.y;
-
-			this.renderFilter(source, target, rect, targetRect,  this._copyPixelFilter);
+			this.renderFilter(source, target, rect, destPoint,  this._copyPixelFilter);
 		} else {
 			rect = rect.clone();
 			destPoint = destPoint.clone();
@@ -358,10 +353,7 @@ export class FilterManager {
 		if (!this._thresholdFilter)
 			this._thresholdFilter = new ThresholdFilter();
 
-		this._thresholdFilter.sourceTexture = source;
-		this._thresholdFilter.rect = rect;
-		this._thresholdFilter.destPoint = destPoint;
-		this._thresholdFilter.operation = operation;
+		this._thresholdFilter.operation = <any>operation;
 		this._thresholdFilter.threshold = threshold;
 		this._thresholdFilter.color = color;
 		this._thresholdFilter.mask = mask;
@@ -375,9 +367,6 @@ export class FilterManager {
 			this._copyPixelFilter = new CopyPixelFilter();
 		}
 
-		this._copyPixelFilter.sourceTexture = source;
-		//this._copyPixelFilter.rect = rect;
-		//this._copyPixelFilter.destPoint = new Point(0,0);
 		this._copyPixelFilter.colorTransform = colorTransform;
 
 		this.renderFilter(source, target, rect, rect, this._copyPixelFilter);

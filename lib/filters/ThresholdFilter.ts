@@ -1,11 +1,24 @@
-import { ThresholdTask } from './tasks/ThresholdTask';
-
+import { ThresholdTask, TThresholdOperator } from './tasks/ThresholdTask';
 import { FilterBase } from './FilterBase';
-import { Image2D } from '../image/Image2D';
-import { Rectangle, Point } from '@awayjs/core';
+import { proxyTo } from '../utils/FilterUtils';
 
 export class ThresholdFilter extends FilterBase {
 	private _thresholdTask: ThresholdTask;
+
+	@proxyTo('_thresholdTask')
+	public operation: TThresholdOperator;
+
+	@proxyTo('_thresholdTask')
+	public color: number;
+
+	@proxyTo('_thresholdTask')
+	public mask: number;
+
+	@proxyTo('_thresholdTask')
+	public copySource: boolean;
+
+	@proxyTo('_thresholdTask')
+	public threshold: number;
 
 	/**
 	 * Creates a new ThresholdFilter3D object
@@ -19,70 +32,5 @@ export class ThresholdFilter extends FilterBase {
 		this._thresholdTask = new ThresholdTask();
 
 		this.addTask(this._thresholdTask);
-	}
-
-	public get rect(): Rectangle {
-		return this._thresholdTask.inputRect;
-	}
-
-	public set rect(value: Rectangle) {
-		this._thresholdTask.inputRect = value;
-	}
-
-	public get destPoint(): Point {
-		return this._thresholdTask.destRect.topLeft;
-	}
-
-	public set destPoint(value: Point) {
-		this._thresholdTask.destRect.x = value.x;
-		this._thresholdTask.destRect.y = value.y;
-	}
-
-	public get operation(): string {
-		return this._thresholdTask.operation;
-	}
-
-	public set operation(value: string) {
-		this._thresholdTask.operation = value;
-	}
-
-	public get threshold(): number {
-		return this._thresholdTask.threshold;
-	}
-
-	public set threshold(value: number) {
-		this._thresholdTask.threshold = value;
-	}
-
-	public get color(): number {
-		return this._thresholdTask.color;
-	}
-
-	public set color(value: number) {
-		this._thresholdTask.color = value;
-	}
-
-	public get mask(): number {
-		return this._thresholdTask.mask;
-	}
-
-	public set mask(value: number) {
-		this._thresholdTask.mask = value;
-	}
-
-	public get copySource(): boolean {
-		return this._thresholdTask.copySource;
-	}
-
-	public set copySource(value: boolean) {
-		this._thresholdTask.copySource = value;
-	}
-
-	public get sourceTexture(): Image2D {
-		return this._thresholdTask.sourceTexture;
-	}
-
-	public set sourceTexture(value: Image2D) {
-		this._thresholdTask.sourceTexture = value;
 	}
 }
