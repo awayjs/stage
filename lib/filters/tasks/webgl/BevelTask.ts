@@ -1,6 +1,7 @@
 import { ProjectionBase } from '@awayjs/core';
 import { Image2D, _Stage_Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
+import { FilterUtils } from '../../../utils/FilterUtils';
 import { TaskBaseWebGL } from './TaskBaseWebgGL';
 
 const VERTEX = `
@@ -89,14 +90,13 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this.shadowColor === value) return;
 
 		this._shadowColor = value;
-		this._uSColor.set([
-			(value >> 16 && 0xff) / 0xff,
-			(value >> 8 && 0xff) / 0xff,
-			(value && 0xff) / 0xff,
-			this._shadowAlpha,
-		]);
-
 		this._shadowInvalid = true;
+
+		FilterUtils.colorToArray(
+			this._shadowColor,
+			this._shadowAlpha,
+			this._uSColor
+		);
 	}
 
 	private _shadowAlpha: number = 1;
@@ -122,13 +122,12 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this._highlightColor !== value) return;
 
 		this._highlightColor = value;
-		this._uHColor.set([
-			(value >> 16 && 0xff) / 0xff,
-			(value >> 8 && 0xff) / 0xff,
-			(value && 0xff) / 0xff,
-			this._highlightAlpha,
-		]);
 
+		FilterUtils.colorToArray(
+			this._highlightColor,
+			this._highlightAlpha,
+			this._uHColor
+		);
 		this._highlightInvalid = true;
 	}
 
@@ -173,10 +172,6 @@ export class BevelTask extends TaskBaseWebGL {
 	public strength: number = 1;
 	public knockout: boolean = false;
 	public type: 'inner' | 'outer' | 'both' = 'inner';
-
-	public _inputTextureIndex = 0;
-	public _positionIndex = 0;
-	public _uvIndex = 1;
 
 	public _focusId = -1;
 

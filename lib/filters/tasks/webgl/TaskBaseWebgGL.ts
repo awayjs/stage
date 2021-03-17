@@ -25,12 +25,11 @@ void main() {
 
 const FRAG_DEF = `
 precision highp float;
-uniform vec4 fc[2];
 uniform sampler2D uSampler0;
-varying vec4 vUv;
+varying vec2 vUv;
 
 void main() {
-    vec4 color = texture2D(uSampler0, vUv.xy);
+    vec4 color = texture2D(uSampler0, vUv);
     gl_FragColor = color;
 }
 

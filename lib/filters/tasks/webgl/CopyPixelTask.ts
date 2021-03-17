@@ -67,10 +67,6 @@ export class CopyPixelTask extends TaskBaseWebGL {
 		}
 	}
 
-	public _inputTextureIndex = 0;
-	public _positionIndex = 0;
-	public _uvIndex = 1;
-
 	public _focusId = -1;
 
 	constructor() {
@@ -78,20 +74,8 @@ export class CopyPixelTask extends TaskBaseWebGL {
 		this._colorTransformUData = EMPTY_TRANSFORM.slice();
 	}
 
-	public get sourceTexture(): Image2D {
-		return this._source;
-	}
-
-	public set sourceTexture(value: Image2D) {
-		this._source = value;
-	}
-
 	public getFragmentCode(): string {
 		return FRAG;
-	}
-
-	public getMainInputTexture(_stage: Stage): Image2D {
-		return this._source;
 	}
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {

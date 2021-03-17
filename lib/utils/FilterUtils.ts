@@ -36,6 +36,16 @@ export class FilterUtils {
 
 		return target;
 	}
+
+	public static colorToArray(color: ui32, alpha: number, target: Array<number> | Float32Array) {
+		target = target || [];
+
+		target[0] = ((color >> 16) & 0xff) / 0xff;
+		target[1] = ((color >> 8) & 0xff) / 0xff;
+		target[2] = ((color >> 0) & 0xff) / 0xff;
+		target[3] = alpha;
+		return target;
+	}
 }
 
 /**

@@ -16,6 +16,7 @@ import { ContextGLClearMask } from '../base/ContextGLClearMask';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import {
+	DisplacementFilter,
 	BlurFilter,
 	BevelFilter,
 	ThresholdFilter,
@@ -53,7 +54,8 @@ export class FilterManager {
 	private readonly _filterCache: Record<string, IBitmapFilter<any, any>> = {};
 	private _filterConstructors: Record<string, { new(opt?: any): IBitmapFilter<any, any> }> = {
 		[BevelFilter.filterName]: BevelFilter,
-		[BlurFilter.filterName]: BlurFilter
+		[BlurFilter.filterName]: BlurFilter,
+		[DisplacementFilter.filterName]: DisplacementFilter,
 	}
 
 	constructor (private _stage: Stage) {
@@ -261,7 +263,7 @@ export class FilterManager {
 			if (!task.activateInternaly) {
 				task.source
 					.getAbstraction<_Stage_ImageBase>(this._stage)
-					.activate(task._inputTextureIndex, this._filterSampler);
+					.activate(task.sourceSamplerIndex, this._filterSampler);
 			}
 
 			task.activate(this._stage, null, null);

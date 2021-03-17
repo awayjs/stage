@@ -138,7 +138,7 @@ export class ThresholdTask extends TaskBase {
 		this._registerCache.addFragmentTempUsages(temp1, 1);
 
 		const inputTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
-		this._inputTextureIndex = inputTexture.index;
+		this.sourceSamplerIndex = inputTexture.index;
 
 		const threshold: ShaderRegisterElement = this._registerCache.getFreeFragmentConstant();
 		this._fragmentConstantsIndex = threshold.index;

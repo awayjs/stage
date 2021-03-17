@@ -54,7 +54,7 @@ export class CompositeTask extends TaskBase {
 		this._registerCache.addFragmentTempUsages(temp4, 1);
 
 		const inputTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
-		this._inputTextureIndex = inputTexture.index;
+		this.sourceSamplerIndex = inputTexture.index;
 
 		const overlayTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
 		this._overlayTextureIndex = overlayTexture.index;

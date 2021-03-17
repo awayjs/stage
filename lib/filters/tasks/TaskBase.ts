@@ -19,7 +19,7 @@ export class TaskBase {
 	public _registerCache: ShaderRegisterCache;
 
 	public _positionIndex: number;
-	public _inputTextureIndex: number;
+	public sourceSamplerIndex: number = 0;
 	public _uvVarying: ShaderRegisterElement;
 
 	protected _program3DInvalid: boolean = true;

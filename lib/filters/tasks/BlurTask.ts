@@ -14,7 +14,6 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	private _stepSize: number = 1;
 	private _realStepSize: number;
 	private _blurIndex: number;
-	public _inputTextureIndex = 0;
 
 	public get name() {
 		return `FilterBlurTask:${(this.horizontalPass ? 'hor' : 'vert')}:${this._amount}`;
