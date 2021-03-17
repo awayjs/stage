@@ -1,6 +1,6 @@
 import { ProjectionBase } from '@awayjs/core';
 
-import { Filter3DTaskBase } from './Filter3DTaskBase';
+import { TaskBase } from './TaskBase';
 import { Image2D } from '../../image/Image2D';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { IContextGL } from '../../base/IContextGL';
@@ -8,7 +8,7 @@ import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 import { _Stage_ImageBase } from '../../image/ImageBase';
 import { Stage } from '../../Stage';
 
-export class Filter3DCompositeTask extends Filter3DTaskBase {
+export class CompositeTask extends TaskBase {
 	private _data: Float32Array;
 	private _overlayTexture: Image2D;
 	private _overlayWidth: number;
@@ -104,8 +104,6 @@ export class Filter3DCompositeTask extends Filter3DTaskBase {
 
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
 		super.activate(stage, projection, depthTexture);
-
-		const tex = this._source;
 
 		this._data[4] = -0.5 * (this._source.width - this._overlayWidth) / this._overlayWidth;
 		this._data[5] = -0.5 * (this._source.height - this._overlayHeight) / this._overlayHeight;

@@ -1,9 +1,9 @@
-import { Filter3DFXAATask } from './tasks/Filter3DFXAATask';
+import { FXAATask } from './tasks/FXAATask';
 
-import { Filter3DBase } from './Filter3DBase';
+import { FilterBase } from './FilterBase';
 
-export class FXAAFilter3D extends Filter3DBase {
-	private _fxaaTask: Filter3DFXAATask;
+export class FXAAFilter extends FilterBase {
+	private _fxaaTask: FXAATask;
 
 	/**
 	 * Creates a new FXAAFilter3D object
@@ -13,7 +13,7 @@ export class FXAAFilter3D extends Filter3DBase {
 	constructor(amount: number, stepSize: number = -1) {
 		super();
 
-		this._fxaaTask = new Filter3DFXAATask(amount, stepSize);
+		this._fxaaTask = new FXAATask(amount, stepSize);
 
 		this.addTask(this._fxaaTask);
 	}

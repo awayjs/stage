@@ -9,7 +9,7 @@ import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 
-export class Filter3DTaskBase {
+export class TaskBase {
 	protected _vertexConstantData = new Float32Array([
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0

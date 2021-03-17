@@ -1,11 +1,11 @@
-import { Filter3DThresholdTask } from './tasks/Filter3DThresholdTask';
+import { ThresholdTask } from './tasks/ThresholdTask';
 
-import { Filter3DBase } from './Filter3DBase';
+import { FilterBase } from './FilterBase';
 import { Image2D } from '../image/Image2D';
 import { Rectangle, Point } from '@awayjs/core';
 
-export class ThresholdFilter3D extends Filter3DBase {
-	private _thresholdTask: Filter3DThresholdTask;
+export class ThresholdFilter extends FilterBase {
+	private _thresholdTask: ThresholdTask;
 
 	/**
 	 * Creates a new ThresholdFilter3D object
@@ -16,7 +16,7 @@ export class ThresholdFilter3D extends Filter3DBase {
 	constructor() {
 		super();
 
-		this._thresholdTask = new Filter3DThresholdTask();
+		this._thresholdTask = new ThresholdTask();
 
 		this.addTask(this._thresholdTask);
 	}

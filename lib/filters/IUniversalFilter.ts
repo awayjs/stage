@@ -1,5 +1,5 @@
-import { Filter3DBase } from './Filter3DBase';
+import { FilterBase } from './FilterBase';
 
-export interface IUniversalFilter <T = any> extends Filter3DBase {
-	applyModel(options: Partial<T>): void;
+export interface IUniversalFilter <T = any> extends FilterBase {
+	applyProps(options: Partial<T>): void;
 }

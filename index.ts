@@ -63,14 +63,14 @@ export { SpecularImage2D } from './lib/image/SpecularImage2D';
 export { DefaultGraphicsFactory } from './lib/factories/DefaultGraphicsFactory';
 export { IGraphicsFactory } from './lib/factories/IGraphicsFactory';
 
-export { Filter3DCompositeTask } from './lib/filters/tasks/Filter3DCompositeTask';
-export { Filter3DFXAATask } from './lib/filters/tasks/Filter3DFXAATask';
-export { Filter3DBlurTask } from './lib/filters/tasks/Filter3DBlurTask';
-export { Filter3DTaskBase } from './lib/filters/tasks/Filter3DTaskBase';
-export { BlurFilter3D } from './lib/filters/BlurFilter3D';
-export { CompositeFilter3D } from './lib/filters/CompositeFilter3D';
-export { Filter3DBase } from './lib/filters/Filter3DBase';
-export { FXAAFilter3D } from './lib/filters/FXAAFilter3D';
+export { CompositeTask as Filter3DCompositeTask } from './lib/filters/tasks/CompositeTask';
+export { FXAATask as Filter3DFXAATask } from './lib/filters/tasks/FXAATask';
+export { BlurTask as Filter3DBlurTask } from './lib/filters/tasks/BlurTask';
+export { TaskBase as Filter3DTaskBase } from './lib/filters/tasks/TaskBase';
+export { BlurFilter as BlurFilter3D } from './lib/filters/BlurFilter';
+export { CompositeFilter as CompositeFilter3D } from './lib/filters/CompositeFilter';
+export { FilterBase as Filter3DBase } from './lib/filters/FilterBase';
+export { FXAAFilter as FXAAFilter3D } from './lib/filters/FXAAFilter';
 
 export { ContextGLES } from './lib/gles/ContextGLES';
 export { GLESConnector } from './lib/gles/GLESConnector';

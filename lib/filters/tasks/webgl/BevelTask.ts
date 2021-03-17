@@ -1,7 +1,7 @@
 import { ProjectionBase } from '@awayjs/core';
 import { Image2D, _Stage_Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
-import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
+import { TaskBaseWebGL } from './TaskBaseWebgGL';
 
 const VERTEX = `
 precision highp float;
@@ -71,7 +71,7 @@ void main() {
 	gl_FragColor *= a;
 }`;
 
-export class Filter3DBevelTask extends Filter3DTaskBaseWebGL {
+export class BevelTask extends TaskBaseWebGL {
 	readonly activateInternaly = false;
 
 	private _uSColor: Float32Array = new Float32Array([0,0,0,1]);

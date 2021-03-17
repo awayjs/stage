@@ -1,11 +1,11 @@
-import { Filter3DCompositeTask } from './tasks/Filter3DCompositeTask';
+import { CompositeTask } from './tasks/CompositeTask';
 
-import { Filter3DBase } from './Filter3DBase';
+import { FilterBase } from './FilterBase';
 import { Image2D } from '../image/Image2D';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 
-export class CompositeFilter3D extends Filter3DBase {
-	private _compositeTask: Filter3DCompositeTask;
+export class CompositeFilter extends FilterBase {
+	private _compositeTask: CompositeTask;
 
 	public get blendDst() {
 		return ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA;
@@ -24,7 +24,7 @@ export class CompositeFilter3D extends Filter3DBase {
 	constructor(blendMode: string, exposure: number = 1) {
 		super();
 
-		this._compositeTask = new Filter3DCompositeTask(blendMode, exposure);
+		this._compositeTask = new CompositeTask(blendMode, exposure);
 
 		this.addTask(this._compositeTask);
 	}

@@ -1,11 +1,11 @@
 import { ProjectionBase } from '@awayjs/core';
 
-import { Filter3DTaskBase } from './Filter3DTaskBase';
+import { TaskBase } from './TaskBase';
 import { Stage } from '../../Stage';
 import { Image2D } from '../../image/Image2D';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 
-export class Filter3DFXAATask extends Filter3DTaskBase {
+export class FXAATask extends TaskBase {
 	private _data: Float32Array;
 	//TODO - remove blur variables and create setters/getters for FXAA
 	private static MAX_AUTO_SAMPLES: number = 15;

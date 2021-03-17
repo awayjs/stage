@@ -2,10 +2,10 @@ import { ProjectionBase } from '@awayjs/core';
 
 import { Stage } from '../../Stage';
 import { Image2D } from '../../image/Image2D';
-import { Filter3DTaskBaseWebGL } from './webgl/Filter3DTaskBaseWebgGL';
+import { TaskBaseWebGL } from './webgl/TaskBaseWebgGL';
 import { ProgramWebGL } from '../../webgl/ProgramWebGL';
 
-export class Filter3DBlurTask extends Filter3DTaskBaseWebGL /*Filter3DTaskBase*/ {
+export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	private static MAX_AUTO_SAMPLES: number = 15;
 	public readonly horizontalPass: boolean = true;
 
@@ -120,8 +120,8 @@ export class Filter3DBlurTask extends Filter3DTaskBaseWebGL /*Filter3DTaskBase*/
 	private calculateStepSize(): void {
 		this._realStepSize = this._stepSize > 0
 			? this._stepSize
-			: this._amount > Filter3DBlurTask.MAX_AUTO_SAMPLES
-				? this._amount / Filter3DBlurTask.MAX_AUTO_SAMPLES
+			: this._amount > BlurTask.MAX_AUTO_SAMPLES
+				? this._amount / BlurTask.MAX_AUTO_SAMPLES
 				: 1;
 	}
 }

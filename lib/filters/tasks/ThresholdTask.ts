@@ -1,13 +1,13 @@
 import { ProjectionBase, Vector3D } from '@awayjs/core';
 
-import { Filter3DTaskBase } from './Filter3DTaskBase';
+import { TaskBase } from './TaskBase';
 import { Image2D } from '../../image/Image2D';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 import { Stage } from '../../Stage';
 
-export class Filter3DThresholdTask extends Filter3DTaskBase {
+export class ThresholdTask extends TaskBase {
 	private _fragmentConstantData: Float32Array;
 
 	private _fragmentConstantsIndex: number;

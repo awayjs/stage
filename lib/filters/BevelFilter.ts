@@ -2,9 +2,9 @@ import { Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
 import { FilterUtils } from '../utils/FilterUtils';
-import { BlurFilter3D } from './BlurFilter3D';
+import { BlurFilter } from './BlurFilter';
 import { IUniversalFilter } from './IUniversalFilter';
-import { Filter3DBevelTask } from './tasks/webgl/Filter3DBevelTask';
+import { BevelTask } from './tasks/webgl/BevelTask';
 
 function proxyTo(fieldName: string, subFieldName?: string): any {
 	return function (
@@ -39,10 +39,10 @@ export interface IBevelFilterModel {
 	knockout?: number;
 }
 
-export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBevelFilterModel> {
+export class BevelFilter extends BlurFilter implements IUniversalFilter<IBevelFilterModel> {
 	public readonly filterName = 'bevel';
 
-	protected _bevelTask = new Filter3DBevelTask();
+	protected _bevelTask = new BevelTask();
 
 	@proxyTo('_bevelTask')
 	distance: number = 1;
@@ -80,10 +80,10 @@ export class Filter3DBevel extends BlurFilter3D implements IUniversalFilter<IBev
 
 		this.addTask(this._bevelTask);
 
-		this.applyModel(options);
+		this.applyProps(options);
 	}
 
-	public applyModel(model: Partial<IBevelFilterModel>): void {
+	public applyProps(model: Partial<IBevelFilterModel>): void {
 		// run all model field that changed
 		for (const key in model) {
 			this[key] = model[key];

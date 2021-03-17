@@ -3,11 +3,11 @@ import { ColorTransform, Point, Rectangle } from '@awayjs/core';
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat';
-import { CopyPixelFilter3D } from '../filters/CopyPixelFilter3D';
-import { Filter3DBase } from '../filters/Filter3DBase';
-import { Filter3DBevel } from '../filters/Filter3DBevel';
+import { CopyPixelFilter } from '../filters/CopyPixelFilter';
+import { FilterBase } from '../filters/FilterBase';
+import { BevelFilter } from '../filters/BevelFilter';
 import { IUniversalFilter } from '../filters/IUniversalFilter';
-import { ThresholdFilter3D } from '../filters/ThresholdFilter3D';
+import { ThresholdFilter } from '../filters/ThresholdFilter';
 import { Image2D } from '../image/Image2D';
 import { _Stage_ImageBase } from '../image/ImageBase';
 import { ImageSampler } from '../image/ImageSampler';
@@ -40,8 +40,8 @@ export class FilterManager {
 	private _filterVAO: IVao;
 
 	private _filterSampler: ImageSampler;
-	private _copyPixelFilter: CopyPixelFilter3D;
-	private _thresholdFilter: ThresholdFilter3D;
+	private _copyPixelFilter: CopyPixelFilter;
+	private _thresholdFilter: ThresholdFilter;
 
 	private get context(): ContextWebGL {
 		return  <ContextWebGL> this._stage.context;
@@ -50,7 +50,7 @@ export class FilterManager {
 	private readonly _filterCache: Record<string, IUniversalFilter> = {};
 	private _filterConstructors: Record<string, { new(opt?: any): IUniversalFilter }> = {
 		//@ts-ignore
-		'bevel': Filter3DBevel
+		'bevel': BevelFilter
 	}
 
 	constructor (private _stage: Stage) {
@@ -168,7 +168,7 @@ export class FilterManager {
 		let filter = this._filterCache[filterName];
 
 		if (filter) {
-			filter.applyModel(options);
+			filter.applyProps(options);
 		} else {
 			filter = this._filterCache[filterName] = new this._filterConstructors[filterName](options);
 		}
@@ -178,7 +178,7 @@ export class FilterManager {
 			source,
 			target,
 			sourceRect || source.rect,
-			destRectOrPoint || source.rect, <Filter3DBase><any>filter);
+			destRectOrPoint || source.rect, <FilterBase><any>filter);
 
 		return true;
 	}
@@ -188,7 +188,7 @@ export class FilterManager {
 		target: Image2D,
 		sourceRect: Rectangle,
 		targetRect: Rectangle | Point,
-		filter: Filter3DBase
+		filter: FilterBase
 	): void {
 
 		this._initFilterElements();
@@ -247,7 +247,7 @@ export class FilterManager {
 			this._stage.setScissor(task.clipRect);
 
 			// because we use TMP image, need clear it
-			// but this is needed only when a blend composer is required, for ex, when a copy filter used
+			// but this is needed only when a blend composer is required, when a copy filter used
 			if ((renderToSelf || task.needClear) && filter.requireBlend) {
 				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
@@ -297,7 +297,7 @@ export class FilterManager {
 		if (mergeAlpha) {
 
 			if (!this._copyPixelFilter) {
-				this._copyPixelFilter = new CopyPixelFilter3D();
+				this._copyPixelFilter = new CopyPixelFilter();
 			}
 
 			this._copyPixelFilter.sourceTexture = source;
@@ -356,7 +356,7 @@ export class FilterManager {
 		}
 
 		if (!this._thresholdFilter)
-			this._thresholdFilter = new ThresholdFilter3D();
+			this._thresholdFilter = new ThresholdFilter();
 
 		this._thresholdFilter.sourceTexture = source;
 		this._thresholdFilter.rect = rect;
@@ -372,7 +372,7 @@ export class FilterManager {
 
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {
 		if (!this._copyPixelFilter) {
-			this._copyPixelFilter = new CopyPixelFilter3D();
+			this._copyPixelFilter = new CopyPixelFilter();
 		}
 
 		this._copyPixelFilter.sourceTexture = source;

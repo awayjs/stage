@@ -1,12 +1,12 @@
-import { Filter3DCopyPixelTaskWebGL } from './tasks/webgl/Filter3DCopyPixelTaskWebgGL';
+import { CopyPixelTask } from './tasks/webgl/CopyPixelTask';
 
-import { Filter3DBase } from './Filter3DBase';
+import { FilterBase } from './FilterBase';
 import { Image2D } from '../image/Image2D';
 import { Rectangle, Point, ColorTransform } from '@awayjs/core';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 
-export class CopyPixelFilter3D extends Filter3DBase {
-	private _copyPixelTask: Filter3DCopyPixelTaskWebGL;
+export class CopyPixelFilter extends FilterBase {
+	private _copyPixelTask: CopyPixelTask;
 
 	public get blendDst() {
 		return ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA;
@@ -19,7 +19,7 @@ export class CopyPixelFilter3D extends Filter3DBase {
 	constructor () {
 		super();
 
-		this._copyPixelTask = new Filter3DCopyPixelTaskWebGL();
+		this._copyPixelTask = new CopyPixelTask();
 		this.addTask(this._copyPixelTask);
 
 	}

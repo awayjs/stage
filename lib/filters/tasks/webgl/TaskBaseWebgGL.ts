@@ -1,4 +1,4 @@
-import { Filter3DTaskBase } from '../Filter3DTaskBase';
+import { TaskBase } from '../TaskBase';
 import { Stage } from '../../../Stage';
 import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
 
@@ -36,7 +36,7 @@ void main() {
 
 `;
 
-export class Filter3DTaskBaseWebGL extends Filter3DTaskBase {
+export class TaskBaseWebGL extends TaskBase {
 	_program3D: ProgramWebGL;
 
 	public get name() {

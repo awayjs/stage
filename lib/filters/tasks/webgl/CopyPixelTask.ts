@@ -2,7 +2,7 @@ import { ProjectionBase, ColorTransform } from '@awayjs/core';
 import { Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
 import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
-import { Filter3DTaskBaseWebGL } from './Filter3DTaskBaseWebgGL';
+import { TaskBaseWebGL } from './TaskBaseWebgGL';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);
 
@@ -30,7 +30,7 @@ void main() {
     gl_FragColor = color;
 }`;
 
-export class Filter3DCopyPixelTaskWebGL extends Filter3DTaskBaseWebGL {
+export class CopyPixelTask extends TaskBaseWebGL {
 	readonly activateInternaly = false;
 
 	protected _vertexConstantData: Float32Array;

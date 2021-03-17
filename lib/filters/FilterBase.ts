@@ -1,13 +1,13 @@
 import { ProjectionBase, Rectangle } from '@awayjs/core';
 
-import { Filter3DTaskBase } from './tasks/Filter3DTaskBase';
+import { TaskBase } from './tasks/TaskBase';
 import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 
-export class Filter3DBase {
-	private _tasks: Array<Filter3DTaskBase> = [];
+export class FilterBase {
+	private _tasks: Array<TaskBase> = [];
 	private _requireDepthRender: boolean;
 	protected _temp: Image2D[] = [];
 
@@ -27,14 +27,14 @@ export class Filter3DBase {
 		return this._requireDepthRender;
 	}
 
-	public addTask(filter: Filter3DTaskBase): void {
+	public addTask(filter: TaskBase): void {
 		this._tasks.push(filter);
 
 		if (this._requireDepthRender == null)
 			this._requireDepthRender = filter.requireDepthRender;
 	}
 
-	public get tasks(): Filter3DTaskBase[] {
+	public get tasks(): TaskBase[] {
 		return this._tasks;
 	}
 
