@@ -91,10 +91,16 @@ export class DisplacementTask extends TaskBaseWebGL {
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
 		super.computeVertexData();
 
+		const input = this.inputRect;
+		const map = this.mapBitmap;
+
 		const p = this._program3D;
 
 		p.uploadUniform('uTexMatrix', this._vertexConstantData);
-		p.uploadUniform('uScale', [this.scaleX, this.scaleY]);
+		p.uploadUniform('uScale', [
+			this.scaleX / input.width,
+			this.scaleY / input.height
+		]);
 		p.uploadUniform('uMapPoint', [
 			this.mapPoint.x / this.mapBitmap.width,
 			this.mapPoint.y / this.mapBitmap.height
