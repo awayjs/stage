@@ -25,14 +25,14 @@ import {
 	IBitmapFilter
 } from '../filters';
 
-type TmpImage2D = Image2D & {poolKey: number, antialiasQuality: number};
+type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
 const tmpRect0 = new Rectangle();
 
 export class FilterManager {
 	private static MAX_TMP_TEXTURE = 4096;
 	private static MIN_TMP_TEXTURE = 64;
-	private _texturePool: Record<number, TmpImage2D[]> = {};
+	private _texturePool: Record<string, TmpImage2D[]> = {};
 
 	private static _instance: FilterManager;
 	public static get instance() {
@@ -62,7 +62,7 @@ export class FilterManager {
 		FilterManager._instance = this;
 	}
 
-	public popTemp (width: number, height: number): TmpImage2D {
+	public popTemp (width: number, height: number, msaa: boolean = false): TmpImage2D {
 		width = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(width - 1));
 		height = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(height - 1));
 
@@ -75,7 +75,9 @@ export class FilterManager {
 			height = Math.min(height, FilterManager.MAX_TMP_TEXTURE);
 		}
 
-		const key = height + (width << 16);
+		msaa = msaa && this.context.glVersion === 2;
+
+		const key = `${width}_${height}_${~~msaa}`;
 
 		let image: TmpImage2D;
 
@@ -91,7 +93,7 @@ export class FilterManager {
 			// and can't create TmpImage2D class, use a regular Image2D with mixin
 			image = <TmpImage2D>(new Image2D(width, height, true));
 			image.poolKey = key;
-			image.antialiasQuality = 0;
+			image.antialiasQuality = 8;
 		}
 
 		return image;
@@ -100,7 +102,7 @@ export class FilterManager {
 	public pushTemp (image: Image2D) {
 		const im = <TmpImage2D> image;
 
-		if (im && im.poolKey > 0) {
+		if (im && im.poolKey) {
 			this._texturePool[im.poolKey].push(im);
 		}
 	}
@@ -299,13 +301,21 @@ export class FilterManager {
 			return;
 		}
 
-		if (mergeAlpha) {
+		// target image has MSAA
+		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
+
+		if (mergeAlpha || msaa) {
 
 			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = new CopyPixelFilter();
 			}
 
+			// because we in MSAA mode, but not has mergeAlpha - kill blending;
+			this._copyPixelFilter.requireBlend = mergeAlpha;
+
 			this.renderFilter(source, target, rect, destPoint,  this._copyPixelFilter);
+
+			this._copyPixelFilter.requireBlend = true;
 		} else {
 			rect = rect.clone();
 			destPoint = destPoint.clone();

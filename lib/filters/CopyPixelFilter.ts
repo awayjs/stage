@@ -11,8 +11,13 @@ export class CopyPixelFilter extends FilterBase {
 		return ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA;
 	}
 
+	private _requireBlend = true;
 	public get requireBlend() {
-		return true;
+		return this._requireBlend;
+	}
+
+	public set requireBlend(v: boolean) {
+		this._requireBlend = v;
 	}
 
 	constructor () {
