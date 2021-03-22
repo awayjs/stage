@@ -93,7 +93,7 @@ export class FilterManager {
 			// and can't create TmpImage2D class, use a regular Image2D with mixin
 			image = <TmpImage2D>(new Image2D(width, height, true));
 			image.poolKey = key;
-			image.antialiasQuality = 8;
+			image.antialiasQuality = msaa ? 8 : 0;
 		}
 
 		return image;
