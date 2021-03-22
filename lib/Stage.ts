@@ -246,7 +246,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		mergeAlpha: boolean = false): void {
 
 		// migrated to filter manager
-		this.filterManager.copyPixels(source, target, rect, destPoint, alphaBitmapData, alphaPoint, mergeAlpha);
+		this.filterManager.copyPixels(source, target, rect, destPoint, mergeAlpha);
 	}
 
 	public threshold(

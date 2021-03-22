@@ -12,15 +12,9 @@ export class CompositeFilter extends FilterBase {
 	}
 
 	public get requireBlend() {
-		return true;
+		return false;
 	}
 
-	/**
-	 * Creates a new CompositeFilter3D object
-	 * @param blurX The amount of horizontal blur to apply
-	 * @param blurY The amount of vertical blur to apply
-	 * @param stepSize The distance between samples. Set to -1 to autodetect with acceptable quality.
-	 */
 	constructor(blendMode: string, exposure: number = 1) {
 		super();
 

@@ -243,7 +243,7 @@ export class FilterManager {
 
 		this.context.setCulling(ContextGLTriangleFace.NONE);
 
-		// vao binds require shader, other shader MUST use same locations
+		// vao binds require shader, other shaders MUST use same locations
 		this.context.setProgram(tasks[0].getProgram(this._stage));
 		this._bindFilterElements();
 
@@ -277,7 +277,7 @@ export class FilterManager {
 
 		if (renderToSelf) {
 			// copy output to target texture
-			this.copyPixels(output, target, outRect, targetRect as Point, null, null, false);
+			this.copyPixels(output, target, outRect, targetRect as Point, false);
 			this.pushTemp(output as TmpImage2D);
 		}
 
@@ -289,8 +289,8 @@ export class FilterManager {
 	public copyPixels(
 		source: Image2D, target: Image2D,
 		rect: Rectangle, destPoint: Point,
-		alphaBitmapData: Image2D = null, alphaPoint: Point = null,
-		mergeAlpha: boolean = false
+		mergeAlpha: boolean = false,
+		blend: string = '',
 	): void {
 
 		//early out for values that won't produce any visual update
@@ -304,12 +304,13 @@ export class FilterManager {
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
-		if (mergeAlpha || msaa) {
+		if (mergeAlpha || msaa || blend) {
 
 			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = new CopyPixelFilter();
 			}
 
+			this._copyPixelFilter.blend = blend;
 			// because we in MSAA mode, but not has mergeAlpha - kill blending;
 			this._copyPixelFilter.requireBlend = mergeAlpha;
 
@@ -379,6 +380,8 @@ export class FilterManager {
 			this._copyPixelFilter = new CopyPixelFilter();
 		}
 
+		this._copyPixelFilter.blend = '';
+		this._copyPixelFilter.requireBlend = false;
 		this._copyPixelFilter.colorTransform = colorTransform;
 
 		this.renderFilter(source, target, rect, rect, this._copyPixelFilter);
