@@ -2,6 +2,7 @@ import { IVertexBuffer } from '../base/IVertexBuffer';
 import { IUnloadable } from '../managers/UnloadManager';
 import { Settings } from '../Settings';
 import { BufferPool } from './BufferPool';
+import { ContextWebGL } from './ContextWebGL';
 
 type TTypedArray = Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Float32Array;
 
@@ -13,12 +14,12 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 		return this._pool || (this._pool = new BufferPool(VertexBufferWebGL));
 	}
 
-	public static create(gl: WebGLRenderingContext, numVertices: number, dataPerVertex: number) {
+	public static create(context: ContextWebGL, numVertices: number, dataPerVertex: number) {
 		if (!Settings.ENABLE_BUFFER_POOLING) {
-			return new VertexBufferWebGL(gl, numVertices, dataPerVertex);
+			return new VertexBufferWebGL(context, numVertices, dataPerVertex);
 		}
 
-		return this.pool.create(gl, numVertices, dataPerVertex);
+		return this.pool.create(context, numVertices, dataPerVertex);
 	}
 
 	private _gl: WebGLRenderingContext;
@@ -29,14 +30,16 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 	public lastUsedTime: number;
 	public canUnload: boolean = true;
 
-	constructor(gl: WebGLRenderingContext, numVertices: number, dataPerVertex: number) {
-		this._gl = gl;
+	constructor(private _context: ContextWebGL, numVertices: number, dataPerVertex: number) {
+		this._gl = _context._gl;
+
+		_context.stats.buffers.vertex++;
 		this._buffer = this._gl.createBuffer();
 		this._numVertices = numVertices;
 		this._dataPerVertex = dataPerVertex;
 	}
 
-	public uploadFromArray(array: TTypedArray, startVertex: number, numVertices: number): void {
+	public uploadFromArray(array: TTypedArray, startVertex: number, _numVertices: number): void {
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
 
 		if (startVertex)
@@ -45,7 +48,7 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 			this._gl.bufferData(this._gl.ARRAY_BUFFER, array, this._gl.STATIC_DRAW);
 	}
 
-	public uploadFromByteArray(data: ArrayBuffer, startVertex: number, numVertices: number): void {
+	public uploadFromByteArray(data: ArrayBuffer, startVertex: number, _numVertices: number): void {
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
 
 		if (startVertex)
@@ -74,13 +77,16 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 		this.unload();
 	}
 
-	apply(gl: WebGLRenderingContext, numVertices: number, dataPerVertex: number) {
+	apply(_gl: WebGLRenderingContext, numVertices: number, dataPerVertex: number) {
 		this._numVertices = numVertices;
 		this._dataPerVertex = dataPerVertex;
 	}
 
 	public unload(): void {
 		Settings.ENABLE_BUFFER_POOLING && VertexBufferWebGL.pool.remove(this);
+
+		this._context.stats.buffers.vertex--;
 		this._gl.deleteBuffer(this._buffer);
+		this._buffer = null;
 	}
 }

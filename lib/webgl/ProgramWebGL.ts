@@ -4,6 +4,7 @@ import { AGALTokenizer } from '../aglsl/AGALTokenizer';
 import { AGLSLParser } from '../aglsl/AGLSLParser';
 import { IProgram } from '../base/IProgram';
 import { Settings } from '../Settings';
+import { ContextWebGL } from './ContextWebGL';
 import { WEBGL_METHOD_MAP } from './WebGLDataMapping';
 
 const TEST_PLACE = /(#define|#version|precision).*\n/gi;
@@ -51,8 +52,10 @@ export class ProgramWebGL implements IProgram {
 
 	private _rawAttrs: Record<string, IAttrMeta> = {};
 
-	constructor(gl: WebGLRenderingContext) {
-		this._gl = gl;
+	constructor(private _context: ContextWebGL) {
+		this._gl = _context._gl;
+
+		_context.stats.progs++;
 		this._program = this._gl.createProgram();
 	}
 
@@ -302,6 +305,7 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	public dispose(): void {
+		this._context.stats.progs--;
 		this._gl.deleteProgram(this._program);
 	}
 

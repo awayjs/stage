@@ -344,10 +344,17 @@ export class TextureContextWebGL {
 		const width: number = target._width >>> mipmapSelector;
 		const height: number = target._height >>> mipmapSelector;
 
+		if (!target._frameBuffer[mipmapSelector]) {
+			this._context.stats.textures.framebuffers++;
+
+			target._frameBuffer[mipmapSelector] = gl.createFramebuffer();
+			target._renderBufferDepth[mipmapSelector] = gl.createRenderbuffer();
+		}
+
 		//create main framebuffer
-		const frameBuffer = target._frameBuffer[mipmapSelector] = gl.createFramebuffer();
+		const frameBuffer = target._frameBuffer[mipmapSelector];
 		//create renderbufferdepth
-		const renderBufferDepth = target._renderBufferDepth[mipmapSelector] = gl.createRenderbuffer();
+		const renderBufferDepth = target._renderBufferDepth[mipmapSelector];
 
 		target._mipmapSelector = mipmapSelector;
 		// bind texture
@@ -383,8 +390,13 @@ export class TextureContextWebGL {
 			target._multisampled = false;
 		} else {
 			antiAlias = Math.min(antiAlias, gl.getParameter(gl.MAX_SAMPLES));
+
 			// create framebuffer for DRAW
-			const drawFrameBuffer = target._frameBufferDraw[mipmapSelector] = gl.createFramebuffer();
+			if (!target._frameBufferDraw[mipmapSelector]) {
+				this._context.stats.textures.framebuffers++;
+				target._frameBufferDraw[mipmapSelector] = gl.createFramebuffer();
+			}
+			const drawFrameBuffer = target._frameBufferDraw[mipmapSelector];
 			// compute levels for texture
 			const levels = Math.log(Math.min(target._width, target._height)) / Math.LN2 | 0 + 1;
 			// bind DRAW framebuffer
@@ -568,12 +580,23 @@ export class TextureContextWebGL {
 			this._lastestBoundedStack.length = 0;
 		}
 
+		const texStat = this._context.stats.textures;
+
 		// delete texture
+		texStat.textures--;
 		gl.deleteTexture(texture._glTexture);
 
 		for (const key in texture._frameBuffer) {
-			gl.deleteFramebuffer(texture._frameBuffer[key]);
-			gl.deleteFramebuffer(texture._frameBufferDraw[key]);
+			if (texture._frameBuffer[key]) {
+				texStat.framebuffers--;
+				gl.deleteFramebuffer(texture._frameBuffer[key]);
+			}
+
+			if (texture._frameBufferDraw[key]) {
+				texStat.framebuffers--;
+				gl.deleteFramebuffer(texture._frameBufferDraw[key]);
+			}
+
 			gl.deleteRenderbuffer(texture._renderBuffer[key]);
 			gl.deleteRenderbuffer(texture._renderBufferDepth[key]);
 		}

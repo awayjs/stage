@@ -38,6 +38,19 @@ window._AWAY_DEBUG_ = Object.assign(window._AWAY_DEBUG_ || {}, {
 export class ContextWebGL implements IContextGL {
 	public static MAX_SAMPLERS: number = 8;
 
+	public readonly stats = {
+		textures: {
+			textures: 0,
+			framebuffers: 0,
+		},
+		buffers: {
+			index: 0,
+			vertex: 0,
+			vao: 0,
+		},
+		progs: 0,
+	};
+
 	private _blendFactorMap: Object = new Object();
 	private _drawModeMap: Object = new Object();
 	private _compareModeMap: Object = new Object();
@@ -86,7 +99,7 @@ export class ContextWebGL implements IContextGL {
 	private _stencilReferenceValue: number = 0;
 	private _stencilReadMask: number = 0xff;
 	private _separateStencil: boolean = false;
-	private lastBoundedIndexBuffer = null;
+	private lastBoundedIndexBuffer: IndexBufferWebGL = null;
 
 	public get hasFence() {
 		return !!this._fenceContext;
@@ -283,6 +296,9 @@ export class ContextWebGL implements IContextGL {
 
 		// first locked state 0,0,0,0
 		this._blendState.lock(true);
+
+		//@ts-ignore
+		window._AWAY_CONTEXT_STATS_ = this.stats;
 	}
 
 	public gl(): WebGLRenderingContext {
@@ -347,11 +363,11 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createIndexBuffer(numIndices: number): IndexBufferWebGL {
-		return IndexBufferWebGL.create(this._gl, numIndices);
+		return IndexBufferWebGL.create(this, numIndices);
 	}
 
 	public createProgram(): ProgramWebGL {
-		return new ProgramWebGL(this._gl);
+		return new ProgramWebGL(this);
 	}
 
 	public createTexture(
@@ -363,7 +379,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createVertexBuffer(numVertices: number, dataPerVertex: number): VertexBufferWebGL {
-		return VertexBufferWebGL.create(this._gl, numVertices, dataPerVertex);
+		return VertexBufferWebGL.create(this, numVertices, dataPerVertex);
 	}
 
 	public createVao(): VaoWebGL {
@@ -449,15 +465,22 @@ export class ContextWebGL implements IContextGL {
 		// reduce a state changes
 		this.updateBlendStatus();
 
-		// check, that VAO not bounded
-		if (!this._hasVao
-			|| !this._vaoContext._lastBoundedVao) {
+		// so, if we delete the buffer, and then try to compare last bounded buffer - it will valid, because
+		// because reverence is same
+		// reset buffer when it not a buffer
+		if (this.lastBoundedIndexBuffer && !this._gl.isBuffer(this.lastBoundedIndexBuffer.glBuffer)) {
+			this.lastBoundedIndexBuffer = null;
+		}
 
-			if (this.lastBoundedIndexBuffer !== indexBuffer.glBuffer) {
+		// check, that VAO not bounded
+		// VAO store index buffer inself
+		if (!this._hasVao || !this._vaoContext._lastBoundedVao) {
+
+			if (this.lastBoundedIndexBuffer !== indexBuffer) {
 				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 			}
 
-			this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
+			this.lastBoundedIndexBuffer = indexBuffer;
 		}
 
 		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
@@ -471,7 +494,7 @@ export class ContextWebGL implements IContextGL {
 
 	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-		this.lastBoundedIndexBuffer = indexBuffer.glBuffer;
+		this.lastBoundedIndexBuffer = indexBuffer;
 	}
 
 	public drawVertices(mode: ContextGLDrawMode, firstVertex: number = 0, numVertices: number = -1): void {

@@ -1,5 +1,6 @@
 
 export interface IUnloadable {
+	id?: number;
 	keepAliveTime?: number;
 	lastUsedTime: number;
 	canUnload: boolean;

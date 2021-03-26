@@ -18,31 +18,37 @@ export class VaoContextWebGL {
 		return false;
 	}
 
-	public readonly createVertexArray: () => TWebGLVao;
+	private readonly _createVertexArray: () => TWebGLVao;
 	private readonly _deleteVertexArray: (e: TWebGLVao) => void;
 	private readonly _bindVertexArray: (e: TWebGLVao) => void;
 
 	/* internal */ _lastBoundedVao: VaoWebGL;
 	/* internal */ _isRequireUnbound: boolean = false;
 
-	constructor (context: ContextWebGL) {
-		const gl = context._gl;
+	constructor (private _context: ContextWebGL) {
+		const gl = _context._gl;
 
 		if (!VaoContextWebGL.isSupported(gl)) {
 			throw '[VaoContextWebGL] VAO not supported!';
 		}
 
 		if (window.WebGL2RenderingContext && gl instanceof window.WebGL2RenderingContext) {
-			this.createVertexArray = gl.createVertexArray.bind(gl);
+			this._createVertexArray = gl.createVertexArray.bind(gl);
 			this._deleteVertexArray = gl.deleteVertexArray.bind(gl);
 			this._bindVertexArray = gl.bindVertexArray.bind(gl);
 		} else {
 			const ext = gl.getExtension('OES_vertex_array_object');
 
-			this.createVertexArray = ext.createVertexArrayOES.bind(ext);
+			this._createVertexArray = ext.createVertexArrayOES.bind(ext);
 			this._deleteVertexArray = ext.deleteVertexArrayOES.bind(ext);
 			this._bindVertexArray = ext.bindVertexArrayOES.bind(ext);
 		}
+	}
+
+	createVertexArray(): TWebGLVao {
+		this._context.stats.buffers.vao++;
+
+		return this._createVertexArray();
 	}
 
 	unbindVertexArrays() {
@@ -75,6 +81,8 @@ export class VaoContextWebGL {
 
 		this._deleteVertexArray(v._vao);
 		this._lastBoundedVao = null;
+
+		this._context.stats.buffers.vao--;
 	}
 }
 
