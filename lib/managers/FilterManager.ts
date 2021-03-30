@@ -22,7 +22,8 @@ import {
 	ThresholdFilter,
 	CopyPixelFilter,
 	FilterBase,
-	IBitmapFilter
+	IBitmapFilter,
+	IBitmapFilterProps
 } from '../filters';
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
@@ -163,21 +164,28 @@ export class FilterManager {
 		target: Image2D,
 		sourceRect: Rectangle,
 		destRectOrPoint: Rectangle | Point,
-		filterName: string,
-		options: any,
+		_filterNameOrProps: string | IBitmapFilterProps, // legacy
+		_options?: IBitmapFilterProps,
 	): boolean {
+		const options = typeof _filterNameOrProps === 'string' ? _options : _filterNameOrProps;
 
-		if (!this._filterCache[filterName] && !this._filterConstructors[filterName]) {
-			console.warn('[FilterManager] Filter not implemented:', filterName);
+		if (!options || !options.filterName) {
 			return false;
 		}
 
-		let filter = this._filterCache[filterName];
+		const name = options.filterName;
+
+		if (!this._filterCache[name] && !this._filterConstructors[name]) {
+			console.warn('[FilterManager] Filter not implemented:', name);
+			return false;
+		}
+
+		let filter = this._filterCache[name];
 
 		if (filter) {
 			filter.applyProps(options);
 		} else {
-			filter = this._filterCache[filterName] = new this._filterConstructors[filterName](options);
+			filter = this._filterCache[name] = new this._filterConstructors[name](options);
 		}
 
 		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
@@ -188,6 +196,40 @@ export class FilterManager {
 			destRectOrPoint || source.rect, <FilterBase><any>filter);
 
 		return true;
+	}
+
+	public applyFilterStack(
+		source: Image2D,
+		target: Image2D,
+		sourceRect: Rectangle,
+		destRectOrPoint: Rectangle | Point,
+		options: Array<IBitmapFilterProps>
+	): boolean {
+		const opts = options.filter((e) => e && this._filterConstructors[e.filterName]);
+
+		if (opts.length === 0)
+			return false;
+
+		if (opts.length === 1)
+			return this.applyFilter(source, target, sourceRect, destRectOrPoint, opts[0]);
+
+		let flip = this.popTemp(target.width, target.height);
+		let flop = this.popTemp(target.width, target.height);
+
+		for (let i = 0; i < opts.length; i++) {
+			this.applyFilter(
+				(i === 0) ? source : flip,
+				(i === opts.length - 1) ? target : flop,
+				sourceRect,
+				destRectOrPoint,
+				opts[i]
+			);
+
+			[flip, flop] = [flop, flip];
+		}
+
+		this.pushTemp(flip);
+		this.pushTemp(flop);
 	}
 
 	public renderFilter(

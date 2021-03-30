@@ -144,6 +144,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		CSS.setElementX(this._container, 0);
 		CSS.setElementY(this._container, 0);
 
+		this._width = this._container.clientWidth;
+		this._height = this._container.clientHeight;
+
 		this._bufferFormatDictionary[1] = new Array<number>(5);
 		this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat.BYTE_1;
 		this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat.BYTE_2;
@@ -329,7 +332,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._backBufferDirty = true;
 
-		this._invalidateSize();
+		if (this._width && this._height)
+			this._invalidateSize();
 	}
 
 	/**
@@ -352,7 +356,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._backBufferDirty = true;
 
-		this._invalidateSize();
+		if (this._width && this._height)
+			this._invalidateSize();
 	}
 
 	/**
