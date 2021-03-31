@@ -138,10 +138,11 @@ export class TextureContextWebGL {
 		const gl = this._context._gl;
 		const samplerState: SamplerStateWebGL = this._samplerStates[sampler];
 
-		if (this._activeTexture !== sampler && (texture || samplerState.type)) {
-			this._activeTexture = sampler;
+		if (samplerState.boundedTexture !== texture && (texture || samplerState.type)) {
 			gl.activeTexture(gl.TEXTURE0 + sampler);
 		}
+
+		samplerState.boundedTexture = texture;
 
 		if (!texture) {
 			if (samplerState.type) {
