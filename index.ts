@@ -88,14 +88,6 @@ export { ShaderRegisterCache } from './lib/shaders/ShaderRegisterCache';
 export { ShaderRegisterData } from './lib/shaders/ShaderRegisterData';
 export { ShaderRegisterElement } from './lib/shaders/ShaderRegisterElement';
 
-export { ContextSoftware } from './lib/software/ContextSoftware';
-export { IndexBufferSoftware } from './lib/software/IndexBufferSoftware';
-export { ProgramSoftware } from './lib/software/ProgramSoftware';
-export { ProgramVOSoftware } from './lib/software/ProgramVOSoftware';
-export { SoftwareSamplerState } from './lib/software/SoftwareSamplerState';
-export { TextureSoftware } from './lib/software/TextureSoftware';
-export { VertexBufferSoftware } from './lib/software/VertexBufferSoftware';
-
 export { ContextWebGL } from './lib/webgl/ContextWebGL';
 export { CubeTextureWebGL } from './lib/webgl/CubeTextureWebGL';
 export { IndexBufferWebGL } from './lib/webgl/IndexBufferWebGL';
