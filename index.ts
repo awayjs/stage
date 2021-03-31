@@ -63,16 +63,6 @@ export { CompositeFilter as CompositeFilter3D } from './lib/filters/CompositeFil
 export { FilterBase as Filter3DBase } from './lib/filters/FilterBase';
 export { FXAAFilter as FXAAFilter3D } from './lib/filters/FXAAFilter';
 
-export { ContextGLES } from './lib/gles/ContextGLES';
-export { GLESConnector } from './lib/gles/GLESConnector';
-export { GLESAssetBase } from './lib/gles/GLESAssetBase';
-export { CubeTextureGLES } from './lib/gles/CubeTextureGLES';
-export { IndexBufferGLES } from './lib/gles/IndexBufferGLES';
-export { ProgramGLES } from './lib/gles/ProgramGLES';
-export { TextureBaseGLES } from './lib/gles/TextureBaseGLES';
-export { TextureGLES } from './lib/gles/TextureGLES';
-export { VertexBufferGLES } from './lib/gles/VertexBufferGLES';
-
 export { ProgramData } from './lib/image/ProgramData';
 export { ProgramDataPool } from './lib/image/ProgramDataPool';
 
