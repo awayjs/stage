@@ -25,10 +25,12 @@ void main() {
 	${!mode || mode === 'wrap' ? 'uv = fract(uv);' : ''}
 	${mode === 'clamp' ? 'uv = clamp(uv, 0., 1.);' : ''}
 	${mode === 'ignore' ? 'uv = vUv;' : ''}
-	${mode === 'color' ? 'float outside = step(0.5, length(uv - vec(0.5)));' : ''}
+	${mode === 'color'
+		? 'bool outside = uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.;'
+		: ''}
 
 	${mode === 'color'
-		? 'gl_FragColor = mix(texture2D(fs0, uv), uColor, outside);'
+		? 'gl_FragColor = outside ? uColor : texture2D(fs0, uv);'
 		: 'gl_FragColor = texture2D(fs0, uv);'}
 }
 
@@ -92,8 +94,6 @@ export class DisplacementTask extends TaskBaseWebGL {
 		super.computeVertexData();
 
 		const input = this.inputRect;
-		const map = this.mapBitmap;
-
 		const p = this._program3D;
 
 		p.uploadUniform('uTexMatrix', this._vertexConstantData);
