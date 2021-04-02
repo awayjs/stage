@@ -468,7 +468,7 @@ export class ContextWebGL implements IContextGL {
 		// so, if we delete the buffer, and then try to compare last bounded buffer - it will valid, because
 		// because reverence is same
 		// reset buffer when it not a buffer
-		if (this.lastBoundedIndexBuffer && !this._gl.isBuffer(this.lastBoundedIndexBuffer.glBuffer)) {
+		if (this.lastBoundedIndexBuffer && !this.lastBoundedIndexBuffer.glBuffer) {
 			this.lastBoundedIndexBuffer = null;
 		}
 
