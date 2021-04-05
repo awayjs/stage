@@ -7,7 +7,7 @@ import { ContextWebGLFlags, ContextWebGLPreference } from './ContextWebGLFlags';
 import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
-
+import { RenderTargetWebGL } from './RenderTargetWebGL';
 import * as GL_MAP from './ConstantsWebGL';
 
 const nPOTAlerts: NumberMap<boolean> = {};
@@ -34,16 +34,16 @@ export class TextureContextWebGL {
 	public static MAX_SAMPLERS = 8;
 
 	_renderTarget: TextureWebGL;
-	_lastestBoundedStack: TextureWebGL[] = [];
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
 	_activeTexture: number = -1;
 
+	private _gl: WebGLRenderingContext | WebGL2RenderingContext;
 	private _renderTargetConfig: IRendertargetEntry = undefined;
 
 	constructor (private _context: ContextWebGL) {
 
-		const gl = _context._gl;
+		const gl = this._gl = _context._gl;
 
 		//defaults
 		for (let i = 0; i < TextureContextWebGL.MAX_SAMPLERS; ++i) {
@@ -57,18 +57,27 @@ export class TextureContextWebGL {
 		}
 	}
 
-	public pushTextureBind(target: number, texture: TextureWebGL | null) {
-		this._lastestBoundedStack.push(this._lastBoundedTexture);
-		this.bindTexture(target, texture);
+	private _currentRT: RenderTargetWebGL = null;
+	public bindRenderTarget (target: RenderTargetWebGL, check = false): RenderTargetWebGL {
+		if (check && this._currentRT === target) return target;
+
+		const prev = this._currentRT;
+
+		this._currentRT = target;
+		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, target?._framebuffer);
+
+		return prev;
 	}
 
-	public popTextureBind(target: number) {
-		this.bindTexture(target, this._lastestBoundedStack.pop());
-	}
+	public bindTexture (texture: TextureWebGL | null, check = false, target: number = this._gl.TEXTURE_2D) {
+		if (check && texture === this._lastBoundedTexture) return texture;
 
-	public bindTexture (target: number, texture: TextureWebGL | null) {
+		const prev = this._lastBoundedTexture;
+
 		this._lastBoundedTexture = texture;
-		this._context._gl.bindTexture(target, texture?._glTexture);
+		this._gl.bindTexture(target, texture?._glTexture);
+
+		return prev;
 	}
 
 	public uploadFromArray(
@@ -90,7 +99,7 @@ export class TextureContextWebGL {
 			array = new Uint8Array(array);
 
 		// push lastest used texture to stack and bind new
-		this.pushTextureBind(gl.TEXTURE_2D, target);
+		const prev = this.bindTexture(target, false, gl.TEXTURE_2D);
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
 		gl.texImage2D(
@@ -105,7 +114,7 @@ export class TextureContextWebGL {
 
 		// restore last texture boundings
 		// otherwise we will corrupt state
-		this.popTextureBind(gl.TEXTURE_2D);
+		this.bindTexture(prev, true, gl.TEXTURE_2D);
 	}
 
 	public setTextureAt(sampler: number, texture: TextureWebGL): number {
@@ -126,7 +135,7 @@ export class TextureContextWebGL {
 					samplerState.boundedTexture._state.id = -1;
 				}
 
-				this.bindTexture(samplerState.type, null);
+				this.bindTexture(null, false, samplerState.type);
 
 				samplerState.boundedTexture = null;
 				samplerState.type = null;
@@ -144,10 +153,9 @@ export class TextureContextWebGL {
 
 		// bind texture only when sampler is not same (texture is not bounded)
 		// but there are a bug, and texture can be unbounded
-		// if (texture._state.id !== sampler) {
-		this.bindTexture(textureType, texture);
+		this.bindTexture(texture, false, textureType);
+
 		texture._state.id = sampler;
-		// }
 
 		// apply state of texture only WHEN IT NOT EQUAL
 		if (!texture._state.equals(samplerState)) {
@@ -203,7 +211,7 @@ export class TextureContextWebGL {
 
 		const gl = this._context._gl;
 
-		this.pushTextureBind(gl.TEXTURE_2D, target);
+		const prev = this.bindTexture(target, false);
 
 		if (!scale) {
 			gl.copyTexSubImage2D(
@@ -231,7 +239,7 @@ export class TextureContextWebGL {
 		}
 
 		// restore latest active texture
-		this.popTextureBind(gl.TEXTURE_2D);
+		this.bindTexture(prev, true);
 	}
 
 	public restoreRenderTarget() {
@@ -333,7 +341,7 @@ export class TextureContextWebGL {
 
 		target._mipmapSelector = mipmapSelector;
 		// bind texture
-		this.pushTextureBind(gl.TEXTURE_2D, target);
+		const prev = this.bindTexture(target, false);
 
 		// apply texture with empty data
 		if (!target._isFilled) {
@@ -420,7 +428,7 @@ export class TextureContextWebGL {
 
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
-		this.popTextureBind(gl.TEXTURE_2D);
+		this.bindTexture(prev, true);
 	}
 
 	/*internal*/ presentFrameBuffer(source: TextureWebGL): void {
@@ -549,10 +557,6 @@ export class TextureContextWebGL {
 
 		if (texture === this._lastBoundedTexture) {
 			this._lastBoundedTexture = null;
-		}
-
-		if (this._lastestBoundedStack.length && this._lastestBoundedStack.indexOf(texture)) {
-			this._lastestBoundedStack.length = 0;
 		}
 
 		const texStat = this._context.stats.textures;
