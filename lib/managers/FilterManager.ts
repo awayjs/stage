@@ -8,7 +8,6 @@ import { _Stage_ImageBase } from '../image/ImageBase';
 import { ImageSampler } from '../image/ImageSampler';
 import { Stage } from '../Stage';
 import { ContextWebGL } from '../webgl/ContextWebGL';
-import { IndexBufferWebGL } from '../webgl/IndexBufferWebGL';
 import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
 import { IVao } from '../base/IVao';
@@ -42,7 +41,6 @@ export class FilterManager {
 	}
 
 	private _filterVertexBuffer: VertexBufferWebGL;
-	private _filterIndexBuffer: IndexBufferWebGL;
 	private _filterVAO: IVao;
 
 	private _filterSampler: ImageSampler;
@@ -116,19 +114,16 @@ export class FilterManager {
 			return;
 		}
 
-		this._filterVertexBuffer = this.context.createVertexBuffer(4, 8);
+		this._filterVertexBuffer = this.context.createVertexBuffer(6, 8);
 		this._filterVertexBuffer.uploadFromArray(
 			new Float32Array([
 				0, 0,
-				1, 0,
 				1, 1,
-				0, 1
-			]), 0, 4);
-
-		this._filterIndexBuffer = this.context.createIndexBuffer(6);
-		this._filterIndexBuffer.uploadFromArray(new Uint16Array([
-			2, 1, 0,
-			3, 2, 0]), 0, 6);
+				1, 0,
+				0, 0,
+				0, 1,
+				1, 1
+			]), 0, 6);
 
 		this._filterSampler = new ImageSampler(false, true, false);
 	}
@@ -142,11 +137,6 @@ export class FilterManager {
 			vao && vao.bind();
 
 			ctx.setVertexBufferAt(0, this._filterVertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-
-			// we can bound index buffer directly, but to track index rebound state should attach it to vao
-			vao
-				? vao.attachIndexBuffer(this._filterIndexBuffer)
-				: ctx.bindIndexBuffer(this._filterIndexBuffer);
 
 			this._filterVAO = vao;
 
@@ -311,7 +301,6 @@ export class FilterManager {
 		);
 
 		//render
-		const indexBuffer = this._filterIndexBuffer;
 		const tasks = filter.tasks;
 
 		if (filter.requireBlend) {
@@ -352,7 +341,7 @@ export class FilterManager {
 
 			task.activate(this._stage, null, null);
 
-			this.context.drawIndices(ContextGLDrawMode.TRIANGLES, indexBuffer, 0, 6);
+			this.context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
 
 			task.deactivate(this._stage);
 		}
