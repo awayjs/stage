@@ -8,6 +8,8 @@ import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 
+import * as GL_MAP from './ConstantsWebGL';
+
 const nPOTAlerts: NumberMap<boolean> = {};
 
 interface IPoint {
@@ -35,10 +37,6 @@ export class TextureContextWebGL {
 	_lastestBoundedStack: TextureWebGL[] = [];
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
-	_textureTypeDictionary: {texture2d?: number,textureCube?: number} = {};
-	_wrapDictionary: NumberMap<number> = {};
-	_filterDictionary: NumberMap<number> = {};
-	_mipmapFilterMap: NumberMap<NumberMap<number>> = {};
 	_activeTexture: number = -1;
 
 	private _renderTargetConfig: IRendertargetEntry = undefined;
@@ -46,33 +44,6 @@ export class TextureContextWebGL {
 	constructor (private _context: ContextWebGL) {
 
 		const gl = _context._gl;
-
-		this._textureTypeDictionary = {
-			texture2d: gl.TEXTURE_2D,
-			textureCube: gl.TEXTURE_CUBE_MAP
-		};
-
-		this._wrapDictionary = {
-			[ContextGLWrapMode.REPEAT]: gl.REPEAT,
-			[ContextGLWrapMode.CLAMP]: gl.CLAMP_TO_EDGE
-		};
-
-		this._filterDictionary = {
-			[ContextGLTextureFilter.LINEAR]: gl.LINEAR,
-			[ContextGLTextureFilter.NEAREST]: gl.NEAREST
-		};
-
-		this._mipmapFilterMap[ContextGLTextureFilter.LINEAR] = {
-			[ContextGLMipFilter.MIPNEAREST]: gl.LINEAR_MIPMAP_NEAREST,
-			[ContextGLMipFilter.MIPLINEAR]: gl.LINEAR_MIPMAP_LINEAR,
-			[ContextGLMipFilter.MIPNONE]: gl.LINEAR
-		};
-
-		this._mipmapFilterMap[ContextGLTextureFilter.NEAREST] = {
-			[ContextGLMipFilter.MIPNEAREST]: gl.NEAREST_MIPMAP_NEAREST,
-			[ContextGLMipFilter.MIPLINEAR]: gl.NEAREST_MIPMAP_LINEAR,
-			[ContextGLMipFilter.MIPNONE]: gl.NEAREST
-		};
 
 		//defaults
 		for (let i = 0; i < TextureContextWebGL.MAX_SAMPLERS; ++i) {
@@ -168,7 +139,7 @@ export class TextureContextWebGL {
 		const isAllowRepeat = (this._context.glVersion === 2 || powerOfTwo)
 			&& ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
 
-		const textureType = this._textureTypeDictionary[texture.textureType];
+		const textureType = GL_MAP.TEXTURE[texture.textureType];
 		samplerState.type = textureType;
 
 		// bind texture only when sampler is not same (texture is not bounded)
@@ -219,9 +190,9 @@ export class TextureContextWebGL {
 		mipfilter: ContextGLMipFilter): void {
 
 		if (0 <= sampler && sampler < TextureContextWebGL.MAX_SAMPLERS) {
-			this._samplerStates[sampler].wrap = this._wrapDictionary[wrap];
-			this._samplerStates[sampler].filter = this._filterDictionary[filter];
-			this._samplerStates[sampler].mipfilter = this._mipmapFilterMap[filter][mipfilter];
+			this._samplerStates[sampler].wrap = GL_MAP.WRAP[wrap];
+			this._samplerStates[sampler].filter = GL_MAP.FILTER[filter];
+			this._samplerStates[sampler].mipfilter = GL_MAP.MIP_FILTER[filter][mipfilter];
 		} else {
 			throw 'Sampler is out of bounds.';
 		}

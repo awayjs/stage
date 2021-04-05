@@ -9,7 +9,6 @@ import { ContextGLProgramType } from '../base/ContextGLProgramType';
 import { ContextGLStencilAction } from '../base/ContextGLStencilAction';
 import { ContextGLTextureFilter } from '../base/ContextGLTextureFilter';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
-import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat';
 import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
 import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
 import { ContextWebGLFlags, ContextWebGLVersion } from './ContextWebGLFlags';
@@ -25,6 +24,7 @@ import { VaoContextWebGL, VaoWebGL } from './VaoWebGL';
 import { State } from './State';
 import { Settings } from '../Settings';
 import { FenceContextWebGL } from './FenceContextWebGL';
+import * as GL_MAP from './ConstantsWebGL';
 
 let _DEBUG_renderMode: '' | 'line' = '';
 
@@ -48,12 +48,6 @@ export class ContextWebGL implements IContextGL {
 		},
 		progs: 0,
 	};
-
-	private _blendFactorMap: Object = new Object();
-	private _drawModeMap: Object = new Object();
-	private _compareModeMap: Object = new Object();
-	private _stencilActionMap: Object = new Object();
-	private _vertexBufferMap: NumberMap<VertexBufferProperties> = {};
 
 	private _container: HTMLCanvasElement;
 	private _width: number;
@@ -177,101 +171,13 @@ export class ContextWebGL implements IContextGL {
 
 			const gl = this._gl;
 
-			this._standardDerivatives = this._glVersion === 2
-						|| !!gl.getExtension('OES_standard_derivatives');
-
-			/* eslint-disable */
-			//setup shortcut dictionaries
-			const BF = ContextGLBlendFactor;
-
-			this._blendFactorMap = {
-				[BF.ONE]: gl.ONE,
-				[BF.DESTINATION_ALPHA]: gl.DST_ALPHA,
-				[BF.DESTINATION_COLOR]: gl.DST_COLOR,
-				[BF.ONE]: gl.ONE,
-				[BF.ONE_MINUS_DESTINATION_ALPHA]: gl.ONE_MINUS_DST_ALPHA,
-				[BF.ONE_MINUS_DESTINATION_COLOR]: gl.ONE_MINUS_DST_COLOR,
-				[BF.ONE_MINUS_SOURCE_ALPHA]: gl.ONE_MINUS_SRC_ALPHA,
-				[BF.ONE_MINUS_SOURCE_COLOR]: gl.ONE_MINUS_SRC_COLOR,
-				[BF.SOURCE_ALPHA]: gl.SRC_ALPHA,
-				[BF.SOURCE_COLOR]: gl.SRC_COLOR,
-				[BF.ZERO]: gl.ZERO
-			};
-
-			this._drawModeMap = {
-				[ContextGLDrawMode.LINES]: gl.LINES,
-				[ContextGLDrawMode.TRIANGLES]: gl.TRIANGLES
-			};
-
-			const CM = ContextGLCompareMode;
-			this._compareModeMap = {
-				[CM.ALWAYS]: gl.ALWAYS,
-				[CM.EQUAL]: gl.EQUAL,
-				[CM.GREATER]: gl.GREATER,
-				[CM.GREATER_EQUAL]: gl.GEQUAL,
-				[CM.LESS]: gl.LESS,
-				[CM.LESS_EQUAL]: gl.LEQUAL,
-				[CM.NEVER]: gl.NEVER,
-				[CM.NOT_EQUAL]: gl.NOTEQUAL
-			};
-
-			const SA = ContextGLStencilAction;
-			
-			this._stencilActionMap = {
-				[SA.DECREMENT_SATURATE]: gl.DECR,
-				[SA.DECREMENT_WRAP]: gl.DECR_WRAP,
-				[SA.INCREMENT_SATURATE]: gl.INCR,
-				[SA.INCREMENT_WRAP]: gl.INCR_WRAP,
-				[SA.INVERT]: gl.INVERT,
-				[SA.KEEP]: gl.KEEP,
-				[SA.SET]: gl.REPLACE,
-				[SA.ZERO]: gl.ZERO
-			};
-
-			const VBF = ContextGLVertexBufferFormat;
-
-			this._vertexBufferMap = {
-				[VBF.FLOAT_1]: new VertexBufferProperties(1, gl.FLOAT, false),
-				[VBF.FLOAT_2]: new VertexBufferProperties(2, gl.FLOAT, false),
-				[VBF.FLOAT_3]: new VertexBufferProperties(3, gl.FLOAT, false),
-				[VBF.FLOAT_4]: new VertexBufferProperties(4, gl.FLOAT, false),
-				[VBF.BYTE_1]: new VertexBufferProperties(1, gl.BYTE, true),
-				[VBF.BYTE_2]: new VertexBufferProperties(2, gl.BYTE, true),
-				[VBF.BYTE_3]: new VertexBufferProperties(3, gl.BYTE, true),
-				[VBF.BYTE_4]: new VertexBufferProperties(4, gl.BYTE, true),
-				[VBF.UNSIGNED_BYTE_1]: new VertexBufferProperties(1, gl.UNSIGNED_BYTE, true),
-				[VBF.UNSIGNED_BYTE_2]: new VertexBufferProperties(2, gl.UNSIGNED_BYTE, true),
-				[VBF.UNSIGNED_BYTE_3]: new VertexBufferProperties(3, gl.UNSIGNED_BYTE, true),
-				[VBF.UNSIGNED_BYTE_4]: new VertexBufferProperties(4, gl.UNSIGNED_BYTE, true),
-				[VBF.SHORT_1]: new VertexBufferProperties(1, gl.SHORT, false),
-				[VBF.SHORT_2]: new VertexBufferProperties(2, gl.SHORT, false),
-				[VBF.SHORT_3]: new VertexBufferProperties(3, gl.SHORT, false),
-				[VBF.SHORT_4]: new VertexBufferProperties(4, gl.SHORT, false),
-				[VBF.UNSIGNED_SHORT_1]: new VertexBufferProperties(1, gl.UNSIGNED_SHORT, false),
-				[VBF.UNSIGNED_SHORT_2]: new VertexBufferProperties(2, gl.UNSIGNED_SHORT, false),
-				[VBF.UNSIGNED_SHORT_3]: new VertexBufferProperties(3, gl.UNSIGNED_SHORT, false),
-				[VBF.UNSIGNED_SHORT_4]: new VertexBufferProperties(4, gl.UNSIGNED_SHORT, false)
-			}
-
+			this._standardDerivatives = this._glVersion === 2 || !!gl.getExtension('OES_standard_derivatives');
 			this._stencilCompareMode = gl.ALWAYS;
 			this._stencilCompareModeBack = gl.ALWAYS;
 			this._stencilCompareModeFront = gl.ALWAYS;
-			/* eslint-enable */
 
-			const dpr: number = window.devicePixelRatio || 1;
-
-			// deprecated a long time ago.
-			/*
-			const bsr: number = gl['webkitBackingStorePixelRatio'] ||
-				gl['mozBackingStorePixelRatio'] ||
-				gl['msBackingStorePixelRatio'] ||
-				gl['oBackingStorePixelRatio'] ||
-				gl['backingStorePixelRatio'] || 1;
-			*/
-
-			this._pixelRatio = dpr;
+			this._pixelRatio = window.devicePixelRatio || 1;
 		} else {
-			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
 			alert('WebGL is not available.');
 		}
 
@@ -490,7 +396,7 @@ export class ContextWebGL implements IContextGL {
 		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
 
 		this._gl.drawElements(
-			this._drawModeMap[mode],
+			GL_MAP.DRAW_MODE[mode],
 			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
 			this._gl.UNSIGNED_SHORT,
 			firstIndex * 2);
@@ -516,7 +422,7 @@ export class ContextWebGL implements IContextGL {
 
 		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
 
-		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
+		this._gl.drawArrays(GL_MAP.DRAW_MODE[mode], firstVertex, numVertices);
 
 		this.assertLost('drawArrays');
 	}
@@ -532,8 +438,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor): void {
-		const src = this._blendFactorMap[sourceFactor];
-		const dst = this._blendFactorMap[destinationFactor];
+		const src = GL_MAP.BLEND_OP[sourceFactor];
+		const dst = GL_MAP.BLEND_OP[destinationFactor];
 		const gl = this._gl;
 
 		this._blendState.set(+true, gl.FUNC_ADD, src, dst);
@@ -561,7 +467,7 @@ export class ContextWebGL implements IContextGL {
 
 	// TODO ContextGLCompareMode
 	public setDepthTest(depthMask: boolean, passCompareMode: ContextGLCompareMode): void {
-		const mode = this._compareModeMap[passCompareMode];
+		const mode = GL_MAP.COMPARE_OP[passCompareMode];
 
 		this._depthState.setAt(1, +depthMask) && this._gl.depthMask(depthMask);
 		this._depthState.setAt(2, mode) && this._gl.depthFunc(mode);
@@ -601,11 +507,10 @@ export class ContextWebGL implements IContextGL {
 
 		this._separateStencil = triangleFace != ContextGLTriangleFace.FRONT_AND_BACK;
 
-		const compareModeGL = this._compareModeMap[compareMode];
-
-		const fail = this._stencilActionMap[actionOnDepthPassStencilFail];
-		const zFail = this._stencilActionMap[actionOnDepthFail];
-		const pass = this._stencilActionMap[actionOnBothPass];
+		const compareModeGL = GL_MAP.COMPARE_OP[compareMode];
+		const fail = GL_MAP.STENCIL_ACTION[actionOnDepthPassStencilFail];
+		const zFail = GL_MAP.STENCIL_ACTION[actionOnDepthFail];
+		const pass = GL_MAP.STENCIL_ACTION[actionOnBothPass];
 
 		if (!this._separateStencil) {
 
@@ -744,7 +649,7 @@ export class ContextWebGL implements IContextGL {
 			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
 		}
 
-		const properties = this._vertexBufferMap[format];
+		const properties = GL_MAP.VERTEX_BUF_PROPS[format];
 
 		this._gl.enableVertexAttribArray(location);
 
@@ -831,19 +736,5 @@ export class ContextWebGL implements IContextGL {
 			default:
 				throw 'Unknown ContextGLTriangleFace type.'; // TODO error
 		}
-	}
-}
-
-export class VertexBufferProperties {
-	public size: number;
-
-	public type: number;
-
-	public normalized: boolean;
-
-	constructor(size: number, type: number, normalized: boolean) {
-		this.size = size;
-		this.type = type;
-		this.normalized = normalized;
 	}
 }
