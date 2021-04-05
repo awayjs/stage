@@ -14,20 +14,17 @@ import {
 import { ContextMode } from './base/ContextMode';
 import { ContextGLMipFilter } from './base/ContextGLMipFilter';
 import { ContextGLTextureFilter } from './base/ContextGLTextureFilter';
-import { ContextGLVertexBufferFormat } from './base/ContextGLVertexBufferFormat';
 import { ContextGLWrapMode } from './base/ContextGLWrapMode';
 import { ContextGLProfile } from './base/ContextGLProfile';
 import { IContextGL } from './base/IContextGL';
 import { IVertexBuffer } from './base/IVertexBuffer';
 import { StageEvent } from './events/StageEvent';
-import { ContextGLES } from './gles/ContextGLES';
 import { ImageBase } from './image/ImageBase';
 import { ImageSampler } from './image/ImageSampler';
 import { _Stage_ImageBase } from './image/ImageBase';
 import { ProgramData } from './image/ProgramData';
 import { ProgramDataPool } from './image/ProgramDataPool';
 import { StageManager } from './managers/StageManager';
-import { ContextSoftware } from './software/ContextSoftware';
 import { ContextWebGL } from './webgl/ContextWebGL';
 import { ContextGLClearMask } from './base/ContextGLClearMask';
 import { Image2D } from './image/Image2D';
@@ -35,6 +32,7 @@ import { UnloadService } from './managers/UnloadManager';
 import { ImageUtils } from './utils/ImageUtils';
 import { TouchPoint } from './base/TouchPoint';
 import { FilterManager } from './managers/FilterManager';
+import { BUFFER_FORMATS_MAP } from './utils/BufferFormat';
 
 const TMP_POINT = { x: 0, y: 0 };
 
@@ -70,10 +68,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _stageManager: StageManager;
 	private _antiAlias: number = 4;
 	private _enableDepthAndStencil: boolean;
-	private _contextRequested: boolean;
-
-	//private var _activeVertexBuffers : Vector.<VertexBuffer> = new Vector.<VertexBuffer>(8, true);
-	//private var _activeTextures : Vector.<TextureBase> = new Vector.<TextureBase>(8, true);
 	private _renderTarget: ImageBase = null;
 	private _renderSurfaceSelector: number = 0;
 	private _renderMipmapSelector: number = 0;
@@ -85,12 +79,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	private _frameEndCallbackOnce: Array<() => void> = [];
 
-	//private _mouse3DManager:away.managers.Mouse3DManager;
-	//private _touch3DManager:Touch3DManager; //TODO: imeplement dependency Touch3DManager
-
 	private _initialised: boolean = false;
-
-	private _bufferFormatDictionary: Array<Array<number>> = new Array<Array<number>>(5);
 
 	public globalDisableMipmap: boolean = false;
 
@@ -146,32 +135,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._width = this._container.clientWidth;
 		this._height = this._container.clientHeight;
-
-		this._bufferFormatDictionary[1] = new Array<number>(5);
-		this._bufferFormatDictionary[1][1] = ContextGLVertexBufferFormat.BYTE_1;
-		this._bufferFormatDictionary[1][2] = ContextGLVertexBufferFormat.BYTE_2;
-		this._bufferFormatDictionary[1][3] = ContextGLVertexBufferFormat.BYTE_3;
-		this._bufferFormatDictionary[1][4] = ContextGLVertexBufferFormat.BYTE_4;
-		this._bufferFormatDictionary[2] = new Array<number>(5);
-		this._bufferFormatDictionary[2][1] = ContextGLVertexBufferFormat.SHORT_1;
-		this._bufferFormatDictionary[2][2] = ContextGLVertexBufferFormat.SHORT_2;
-		this._bufferFormatDictionary[2][3] = ContextGLVertexBufferFormat.SHORT_3;
-		this._bufferFormatDictionary[2][4] = ContextGLVertexBufferFormat.SHORT_4;
-		this._bufferFormatDictionary[4] = new Array<number>(5);
-		this._bufferFormatDictionary[4][1] = ContextGLVertexBufferFormat.FLOAT_1;
-		this._bufferFormatDictionary[4][2] = ContextGLVertexBufferFormat.FLOAT_2;
-		this._bufferFormatDictionary[4][3] = ContextGLVertexBufferFormat.FLOAT_3;
-		this._bufferFormatDictionary[4][4] = ContextGLVertexBufferFormat.FLOAT_4;
-		this._bufferFormatDictionary[5] = new Array<number>(5);
-		this._bufferFormatDictionary[5][1] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_1;
-		this._bufferFormatDictionary[5][2] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_2;
-		this._bufferFormatDictionary[5][3] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_3;
-		this._bufferFormatDictionary[5][4] = ContextGLVertexBufferFormat.UNSIGNED_BYTE_4;
-		this._bufferFormatDictionary[6] = new Array<number>(5);
-		this._bufferFormatDictionary[6][1] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_1;
-		this._bufferFormatDictionary[6][2] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_2;
-		this._bufferFormatDictionary[6][3] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_3;
-		this._bufferFormatDictionary[6][4] = ContextGLVertexBufferFormat.UNSIGNED_SHORT_4;
 
 		this.visible = true;
 
@@ -284,8 +247,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	 * Requests a Context object to attach to the managed gl canvas.
 	 */
 	public requestContext(
-		forceSoftware: boolean = false, profile: ContextGLProfile = ContextGLProfile.BASELINE,
-		mode: ContextMode = ContextMode.AUTO, alpha: boolean = false): void {
+		forceSoftware: boolean = false,
+		profile: ContextGLProfile = ContextGLProfile.BASELINE,
+		_mode: ContextMode = ContextMode.AUTO,
+		alpha: boolean = false
+	): void {
 
 		// If forcing software, we can be certain that the
 		// returned Context will be running software mode.
@@ -298,12 +264,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._profile = profile;
 
 		try {
-			if (mode == ContextMode.SOFTWARE)
-				this._context = new ContextSoftware(this._container);
-			else if (mode == ContextMode.GLES)
-				this._context = new ContextGLES(this._container);
-			else
-				this._context = new ContextWebGL(this._container, alpha);
+			this._context = new ContextWebGL(this._container, alpha);
 		} catch (e) {
 			this.dispatchEvent(new StageEvent(StageEvent.STAGE_ERROR, this));
 		}
@@ -619,11 +580,11 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this._initialised = false;
 	}
 
-	private onContextLost(event): void {
+	private onContextLost(_event): void {
 
 	}
 
-	private onContextRestored(event): void {
+	private onContextRestored(_event): void {
 
 	}
 
@@ -674,8 +635,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		offset: number, unsigned: boolean = false): void {
 
 		this._context.setVertexBufferAt(
-			index, buffer,
-			offset, this._bufferFormatDictionary[unsigned ? size + 4 : size][dimensions]);
+			index, buffer, offset, BUFFER_FORMATS_MAP[unsigned ? size + 4 : size][dimensions - 1]);
 	}
 
 	public setScissor(rectangle: Rectangle): void {
