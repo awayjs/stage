@@ -168,8 +168,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public setRenderTarget(
-		target: ImageBase & {antialiasQuality?: number}, enableDepthAndStencil: boolean = false,
-		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+		target: ImageBase,
+		enableDepthAndStencil: boolean = false,
+		surfaceSelector: number = 0,
+		mipmapSelector: number = 0,
+		disableMSAA = false
+	): void {
 
 		if (this._renderTarget === target
 			&& surfaceSelector === this._renderSurfaceSelector

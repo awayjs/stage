@@ -266,8 +266,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createCubeTexture(
-		size: number, format: ContextGLTextureFormat,
-		optimizeForRenderToTexture: boolean, streamingLevels: number = 0): CubeTextureWebGL {
+		size: number, _format: ContextGLTextureFormat,
+		_optimizeForRenderToTexture: boolean, _streamingLevels: number = 0): CubeTextureWebGL {
 
 		return new CubeTextureWebGL(this, size);
 	}
@@ -281,8 +281,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public createTexture(
-		width: number, height: number, format: ContextGLTextureFormat,
-		optimizeForRenderToTexture: boolean, streamingLevels: number = 0): TextureWebGL {
+		width: number, height: number, _format: ContextGLTextureFormat,
+		_optimizeForRenderToTexture: boolean, _streamingLevels: number = 0): TextureWebGL {
 
 		//TODO streaming -- not supported on WebGL
 		return TextureWebGL.create(this, width, height);

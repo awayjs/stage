@@ -305,7 +305,7 @@ export class TextureContextWebGL {
 		// bind framebuffer with texture to READ slot
 		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, target._renderTarget.drawBuffer);
 		// clear
-		gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+		// gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 		// copy texture to renderbuffer!
 		gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, gl.COLOR_BUFFER_BIT, gl.LINEAR);
 	}

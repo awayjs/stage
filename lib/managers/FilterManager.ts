@@ -321,7 +321,7 @@ export class FilterManager {
 			const task = tasks[i];
 
 			task.preActivate(this._stage);
-			this._stage.setRenderTarget(task.target, false);
+			this._stage.setRenderTarget(task.target, false, 0, 0, true);
 			this._stage.setScissor(task.clipRect);
 
 			// because we use TMP image, need clear it
@@ -410,7 +410,7 @@ export class FilterManager {
 			if (rect.height > target.height - destPoint.y)
 				rect.height = target.height - destPoint.y;
 
-			this._stage.setRenderTarget(source, false);
+			this._stage.setRenderTarget(source, false, 0, 0, true);
 			this._stage.setScissor(null);
 
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
