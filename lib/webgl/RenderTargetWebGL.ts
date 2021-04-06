@@ -61,21 +61,20 @@ export class RenderTargetWebGL implements IUnloadable {
 
 	protected init() {
 		const gl = this._context._gl;
-		const fb = this._framebuffer =  gl.createFramebuffer();
-		const rb = this._depthStencil = this._colorOnly ? null : gl.createRenderbuffer();
 
+		this._framebuffer =  gl.createFramebuffer();
+		this._depthStencil = this._colorOnly ? null : gl.createRenderbuffer();
 		this._context.stats.textures.framebuffers++;
 
 		// we not have RB, not require init it
-		if (!rb) {
+		if (!this._depthStencil) {
 			return;
 		}
 
 		const prev = this._context._texContext.bindRenderTarget(this, false);
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-		gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
-		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rb);
+		gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthStencil);
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, this._depthStencil);
 		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, this.width, this.height);
 
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -91,6 +90,7 @@ export class RenderTargetWebGL implements IUnloadable {
 		const gl = this._context._gl;
 		const tex = this._context._texContext;
 		const link = texture?.glTexture;
+		const prevTex = tex.bindTexture(texture, true);
 
 		if (texture) {
 			if (texture.height !== this.height || texture.width !== this.width) {
@@ -100,15 +100,18 @@ export class RenderTargetWebGL implements IUnloadable {
 				);
 			}
 
-			// should be bound safe
-			texture.uploadFromArray(null, 0, false);
+			// we should fill texture, because otherwithe a FB will be incomplete
+			if (!texture._isFilled) {
+				texture.uploadFromArray(null, 0, false);
+			}
 		}
 
-		const prevTarget = tex.bindRenderTarget(this);
+		const prevTarget = tex.bindRenderTarget(this, true);
 
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, link, 0);
 
-		tex.bindRenderTarget(prevTarget);
+		tex.bindRenderTarget(prevTarget, true);
+		tex.bindTexture(prevTex, true);
 
 		this._linkedTexture = texture;
 	}

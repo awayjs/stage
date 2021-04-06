@@ -27,7 +27,7 @@ export class TextureContextWebGL {
 
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
-	_activeTexture: number = -1;
+	_lastBoundedTexture: TextureWebGL = null;
 	_currentRT: RenderTargetWebGL = null;
 
 	private _gl: WebGLRenderingContext | WebGL2RenderingContext;
@@ -86,7 +86,7 @@ export class TextureContextWebGL {
 			array = new Uint8Array(array);
 
 		// push lastest used texture to stack and bind new
-		const prev = this.bindTexture(target, false, gl.TEXTURE_2D);
+		const prev = this.bindTexture(target, true, gl.TEXTURE_2D);
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, premultiplied);
 		gl.texImage2D(
@@ -208,7 +208,7 @@ export class TextureContextWebGL {
 			this.initFrameBuffer(target, antiAlias, enableDepthAndStencil);
 		}
 
-		this.bindRenderTarget(target._renderTarget, false);
+		this.bindRenderTarget(target._renderTarget, true);
 
 		if (enableDepthAndStencil) {
 			this._context.enableDepth();
@@ -224,7 +224,6 @@ export class TextureContextWebGL {
 	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: boolean, depthStencil: boolean) {
 		const width = target.width;
 		const height = target.height;
-		const prev = this.bindTexture(target, false);
 
 		let rt = new RenderTargetWebGL(this._context, width, height, !depthStencil);
 
@@ -239,7 +238,6 @@ export class TextureContextWebGL {
 		}
 
 		target._renderTarget = rt;
-		this.bindTexture(prev, true);
 	}
 
 	/*internal*/ presentFrameBufferTo(
@@ -257,7 +255,8 @@ export class TextureContextWebGL {
 		if (!source || !source.isMsaaTarget || gl instanceof WebGLRenderingContext) {
 			// direct copy to target texture.
 			// same as call this._context.renderToTexture
-			gl.bindFramebuffer(gl.FRAMEBUFFER, source.readBuffer);
+			// gl.bindFramebuffer(gl.FRAMEBUFFER, source.readBuffer);
+			this.bindRenderTarget(source, true);
 			this.unsafeCopyToTexture(target, rect, point);
 
 		} else if (targetFrameBuffer) {
@@ -266,7 +265,7 @@ export class TextureContextWebGL {
 			// bind framebuffer with texture to WRITE slot
 			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, targetFrameBuffer);
 			// clear
-			gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+			// gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 			// copy renderbuffer to texture
 			gl.blitFramebuffer(
 				rect.x | 0,

@@ -50,7 +50,7 @@ export class RenderTargetWebGLMSAA extends RenderTargetWebGL {
 			gl.renderbufferStorageMultisample(GL_RB, GL_MAX_MSAA, GL_D24_S8, width, height);
 		}
 
-		tex.bindRenderTarget(prevRT);
+		tex.bindRenderTarget(prevRT, true);
 	}
 
 	public linkTarget(target: RenderTargetWebGL | null) {
