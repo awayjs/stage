@@ -306,8 +306,7 @@ export class ContextWebGL implements IContextGL {
 		destination: BitmapImage2D, invalidate = true, async: boolean = false): undefined | Promise<boolean> {
 
 		const pixels = new Uint8Array(destination.getDataInternal().buffer);
-		const tex = this._texContext._renderTarget;
-		const rt = tex._renderTarget;
+		const rt = this._texContext._currentRT;
 		const fence = this._fenceContext;
 		const { width, height } = destination;
 
@@ -321,7 +320,7 @@ export class ContextWebGL implements IContextGL {
 
 		if (rt.isMsaaTarget) {
 			// because RT is MSAA, we should blit it to no-MSAA and use noMSAA framebufer for reading
-			this._texContext.presentFrameBuffer(tex);
+			rt.present();
 			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, rt.readBuffer);
 		}
 
@@ -583,7 +582,7 @@ export class ContextWebGL implements IContextGL {
 			return;
 		}
 
-		const isRT = !!this._texContext._renderTarget;
+		const isRT = !!this._texContext._currentRT;
 
 		// for framebuffer we use framebuffer size without internal scale
 		const pr = isRT ? 1 : this._pixelRatio;
@@ -664,15 +663,13 @@ export class ContextWebGL implements IContextGL {
 
 	public setRenderToTexture(
 		target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0,
-		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+		_surfaceSelector: number = 0, _mipmapSelector: number = 0): void {
 
 		// proxy
 		this._texContext.setRenderToTexture(
 			target,
 			enableDepthAndStencil,
-			antiAlias,
-			surfaceSelector,
-			mipmapSelector
+			antiAlias > 1,
 		);
 
 		this.assertLost('setRenderToTexture');
@@ -684,11 +681,11 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public copyToTexture(target: TextureBaseWebGL, rect: Rectangle, destPoint: Point): void {
-		if (!this._texContext._renderTarget) {
+		if (!this._texContext._currentRT) {
 			throw '[ContextWebGL] Try to copy from invalid frambuffer';
 		}
 
-		this._texContext.presentFrameBufferTo(this._texContext._renderTarget, <TextureWebGL>target, rect, destPoint);
+		this._texContext.presentFrameBufferTo(this._texContext._currentRT, <TextureWebGL>target, rect, destPoint);
 		this.assertLost('copyToTexture');
 
 	}

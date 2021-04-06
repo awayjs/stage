@@ -8,10 +8,9 @@ import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 import { RenderTargetWebGL } from './RenderTargetWebGL';
-import * as GL_MAP from './ConstantsWebGL';
 import { RenderTargetWebGLMSAA } from './RenderTargetWebGLMSAA';
 
-const nPOTAlerts: NumberMap<boolean> = {};
+import * as GL_MAP from './ConstantsWebGL';
 
 interface IPoint {
 	x: number;
@@ -26,7 +25,6 @@ interface IRectangle extends IPoint {
 export class TextureContextWebGL {
 	public static MAX_SAMPLERS = 8;
 
-	_renderTarget: TextureWebGL;
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
 	_activeTexture: number = -1;
@@ -148,82 +146,60 @@ export class TextureContextWebGL {
 		mipfilter: ContextGLMipFilter
 	): void {
 
-		if (0 <= sampler && sampler < TextureContextWebGL.MAX_SAMPLERS) {
-			this._samplerStates[sampler].set(
-				GL_MAP.WRAP[wrap],
-				GL_MAP.FILTER[filter],
-				GL_MAP.MIP_FILTER[filter][mipfilter]
-			);
-		} else {
+		if (!this._samplerStates[sampler]) {
 			throw 'Sampler is out of bounds.';
 		}
+
+		this._samplerStates[sampler].set(
+			GL_MAP.WRAP[wrap],
+			GL_MAP.FILTER[filter],
+			GL_MAP.MIP_FILTER[filter][mipfilter]
+		);
 	}
 
-	public unsafeCopyToTexture(
-		target: TextureWebGL, rect: IRectangle, destPoint: IPoint, scale: boolean = false): void {
+	public unsafeCopyToTexture(target: TextureWebGL, rect: IRectangle, destPoint: IPoint): void {
 
 		const gl = this._context._gl;
 
 		const prev = this.bindTexture(target, false);
 
-		if (!scale) {
-			gl.copyTexSubImage2D(
-				gl.TEXTURE_2D,
-				0,
-				destPoint.x,
-				destPoint.y,
-				rect.x,
-				rect.y,
-				rect.width,
-				rect.height);
-		} else {
-			// this method allow scale up/down for texture with it configuration.
-			// need set a sampler state to linear for this texture
-			gl.copyTexImage2D(
-				gl.TEXTURE_2D,
-				0,
-				gl.RGBA,
-				rect.x,
-				rect.y,
-				rect.width,
-				rect.height,
-				0
-			);
-		}
+		gl.copyTexSubImage2D(
+			gl.TEXTURE_2D,
+			0,
+			destPoint.x,
+			destPoint.y,
+			rect.x,
+			rect.y,
+			rect.width,
+			rect.height
+		);
 
 		// restore latest active texture
 		this.bindTexture(prev, true);
 	}
 
 	public setRenderToTexture(
-		target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0,
-		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
+		target: TextureBaseWebGL,
+		enableDepthAndStencil: boolean = false,
+		antiAlias: boolean = true
+	): void {
 
-		if (this._renderTarget) {
-			this.presentFrameBuffer(this._renderTarget);
-			this._renderTarget._isRT = false;
+		if (this._currentRT) {
+			this._currentRT.present();
 		}
 
-		this._renderTarget = <TextureWebGL> target;
-		this._renderTarget._isRT = true;
-
-		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
+		this.setFrameBuffer(<TextureWebGL> target, enableDepthAndStencil, antiAlias);
 	}
 
 	public setRenderToBackBuffer(): void {
-		if (this._renderTarget) {
-			this.presentFrameBuffer(this._renderTarget);
-			this._renderTarget._isRT = false;
+		if (this._currentRT) {
+			this._currentRT.present();
 		}
-
-		this._renderTarget = null;
 
 		this.bindRenderTarget(null, true);
 	}
 
-	/*internal*/ setFrameBuffer(
-		target: TextureWebGL, enableDepthAndStencil: boolean,
-		antiAlias: number, _surfaceSelector: number, _mipmapSelector: number) {
+	/*internal*/ setFrameBuffer(target: TextureWebGL, enableDepthAndStencil: boolean, antiAlias: boolean) {
 
 		const width = target.width;
 		const height = target.height;
@@ -245,7 +221,7 @@ export class TextureContextWebGL {
 		this._context.setViewport(0,0,width,height);
 	}
 
-	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: number, depthStencil: boolean) {
+	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: boolean, depthStencil: boolean) {
 		const width = target.width;
 		const height = target.height;
 		const prev = this.bindTexture(target, false);
@@ -254,7 +230,8 @@ export class TextureContextWebGL {
 
 		rt.linkTexture(target);
 
-		if (antiAlias > 0 && this._context.glVersion === 2) {
+		// only webgl2 have msaa
+		if (antiAlias && this._context.glVersion === 2) {
 			const msaa = new RenderTargetWebGLMSAA(this._context, width, height, !depthStencil);
 
 			msaa.linkTarget(rt);
@@ -265,31 +242,27 @@ export class TextureContextWebGL {
 		this.bindTexture(prev, true);
 	}
 
-	/*internal*/ presentFrameBuffer(source: TextureWebGL): void {
-		source._renderTarget.present();
-	}
-
 	/*internal*/ presentFrameBufferTo(
-		source: TextureWebGL | null, target: TextureWebGL, rect: IRectangle, point: IPoint): void {
+		source: RenderTargetWebGL | null, target: TextureWebGL, rect: IRectangle, point: IPoint): void {
 
 		const gl = this._context._gl;
 		const prefRT = this._currentRT;
 
 		if (!target._renderTarget) {
-			this.initFrameBuffer(target, 0, false);
+			this.initFrameBuffer(target, false, false);
 		}
 
 		const targetFrameBuffer = target._renderTarget.drawBuffer;
 
-		if (!source || !source._renderTarget.isMsaaTarget || gl instanceof WebGLRenderingContext) {
+		if (!source || !source.isMsaaTarget || gl instanceof WebGLRenderingContext) {
 			// direct copy to target texture.
 			// same as call this._context.renderToTexture
-			gl.bindFramebuffer(gl.FRAMEBUFFER, source._renderTarget.readBuffer);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, source.readBuffer);
 			this.unsafeCopyToTexture(target, rect, point);
 
 		} else if (targetFrameBuffer) {
 			// bind framebuffer with renderbuffer to READ slot
-			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source._renderTarget.drawBuffer);
+			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source.drawBuffer);
 			// bind framebuffer with texture to WRITE slot
 			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, targetFrameBuffer);
 			// clear
@@ -340,12 +313,6 @@ export class TextureContextWebGL {
 
 	/*internal*/ disposeTexture(texture: TextureWebGL) {
 		const gl = this._context._gl;
-
-		if (this._renderTarget === texture) {
-			console.warn('[Context] Trying to dispose a active tendertarget!');
-
-			this._context.setRenderToBackBuffer();
-		}
 
 		if (texture === this._lastBoundedTexture) {
 			this._lastBoundedTexture = null;
