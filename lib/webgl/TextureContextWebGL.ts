@@ -9,6 +9,7 @@ import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
 import { RenderTargetWebGL } from './RenderTargetWebGL';
 import * as GL_MAP from './ConstantsWebGL';
+import { RenderTargetWebGLMSAA } from './RenderTargetWebGLMSAA';
 
 const nPOTAlerts: NumberMap<boolean> = {};
 
@@ -22,14 +23,6 @@ interface IRectangle extends IPoint {
 	height: number;
 }
 
-interface IRendertargetEntry {
-	texture: TextureWebGL;
-	enableDepthAndStencil: boolean;
-	antiAlias: number;
-	surfaceSelector: number;
-	mipmapSelector: number;
-}
-
 export class TextureContextWebGL {
 	public static MAX_SAMPLERS = 8;
 
@@ -37,9 +30,9 @@ export class TextureContextWebGL {
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
 	_activeTexture: number = -1;
+	_currentRT: RenderTargetWebGL = null;
 
 	private _gl: WebGLRenderingContext | WebGL2RenderingContext;
-	private _renderTargetConfig: IRendertargetEntry = undefined;
 
 	constructor (private _context: ContextWebGL) {
 
@@ -47,24 +40,20 @@ export class TextureContextWebGL {
 
 		//defaults
 		for (let i = 0; i < TextureContextWebGL.MAX_SAMPLERS; ++i) {
-			this._samplerStates[i] = new SamplerStateWebGL(
-				i,
-				null,
+			this._samplerStates[i] = new SamplerStateWebGL(i,null, _context);
+			this._samplerStates[i].set(
 				_context.glVersion === 2 ? gl.REPEAT : gl.CLAMP_TO_EDGE,
-				gl.LINEAR,
-				gl.LINEAR
-			);
+				gl.LINEAR, gl.LINEAR);
 		}
 	}
 
-	private _currentRT: RenderTargetWebGL = null;
 	public bindRenderTarget (target: RenderTargetWebGL, check = false): RenderTargetWebGL {
 		if (check && this._currentRT === target) return target;
 
 		const prev = this._currentRT;
 
 		this._currentRT = target;
-		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, target?._framebuffer);
+		this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, target ? target._framebuffer : null);
 
 		return prev;
 	}
@@ -75,7 +64,7 @@ export class TextureContextWebGL {
 		const prev = this._lastBoundedTexture;
 
 		this._lastBoundedTexture = texture;
-		this._gl.bindTexture(target, texture?._glTexture);
+		this._gl.bindTexture(target, texture ? texture._glTexture : texture);
 
 		return prev;
 	}
@@ -119,13 +108,12 @@ export class TextureContextWebGL {
 
 	public setTextureAt(sampler: number, texture: TextureWebGL): number {
 		const gl = this._context._gl;
-		const samplerState: SamplerStateWebGL = this._samplerStates[sampler];
+		const samplerState = this._samplerStates[sampler];
+		const textureType = GL_MAP.TEXTURE[texture.textureType];
 
 		if ((texture || samplerState.type)) {
 			gl.activeTexture(gl.TEXTURE0 + sampler);
 		}
-
-		samplerState.boundedTexture = texture;
 
 		if (!texture) {
 			if (samplerState.type) {
@@ -144,63 +132,28 @@ export class TextureContextWebGL {
 			return -1;
 		}
 
-		const powerOfTwo = texture.isPOT;
-		const isAllowRepeat = (this._context.glVersion === 2 || powerOfTwo)
-			&& ContextWebGLFlags.PREF_REPEAT_WRAP !== ContextWebGLPreference.NONE;
-
-		const textureType = GL_MAP.TEXTURE[texture.textureType];
-		samplerState.type = textureType;
-
-		// bind texture only when sampler is not same (texture is not bounded)
-		// but there are a bug, and texture can be unbounded
-		this.bindTexture(texture, false, textureType);
-
 		texture._state.id = sampler;
 
-		// apply state of texture only WHEN IT NOT EQUAL
-		if (!texture._state.equals(samplerState)) {
+		this.bindTexture(texture, false, textureType);
 
-			texture._state.copyFrom(samplerState);
-
-			if (samplerState.wrap ===  gl.REPEAT && !isAllowRepeat) {
-
-				if (!nPOTAlerts[texture.id]
-					&& ContextWebGLFlags.PREF_REPEAT_WRAP === ContextWebGLPreference.ALL_TEXTURES) {
-
-					nPOTAlerts[<number>texture.id] = true;
-					console.warn(
-						'[Texture] REPEAT wrap not allowed for nPOT textures in WebGL1,' +
-						'set ContextWebGLFlags.PREF_REPEAT_WRAP ' +
-						'= (ContextWebGLPreference.POT_TEXTURES | ContextWebGLPreference.NONE)' +
-						'to supress warnings!',
-						texture);
-				}
-
-				gl.texParameteri(textureType,  gl.TEXTURE_WRAP_S,  gl.CLAMP_TO_EDGE);
-				gl.texParameteri(textureType,  gl.TEXTURE_WRAP_T,  gl.CLAMP_TO_EDGE);
-			} else {
-				gl.texParameteri(textureType,  gl.TEXTURE_WRAP_S, samplerState.wrap);
-				gl.texParameteri(textureType,  gl.TEXTURE_WRAP_T, samplerState.wrap);
-			}
-
-			gl.texParameteri(textureType,  gl.TEXTURE_MAG_FILTER, samplerState.filter);
-			gl.texParameteri(textureType,  gl.TEXTURE_MIN_FILTER, samplerState.mipfilter);
-		}
+		samplerState.commit(textureType, texture);
 
 		return sampler;
-		//gl.uniform1i(this._currentProgram.getUniformLocation(ContextGLProgramType.SAMPLER, sampler), sampler);
 	}
 
 	public setSamplerStateAt(
 		sampler: number,
 		wrap: ContextGLWrapMode,
 		filter: ContextGLTextureFilter,
-		mipfilter: ContextGLMipFilter): void {
+		mipfilter: ContextGLMipFilter
+	): void {
 
 		if (0 <= sampler && sampler < TextureContextWebGL.MAX_SAMPLERS) {
-			this._samplerStates[sampler].wrap = GL_MAP.WRAP[wrap];
-			this._samplerStates[sampler].filter = GL_MAP.FILTER[filter];
-			this._samplerStates[sampler].mipfilter = GL_MAP.MIP_FILTER[filter][mipfilter];
+			this._samplerStates[sampler].set(
+				GL_MAP.WRAP[wrap],
+				GL_MAP.FILTER[filter],
+				GL_MAP.MIP_FILTER[filter][mipfilter]
+			);
 		} else {
 			throw 'Sampler is out of bounds.';
 		}
@@ -242,19 +195,6 @@ export class TextureContextWebGL {
 		this.bindTexture(prev, true);
 	}
 
-	public restoreRenderTarget() {
-		if (!this._renderTargetConfig) {
-			this.setRenderToBackBuffer();
-			return;
-		}
-
-		const {
-			/*texture,*/ enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector
-		} = this._renderTargetConfig;
-
-		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
-	}
-
 	public setRenderToTexture(
 		target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0,
 		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
@@ -266,15 +206,7 @@ export class TextureContextWebGL {
 
 		this._renderTarget = <TextureWebGL> target;
 		this._renderTarget._isRT = true;
-		this._renderTargetConfig = {
-			texture: this._renderTarget,
-			enableDepthAndStencil,
-			antiAlias,
-			surfaceSelector,
-			mipmapSelector
-		};
 
-		this._renderTarget._skipPresent = false;
 		this.setFrameBuffer(this._renderTarget, enableDepthAndStencil, antiAlias, surfaceSelector, mipmapSelector);
 	}
 
@@ -282,34 +214,25 @@ export class TextureContextWebGL {
 		if (this._renderTarget) {
 			this.presentFrameBuffer(this._renderTarget);
 			this._renderTarget._isRT = false;
-			this._renderTarget = null;
 		}
 
-		const gl = this._context._gl;
-		this._renderTargetConfig = null;
+		this._renderTarget = null;
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		this.bindRenderTarget(null, true);
 	}
 
 	/*internal*/ setFrameBuffer(
 		target: TextureWebGL, enableDepthAndStencil: boolean,
-		antiAlias: number, surfaceSelector: number, mipmapSelector: number) {
+		antiAlias: number, _surfaceSelector: number, _mipmapSelector: number) {
 
-		const gl = this._context._gl;
+		const width = target.width;
+		const height = target.height;
 
-		if (gl instanceof WebGLRenderingContext)
-			mipmapSelector = 0;
-
-		const width: number = target.width >>> mipmapSelector;
-		const height: number = target.height >>> mipmapSelector;
-
-		target._mipmapSelector = mipmapSelector;
-
-		if (!target._frameBuffer[mipmapSelector]) {
-			this.initFrameBuffer(target, antiAlias,  mipmapSelector);
-		} else {
-			gl.bindFramebuffer(gl.FRAMEBUFFER, target._frameBuffer[mipmapSelector]);
+		if (!target._renderTarget) {
+			this.initFrameBuffer(target, antiAlias, enableDepthAndStencil);
 		}
+
+		this.bindRenderTarget(target._renderTarget, false);
 
 		if (enableDepthAndStencil) {
 			this._context.enableDepth();
@@ -322,178 +245,55 @@ export class TextureContextWebGL {
 		this._context.setViewport(0,0,width,height);
 	}
 
-	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: number, mipmapSelector: number) {
-		const gl = this._context._gl;
-		const width: number = target._width >>> mipmapSelector;
-		const height: number = target._height >>> mipmapSelector;
-
-		if (!target._frameBuffer[mipmapSelector]) {
-			this._context.stats.textures.framebuffers++;
-
-			target._frameBuffer[mipmapSelector] = gl.createFramebuffer();
-			target._renderBufferDepth[mipmapSelector] = gl.createRenderbuffer();
-		}
-
-		//create main framebuffer
-		const frameBuffer = target._frameBuffer[mipmapSelector];
-		//create renderbufferdepth
-		const renderBufferDepth = target._renderBufferDepth[mipmapSelector];
-
-		target._mipmapSelector = mipmapSelector;
-		// bind texture
+	/*internal*/ initFrameBuffer(target: TextureWebGL, antiAlias: number, depthStencil: boolean) {
+		const width = target.width;
+		const height = target.height;
 		const prev = this.bindTexture(target, false);
 
-		// apply texture with empty data
-		if (!target._isFilled) {
-			gl.texImage2D(
-				gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		let rt = new RenderTargetWebGL(this._context, width, height, !depthStencil);
 
-			//gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+		rt.linkTexture(target);
 
-			target._isFilled = true;
-			target._isPMA = true;
+		if (antiAlias > 0 && this._context.glVersion === 2) {
+			const msaa = new RenderTargetWebGLMSAA(this._context, width, height, !depthStencil);
+
+			msaa.linkTarget(rt);
+			rt = msaa;
 		}
 
-		//no Multisample buffers with WebGL1
-		if (gl instanceof WebGLRenderingContext || !ContextWebGLFlags.PREF_MULTISAMPLE || antiAlias < 1) {
-
-			// activate framebuffer
-			gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-			// activate renderbuffer
-			gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferDepth);
-			// set renderbuffer configuration
-			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, target._width, target._height);
-			// attach texture to framebuffer
-			gl.framebufferTexture2D(
-				gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target._glTexture, 0);
-			// attach depth to framebuffer
-			gl.framebufferRenderbuffer(
-				gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderBufferDepth);
-
-			target._multisampled = false;
-		} else {
-			antiAlias = Math.min(antiAlias, gl.getParameter(gl.MAX_SAMPLES));
-
-			// create framebuffer for DRAW
-			if (!target._frameBufferDraw[mipmapSelector]) {
-				this._context.stats.textures.framebuffers++;
-				target._frameBufferDraw[mipmapSelector] = gl.createFramebuffer();
-			}
-			const drawFrameBuffer = target._frameBufferDraw[mipmapSelector];
-			// compute levels for texture
-			const levels = Math.log(Math.min(target._width, target._height)) / Math.LN2 | 0 + 1;
-			// bind DRAW framebuffer
-			gl.bindFramebuffer(gl.FRAMEBUFFER, drawFrameBuffer);
-			// apply storage for texture
-			if (!target._texStorageFlag) {
-				gl.texStorage2D(gl.TEXTURE_2D, levels , gl.RGBA8, width, height);
-				target._texStorageFlag = true;
-			}
-			// attach texture to framebuffer to current mipmap level
-			gl.framebufferTexture2D(
-				gl.FRAMEBUFFER,
-				gl.COLOR_ATTACHMENT0,
-				gl.TEXTURE_2D,
-				target._glTexture,
-				target._mipmapSelector
-			);
-
-			gl.bindTexture(gl.TEXTURE_2D, null);
-
-			// bind READ framebuffer
-			gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-
-			gl.bindRenderbuffer(gl.RENDERBUFFER, renderBufferDepth);
-			// attach depth renderbuffer multisampled
-			gl.renderbufferStorageMultisample(
-				gl.RENDERBUFFER, antiAlias, gl.DEPTH24_STENCIL8, width, height);
-			// set renderbuffer configuration
-			gl.framebufferRenderbuffer(
-				gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, renderBufferDepth);
-
-			// create READ color renderbuffer for multismapling
-			const renderBuffer: WebGLRenderbuffer
-				= target._renderBuffer[mipmapSelector] = gl.createRenderbuffer();
-
-			// bind it
-			gl.bindRenderbuffer(gl.RENDERBUFFER, renderBuffer);
-			// set config
-			gl.renderbufferStorageMultisample(gl.RENDERBUFFER, antiAlias, gl.RGBA8, width, height);
-			// attach READ framebuffer
-			gl.framebufferRenderbuffer(
-				gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, renderBuffer);
-
-			target._multisampled = true;
-		}
-
-		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
+		target._renderTarget = rt;
 		this.bindTexture(prev, true);
 	}
 
 	/*internal*/ presentFrameBuffer(source: TextureWebGL): void {
-		const gl = this._context._gl;
-
-		//no Multisample buffers with WebGL1
-		if (gl instanceof WebGLRenderingContext || !source._multisampled || source._skipPresent)
-			return;
-
-		const width: number = source._width >>> source._mipmapSelector;
-		const height: number = source._height >>> source._mipmapSelector;
-
-		if (source._frameBuffer[source._mipmapSelector] === source._frameBufferDraw[source._mipmapSelector]) {
-			console.error('Framebuffer loop `presentFrameBuffer`');
-			return;
-		}
-
-		// bind framebuffer with renderbuffer to READ slot
-		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source._frameBuffer[source._mipmapSelector]);
-		// bind framebuffer with texture to WRITE slot
-		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, source._frameBufferDraw[source._mipmapSelector]);
-		// ckear
-		gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
-		// copy renderbuffer to texture
-		gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height,
-			gl.COLOR_BUFFER_BIT,
-			gl.LINEAR
-		);
+		source._renderTarget.present();
 	}
 
 	/*internal*/ presentFrameBufferTo(
 		source: TextureWebGL | null, target: TextureWebGL, rect: IRectangle, point: IPoint): void {
 
 		const gl = this._context._gl;
+		const prefRT = this._currentRT;
 
-		let targetFrameBuffer = target.textureFramebuffer;
-
-		if (!targetFrameBuffer) {
-			this.initFrameBuffer(target, 0, 0,);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-			targetFrameBuffer = target.textureFramebuffer;
+		if (!target._renderTarget) {
+			this.initFrameBuffer(target, 0, false);
 		}
 
-		if (source._frameBuffer[0] === targetFrameBuffer) {
-			console.error('Framebuffer loop `presentFrameBufferTo`');
-			return;
-		}
+		const targetFrameBuffer = target._renderTarget.drawBuffer;
 
-		// disable next present to avoid dirty texture
-		source._skipPresent = true;
-
-		if (!source || !source._multisampled || gl instanceof WebGLRenderingContext) {
+		if (!source || !source._renderTarget.isMsaaTarget || gl instanceof WebGLRenderingContext) {
 			// direct copy to target texture.
 			// same as call this._context.renderToTexture
-			gl.bindFramebuffer(gl.FRAMEBUFFER, source._frameBuffer[0]);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, source._renderTarget.readBuffer);
 			this.unsafeCopyToTexture(target, rect, point);
 
 		} else if (targetFrameBuffer) {
 			// bind framebuffer with renderbuffer to READ slot
-			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source._frameBuffer[0]);
+			gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source._renderTarget.drawBuffer);
 			// bind framebuffer with texture to WRITE slot
 			gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, targetFrameBuffer);
 			// clear
-			// gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
+			gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 			// copy renderbuffer to texture
 			gl.blitFramebuffer(
 				rect.x | 0,
@@ -512,10 +312,7 @@ export class TextureContextWebGL {
 		}
 
 		this.blitTextureToRenderbuffer(target);
-
-		// needs, because we rebound buffers to copy
-		// otherwith Stage not restore rebounds an we will draw to other framebuffer
-		this.restoreRenderTarget();
+		this.bindRenderTarget(prefRT, true);
 	}
 
 	/**
@@ -524,22 +321,17 @@ export class TextureContextWebGL {
 	/*internal*/ blitTextureToRenderbuffer(target: TextureWebGL): void {
 		const gl = this._context._gl;
 
-		if (!target._multisampled ||  !(gl instanceof WebGL2RenderingContext)) {
+		if (!target._renderTarget.isMsaaTarget ||  !(gl instanceof WebGL2RenderingContext)) {
 			return;
 		}
 
-		if (target._frameBuffer[target._mipmapSelector] === target._frameBufferDraw[target._mipmapSelector]) {
-			console.error('Framebuffer loop `blitTextureToRenderbuffer`');
-			return;
-		}
-
-		const width = target._width >>> target._mipmapSelector;
-		const height = target._height >>> target._mipmapSelector;
+		const width = target._width;
+		const height = target._height;
 
 		// bind framebuffer with renderbuffer to DRAW slot
-		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, target._frameBuffer[target._mipmapSelector]);
+		gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, target._renderTarget.readBuffer);
 		// bind framebuffer with texture to READ slot
-		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, target._frameBufferDraw[target._mipmapSelector]);
+		gl.bindFramebuffer(gl.READ_FRAMEBUFFER, target._renderTarget.drawBuffer);
 		// clear
 		gl.clearBufferfv(gl.COLOR, 0, [0.0, 0.0, 0.0, 0.0]);
 		// copy texture to renderbuffer!
@@ -565,19 +357,8 @@ export class TextureContextWebGL {
 		texStat.textures--;
 		gl.deleteTexture(texture._glTexture);
 
-		for (const key in texture._frameBuffer) {
-			if (texture._frameBuffer[key]) {
-				texStat.framebuffers--;
-				gl.deleteFramebuffer(texture._frameBuffer[key]);
-			}
-
-			if (texture._frameBufferDraw[key]) {
-				texStat.framebuffers--;
-				gl.deleteFramebuffer(texture._frameBufferDraw[key]);
-			}
-
-			gl.deleteRenderbuffer(texture._renderBuffer[key]);
-			gl.deleteRenderbuffer(texture._renderBufferDepth[key]);
+		if (texture._renderTarget) {
+			texture._renderTarget.dispose();
 		}
 	}
 

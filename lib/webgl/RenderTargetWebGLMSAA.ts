@@ -8,6 +8,10 @@ export class RenderTargetWebGLMSAA extends RenderTargetWebGL {
 
 	/*internal*/ _drawTarget: RenderTargetWebGL;
 
+	public get readBuffer() {
+		return this._drawTarget.readBuffer;
+	}
+
 	public get isValid() {
 		return this._framebuffer && this._drawTarget && this._drawTarget.isValid;
 	}

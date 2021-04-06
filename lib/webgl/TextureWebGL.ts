@@ -3,6 +3,8 @@ import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { ContextWebGL } from './ContextWebGL';
 import { IUnloadable, UnloadService } from '../managers/UnloadManager';
 import { Settings } from '../Settings';
+import { RenderTargetWebGLMSAA } from './RenderTargetWebGLMSAA';
+import { RenderTargetWebGL } from './RenderTargetWebGL';
 
 export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloadable {
 	public static readonly SIZE_POOL_LIMIT = 10;
@@ -73,20 +75,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 	public textureType: string = 'texture2d';
 
+	/*internal*/ _renderTarget: RenderTargetWebGLMSAA | RenderTargetWebGL;
 	/*internal*/ _width: number;
 	/*internal*/ _height: number;
-
-	/*internal*/ _frameBuffer: WebGLFramebuffer[] = [];
-	/*internal*/ _frameBufferDraw: WebGLFramebuffer[] = [];
-	/*internal*/ _renderBuffer: WebGLRenderbuffer = [];
-	/*internal*/ _renderBufferDepth: WebGLRenderbuffer = [];
-	/*internal*/ _mipmapSelector: number = 0;
-	/*internal*/ _texStorageFlag: boolean;
-	/*internal*/ _multisampled: boolean = false;
 	/*internal*/ _isFilled: boolean = false;
 	/*internal*/ _isPMA: boolean = false;
 	/*internal*/ _isRT: boolean = false;
-	/*internal*/ _skipPresent: boolean = false;
 
 	//keepAliveTime: number = 30_000;
 	lastUsedTime: number = 0;
@@ -121,44 +115,11 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		return this._height;
 	}
 
-	public get multisampled(): boolean {
-		return this._multisampled;
-	}
-
-	public get framebuffer(): WebGLFramebuffer {
-		return this._frameBuffer[this._mipmapSelector];
-	}
-
-	public get textureFramebuffer(): WebGLFramebuffer {
-		return this.multisampled
-			? this._frameBufferDraw[this._mipmapSelector]
-			: this._frameBuffer[this._mipmapSelector];
-	}
-
-	public setFrameBuffer(
-		enableDepthAndStencil: boolean = false, antiAlias: number = 0,
-		surfaceSelector: number = 0, mipmapSelector: number = 0): void {
-
-		this._context._texContext.setFrameBuffer(
-			this,
-			enableDepthAndStencil,
-			antiAlias,
-			surfaceSelector,
-			mipmapSelector);
-	}
-
-	public presentFrameBuffer(): void {
-		// deprecation
-		console.warn('[Texture] Framebuffer present internal method of ContextWebGL');
-	}
-
 	/**
 	 * @inheritdoc
 	 */
 	public dispose(): void {
-		if (!this.multisampled
-				&& Settings.ENABLE_TEXTURE_POOLING
-				&& TextureWebGL.store(this))
+		if (Settings.ENABLE_TEXTURE_POOLING && TextureWebGL.store(this))
 			return;
 
 		this.unload();
@@ -168,15 +129,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		TextureWebGL.remove(this);
 
 		this._context._texContext.disposeTexture(this);
-
 		this._glTexture = null;
-		this._renderBuffer = null;
-		this._renderBufferDepth = null;
-		this._frameBuffer = null;
-		this._frameBufferDraw = null;
-		this._mipmapSelector = 0;
-		this._width = this._height = 0;
-		this._multisampled = false;
 
 		this._state.dispose();
 	}

@@ -6,20 +6,31 @@ export interface ISampleState {
 }
 
 export class SamplerState implements ISampleState {
-
 	public get valid () {
 		return this.type !== null && this.id >= 0;
 	}
 
+	public wrap: number = 0;
+	public filter: number = 0;
+	public mipfilter: number = 0;
 	public boundedTexture: any = null;
+
+	_dirty: boolean = true;
 
 	constructor (
 		public id: number = -1,
-		public type: number | null = null,
-		public wrap: number = 0,
-		public filter: number = 0,
-		public mipfilter: number = 0,
+		public type: number | null = null
 	) {}
+
+	public set (wrap: number, filter: number, mipFilter: number): this {
+		this._dirty = this._dirty || (wrap !== wrap) || (filter !== filter) || (mipFilter !== mipFilter);
+
+		this.wrap = wrap;
+		this.filter = filter;
+		this.mipfilter = mipFilter;
+
+		return this;
+	}
 
 	equals (s: ISampleState): boolean {
 		return (

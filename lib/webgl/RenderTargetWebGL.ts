@@ -5,7 +5,6 @@ import { TextureWebGL } from './TextureWebGL';
 
 export class RenderTargetPool {
 	private static _pool: Record<string, RenderTargetWebGL[]> = {};
-
 	public static store(target: RenderTargetWebGL): boolean {
 		const key = `${target.width}_${target.height}_${target.isMsaaTarget}`;
 
@@ -39,6 +38,14 @@ export class RenderTargetWebGL implements IUnloadable {
 	protected _depthStencil: WebGLRenderbuffer;
 	protected _linkedTexture: TextureWebGL;
 
+	public get drawBuffer() {
+		return this._framebuffer;
+	}
+
+	public get readBuffer() {
+		return this._framebuffer;
+	}
+
 	public get isValid() {
 		return this._framebuffer && this._linkedTexture;
 	}
@@ -64,13 +71,16 @@ export class RenderTargetWebGL implements IUnloadable {
 			return;
 		}
 
+		const prev = this._context._texContext.bindRenderTarget(this, false);
+
 		gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
 		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rb);
 		gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, this.width, this.height);
 
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		this._context._texContext.bindRenderTarget(prev, true);
 	}
 
 	public linkTexture(texture: TextureWebGL) {
@@ -142,9 +152,9 @@ export class RenderTargetWebGL implements IUnloadable {
 	}
 
 	public dispose(): void {
-		if (RenderTargetPool.store(this)) {
+		/*if (RenderTargetPool.store(this)) {
 			return;
-		}
+		}*/
 
 		this.unload();
 	}

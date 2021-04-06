@@ -306,7 +306,8 @@ export class ContextWebGL implements IContextGL {
 		destination: BitmapImage2D, invalidate = true, async: boolean = false): undefined | Promise<boolean> {
 
 		const pixels = new Uint8Array(destination.getDataInternal().buffer);
-		const rt = this._texContext._renderTarget;
+		const tex = this._texContext._renderTarget;
+		const rt = tex._renderTarget;
 		const fence = this._fenceContext;
 		const { width, height } = destination;
 
@@ -316,10 +317,12 @@ export class ContextWebGL implements IContextGL {
 			promise = Promise.resolve(false);
 		}
 
-		if (rt?.multisampled) {
+		const currentRT = this._texContext._currentRT;
+
+		if (rt.isMsaaTarget) {
 			// because RT is MSAA, we should blit it to no-MSAA and use noMSAA framebufer for reading
-			this._texContext.presentFrameBuffer(rt);
-			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, rt.textureFramebuffer);
+			this._texContext.presentFrameBuffer(tex);
+			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, rt.readBuffer);
 		}
 
 		if (async && fence) {
@@ -358,9 +361,9 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		// restore back buffer bounding to draw framebufer, but only for sync opps
-		if (rt?.multisampled && !async) {
-			this._gl.bindFramebuffer(this._gl.FRAMEBUFFER, rt.framebuffer);
-		}
+		// if (rt.isMsaaTarget && !async) {
+		this._texContext.bindRenderTarget(currentRT, false);
+		// }
 		// for any case return a promise, nut for sync it will be undef;
 		return promise;
 	}
@@ -678,10 +681,6 @@ export class ContextWebGL implements IContextGL {
 	public setRenderToBackBuffer(): void {
 		this._texContext.setRenderToBackBuffer();
 		this.assertLost('setRenderToBackBuffer');
-	}
-
-	public restoreRenderTarget() {
-		this._texContext.restoreRenderTarget();
 	}
 
 	public copyToTexture(target: TextureBaseWebGL, rect: Rectangle, destPoint: Point): void {
