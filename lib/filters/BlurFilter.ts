@@ -77,6 +77,9 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 			source.height + pad.y
 		);
 
+		// TEMP target can be dirty, because we use offset, clear it
+		this._hBlurTask.needClear = true;
+
 		// we not cut region, because in this case blur will emit invalid data on edge
 		this._hBlurTask.inputRect.setTo(
 			0,0,
@@ -94,8 +97,8 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		// but we can use a clip to kill non-used
 		this._hBlurTask.clipRect = new Rectangle(
 			0,0,
-			source.width + pad.x,
-			source.height + pad.y
+			source.width + pad.x * 2,
+			source.height + pad.y * 2
 		);
 
 		this._vBlurTask.clipRect = this._hBlurTask.clipRect;

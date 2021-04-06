@@ -297,7 +297,7 @@ export class FilterManager {
 
 			// because we use TMP image, need clear it
 			// but this is needed only when a blend composer is required, when a copy filter used
-			if ((renderToSelf || task.needClear) && filter.requireBlend) {
+			if (renderToSelf || task.needClear) {
 				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
 
