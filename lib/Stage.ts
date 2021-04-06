@@ -168,7 +168,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public setRenderTarget(
-		target: ImageBase,
+		target: ImageBase & {antialiasQuality?: number},
 		enableDepthAndStencil: boolean = false,
 		surfaceSelector: number = 0,
 		mipmapSelector: number = 0,
@@ -195,7 +195,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this._context.setRenderToTexture(
 				targetStageElement.getTexture(),
 				enableDepthAndStencil,
-				antiallias,
+				disableMSAA ? 0 : antiallias,
 				surfaceSelector,
 				mipmapSelector);
 
