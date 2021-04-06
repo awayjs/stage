@@ -46,6 +46,19 @@ export class FilterUtils {
 		target[3] = alpha;
 		return target;
 	}
+
+	public static colorToU8(
+		color: ui32,
+		alpha: number,
+		target: Uint8Array | number[],
+		offset = 0
+	): Uint8Array | number[] {
+		target[0 + offset] = (color >> 16) & 0xff;
+		target[1 + offset] = (color >> 8) & 0xff;
+		target[2 + offset] = (color >> 0) & 0xff;
+		target[3 + offset] = alpha * 0xff | 0;
+		return target;
+	}
 }
 
 /**

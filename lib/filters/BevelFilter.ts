@@ -9,10 +9,13 @@ import { BevelTask } from './tasks/webgl/BevelTask';
 export interface IBevelFilterProps extends IBlurFilterProps {
 	distance: number;
 	angle: number;
-	highlightColor: ui32;
-	highlightAlpha: ui32;
-	shadowColor: ui32;
+	highlightColor?: ui32;
+	highlightAlpha?: number;
+	shadowColor?: ui32;
 	shadowAlpha: number;
+	colors?: ui32[];
+	ratios?: ui8[];
+	alphas?: number[];
 	strength: number;
 	type: 'inner' | 'outer' | 'both';
 	knockout?: number;
@@ -40,6 +43,15 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 
 	@proxyTo('_bevelTask')
 	shadowAlpha: number = 0;
+
+	@proxyTo('_bevelTask')
+	alphas: number[] = [];
+
+	@proxyTo('_bevelTask')
+	colors: number[] = [];
+
+	@proxyTo('_bevelTask')
+	ratios: number[] = []
 
 	@proxyTo('_bevelTask')
 	strength: number = 1;
