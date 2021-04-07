@@ -5,6 +5,11 @@ import { FilterUtils } from '../../../utils/FilterUtils';
 import { TextureWebGL } from '../../../webgl/TextureWebGL';
 import { TaskBaseWebGL } from './TaskBaseWebgGL';
 
+const enum BEVEL_MODE {
+	COLOR = 'color',
+	GRADIENT = 'gradient'
+}
+
 const VERTEX = `
 precision highp float;
 uniform vec4 uTexMatrix[2];
@@ -29,13 +34,34 @@ void main() {
 
 `;
 
-const FRAG = `
+const COLOR_MODE_PART = `
+uniform vec4 uHColor;
+uniform vec4 uSColor;
+
+vec4 bevel(float shadow, float high) {
+	float factor = high - shadow;
+
+	shadow = min(1., max(0., factor) * uStrength) * uSColor.a;
+	high = min(1., max(0., -factor) * uStrength) * uHColor.a;
+
+	return vec4(uSColor.rgb * shadow + uHColor.rgb * high, shadow + high);
+}
+
+`;
+
+const GRAD_MODE_PART = `
+// gradient
+uniform sampler2D fs2;
+uniform float uGradIndex;
+`;
+
+const FRAG = (mode =  BEVEL_MODE.COLOR) =>  `
 precision highp float;
+varying vec2 vUv[2];
+
 uniform float uStrength;
 uniform vec3 uType;
 uniform vec2 uDir;
-
-varying vec2 vUv[2];
 
 /* AGAL legacy attrib resolver require this names */
 // blur
@@ -43,8 +69,9 @@ uniform sampler2D fs0;
 /* AGAL legacy attrib resolver require this names */
 // source
 uniform sampler2D fs1;
-// gradient
-uniform sampler2D fs2;
+${
+	mode === BEVEL_MODE.COLOR ? COLOR_MODE_PART : GRAD_MODE_PART
+}
 
 void main() {
 	vec4 color = texture2D(fs1, vUv[1]);
@@ -54,17 +81,12 @@ void main() {
 	// LOOL.. there are a bug - we PMA it twice, devide to compense
 	if (a > 0.) color.a /= a;
 
-	float high = texture2D(fs0, vUv[0] - uDir).a;
 	float shadow = texture2D(fs0, vUv[0] + uDir).a;
-	float factor = high - shadow;
-
-	vec4 bevel = texture2D(fs2, vec2(clamp(0.5 * (factor + 1.), 0., 1.), 0.));
-
-	//shadow = min(1., max(0., factor) * uStrength) * uSColor.a;
-	//high = min(1., max(0., -factor) * uStrength) * uHColor.a;
+	float high = texture2D(fs0, vUv[0] - uDir).a;
 
 	float cut = color.a * uType[1] + (1.0 - color.a) * uType[2];
-	vec4 outColor = bevel * cut;
+
+	vec4 outColor = bevel(shadow, high) * cut;
 
 	gl_FragColor = color * (1. - outColor.a) * uType[0] + outColor;
 	gl_FragColor *= a;
@@ -77,8 +99,12 @@ export class BevelTask extends TaskBaseWebGL {
 
 	private _uGradColor: Uint8Array = new Uint8Array(4 * 256);
 	private _uGradImage: Image2D;
-	private _simpleMode: boolean = true;
+	private _renderMode: BEVEL_MODE = BEVEL_MODE.COLOR;
 	private _colorMapInvalid: boolean = false;
+
+	public get name() {
+		return 'BevelTask:' + this._renderMode;
+	}
 
 	private _shadowColor: number = 0x0;
 	public get shadowColor(): number {
@@ -89,7 +115,7 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this.shadowColor === value) return;
 
 		this._shadowColor = value;
-		this._simpleMode = true;
+		this._renderMode = BEVEL_MODE.COLOR;
 		this._colorMapInvalid = true;
 	}
 
@@ -102,7 +128,7 @@ export class BevelTask extends TaskBaseWebGL {
 		if (value === this._shadowAlpha) return;
 
 		this._shadowAlpha = value;
-		this._simpleMode = true;
+		this._renderMode = BEVEL_MODE.COLOR;
 		this._colorMapInvalid = true;
 
 	}
@@ -117,7 +143,7 @@ export class BevelTask extends TaskBaseWebGL {
 
 		this._highlightColor = value;
 		this._colorMapInvalid = true;
-		this._simpleMode = true;
+		this._renderMode = BEVEL_MODE.COLOR;
 	}
 
 	private _highlightAlpha: number = 1;
@@ -130,7 +156,7 @@ export class BevelTask extends TaskBaseWebGL {
 
 		this._highlightAlpha = value;
 		this._colorMapInvalid = true;
-		this._simpleMode = true;
+		this._renderMode = BEVEL_MODE.COLOR;
 	}
 
 	private _dirInvalid: boolean = false;
@@ -165,8 +191,14 @@ export class BevelTask extends TaskBaseWebGL {
 
 	public set colors(value: ui32[]) {
 		this._colors = value;
-		this._colorMapInvalid = true;
-		this._simpleMode = false;
+
+		if (value.length) {
+			this._colorMapInvalid = true;
+			this._shadowColor = value[0];
+			this._highlightColor = value[value.length - 1];
+
+			//this._renderMode = BEVEL_MODE.GRADIENT;
+		}
 	}
 
 	private _alphas: ui32[];
@@ -176,8 +208,13 @@ export class BevelTask extends TaskBaseWebGL {
 
 	public set alphas(value: ui32[]) {
 		this._alphas = value;
-		this._colorMapInvalid = true;
-		this._simpleMode = false;
+
+		if (value.length) {
+			this._colorMapInvalid = true;
+			this._shadowAlpha = value[0];
+			this._highlightAlpha = value[value.length - 1];
+			//this._renderMode = BEVEL_MODE.GRADIENT;
+		}
 	}
 
 	private _ratios: ui32[];
@@ -187,8 +224,11 @@ export class BevelTask extends TaskBaseWebGL {
 
 	public set ratios(value: ui32[]) {
 		this._ratios = value;
-		this._colorMapInvalid = true;
-		this._simpleMode = false;
+
+		if (value.length) {
+			this._colorMapInvalid = true;
+			//this._renderMode = BEVEL_MODE.GRADIENT;
+		}
 	}
 
 	public strength: number = 1;
@@ -206,25 +246,17 @@ export class BevelTask extends TaskBaseWebGL {
 	}
 
 	public getFragmentCode(): string {
-		return FRAG;
+		return FRAG(this._renderMode);
 	}
 
 	private _regenColorMap(): void {
-		if (!this._colorMapInvalid) {
+		if (!this._colorMapInvalid || this._renderMode !== BEVEL_MODE.GRADIENT) {
 			return;
 		}
 
 		const colorA = [0,0,0,0];
 		const colorB = [0,0,0,0];
 		const buff = this._uGradColor;
-
-		// have 2 colors: shadow and highlight
-		if (this._simpleMode) {
-			// generate a ratio/shadow/colors
-			this._alphas = [this._highlightAlpha, 0, this._shadowAlpha];
-			this._colors = [this._highlightColor, 0, this._shadowColor];
-			this._ratios = [0, 128, 255];
-		}
 
 		// reset to 0
 		this._uGradColor.fill(0);
@@ -250,6 +282,11 @@ export class BevelTask extends TaskBaseWebGL {
 	}
 
 	public preActivate(_stage: Stage) {
+		// not requre init grad for it
+		if (this._renderMode !== BEVEL_MODE.GRADIENT) {
+			return;
+		}
+
 		if (this._uGradImage && !this._colorMapInvalid) {
 			return;
 		}
@@ -295,7 +332,23 @@ export class BevelTask extends TaskBaseWebGL {
 		]);
 
 		this.sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
-		this._uGradImage.getAbstraction<_Stage_Image2D>(_stage).activate(2);
+
+		if (this._renderMode === BEVEL_MODE.GRADIENT) {
+			this._uGradImage.getAbstraction<_Stage_Image2D>(_stage).activate(2);
+
+		} else if (this._colorMapInvalid || needUpload) {
+
+			prog.uploadUniform('uSColor',
+				FilterUtils.colorToArray(
+					this._shadowColor,
+					this._shadowAlpha)
+			);
+			prog.uploadUniform('uHColor',
+				FilterUtils.colorToArray(
+					this._highlightColor,
+					this._highlightAlpha)
+			);
+		}
 
 		this._focusId = prog.focusId;
 		this._dirInvalid = false;
