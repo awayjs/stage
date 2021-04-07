@@ -2,7 +2,7 @@ import { ProjectionBase } from '@awayjs/core';
 import { Image2D, _Stage_Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
 import { FilterUtils } from '../../../utils/FilterUtils';
-import { TextureWebGL } from '../../../webgl/TextureWebGL';
+import { GradientAtlass } from '../../../utils/GradientAtlass';
 import { TaskBaseWebGL } from './TaskBaseWebgGL';
 
 const enum BEVEL_MODE {
@@ -107,14 +107,16 @@ export class BevelTask extends TaskBaseWebGL {
 
 	public sourceImage: Image2D;
 
-	private _uGradColor: Uint8Array = new Uint8Array(4 * 256);
-	private _uGradImage: Image2D;
-	private _renderMode: BEVEL_MODE = BEVEL_MODE.COLOR;
-	private _colorMapInvalid: boolean = false;
+	private _currentAtlass: GradientAtlass;
+	private _currentIndex: number = 0;
+	private _currentHash: string;
+	private _gradInvalid: boolean = false;
 
 	public get name() {
 		return 'BevelTask:' + this._renderMode;
 	}
+
+	private _renderMode: BEVEL_MODE = BEVEL_MODE.COLOR;
 
 	private set renderMode(v: BEVEL_MODE) {
 		if (v === this._renderMode) return;
@@ -136,7 +138,7 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this.shadowColor === value) return;
 
 		this._shadowColor = value;
-		this._colorMapInvalid = true;
+		this._gradInvalid = true;
 
 		this.renderMode = BEVEL_MODE.COLOR;
 	}
@@ -150,7 +152,7 @@ export class BevelTask extends TaskBaseWebGL {
 		if (value === this._shadowAlpha) return;
 
 		this._shadowAlpha = value;
-		this._colorMapInvalid = true;
+		this._gradInvalid = true;
 
 		this.renderMode = BEVEL_MODE.COLOR;
 	}
@@ -164,7 +166,7 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this._highlightColor !== value) return;
 
 		this._highlightColor = value;
-		this._colorMapInvalid = true;
+		this._gradInvalid = true;
 
 		this.renderMode = BEVEL_MODE.COLOR;
 	}
@@ -178,7 +180,7 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this._highlightAlpha === value) return;
 
 		this._highlightAlpha = value;
-		this._colorMapInvalid = true;
+		this._gradInvalid = true;
 
 		this.renderMode = BEVEL_MODE.COLOR;
 	}
@@ -217,7 +219,7 @@ export class BevelTask extends TaskBaseWebGL {
 		this._colors = value;
 
 		if (value.length) {
-			this._colorMapInvalid = true;
+			this._gradInvalid = true;
 			//this._shadowColor = value[0];
 			//this._highlightColor = value[value.length - 1];
 
@@ -234,7 +236,7 @@ export class BevelTask extends TaskBaseWebGL {
 		this._alphas = value;
 
 		if (value.length) {
-			this._colorMapInvalid = true;
+			this._gradInvalid = true;
 			//this._shadowAlpha = value[0];
 			//this._highlightAlpha = value[value.length - 1];
 			this.renderMode = BEVEL_MODE.GRADIENT;
@@ -250,7 +252,7 @@ export class BevelTask extends TaskBaseWebGL {
 		this._ratios = value;
 
 		if (value.length) {
-			this._colorMapInvalid = true;
+			this._gradInvalid = true;
 			this.renderMode = BEVEL_MODE.GRADIENT;
 		}
 	}
@@ -274,43 +276,29 @@ export class BevelTask extends TaskBaseWebGL {
 	}
 
 	private _regenColorMap(): void {
-		if (!this._colorMapInvalid || this._renderMode !== BEVEL_MODE.GRADIENT) {
+
+		if (!this._gradInvalid || this._renderMode !== BEVEL_MODE.GRADIENT) {
 			return;
 		}
 
-		const colorA = [0,0,0,0];
-		const colorB = [0,0,0,0];
-		const buff = this._uGradColor;
+		const hash = GradientAtlass.computeHash(this._colors, this._alphas, this._ratios);
 
-		// reset to 0
-		this._uGradColor.fill(0);
+		this._gradInvalid = false;
 
-		for (let i = 0; i < this._ratios.length - 1; i++) {
-			FilterUtils.colorToU8(this._colors[i + 0], this._alphas[i + 0], colorA);
-			FilterUtils.colorToU8(this._colors[i + 1], this._alphas[i + 1], colorB);
-
-			const from = this._ratios[i + 0];
-			const to   = this._ratios[i + 1];
-
-			for (let j = from; j < to; j++) {
-				const factor = (j - from) / (to - from);
-				// interpolate each color
-
-				buff[j * 4 + 0] = colorA[0] + (colorB[0] - colorA[0]) * factor | 0;
-				buff[j * 4 + 1] = colorA[1] + (colorB[1] - colorA[1]) * factor | 0;
-				buff[j * 4 + 2] = colorA[2] + (colorB[2] - colorA[2]) * factor | 0;
-				buff[j * 4 + 3] = colorA[3] + (colorB[3] - colorA[3]) * factor | 0;
-
-				const a = buff[j * 4 + 3] / 0xff;
-
-				// PMA
-				buff[j * 4 + 0] = buff[j * 4 + 0] * a | 0;
-				buff[j * 4 + 1] = buff[j * 4 + 1] * a | 0;
-				buff[j * 4 + 2] = buff[j * 4 + 2] * a | 0;
-			}
+		if (this._currentHash === hash) {
+			return;
 		}
 
-		this._colorMapInvalid = true;
+		const atlass = this._currentAtlass = GradientAtlass.getAtlassForHash(hash, true);
+
+		if (atlass.hasGradient(hash)) {
+			this._currentIndex = atlass.getGradient(hash).index;
+		} else {
+			this._currentIndex = atlass.setGradient(this._colors, this._alphas, this.ratios).index;
+		}
+
+		this._currentHash = hash;
+		this._gradInvalid = false;
 	}
 
 	public preActivate(_stage: Stage) {
@@ -319,18 +307,7 @@ export class BevelTask extends TaskBaseWebGL {
 			return;
 		}
 
-		if (this._uGradImage && !this._colorMapInvalid) {
-			return;
-		}
-
-		if (!this._uGradImage) {
-			this._uGradImage = new Image2D(256, 1, false);
-		}
-
 		this._regenColorMap();
-
-		const tex = <TextureWebGL> this._uGradImage.getAbstraction<_Stage_Image2D>(_stage).getTexture();
-		tex.uploadFromArray(this._uGradColor, 0, false);
 	}
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
@@ -366,9 +343,9 @@ export class BevelTask extends TaskBaseWebGL {
 		this.sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
 
 		if (this._renderMode === BEVEL_MODE.GRADIENT) {
-			this._uGradImage.getAbstraction<_Stage_Image2D>(_stage).activate(2);
-
-		} else if (this._colorMapInvalid || needUpload) {
+			this._currentAtlass.getAbstraction<_Stage_Image2D>(_stage).activate(2);
+			prog.uploadUniform('uGradIndex', this._currentIndex / this._currentAtlass.height);
+		} else if (this._gradInvalid || needUpload) {
 
 			prog.uploadUniform('uSColor',
 				FilterUtils.colorToArray(

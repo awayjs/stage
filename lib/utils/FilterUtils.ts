@@ -1,6 +1,7 @@
 import { Point } from '@awayjs/core';
 
 export class FilterUtils {
+
 	private static blurFilterStepWidths: number[] = [
 		0.5, 1.05, 1.35, 1.55, 1.75, 1.9, 2, 2.1, 2.2, 2.3, 2.5, 3, 3, 3.5, 3.5
 	];
