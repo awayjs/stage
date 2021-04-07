@@ -53,6 +53,16 @@ const GRAD_MODE_PART = `
 // gradient
 uniform sampler2D fs2;
 uniform float uGradIndex;
+
+vec4 bevel(float shadow, float high) {
+	shadow *= uStrength;
+	high *= uStrength;
+
+	vec2 pos = vec2(0.5 * (1. + shadow - high), uGradIndex);
+
+	return texture2D(fs2, pos) * (shadow + high);
+}
+
 `;
 
 const FRAG = (mode =  BEVEL_MODE.COLOR) =>  `
@@ -106,6 +116,17 @@ export class BevelTask extends TaskBaseWebGL {
 		return 'BevelTask:' + this._renderMode;
 	}
 
+	private set renderMode(v: BEVEL_MODE) {
+		if (v === this._renderMode) return;
+
+		this._renderMode = v;
+		this.invalidateProgram();
+	}
+
+	private get renderMode() {
+		return this._renderMode;
+	}
+
 	private _shadowColor: number = 0x0;
 	public get shadowColor(): number {
 		return this._shadowColor;
@@ -115,8 +136,9 @@ export class BevelTask extends TaskBaseWebGL {
 		if (this.shadowColor === value) return;
 
 		this._shadowColor = value;
-		this._renderMode = BEVEL_MODE.COLOR;
 		this._colorMapInvalid = true;
+
+		this.renderMode = BEVEL_MODE.COLOR;
 	}
 
 	private _shadowAlpha: number = 1;
@@ -128,9 +150,9 @@ export class BevelTask extends TaskBaseWebGL {
 		if (value === this._shadowAlpha) return;
 
 		this._shadowAlpha = value;
-		this._renderMode = BEVEL_MODE.COLOR;
 		this._colorMapInvalid = true;
 
+		this.renderMode = BEVEL_MODE.COLOR;
 	}
 
 	private _highlightColor: number = 0xfffff;
@@ -143,7 +165,8 @@ export class BevelTask extends TaskBaseWebGL {
 
 		this._highlightColor = value;
 		this._colorMapInvalid = true;
-		this._renderMode = BEVEL_MODE.COLOR;
+
+		this.renderMode = BEVEL_MODE.COLOR;
 	}
 
 	private _highlightAlpha: number = 1;
@@ -156,7 +179,8 @@ export class BevelTask extends TaskBaseWebGL {
 
 		this._highlightAlpha = value;
 		this._colorMapInvalid = true;
-		this._renderMode = BEVEL_MODE.COLOR;
+
+		this.renderMode = BEVEL_MODE.COLOR;
 	}
 
 	private _dirInvalid: boolean = false;
@@ -194,10 +218,10 @@ export class BevelTask extends TaskBaseWebGL {
 
 		if (value.length) {
 			this._colorMapInvalid = true;
-			this._shadowColor = value[0];
-			this._highlightColor = value[value.length - 1];
+			//this._shadowColor = value[0];
+			//this._highlightColor = value[value.length - 1];
 
-			//this._renderMode = BEVEL_MODE.GRADIENT;
+			this.renderMode = BEVEL_MODE.GRADIENT;
 		}
 	}
 
@@ -211,9 +235,9 @@ export class BevelTask extends TaskBaseWebGL {
 
 		if (value.length) {
 			this._colorMapInvalid = true;
-			this._shadowAlpha = value[0];
-			this._highlightAlpha = value[value.length - 1];
-			//this._renderMode = BEVEL_MODE.GRADIENT;
+			//this._shadowAlpha = value[0];
+			//this._highlightAlpha = value[value.length - 1];
+			this.renderMode = BEVEL_MODE.GRADIENT;
 		}
 	}
 
@@ -227,7 +251,7 @@ export class BevelTask extends TaskBaseWebGL {
 
 		if (value.length) {
 			this._colorMapInvalid = true;
-			//this._renderMode = BEVEL_MODE.GRADIENT;
+			this.renderMode = BEVEL_MODE.GRADIENT;
 		}
 	}
 
@@ -271,10 +295,18 @@ export class BevelTask extends TaskBaseWebGL {
 			for (let j = from; j < to; j++) {
 				const factor = (j - from) / (to - from);
 				// interpolate each color
+
 				buff[j * 4 + 0] = colorA[0] + (colorB[0] - colorA[0]) * factor | 0;
 				buff[j * 4 + 1] = colorA[1] + (colorB[1] - colorA[1]) * factor | 0;
 				buff[j * 4 + 2] = colorA[2] + (colorB[2] - colorA[2]) * factor | 0;
 				buff[j * 4 + 3] = colorA[3] + (colorB[3] - colorA[3]) * factor | 0;
+
+				const a = buff[j * 4 + 3] / 0xff;
+
+				// PMA
+				buff[j * 4 + 0] = buff[j * 4 + 0] * a | 0;
+				buff[j * 4 + 1] = buff[j * 4 + 1] * a | 0;
+				buff[j * 4 + 2] = buff[j * 4 + 2] * a | 0;
 			}
 		}
 
