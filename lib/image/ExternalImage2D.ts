@@ -52,8 +52,6 @@ import { ITexture } from '../base/ITexture';
 
 import { _Stage_Image2D } from './Image2D';
 
-import { Stage } from '../Stage';
-
 /**
  *
  * @class away.pool.ImageObjectBase
@@ -74,4 +72,5 @@ export class _Stage_ExternalImage2D extends _Stage_Image2D {
 	}
 }
 
-Stage.registerAbstraction(_Stage_ExternalImage2D, ExternalImage2D);
+// MOVED TO LIB INDEX
+// Stage.registerAbstraction(_Stage_ExternalImage2D, ExternalImage2D);

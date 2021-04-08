@@ -1348,13 +1348,13 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 }
 
-import { Stage } from '../Stage';
 import { ITexture } from '../base/ITexture';
 import { ITextureBase } from '../base/ITextureBase';
 import { BitmapImageUtils } from '../utils/BitmapImageUtils';
 
 import { _Stage_Image2D } from './Image2D';
 import { ContextWebGL } from '../webgl/ContextWebGL';
+import { Stage } from '../Stage';
 
 /**
  *
@@ -1430,4 +1430,5 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 	}
 }
 
-Stage.registerAbstraction(_Stage_BitmapImage2D, BitmapImage2D);
+// MOVED TO LIB INDEX
+// Stage.registerAbstraction(_Stage_BitmapImage2D, BitmapImage2D);

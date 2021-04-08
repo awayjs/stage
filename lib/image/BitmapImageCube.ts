@@ -677,10 +677,8 @@ export class BitmapImageCube extends ImageCube {
 
 import { ITextureBase } from '../base/ITextureBase';
 import { ICubeTexture } from '../base/ICubeTexture';
-
 import { _Stage_ImageCube } from './ImageCube';
 
-import { Stage } from '../Stage';
 
 /**
  *
@@ -703,4 +701,5 @@ export class _Stage_BitmapImageCube extends _Stage_ImageCube {
 	}
 }
 
-Stage.registerAbstraction(_Stage_BitmapImageCube, BitmapImageCube);
+// MOVED TO LIB INDEX
+// Stage.registerAbstraction(_Stage_BitmapImageCube, BitmapImageCube);

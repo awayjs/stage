@@ -91,5 +91,5 @@ export class _Stage_ImageCube extends _Stage_ImageBase {
 		this._texture = this._stage.context.createCubeTexture((<ImageCube> this._asset).size, ContextGLTextureFormat.BGRA, false);
 	}
 }
-
-Stage.registerAbstraction(_Stage_ImageCube, ImageCube);
+// MOVED TO LIB ROOT
+// Stage.registerAbstraction(_Stage_ImageCube, ImageCube);

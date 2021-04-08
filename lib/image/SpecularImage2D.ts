@@ -156,7 +156,5 @@ export class SpecularImage2D extends Image2D {
 	}
 }
 
-import { Stage } from '../Stage';
-import { _Stage_BitmapImage2D } from './BitmapImage2D';
-
-Stage.registerAbstraction(_Stage_BitmapImage2D, SpecularImage2D);
+// MOVED TO LIB INDEX
+// Stage.registerAbstraction(_Stage_BitmapImage2D, SpecularImage2D);

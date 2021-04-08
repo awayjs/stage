@@ -1,7 +1,8 @@
+import { ContextWebGL } from './ContextWebGL';
+
 import { ContextGLMipFilter } from '../base/ContextGLMipFilter';
 import { ContextGLTextureFilter } from '../base/ContextGLTextureFilter';
 import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
-import { ContextWebGL } from './ContextWebGL';
 import { ContextWebGLFlags, ContextWebGLPreference } from './ContextWebGLFlags';
 import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
@@ -28,6 +29,8 @@ interface IRendertargetEntry {
 }
 
 export class TextureContextWebGL {
+	public static MAX_SAMPLERS = 8;
+
 	_renderTarget: TextureWebGL;
 	_lastestBoundedStack: TextureWebGL[] = [];
 	_lastBoundedTexture: TextureWebGL;
@@ -72,7 +75,7 @@ export class TextureContextWebGL {
 		};
 
 		//defaults
-		for (let i = 0; i < ContextWebGL.MAX_SAMPLERS; ++i) {
+		for (let i = 0; i < TextureContextWebGL.MAX_SAMPLERS; ++i) {
 			this._samplerStates[i] = new SamplerStateWebGL(
 				i,
 				null,
@@ -215,7 +218,7 @@ export class TextureContextWebGL {
 		filter: ContextGLTextureFilter,
 		mipfilter: ContextGLMipFilter): void {
 
-		if (0 <= sampler && sampler < ContextWebGL.MAX_SAMPLERS) {
+		if (0 <= sampler && sampler < TextureContextWebGL.MAX_SAMPLERS) {
 			this._samplerStates[sampler].wrap = this._wrapDictionary[wrap];
 			this._samplerStates[sampler].filter = this._filterDictionary[filter];
 			this._samplerStates[sampler].mipfilter = this._mipmapFilterMap[filter][mipfilter];

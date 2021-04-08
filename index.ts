@@ -47,20 +47,11 @@ export { ImageEvent } from './lib/events/ImageEvent';
 export { StageEvent } from './lib/events/StageEvent';
 export { RTTEvent } from './lib/events/RTTEvent';
 
-export { BitmapImage2D, _Stage_BitmapImage2D } from './lib/image/BitmapImage2D';
-export { BitmapImageChannel } from './lib/image/BitmapImageChannel';
-export { BitmapImageCube, _Stage_BitmapImageCube } from './lib/image/BitmapImageCube';
-export { BlendMode } from './lib/image/BlendMode';
-export { ExternalImage2D, _Stage_ExternalImage2D } from './lib/image/ExternalImage2D';
-export { Image2D, _Stage_Image2D } from './lib/image/Image2D';
-export { ImageBase, _Stage_ImageBase } from './lib/image/ImageBase';
-export { ImageCube, _Stage_ImageCube } from './lib/image/ImageCube';
-export { ImageData } from './lib/image/ImageData';
-export { ImageSampler } from './lib/image/ImageSampler';
-export { SpecularImage2D } from './lib/image/SpecularImage2D';
+// export named all from subpackage
+export * from './lib/image';
+
 //export {VideoSourceImage2D} from "./lib/image/VideoSourceImage2D";
 
-export { DefaultGraphicsFactory } from './lib/factories/DefaultGraphicsFactory';
 export { IGraphicsFactory } from './lib/factories/IGraphicsFactory';
 
 export { CompositeTask as Filter3DCompositeTask } from './lib/filters/tasks/CompositeTask';
@@ -114,7 +105,6 @@ export { TextureWebGL } from './lib/webgl/TextureWebGL';
 export { VertexBufferWebGL } from './lib/webgl/VertexBufferWebGL';
 
 export { BitmapImageUtils } from './lib/utils/BitmapImageUtils';
-export { ImageUtils } from './lib/utils/ImageUtils';
 
 export { AttributesView } from './lib/attributes/AttributesView';
 export { AttributesBuffer, _Stage_AttributesBuffer } from './lib/attributes/AttributesBuffer';
@@ -125,19 +115,45 @@ export { Float3Attributes } from './lib/attributes/Float3Attributes';
 export { Float4Attributes } from './lib/attributes/Float4Attributes';
 export { Short2Attributes } from './lib/attributes/Short2Attributes';
 export { Short3Attributes } from './lib/attributes/Short3Attributes';
-
-export { Stage } from './lib/Stage';
-
 export { ContextWebGLFlags, ContextWebGLPreference } from './lib/webgl/ContextWebGLFlags';
+export * from './lib/Settings';
 
 import { Loader } from '@awayjs/core';
+import { Stage } from './lib/Stage';
+import {
+	Image2D, _Stage_Image2D,
+	ImageCube, _Stage_ImageCube,
+	BitmapImage2D, _Stage_BitmapImage2D,
+	BitmapImageCube, _Stage_BitmapImageCube,
+	ExternalImage2D, _Stage_ExternalImage2D,
+	SpecularImage2D, /* _Stage_BitmapImage2D */
+} from './lib/image';
 
+import { GradientAtlass, _Stage_GradientAtlass } from './lib/utils/GradientAtlass';
+import { DefaultGraphicsFactory } from './lib/factories/DefaultGraphicsFactory';
 import { Image2DParser } from './lib/parsers/Image2DParser';
 import { ImageCubeParser } from './lib/parsers/ImageCubeParser';
 import { TextureAtlasParser } from './lib/parsers/TextureAtlasParser';
+import { ImageUtils } from './lib/utils/ImageUtils';
 
-export * from './lib/Settings';
+export { DefaultGraphicsFactory };
+export { ImageUtils };
+export { Stage };
 
 Loader.enableParser(Image2DParser);
 Loader.enableParser(ImageCubeParser);
 Loader.enableParser(TextureAtlasParser);
+
+ImageUtils.registerDefaults(
+	BitmapImage2D,
+	BitmapImageCube,
+	DefaultGraphicsFactory
+);
+
+Stage.registerAbstraction(_Stage_Image2D, Image2D);
+Stage.registerAbstraction(_Stage_ImageCube, ImageCube);
+Stage.registerAbstraction(_Stage_BitmapImage2D, BitmapImage2D);
+Stage.registerAbstraction(_Stage_BitmapImageCube, BitmapImageCube);
+Stage.registerAbstraction(_Stage_ExternalImage2D, ExternalImage2D);
+Stage.registerAbstraction(_Stage_BitmapImage2D, SpecularImage2D);
+Stage.registerAbstraction(_Stage_GradientAtlass, GradientAtlass);

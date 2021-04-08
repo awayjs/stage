@@ -1,13 +1,17 @@
 import { BitmapImage2D } from '../image/BitmapImage2D';
 import { BitmapImageCube } from '../image/BitmapImageCube';
-import { ImageSampler } from '../image/ImageSampler';
-import { DefaultGraphicsFactory } from '../factories/DefaultGraphicsFactory';
 import { Image2D } from '../image/Image2D';
+
+import { ImageSampler } from '../image/ImageSampler';
 import { IGraphicsFactory } from '../factories/IGraphicsFactory';
 
 export class ImageUtils {
 	private static CANVAS: HTMLCanvasElement;
 	public static MAX_SIZE: number = 8192;
+	private static _defaultBitmap2DCtor: { new (...args: any[]): BitmapImage2D };
+	private static _defaultBitmapCubeCtor: { new (...args: any[]): BitmapImageCube };
+	private static _defaultFactoryCtor: { new(): IGraphicsFactory };
+
 	private static _defaultSampler: ImageSampler;
 	private static _defaultBitmapImage2D: BitmapImage2D;
 	private static _defaultBitmapImageCube: BitmapImageCube;
@@ -37,7 +41,7 @@ export class ImageUtils {
 		powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
 
 		if (!factory)
-			factory = new DefaultGraphicsFactory();
+			factory = new this._defaultFactoryCtor();
 
 		let width: number;
 		let height: number;
@@ -137,7 +141,7 @@ export class ImageUtils {
 		if (!this._defaultBitmapImage2D)
 			this.createDefaultImage2D();
 
-		const b = new BitmapImageCube(this._defaultBitmapImage2D.width);
+		const b = new this._defaultBitmapCubeCtor(this._defaultBitmapImage2D.width);
 
 		for (let i = 0; i < 6; i++) {
 			b.drawBitmap(
@@ -151,8 +155,12 @@ export class ImageUtils {
 		this._defaultBitmapImageCube = b;
 	}
 
-	private static createDefaultImage2D(): void {
-		const b: BitmapImage2D = new BitmapImage2D(8, 8, false, 0x000000);
+	private static createDefaultSampler(): void {
+		this._defaultSampler = new ImageSampler();
+	}
+
+	private static createDefaultImage2D() {
+		const b: BitmapImage2D = new this._defaultBitmap2DCtor(8, 8, false, 0x000000);
 
 		//create chekerboard
 		let i: number, j: number;
@@ -161,12 +169,19 @@ export class ImageUtils {
 				if ((j & 1) ^ (i & 1))
 					b.setPixel(i, j, 0XFFFFFF);
 
-		this._defaultBitmapImage2D = b;
+		return b;
 	}
 
-	private static createDefaultSampler(): void {
-		this._defaultSampler = new ImageSampler();
+	public static registerDefaults (
+		bitmapCtor: {new(...args: any[]): BitmapImage2D},
+		cubeCtor: {new(...args: any[]): BitmapImageCube},
+		factoryCtor: {new(): IGraphicsFactory}
+	) {
+		this._defaultBitmap2DCtor = bitmapCtor;
+		this._defaultBitmapCubeCtor = cubeCtor;
+		this._defaultFactoryCtor = factoryCtor;
 	}
+
 }
 
 export default ImageUtils;

@@ -1,6 +1,5 @@
 import { ITexture } from '../base/ITexture';
 import { Image2D, _Stage_Image2D } from '../image/Image2D';
-import { Stage } from '../Stage';
 import { FilterUtils } from './FilterUtils';
 
 interface IAtlassEntry {
@@ -152,5 +151,5 @@ export class _Stage_GradientAtlass extends _Stage_Image2D {
 		return this._texture;
 	}
 }
-
-Stage.registerAbstraction(_Stage_GradientAtlass, GradientAtlass);
+// MOVED TO LIB INDEX
+// Stage.registerAbstraction(_Stage_GradientAtlass, GradientAtlass);

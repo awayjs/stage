@@ -1,4 +1,4 @@
-import { Rectangle, AbstractMethodError } from '@awayjs/core';
+import { Rectangle } from '@awayjs/core';
 
 import { ImageUtils } from '../utils/ImageUtils';
 
@@ -124,8 +124,6 @@ import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
 
 import { _Stage_ImageBase } from './ImageBase';
 
-import { Stage } from '../Stage';
-
 /**
  *
  * @class away.pool.ImageStateBase
@@ -146,4 +144,5 @@ export class _Stage_Image2D extends _Stage_ImageBase {
 	}
 }
 
-Stage.registerAbstraction(_Stage_Image2D, Image2D);
+// MOVED TO LIB INDEX
+// Stage.registerAbstraction(_Stage_Image2D, Image2D);

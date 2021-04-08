@@ -36,8 +36,6 @@ window._AWAY_DEBUG_ = Object.assign(window._AWAY_DEBUG_ || {}, {
 });
 
 export class ContextWebGL implements IContextGL {
-	public static MAX_SAMPLERS: number = 8;
-
 	public readonly stats = {
 		textures: {
 			textures: 0,
