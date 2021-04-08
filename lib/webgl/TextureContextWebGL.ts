@@ -3,7 +3,6 @@ import { ContextWebGL } from './ContextWebGL';
 import { ContextGLMipFilter } from '../base/ContextGLMipFilter';
 import { ContextGLTextureFilter } from '../base/ContextGLTextureFilter';
 import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
-import { ContextWebGLFlags, ContextWebGLPreference } from './ContextWebGLFlags';
 import { SamplerStateWebGL } from './SamplerStateWebGL';
 import { TextureBaseWebGL } from './TextureBaseWebGL';
 import { TextureWebGL } from './TextureWebGL';
