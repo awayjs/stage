@@ -289,7 +289,9 @@ export class FilterManager {
 		this.context.setProgram(tasks[0].getProgram(this._stage));
 		this._bindFilterElements();
 
-		for (const task of tasks) {
+		const count = tasks.length;
+		for (let i = 0; i < count; i++) {
+			const task = tasks[i];
 
 			task.preActivate(this._stage);
 			this._stage.setRenderTarget(task.target, false);
@@ -297,7 +299,7 @@ export class FilterManager {
 
 			// because we use TMP image, need clear it
 			// but this is needed only when a blend composer is required, when a copy filter used
-			if (renderToSelf || task.needClear) {
+			if (renderToSelf && filter.requireBlend || task.needClear) {
 				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
 
