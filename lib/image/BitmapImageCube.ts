@@ -679,7 +679,6 @@ import { ITextureBase } from '../base/ITextureBase';
 import { ICubeTexture } from '../base/ICubeTexture';
 import { _Stage_ImageCube } from './ImageCube';
 
-
 /**
  *
  * @class away.pool.ImageObjectBase
