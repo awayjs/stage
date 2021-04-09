@@ -45,9 +45,7 @@ vec4 bevel(float shadow, float high) {
 	high = min(1., max(0., -factor) * uStrength) * uHColor.a;
 
 	return vec4(uSColor.rgb * shadow + uHColor.rgb * high, shadow + high);
-}
-
-`;
+}`;
 
 const GRAD_MODE_PART = `
 // gradient
@@ -61,16 +59,13 @@ vec4 bevel(float shadow, float high) {
 	vec2 pos = vec2(0.5 * (1. + shadow - high), uGradIndex);
 
 	return texture2D(fs2, pos) * (shadow + high);
-}
+}`;
 
-`;
-
-const FRAG = (mode =  BEVEL_MODE.COLOR) =>  `
+const FRAG = (mode =  BEVEL_MODE.COLOR, knokout = false, type = 'inner') =>  `
 precision highp float;
 varying vec2 vUv[2];
 
 uniform float uStrength;
-uniform vec3 uType;
 uniform vec2 uDir;
 
 /* AGAL legacy attrib resolver require this names */
@@ -89,17 +84,18 @@ void main() {
 	float a = color.a;
 
 	// LOOL.. there are a bug - we PMA it twice, devide to compense
-	if (a > 0.) color.a /= a;
+	// if (a > 0.) color.a /= a;
 
 	float shadow = texture2D(fs0, vUv[0] + uDir).a;
 	float high = texture2D(fs0, vUv[0] - uDir).a;
+	${ !type || type === 'inner' ? 'vec4 outColor = bevel(shadow, high) * color.a;' : ''}
+	${ type === 'outer' ? 'vec4 outColor = bevel(shadow, high) * (1.0 - color.a);' : ''}
+	${ type === 'full' ? 'vec4 outColor = bevel(shadow, high);' : ''}
+	${ knokout
+		? 'gl_FragColor = outColor;'
+		: 'gl_FragColor = color * (1.0 - outColor.a) + outColor;'}
 
-	float cut = color.a * uType[1] + (1.0 - color.a) * uType[2];
-
-	vec4 outColor = bevel(shadow, high) * cut;
-
-	gl_FragColor = color * (1. - outColor.a) * uType[0] + outColor;
-	gl_FragColor *= a;
+	//gl_FragColor *= a;
 }`;
 
 export class BevelTask extends TaskBaseWebGL {
@@ -258,8 +254,30 @@ export class BevelTask extends TaskBaseWebGL {
 	}
 
 	public strength: number = 1;
-	public knockout: boolean = false;
-	public type: 'inner' | 'outer' | 'both' = 'inner';
+
+	private _knockout: boolean = false;
+	public get knockout(): boolean {
+		return this._knockout;
+	}
+
+	public set knockout(value: boolean) {
+		if (value === this._knockout) return;
+
+		this._knockout = value;
+		this.invalidateProgram();
+	}
+
+	private _type: 'inner' | 'outer' | 'full' = 'inner';
+	public get type(): 'inner' | 'outer' | 'full' {
+		return this._type;
+	}
+
+	public set type(value: 'inner' | 'outer' | 'full') {
+		if (value === this._type) return;
+
+		this._type = value;
+		this.invalidateProgram();
+	}
 
 	public _focusId = -1;
 
@@ -272,7 +290,8 @@ export class BevelTask extends TaskBaseWebGL {
 	}
 
 	public getFragmentCode(): string {
-		return FRAG(this._renderMode);
+		const frag = FRAG(this._renderMode, this._knockout, this._type);
+		return frag;
 	}
 
 	private _regenColorMap(): void {
@@ -328,12 +347,6 @@ export class BevelTask extends TaskBaseWebGL {
 		}
 
 		prog.uploadUniform('uStrength', this.strength);
-		prog.uploadUniform('uType', [
-			this.knockout ? 0 : 1,
-			this.type !== 'outer' ? 1 : 0,
-			this.type !== 'inner' ? 1 : 0
-		]);
-
 		prog.uploadUniform('uTexMatrixSource', [
 			0, 0,
 			this.inputRect.width / this.sourceImage.width,
