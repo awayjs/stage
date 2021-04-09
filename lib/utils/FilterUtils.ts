@@ -74,7 +74,7 @@ export function proxyTo(fieldName: string, subFieldName?: string): any {
 		propertyKey: string,
 		_descriptor: TypedPropertyDescriptor<any>
 	) {
-		subFieldName = propertyKey;
+		subFieldName = subFieldName || propertyKey;
 
 		Object.defineProperty(target, propertyKey, {
 			set: function (v: any) {
