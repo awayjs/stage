@@ -163,7 +163,7 @@ export class BevelTask extends TaskBaseWebGL {
 	}
 
 	public set highlightColor(value: number) {
-		if (this._highlightColor !== value) return;
+		if (this._highlightColor === value) return;
 
 		this._highlightColor = value;
 		this._gradInvalid = true;
