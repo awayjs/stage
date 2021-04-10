@@ -20,6 +20,8 @@ export interface IStageSettings {
 	ENABLE_TEXTURE_REF_CLONE: boolean;
 
 	UNSAFE_USE_AUTOINDEXED_SAMPLER: boolean;
+
+	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -108,7 +110,14 @@ export const Settings: IStageSettings = {
 	 * This means that in shader with SAMPLER2D uniforms `uTex, uTex1` will be like `fs0, fs1`
 	 * This required for bound texture by id instead of uniform name on AGAL pipeline
 	 */
-	UNSAFE_USE_AUTOINDEXED_SAMPLER: true
+	UNSAFE_USE_AUTOINDEXED_SAMPLER: true,
+
+	/**
+	 * @description Use attribut index as index of any attribute location instead of name.
+	 * This means that in shader with atrtributes `aPos, aUV` will be like `va0, va1`
+	 * This required for bound attrs by index instead of name on AGAL pipeline
+	 */
+	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: true
 };
 
 // console.debug('[Stage settings]', Settings);

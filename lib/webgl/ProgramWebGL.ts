@@ -117,10 +117,10 @@ export class ProgramWebGL implements IProgram {
 
 		this.reset();
 
-		this.grabLocationData();
+		this.grabLocationData(vertexGLSL, fragmentGLSL);
 	}
 
-	private grabLocationData() {
+	private grabLocationData(vert: string, frag: string) {
 		this._rawUniforms = {};
 		this._rawAttrs = {};
 
@@ -128,8 +128,6 @@ export class ProgramWebGL implements IProgram {
 		const p = this._program;
 		const ucount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
 		const acount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
-
-		let samplersCount = 0;
 
 		for (let i = 0; i < ucount; i++) {
 			const info = gl.getActiveUniform(p, i);
@@ -146,15 +144,6 @@ export class ProgramWebGL implements IProgram {
 					? info.name
 					: info.name.substring(0, idx)
 			] = record;
-
-			if (info.type === gl.SAMPLER_2D) {
-
-				if (Settings.UNSAFE_USE_AUTOINDEXED_SAMPLER && info.name !== ('fs' + samplersCount)) {
-					this._rawUniforms ['fs' + samplersCount] = record;
-				}
-
-				samplersCount++;
-			}
 		}
 
 		for (let i = 0; i < acount; i++) {
@@ -165,6 +154,45 @@ export class ProgramWebGL implements IProgram {
 				size: info.size,
 				location: gl.getAttribLocation(p, info.name)
 			};
+		}
+
+		// MAP fs{numer} to samplers name by their order in shader!
+		// THIS is important, because chrome mobile can reorder uniforms
+		if (Settings.UNSAFE_USE_AUTOINDEXED_SAMPLER) {
+			let searchIndex = frag.indexOf('uniform sampler', 0);
+			let index = 0;
+
+			while (searchIndex >= 0) {
+				const end = frag.indexOf(';', searchIndex + 2);
+				const block = frag.substring(searchIndex, end).split(' ');
+				const name = block[block.length - 1];
+
+				if (!this._rawUniforms['fs' + index]) {
+					this._rawUniforms['fs' + index] = this._rawUniforms[name];
+				}
+
+				searchIndex = frag.indexOf('uniform sampler', end);
+				index++;
+			}
+		}
+
+		// map atributes by write order (how it used in gl source)
+		if (Settings.UNSAFE_USE_AUTOINDEXED_ATTRIBUTES) {
+			let searchIndex = vert.indexOf('attribute', 0);
+			let index = 0;
+
+			while (searchIndex >= 0) {
+				const end = vert.indexOf(';', searchIndex + 2);
+				const block = vert.substring(searchIndex, end).split(' ');
+				const name = block[block.length - 1];
+
+				if (!this._rawAttrs['va' + index]) {
+					this._rawAttrs['va' + index] = this._rawAttrs[name];
+				}
+
+				searchIndex = vert.indexOf('attribute', end);
+				index++;
+			}
 		}
 	}
 
