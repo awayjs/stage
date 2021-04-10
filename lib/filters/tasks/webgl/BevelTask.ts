@@ -15,21 +15,21 @@ precision highp float;
 uniform vec4 uTexMatrix[2];
 uniform vec4 uTexMatrixSource;
 
-/* AGAL legacy atrib resolver require this names */
-attribute vec4 va0; // position
+/* AGAL legacy atribb resolver MUST reolver this as va0 */
+attribute vec4 aPos; // position
 
 varying vec2 vUv[2];
 
 void main() {
-	vec4 pos = va0;
+	vec4 pos = aPos;
 
 	pos.xy = pos.xy * uTexMatrix[0].zw + uTexMatrix[0].xy;
 	pos.z = pos.z * 2.0 - pos.w;
 
     gl_Position = pos;
 
-	vUv[0] = clamp((va0.xy * uTexMatrix[1].zw) + uTexMatrix[1].xy, 0., 1.);
-	vUv[1] = clamp((va0.xy * uTexMatrixSource.zw) + uTexMatrixSource.xy , 0., 1.);
+	vUv[0] = clamp((aPos.xy * uTexMatrix[1].zw) + uTexMatrix[1].xy, 0., 1.);
+	vUv[1] = clamp((aPos.xy * uTexMatrixSource.zw) + uTexMatrixSource.xy , 0., 1.);
 }
 
 `;
@@ -49,7 +49,7 @@ vec4 bevel(float shadow, float high) {
 
 const GRAD_MODE_PART = `
 // gradient
-uniform sampler2D fs2;
+uniform sampler2D uGrad;
 uniform float uGradIndex;
 
 vec4 bevel(float shadow, float high) {
@@ -58,7 +58,7 @@ vec4 bevel(float shadow, float high) {
 
 	vec2 pos = vec2(0.5 * (1. + shadow - high), uGradIndex);
 
-	return texture2D(fs2, pos) * (shadow + high);
+	return texture2D(uGrad, pos) * (shadow + high);
 }`;
 
 const FRAG = (mode =  BEVEL_MODE.COLOR, knokout = false, type = 'inner') =>  `
@@ -68,26 +68,26 @@ varying vec2 vUv[2];
 uniform float uStrength;
 uniform vec2 uDir;
 
-/* AGAL legacy attrib resolver require this names */
+/* AGAL uniforms will be reolved this as fs0 */
 // blur
-uniform sampler2D fs0;
-/* AGAL legacy attrib resolver require this names */
+uniform sampler2D uBlur;
+/* AGAL uniforms will be reolved this as fs1 */
 // source
-uniform sampler2D fs1;
+uniform sampler2D uSource;
 ${
 	mode === BEVEL_MODE.COLOR ? COLOR_MODE_PART : GRAD_MODE_PART
 }
 
 void main() {
-	vec4 color = texture2D(fs1, vUv[1]);
+	vec4 color = texture2D(uSource, vUv[1]);
 	
 	float a = color.a;
 
 	// LOOL.. there are a bug - we PMA it twice, devide to compense
 	// if (a > 0.) color.a /= a;
 
-	float shadow = texture2D(fs0, vUv[0] + uDir).a;
-	float high = texture2D(fs0, vUv[0] - uDir).a;
+	float shadow = texture2D(uBlur, vUv[0] + uDir).a;
+	float high = texture2D(uBlur, vUv[0] - uDir).a;
 	${ !type || type === 'inner' ? 'vec4 outColor = bevel(shadow, high) * color.a;' : ''}
 	${ type === 'outer' ? 'vec4 outColor = bevel(shadow, high) * (1.0 - color.a);' : ''}
 	${ type === 'full' ? 'vec4 outColor = bevel(shadow, high);' : ''}
