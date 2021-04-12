@@ -20,7 +20,7 @@ import {
 	BlurFilter,
 	BevelFilter,
 	ThresholdFilter,
-	CopyPixelFilter,
+	ColorMatrixFilter,
 	FilterBase,
 	IBitmapFilter,
 	IBitmapFilterProps
@@ -45,7 +45,7 @@ export class FilterManager {
 	private _filterVAO: IVao;
 
 	private _filterSampler: ImageSampler;
-	private _copyPixelFilter: CopyPixelFilter;
+	private _copyPixelFilter: ColorMatrixFilter;
 	private _thresholdFilter: ThresholdFilter;
 
 	private get context(): ContextWebGL {
@@ -57,6 +57,7 @@ export class FilterManager {
 		[BevelFilter.filterName]: BevelFilter,
 		[BlurFilter.filterName]: BlurFilter,
 		[DisplacementFilter.filterName]: DisplacementFilter,
+		[ColorMatrixFilter.filterName]: ColorMatrixFilter,
 	}
 
 	constructor (private _stage: Stage) {
@@ -159,6 +160,22 @@ export class FilterManager {
 		this._filterVAO && this._filterVAO.unbind(true);
 	}
 
+	public getFilter(name: string, props?: IBitmapFilterProps): IBitmapFilter<any, any> {
+		if (!this._filterCache[name] && !this._filterConstructors[name]) {
+			console.warn('[FilterManager] Filter not implemented:', name);
+			return null;
+		}
+
+		const filter = this._filterCache[name];
+
+		if (filter) {
+			filter.applyProps(props);
+			return filter;
+		}
+
+		return this._filterCache[name] = new this._filterConstructors[name](props);
+	}
+
 	public applyFilter (
 		source: Image2D,
 		target: Image2D,
@@ -174,18 +191,10 @@ export class FilterManager {
 		}
 
 		const name = options.filterName;
+		const filter = this.getFilter(name, options);
 
-		if (!this._filterCache[name] && !this._filterConstructors[name]) {
-			console.warn('[FilterManager] Filter not implemented:', name);
+		if (!filter) {
 			return false;
-		}
-
-		let filter = this._filterCache[name];
-
-		if (filter) {
-			filter.applyProps(options);
-		} else {
-			filter = this._filterCache[name] = new this._filterConstructors[name](options);
 		}
 
 		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
@@ -351,7 +360,7 @@ export class FilterManager {
 		if (mergeAlpha || msaa || blend) {
 
 			if (!this._copyPixelFilter) {
-				this._copyPixelFilter = new CopyPixelFilter();
+				this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 			}
 
 			this._copyPixelFilter.blend = blend;
@@ -421,7 +430,7 @@ export class FilterManager {
 
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {
 		if (!this._copyPixelFilter) {
-			this._copyPixelFilter = new CopyPixelFilter();
+			this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 		}
 
 		this._copyPixelFilter.blend = '';

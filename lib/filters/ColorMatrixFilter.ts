@@ -1,9 +1,10 @@
-import { CopyPixelTask } from './tasks/webgl/CopyPixelTask';
+import { ColorMatrixTask } from './tasks/webgl/ColorMatrixTask';
 
 import { FilterBase } from './FilterBase';
 import { ColorTransform } from '@awayjs/core';
 import { ContextGLBlendFactor as BF } from '../base/ContextGLBlendFactor';
 import { BlendMode } from '../image/BlendMode';
+import { IBitmapFilter } from './IBitmapFilter';
 
 const DEFAULT_BLEND_MAP = {
 	[''] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
@@ -12,8 +13,13 @@ const DEFAULT_BLEND_MAP = {
 	[BlendMode.ERASE] : [BF.ZERO, BF.ONE_MINUS_SOURCE_ALPHA],
 };
 
-export class CopyPixelFilter extends FilterBase {
-	private _copyPixelTask: CopyPixelTask;
+export interface IColorMatrix {
+	filterName: 'colorMatrix',
+	matrix?: number[]
+}
+export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colorMatrix', IColorMatrix> {
+	public static readonly filterName = 'colorMatrix';
+	private _copyPixelTask: ColorMatrixTask;
 	private _blendDst: BF = BF.ONE_MINUS_SOURCE_ALPHA;
 	private _blendSrc: BF = BF.ONE;
 
@@ -56,12 +62,19 @@ export class CopyPixelFilter extends FilterBase {
 		return this._blend;
 	}
 
-	constructor () {
+	constructor (props?: Partial<IColorMatrix>) {
 		super();
 
-		this._copyPixelTask = new CopyPixelTask();
+		this._copyPixelTask = new ColorMatrixTask();
 		this.addTask(this._copyPixelTask);
 
+		if (props) {
+			this.applyProps(props);
+		}
+	}
+
+	public applyProps(props: Partial<IColorMatrix>) {
+		this.matrix = props.matrix;
 	}
 
 	public get colorTransform() {
@@ -70,5 +83,21 @@ export class CopyPixelFilter extends FilterBase {
 
 	public set colorTransform(value: ColorTransform) {
 		this._copyPixelTask.transform = value;
+
+		if (!value) {
+			this._requireBlend = false;
+		}
+	}
+
+	public get matrix() {
+		return this._copyPixelTask.matrix;
+	}
+
+	public set matrix(value: number[]) {
+		this._copyPixelTask.matrix = value;
+
+		if (!value) {
+			this._requireBlend = false;
+		}
 	}
 }
