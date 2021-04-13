@@ -21,23 +21,25 @@ export interface IAttrMeta {
 	size: number;
 }
 
-export class ProgramWebGL implements IProgram {
-	private static ProgramID = 0;
+export interface INativePropgram {
+	program: WebGLProgram;
+	uniforms: Record<string, IUniformMeta>;
+	attributes: Record<string, IAttrMeta>;
+	usage: number;
+}
 
+export class ProgramWebGL implements IProgram {
+	public static programCache: Record<string, INativePropgram> = {};
+	private static ProgramID = 0;
 	private static _tokenizer: AGALTokenizer = new AGALTokenizer();
 	private static _aglslParser: AGLSLParser = new AGLSLParser();
 	private static _uniformLocationNameDictionary: Array<string> = ['fc', 'fs', 'vc'];
 
 	public name: string;
 
-	// private static _uniformLocationNameDictionary:Array<string> = ["fcarrr", "fs", "vcarrr"];
-
 	private _id: number = ProgramWebGL.ProgramID++;
 	private _gl: WebGLRenderingContext;
-	private _program: WebGLProgram;
-	private _vertexShader: WebGLShader;
-	private _fragmentShader: WebGLShader;
-	private _attribs: Array<number> = [];
+	private _program: INativePropgram;
 	private _uniformCache: Array<string> = new Array(16);
 
 	private _focusId: number = 0;
@@ -48,15 +50,8 @@ export class ProgramWebGL implements IProgram {
 		return this._focusId;
 	}
 
-	private _rawUniforms: Record<string, IUniformMeta> = {};
-
-	private _rawAttrs: Record<string, IAttrMeta> = {};
-
 	constructor(private _context: ContextWebGL) {
 		this._gl = _context._gl;
-
-		_context.stats.progs++;
-		this._program = this._gl.createProgram();
 	}
 
 	public upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void {
@@ -90,42 +85,63 @@ export class ProgramWebGL implements IProgram {
 			this.name = 'PROG_GLSL_' + this._id;
 		}
 
+		const key = vertexGLSL + fragmentGLSL;
+		if (key in ProgramWebGL.programCache) {
+			this._program = ProgramWebGL.programCache[key];
+			this._program.usage++;
+			return;
+		}
+
 		vertexGLSL = this.insertName(vertexGLSL);
 		fragmentGLSL = this.insertName(fragmentGLSL);
 
-		this._vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
-		this._fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
+		const vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
+		const fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
+		const program = this._gl.createProgram();
+		this._context.stats.progs++;
 
-		this._gl.shaderSource(this._vertexShader, vertexGLSL);
-		this._gl.compileShader(this._vertexShader);
+		this._gl.shaderSource(vertexShader, vertexGLSL);
+		this._gl.compileShader(vertexShader);
 
-		if (!this._gl.getShaderParameter(this._vertexShader, this._gl.COMPILE_STATUS))
-			throw new Error(this._gl.getShaderInfoLog(this._vertexShader));
+		if (!this._gl.getShaderParameter(vertexShader, this._gl.COMPILE_STATUS))
+			throw new Error(this._gl.getShaderInfoLog(vertexShader));
 
-		this._gl.shaderSource(this._fragmentShader, fragmentGLSL);
-		this._gl.compileShader(this._fragmentShader);
+		this._gl.shaderSource(fragmentShader, fragmentGLSL);
+		this._gl.compileShader(fragmentShader);
 
-		if (!this._gl.getShaderParameter(this._fragmentShader, this._gl.COMPILE_STATUS))
-			throw new Error(this._gl.getShaderInfoLog(this._fragmentShader));
+		if (!this._gl.getShaderParameter(fragmentShader, this._gl.COMPILE_STATUS))
+			throw new Error(this._gl.getShaderInfoLog(fragmentShader));
 
-		this._gl.attachShader(this._program, this._vertexShader);
-		this._gl.attachShader(this._program, this._fragmentShader);
-		this._gl.linkProgram(this._program);
+		this._gl.attachShader(program, vertexShader);
+		this._gl.attachShader(program, fragmentShader);
+		this._gl.linkProgram(program);
 
-		if (!this._gl.getProgramParameter(this._program, this._gl.LINK_STATUS))
-			throw new Error(this._gl.getProgramInfoLog(this._program));
+		if (!this._gl.getProgramParameter(program, this._gl.LINK_STATUS))
+			throw new Error(this._gl.getProgramInfoLog(program));
+
+		// they will alive while any linked programs alive
+		this._gl.deleteShader(vertexShader);
+		this._gl.deleteShader(fragmentShader);
+
+		this._program = {
+			program: program,
+			uniforms: {},
+			attributes: {},
+			usage: 1
+		};
+
+		ProgramWebGL.programCache[key] = this._program;
 
 		this.reset();
-
 		this.grabLocationData(vertexGLSL, fragmentGLSL);
 	}
 
 	private grabLocationData(vert: string, frag: string) {
-		this._rawUniforms = {};
-		this._rawAttrs = {};
+		const rawUniforms = this._program.uniforms;
+		const rawAttrs = this._program.attributes;
 
 		const gl = this._gl;
-		const p = this._program;
+		const p = this._program.program;
 		const ucount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
 		const acount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
 
@@ -139,7 +155,7 @@ export class ProgramWebGL implements IProgram {
 				location: gl.getUniformLocation(p, info.name)
 			};
 
-			this._rawUniforms [
+			rawUniforms [
 				idx === -1
 					? info.name
 					: info.name.substring(0, idx)
@@ -149,7 +165,7 @@ export class ProgramWebGL implements IProgram {
 		for (let i = 0; i < acount; i++) {
 			const info = gl.getActiveAttrib(p, i);
 
-			this._rawAttrs[info.name] = {
+			rawAttrs[info.name] = {
 				type: info.type,
 				size: info.size,
 				location: gl.getAttribLocation(p, info.name)
@@ -167,8 +183,8 @@ export class ProgramWebGL implements IProgram {
 				const block = frag.substring(searchIndex, end).split(' ');
 				const name = block[block.length - 1];
 
-				if (!this._rawUniforms['fs' + index]) {
-					this._rawUniforms['fs' + index] = this._rawUniforms[name];
+				if (!rawUniforms['fs' + index]) {
+					rawUniforms['fs' + index] = rawUniforms[name];
 				}
 
 				searchIndex = frag.indexOf('uniform sampler', end);
@@ -186,8 +202,8 @@ export class ProgramWebGL implements IProgram {
 				const block = vert.substring(searchIndex, end).split(' ');
 				const name = block[block.length - 1];
 
-				if (!this._rawAttrs['va' + index]) {
-					this._rawAttrs['va' + index] = this._rawAttrs[name];
+				if (!rawAttrs['va' + index]) {
+					rawAttrs['va' + index] = rawAttrs[name];
 				}
 
 				searchIndex = vert.indexOf('attribute', end);
@@ -207,7 +223,6 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	protected reset() {
-		this._attribs.length = 0;
 		this._uniformCache.fill('');
 	}
 
@@ -221,7 +236,7 @@ export class ProgramWebGL implements IProgram {
 			? ProgramWebGL._getAGALUniformName(programType, <number>indexOrName)
 			: <string>indexOrName;
 
-		const info = this._rawUniforms[name];
+		const info = this._program.uniforms[name];
 
 		if (!info)
 			return null;
@@ -230,7 +245,7 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	public getAttribLocation(index: number): number {
-		const info = this._rawAttrs['va' + index];
+		const info = this._program.attributes['va' + index];
 
 		if (!info)
 			return -1;
@@ -255,7 +270,7 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	public uploadUniform(name: string, data: number | number[] | Float32Array): boolean {
-		const info = this._rawUniforms[name];
+		const info = this._program.uniforms[name];
 
 		if (!info)
 			return false;
@@ -333,14 +348,18 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	public dispose(): void {
-		this._context.stats.progs--;
-		this._gl.deleteProgram(this._program);
+		// not real delete progs, because maybe will be recreted in nearest future
+		// then progs in prety small, we can store 1000 + without overhead
+		// reupload is more expensive
+		// this._context.stats.progs--;
+		// this._gl.deleteProgram(this._program);
+		this.reset();
 	}
 
 	public focusProgram(): void {
 		this._focusId++;
 		this._uniformCache.fill('');
-		this._gl.useProgram(this._program);
+		this._gl.useProgram(this._program.program);
 	}
 
 	public get glProgram(): WebGLProgram {
