@@ -1,4 +1,4 @@
-import { Point } from '@awayjs/core';
+import { Point, Rectangle } from '@awayjs/core';
 
 export class FilterUtils {
 
@@ -58,6 +58,28 @@ export class FilterUtils {
 		target[1 + offset] = (color >> 8) & 0xff;
 		target[2 + offset] = (color >> 0) & 0xff;
 		target[3 + offset] = alpha * 0xff | 0;
+		return target;
+	}
+
+	public static nonAlocUnion(from: Rectangle, to: Rectangle, target: Rectangle): Rectangle {
+		const fromRaw = from._rawData;
+		const toRaw = to._rawData;
+		const targeRaw = target._rawData;
+
+		targeRaw.set(fromRaw);
+
+		if (toRaw[0] < fromRaw[0])
+			targeRaw[0] = toRaw[0];
+
+		if (toRaw[1] < fromRaw[1])
+			targeRaw[1] = toRaw[1];
+
+		targeRaw[2] = Math.max(toRaw[0] + toRaw[2], fromRaw[0] + fromRaw[2]);
+		targeRaw[2] -= targeRaw[0];
+
+		targeRaw[3] = Math.max(toRaw[1] + toRaw[3], fromRaw[1] + fromRaw[3]);
+		targeRaw[3] -= targeRaw[1];
+
 		return target;
 	}
 }

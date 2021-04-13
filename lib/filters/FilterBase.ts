@@ -38,6 +38,11 @@ export class FilterBase {
 		return this._tasks;
 	}
 
+	public meashurePad(input: Rectangle, target: Rectangle = input.clone()): Rectangle {
+		target.copyFrom(input);
+		return target;
+	}
+
 	// link up the filters correctly with the next filter
 	public setRenderState (
 		source: Image2D,

@@ -15,6 +15,7 @@ import { IVao } from '../base/IVao';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { FilterUtils } from '../utils/FilterUtils';
 import {
 	DisplacementFilter,
 	BlurFilter,
@@ -207,7 +208,35 @@ export class FilterManager {
 		return true;
 	}
 
-	public applyFilterStack(
+	public computeFiltersPadding(
+		bounds: Rectangle,
+		options: Array<IBitmapFilterProps>,
+		target: Rectangle = bounds.clone()
+	): Rectangle {
+
+		for (const prop of options) {
+			// can be NULL for unimplemented filters
+			if (!prop) {
+				continue;
+			}
+
+			const filter = this.getFilter(prop.filterName, prop);
+
+			if (!filter) {
+				continue;
+			}
+
+			FilterUtils.nonAlocUnion(
+				target,
+				filter.meashurePad(bounds, tmpRect0),
+				target
+			);
+		}
+
+		return target;
+	}
+
+	public applyFilters(
 		source: Image2D,
 		target: Image2D,
 		sourceRect: Rectangle,

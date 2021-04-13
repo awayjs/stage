@@ -57,6 +57,24 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		this._vBlurTask.stepSize = value;
 	}
 
+	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
+		const pad = FilterUtils.meashureBlurPad(
+			this.blurX,
+			this.blurY,
+			3,
+			true
+		);
+
+		target.copyFrom(input);
+
+		target.x -= pad.x;
+		target.y -= pad.y;
+		target.width += pad.x;
+		target.height += pad.y;
+
+		return target;
+	}
+
 	public setRenderState (
 		source: Image2D,
 		target: Image2D,
@@ -64,17 +82,18 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		outRect: Rectangle,
 		filterManage: FilterManager
 	) {
-
+		/*
 		const pad = FilterUtils.meashureBlurPad(
 			this.blurX,
 			this.blurY,
 			3,
 			false
 		);
+		*/
 
 		const subPassTarget = filterManage.popTemp(
-			source.width + pad.x,
-			source.height + pad.y
+			source.width,
+			source.height
 		);
 
 		// TEMP target can be dirty, because we use offset, clear it
@@ -89,7 +108,7 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 
 		// apply padding
 		this._hBlurTask.destRect.setTo(
-			pad.x, pad.y,
+			0, 0,
 			source.width,
 			source.height
 		);
@@ -97,15 +116,15 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		// but we can use a clip to kill non-used
 		this._hBlurTask.clipRect = new Rectangle(
 			0,0,
-			source.width + pad.x * 2,
-			source.height + pad.y * 2
+			source.width,
+			source.height
 		);
 
 		this._vBlurTask.clipRect = this._hBlurTask.clipRect;
 
 		// emit real
 		// crop a dest rectanle
-		this._vBlurTask.inputRect.setTo(pad.x, pad.y, outRect.width, outRect.height);
+		this._vBlurTask.inputRect.copyFrom(outRect);
 		this._vBlurTask.destRect.copyFrom(outRect);
 
 		this._hBlurTask.source = source;

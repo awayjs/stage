@@ -62,21 +62,6 @@ export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colo
 		return this._blend;
 	}
 
-	constructor (props?: Partial<IColorMatrix>) {
-		super();
-
-		this._copyPixelTask = new ColorMatrixTask();
-		this.addTask(this._copyPixelTask);
-
-		if (props) {
-			this.applyProps(props);
-		}
-	}
-
-	public applyProps(props: Partial<IColorMatrix>) {
-		this.matrix = props.matrix;
-	}
-
 	public get colorTransform() {
 		return this._copyPixelTask.transform;
 	}
@@ -100,4 +85,20 @@ export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colo
 			this._requireBlend = false;
 		}
 	}
+
+	constructor (props?: Partial<IColorMatrix>) {
+		super();
+
+		this._copyPixelTask = new ColorMatrixTask();
+		this.addTask(this._copyPixelTask);
+
+		if (props) {
+			this.applyProps(props);
+		}
+	}
+
+	public applyProps(props: Partial<IColorMatrix>) {
+		this.matrix = props.matrix;
+	}
+
 }
