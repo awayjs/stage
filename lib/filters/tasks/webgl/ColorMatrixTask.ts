@@ -24,7 +24,7 @@ vec4 transform(vec4 color) {
 	color += uTransformData[1];
 
 	color.rgb *= color.a;
-	retunr color;
+	return color;
 }
 `;
 
@@ -125,8 +125,13 @@ export class ColorMatrixTask extends TaskBaseWebGL {
 		if (value) {
 			for (let i = 0; i < 4; i++) {
 				for (let j = 0; j < 4; j++) {
-					this._fragData[i + j * 4] = value[i + i * 4];
+					// we should get 4 of 5, because matrix store data as
+					// mulR, mulG, mulB, mulA, offsetR
+					this._fragData[j + i * 4] = value[j + i * 5];
 				}
+
+				// pack offsets to latest vector
+				this._fragData[16 + i] = value[4 + i * 5] / 0xff;
 			}
 
 			//for (let i = 16; i < 20; i++)
