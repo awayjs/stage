@@ -26,7 +26,6 @@ export class TextureContextWebGL {
 
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
-	_lastBoundedTexture: TextureWebGL = null;
 	_currentRT: RenderTargetWebGL = null;
 
 	private _gl: WebGLRenderingContext | WebGL2RenderingContext;
