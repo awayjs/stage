@@ -136,6 +136,12 @@ export class ContextWebGL implements IContextGL {
 		this.initWebGL(alpha);
 	}
 
+	public assertLost(when: string) {
+		if (this._gl.isContextLost()) {
+			throw `[ContextWebGL] Context lost after ${when}, state: ${JSON.stringify(this.stats, null, 2)}`;
+		}
+	}
+
 	private initWebGL(alpha: boolean = false) {
 
 		const props: WebGLContextAttributes = {
@@ -488,6 +494,8 @@ export class ContextWebGL implements IContextGL {
 			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
 			this._gl.UNSIGNED_SHORT,
 			firstIndex * 2);
+
+		this.assertLost('drawElements');
 	}
 
 	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
@@ -510,10 +518,7 @@ export class ContextWebGL implements IContextGL {
 
 		this._gl.drawArrays(this._drawModeMap[mode], firstVertex, numVertices);
 
-		// todo: this check should not be needed.
-		// for now it is here to prevent ugly gpu warnings when trying to render numVertices=0
-		if (numVertices == 0)
-			return;
+		this.assertLost('drawArrays');
 	}
 
 	public present(): void {
@@ -623,6 +628,8 @@ export class ContextWebGL implements IContextGL {
 				this._gl.FRONT, compareModeGL, this._stencilReferenceValue, this._stencilReadMask);
 			this._gl.stencilOpSeparate(this._gl.FRONT, fail, zFail, pass);
 		}
+
+		this.assertLost('setStencilActions');
 	}
 
 	public setStencilReferenceValue(referenceValue: number, readMask: number = 0xFF, writeMask: number = 0xFF): void {
@@ -637,6 +644,8 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		this._gl.stencilMask(writeMask);
+
+		this.assertLost('setStencilReferenceValue');
 	}
 
 	public setProgram(program: ProgramWebGL): void {
@@ -648,6 +657,8 @@ export class ContextWebGL implements IContextGL {
 		//TODO decide on construction/reference resposibilities
 		this._currentProgram = program;
 		program.focusProgram();
+
+		this.assertLost('setProgram');
 	}
 
 	public static modulo: number = 0;
@@ -678,6 +689,8 @@ export class ContextWebGL implements IContextGL {
 		this._gl.scissor(
 			rect.x * pr, targetY,
 			rect.width * pr, rect.height * pr);
+
+		this.assertLost('scissor');
 	}
 
 	public setTextureAt(sampler: number, texture: TextureBaseWebGL): void {
@@ -698,6 +711,8 @@ export class ContextWebGL implements IContextGL {
 
 		// proxy
 		this._texContext.setSamplerStateAt(sampler, wrap, filter, mipfilter);
+
+		this.assertLost('setSamplerStateAt');
 	}
 
 	public setVertexBufferAt(
@@ -735,6 +750,8 @@ export class ContextWebGL implements IContextGL {
 
 		this._gl.vertexAttribPointer(
 			location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
+
+		this.assertLost('setVertexBufferAt');
 	}
 
 	public setRenderToTexture(
@@ -749,10 +766,13 @@ export class ContextWebGL implements IContextGL {
 			surfaceSelector,
 			mipmapSelector
 		);
+
+		this.assertLost('setRenderToTexture');
 	}
 
 	public setRenderToBackBuffer(): void {
 		this._texContext.setRenderToBackBuffer();
+		this.assertLost('setRenderToBackBuffer');
 	}
 
 	public restoreRenderTarget() {
@@ -765,6 +785,8 @@ export class ContextWebGL implements IContextGL {
 		}
 
 		this._texContext.presentFrameBufferTo(this._texContext._renderTarget, <TextureWebGL>target, rect, destPoint);
+		this.assertLost('copyToTexture');
+
 	}
 
 	private updateBlendStatus(): void {
@@ -795,6 +817,7 @@ export class ContextWebGL implements IContextGL {
 		this._gl.finish();
 
 		this._fenceContext && this._fenceContext.tick();
+		this.assertLost('finish');
 	}
 
 	private translateTriangleFace(triangleFace: ContextGLTriangleFace, coordinateSystem: CoordinateSystem) {
