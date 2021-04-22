@@ -46,7 +46,7 @@ export class VaoContextWebGL {
 	}
 
 	createVertexArray(): TWebGLVao {
-		this._context.stats.buffers.vao++;
+		this._context.stats.counter.vao++;
 
 		return this._createVertexArray();
 	}
@@ -82,7 +82,7 @@ export class VaoContextWebGL {
 		this._deleteVertexArray(v._vao);
 		this._lastBoundedVao = null;
 
-		this._context.stats.buffers.vao--;
+		this._context.stats.counter.vao--;
 	}
 }
 

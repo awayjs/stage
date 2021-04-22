@@ -25,6 +25,7 @@ import { State } from './State';
 import { Settings } from '../Settings';
 import { FenceContextWebGL } from './FenceContextWebGL';
 import * as GL_MAP from './ConstantsWebGL';
+import { StatsWebGL } from './StatsWebGL';
 
 let _DEBUG_renderMode: '' | 'line' = '';
 
@@ -36,18 +37,7 @@ window._AWAY_DEBUG_ = Object.assign(window._AWAY_DEBUG_ || {}, {
 });
 
 export class ContextWebGL implements IContextGL {
-	public readonly stats = {
-		textures: {
-			textures: 0,
-			framebuffers: 0,
-		},
-		buffers: {
-			index: 0,
-			vertex: 0,
-			vao: 0,
-		},
-		progs: 0,
-	};
+	public readonly stats = new StatsWebGL()
 
 	private _container: HTMLCanvasElement;
 	private _width: number;

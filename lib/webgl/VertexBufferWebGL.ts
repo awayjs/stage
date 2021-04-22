@@ -32,11 +32,11 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 
 	constructor(private _context: ContextWebGL, numVertices: number, dataPerVertex: number) {
 		this._gl = _context._gl;
-
-		_context.stats.buffers.vertex++;
 		this._buffer = this._gl.createBuffer();
 		this._numVertices = numVertices;
 		this._dataPerVertex = dataPerVertex;
+
+		_context.stats.counter.vertex++;
 	}
 
 	public uploadFromArray(array: TTypedArray, startVertex: number, _numVertices: number): void {
@@ -85,8 +85,8 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 	public unload(): void {
 		Settings.ENABLE_BUFFER_POOLING && VertexBufferWebGL.pool.remove(this);
 
-		this._context.stats.buffers.vertex--;
 		this._gl.deleteBuffer(this._buffer);
 		this._buffer = null;
+		this._context.stats.counter.vertex--;
 	}
 }

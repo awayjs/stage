@@ -30,10 +30,10 @@ export class IndexBufferWebGL implements IIndexBuffer, IUnloadable {
 
 	constructor(private _context: ContextWebGL, numIndices: number) {
 		this._gl = _context._gl;
-
-		_context.stats.buffers.index++;
 		this._buffer = this._gl.createBuffer();
 		this._numIndices = numIndices;
+
+		_context.stats.counter.index++;
 	}
 
 	public uploadFromArray(array: Uint16Array, startOffset: number, _count: number): void {
@@ -69,9 +69,9 @@ export class IndexBufferWebGL implements IIndexBuffer, IUnloadable {
 	public unload(): void {
 		Settings.ENABLE_BUFFER_POOLING && IndexBufferWebGL.pool.remove(this);
 
-		this._context.stats.buffers.index--;
 		this._gl.deleteBuffer(this._buffer);
 		this._buffer = null;
+		this._context.stats.counter.index--;
 	}
 
 	public get numIndices(): number {

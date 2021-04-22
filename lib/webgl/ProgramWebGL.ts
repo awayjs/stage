@@ -98,7 +98,8 @@ export class ProgramWebGL implements IProgram {
 		const vertexShader = this._gl.createShader(this._gl.VERTEX_SHADER);
 		const fragmentShader = this._gl.createShader(this._gl.FRAGMENT_SHADER);
 		const program = this._gl.createProgram();
-		this._context.stats.progs++;
+
+		this._context.stats.counter.program++;
 
 		this._gl.shaderSource(vertexShader, vertexGLSL);
 		this._gl.compileShader(vertexShader);

@@ -69,7 +69,6 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 			return tex;
 		}
 
-		context.stats.textures.textures++;
 		return new TextureWebGL(context, width, height);
 	}
 
@@ -100,7 +99,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 		this._height = height;
 
 		this._glTexture = this._gl.createTexture();
-		this._context.stats.textures.textures++;
+		this._context.stats.counter.texture++;
 	}
 
 	get isPOT () {

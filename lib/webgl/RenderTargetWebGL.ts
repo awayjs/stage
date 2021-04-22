@@ -64,7 +64,7 @@ export class RenderTargetWebGL implements IUnloadable {
 
 		this._framebuffer =  gl.createFramebuffer();
 		this._depthStencil = this._colorOnly ? null : gl.createRenderbuffer();
-		this._context.stats.textures.framebuffers++;
+		this._context.stats.counter.renderTarget++;
 
 		// we not have RB, not require init it
 		if (!this._depthStencil) {
@@ -174,6 +174,6 @@ export class RenderTargetWebGL implements IUnloadable {
 		this._framebuffer = null;
 		this._depthStencil = null;
 
-		this._context.stats.textures.framebuffers--;
+		this._context.stats.counter.renderTarget--;
 	}
 }
