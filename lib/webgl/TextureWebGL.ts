@@ -100,6 +100,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 
 		this._glTexture = this._gl.createTexture();
 		this._context.stats.counter.texture++;
+		this._context.stats.memory.texture += width * height * 8;
 	}
 
 	get isPOT () {
@@ -127,9 +128,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	unload(): void {
 		TextureWebGL.remove(this);
 
-		this._context._texContext.disposeTexture(this);
-		this._glTexture = null;
+		this._context.stats.counter.texture--;
+		this._context.stats.memory.texture -= this.width * this.height * 8;
 
+		this._context._texContext.disposeTexture(this);
+
+		this._glTexture = null;
 		this._state.dispose();
 	}
 

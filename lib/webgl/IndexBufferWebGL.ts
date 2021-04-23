@@ -27,6 +27,7 @@ export class IndexBufferWebGL implements IIndexBuffer, IUnloadable {
 	private _gl: WebGLRenderingContext;
 	private _numIndices: number;
 	private _buffer: WebGLBuffer;
+	private _lastMemoryUsage: number = 0;
 
 	constructor(private _context: ContextWebGL, numIndices: number) {
 		this._gl = _context._gl;
@@ -36,17 +37,16 @@ export class IndexBufferWebGL implements IIndexBuffer, IUnloadable {
 		_context.stats.counter.index++;
 	}
 
-	public uploadFromArray(array: Uint16Array, startOffset: number, _count: number): void {
-		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
-
-		if (startOffset)
-			this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset * 2, array);
-		else
-			this._gl.bufferData(this._gl.ELEMENT_ARRAY_BUFFER, array, this._gl.STATIC_DRAW);
+	public uploadFromArray(array: Uint16Array, startOffset: number = 0, _count: number): void {
+		this.uploadFromByteArray(array.buffer, startOffset, _count);
 	}
 
-	public uploadFromByteArray(data: ArrayBuffer, startOffset: number, _count: number): void {
+	public uploadFromByteArray(data: ArrayBuffer, startOffset: number = 0, _count: number): void {
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, this._buffer);
+
+		this._context.stats.memory.index -= this._lastMemoryUsage;
+		this._lastMemoryUsage = data.byteLength - startOffset * 2;
+		this._context.stats.memory.index += this._lastMemoryUsage;
 
 		if (startOffset)
 			this._gl.bufferSubData(this._gl.ELEMENT_ARRAY_BUFFER, startOffset * 2, data);
@@ -71,7 +71,10 @@ export class IndexBufferWebGL implements IIndexBuffer, IUnloadable {
 
 		this._gl.deleteBuffer(this._buffer);
 		this._buffer = null;
+
 		this._context.stats.counter.index--;
+		this._context.stats.memory.index -= this._lastMemoryUsage;
+
 	}
 
 	public get numIndices(): number {

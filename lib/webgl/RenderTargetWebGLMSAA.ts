@@ -20,6 +20,8 @@ export class RenderTargetWebGLMSAA extends RenderTargetWebGL {
 		const gl = <WebGL2RenderingContext> this._context._gl;
 		const tex = this._context._texContext;
 
+		this._context.stats.counter.renderTarget++;
+
 		this._framebuffer =  gl.createFramebuffer();
 		this._depthStencil = this._colorOnly ? null : gl.createRenderbuffer();
 		this._color = gl.createRenderbuffer();
@@ -43,14 +45,20 @@ export class RenderTargetWebGLMSAA extends RenderTargetWebGL {
 		gl.framebufferRenderbuffer(GL_FB, GL_C_ATTACH, GL_RB, color);
 		gl.renderbufferStorageMultisample(GL_RB, GL_MAX_MSAA, GL_RGBA8, width, height);
 
+		this.memoryUsage = width * height * 8 * Math.sqrt(GL_MAX_MSAA);
+
 		if (stencil) {
 			gl.bindRenderbuffer(GL_RB, stencil);
 			// eslint-disable-next-line max-len
 			gl.framebufferRenderbuffer(GL_FB, GL_DS_ATTACH, GL_RB, stencil);
 			gl.renderbufferStorageMultisample(GL_RB, GL_MAX_MSAA, GL_D24_S8, width, height);
+
+			this.memoryUsage *= 2;
 		}
 
 		tex.bindRenderTarget(prevRT, true);
+
+		this._context.stats.memory.renderTarget += this.memoryUsage;
 	}
 
 	public linkTarget(target: RenderTargetWebGL | null) {

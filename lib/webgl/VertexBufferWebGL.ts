@@ -26,6 +26,7 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 	private _numVertices: number;
 	private _dataPerVertex: number;
 	private _buffer: WebGLBuffer;
+	private _lastMemoryUsage: number = 0;
 
 	public lastUsedTime: number;
 	public canUnload: boolean = true;
@@ -39,17 +40,18 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 		_context.stats.counter.vertex++;
 	}
 
-	public uploadFromArray(array: TTypedArray, startVertex: number, _numVertices: number): void {
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
-
-		if (startVertex)
-			this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex * this._dataPerVertex, array);
-		else
-			this._gl.bufferData(this._gl.ARRAY_BUFFER, array, this._gl.STATIC_DRAW);
+	public uploadFromArray(
+		array: TTypedArray, startVertex: number = 0, _numVertices: number = this._numVertices
+	): void {
+		this.uploadFromByteArray(array.buffer, startVertex, _numVertices);
 	}
 
 	public uploadFromByteArray(data: ArrayBuffer, startVertex: number, _numVertices: number): void {
 		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
+
+		this._context.stats.memory.vertex -= this._lastMemoryUsage;
+		this._lastMemoryUsage = data.byteLength - startVertex * this._dataPerVertex;
+		this._context.stats.memory.vertex += this._lastMemoryUsage;
 
 		if (startVertex)
 			this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex * this._dataPerVertex, data);
@@ -88,5 +90,6 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 		this._gl.deleteBuffer(this._buffer);
 		this._buffer = null;
 		this._context.stats.counter.vertex--;
+		this._context.stats.memory.vertex -= this._lastMemoryUsage;
 	}
 }

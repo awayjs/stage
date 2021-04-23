@@ -315,10 +315,6 @@ export class TextureContextWebGL {
 			this._lastBoundedTexture = null;
 		}
 
-		const texStat = this._context.stats.counter;
-
-		// delete texture
-		texStat.texture--;
 		gl.deleteTexture(texture._glTexture);
 
 		if (texture._renderTarget) {

@@ -38,6 +38,8 @@ export class RenderTargetWebGL implements IUnloadable {
 	protected _depthStencil: WebGLRenderbuffer;
 	protected _linkedTexture: TextureWebGL;
 
+	public memoryUsage: number = 0
+
 	public get drawBuffer() {
 		return this._framebuffer;
 	}
@@ -71,6 +73,8 @@ export class RenderTargetWebGL implements IUnloadable {
 			return;
 		}
 
+		this.memoryUsage = this.width * this.height * 8;
+
 		const prev = this._context._texContext.bindRenderTarget(this, false);
 
 		gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthStencil);
@@ -80,6 +84,7 @@ export class RenderTargetWebGL implements IUnloadable {
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
 		this._context._texContext.bindRenderTarget(prev, true);
+		this._context.stats.memory.renderTarget += this.memoryUsage;
 	}
 
 	public linkTexture(texture: TextureWebGL) {
@@ -175,5 +180,6 @@ export class RenderTargetWebGL implements IUnloadable {
 		this._depthStencil = null;
 
 		this._context.stats.counter.renderTarget--;
+		this._context.stats.memory.renderTarget -= this.memoryUsage;
 	}
 }
