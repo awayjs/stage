@@ -1,3 +1,4 @@
+import { ContextWebGL } from './ContextWebGL';
 import { PixelBufferWebGL } from './PixelBufferWebGL';
 
 type TPBOTask = (pbo: PixelBufferWebGL) => void;
@@ -5,6 +6,7 @@ type TPBOTask = (pbo: PixelBufferWebGL) => void;
 export class FenceContextWebGL {
 	public static isSupported = PixelBufferWebGL.isSuported;
 
+	private _gl: WebGL2RenderingContext;
 	private pool: PixelBufferWebGL[] = [];
 
 	private _tasks: Array<{
@@ -13,7 +15,9 @@ export class FenceContextWebGL {
 		fence: WebGLSync
 	}> = [];
 
-	constructor(private _gl: WebGL2RenderingContext) {}
+	constructor(private _context: ContextWebGL) {
+		this._gl = <WebGL2RenderingContext> _context._gl;
+	}
 
 	/**
 	 * Async read from PBO.
@@ -21,7 +25,7 @@ export class FenceContextWebGL {
 	 */
 	public readPixels(x: number, y: number, width: number, height: number): Promise<PixelBufferWebGL> {
 
-		const pbo = this.pool.pop() || new PixelBufferWebGL(this._gl);
+		const pbo = this.pool.pop() || new PixelBufferWebGL(this._context);
 
 		// only for RGBA
 		pbo.bind(width * height * 4);
@@ -87,6 +91,7 @@ export class FenceContextWebGL {
 	dispose() {
 		this._tasks = null;
 		this.pool.forEach((e) => e.dispose());
+		this.pool = [];
 		this._gl = null;
 	}
 }

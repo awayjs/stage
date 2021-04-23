@@ -186,7 +186,7 @@ export class ContextWebGL implements IContextGL {
 
 		if (Settings.ENABLE_ASYNC_READ) {
 			if (FenceContextWebGL.isSupported(this._gl)) {
-				this._fenceContext = new FenceContextWebGL(<WebGL2RenderingContext> this._gl);
+				this._fenceContext = new FenceContextWebGL(this);
 			} else {
 				console.warn('[ContextWebGL] FenceSync isn\'t supported');
 			}

@@ -1,3 +1,5 @@
+import { ContextWebGL } from './ContextWebGL';
+
 export class PixelBufferWebGL {
 	static _lastBounded: PixelBufferWebGL;
 
@@ -21,11 +23,13 @@ export class PixelBufferWebGL {
 		return !!this._buffer;
 	}
 
-	constructor (gl: WebGL2RenderingContext, size = 0) {
+	constructor (private _contex: ContextWebGL, size = 0) {
 
-		this._gl = gl;
-		this._buffer = gl.createBuffer();
+		this._gl = <WebGL2RenderingContext> _contex._gl;
+		this._buffer = this._gl.createBuffer();
 		this._size = size;
+
+		_contex.stats.counter.pbo++;
 	}
 
 	/**
@@ -66,12 +70,15 @@ export class PixelBufferWebGL {
 
 		if (!this._alreadyInit || this._size !== size && size > 0) {
 
+			this._contex.stats.memory.pbo -= this._size;
+
 			if (size > 0) {
 				this._size = size;
 			}
 
 			gl.bufferData(gl.PIXEL_PACK_BUFFER, this._size, gl.DYNAMIC_READ);
 			this._alreadyInit = true;
+			this._contex.stats.memory.pbo += this._size;
 		}
 
 		PixelBufferWebGL._lastBounded = this;
@@ -99,5 +106,8 @@ export class PixelBufferWebGL {
 		this._buffer = null;
 		this._size = 0;
 		this._gl = null;
+
+		this._contex.stats.counter.pbo--;
+		this._contex.stats.memory.pbo += this._size;
 	}
 }
