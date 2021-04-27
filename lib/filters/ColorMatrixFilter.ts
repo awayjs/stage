@@ -97,8 +97,8 @@ export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colo
 		}
 	}
 
-	public applyProps(props: Partial<IColorMatrix>) {
-		this.matrix = props.matrix;
+	public applyProps(props?: Partial<IColorMatrix>) {
+		this.matrix = props?.matrix;
 	}
 
 }
