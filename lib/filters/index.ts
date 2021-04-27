@@ -12,3 +12,4 @@ export * from './BevelFilter';
 export * from './ColorMatrixFilter';
 export * from './ThresholdFilter';
 export * from './DisplacementFilter';
+export * from './DropShadowFilter';

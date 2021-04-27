@@ -1,6 +1,6 @@
 import { Point } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
-import { proxyTo } from '../utils/FilterUtils';
+import { PROPS_LIST as PROPS_LIST, proxyTo, serialisable } from '../utils/FilterUtils';
 import { FilterBase } from './FilterBase';
 import { IBitmapFilter } from './IBitmapFilter';
 import { DisplacementTask } from './tasks/DisplacementTask';
@@ -25,30 +25,39 @@ export class DisplacementFilter extends FilterBase implements IBitmapFilter<'dis
 
 	private _displacement: DisplacementTask = new DisplacementTask();
 
+	@serialisable
 	@proxyTo('_displacement')
 	mapBitmap: Image2D;
 
+	@serialisable
 	@proxyTo('_displacement')
 	mapPoint: Point;
 
+	@serialisable
 	@proxyTo('_displacement')
 	componentX: ui8;
 
+	@serialisable
 	@proxyTo('_displacement')
 	componentY: ui8;
 
+	@serialisable
 	@proxyTo('_displacement')
 	scaleX: number;
 
+	@serialisable
 	@proxyTo('_displacement')
 	scaleY: number;
 
+	@serialisable
 	@proxyTo('_displacement')
 	mode: DisplacementMode;
 
+	@serialisable
 	@proxyTo('_displacement')
 	color: ui32;
 
+	@serialisable
 	@proxyTo('_displacement')
 	alpha: number;
 
@@ -59,12 +68,14 @@ export class DisplacementFilter extends FilterBase implements IBitmapFilter<'dis
 		this.applyProps(props);
 	}
 
-	public applyProps(props: Partial<IDisplacementFilter>): void {
-		if (!props) return;
+	public applyProps(model: Partial<IDisplacementFilter>): void {
+		if (!model) return;
 
 		// run all model field that changed
-		for (const key in props) {
-			this[key] = props[key];
+		for (const key of this[PROPS_LIST]) {
+			if (key in model) {
+				this[key] = model[key];
+			}
 		}
 	}
 

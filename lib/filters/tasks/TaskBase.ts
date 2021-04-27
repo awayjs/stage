@@ -162,7 +162,7 @@ export class TaskBase {
 
 	public preActivate(_stage: Stage) {}
 
-	public activate(stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
+	public activate(stage: Stage, _projection?: ProjectionBase, _depthTexture?: Image2D): void {
 		this.computeVertexData();
 
 		const context: IContextGL = stage.context;

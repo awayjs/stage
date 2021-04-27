@@ -22,6 +22,7 @@ import {
 	ThresholdFilter,
 	ColorMatrixFilter,
 	FilterBase,
+	DropShadowFilter,
 	IBitmapFilter,
 	IBitmapFilterProps
 } from '../filters';
@@ -57,6 +58,7 @@ export class FilterManager {
 		[BlurFilter.filterName]: BlurFilter,
 		[DisplacementFilter.filterName]: DisplacementFilter,
 		[ColorMatrixFilter.filterName]: ColorMatrixFilter,
+		[DropShadowFilter.filterName]: DropShadowFilter
 	}
 
 	constructor (private _stage: Stage) {

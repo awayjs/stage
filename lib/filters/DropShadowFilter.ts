@@ -1,91 +1,72 @@
 import { Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
-import { FilterUtils, PROPS_LIST, proxyTo, serialisable } from '../utils/FilterUtils';
+import { FilterUtils, serialisable, PROPS_LIST, proxyTo } from '../utils/FilterUtils';
 import { BlurFilter, IBlurFilterProps } from './BlurFilter';
 import { IBitmapFilter } from './IBitmapFilter';
-import { BevelTask } from './tasks/webgl/BevelTask';
+import { DropShadowTask } from './tasks/webgl/DropShadowTask';
 
-export interface IBevelFilterProps extends IBlurFilterProps {
+export interface IDropShadowFilterProps extends IBlurFilterProps {
 	distance: number;
 	angle: number;
-	highlightColor?: ui32;
-	highlightAlpha?: number;
-	shadowColor?: ui32;
-	shadowAlpha: number;
-	colors?: ui32[];
-	ratios?: ui8[];
-	alphas?: number[];
+	alpha: number;
+	color: number;
 	strength: number;
-	type: 'inner' | 'outer' | 'both';
-	knockout?: number;
+	inner: boolean;
+	knockout: boolean;
+	hideObject: boolean;
 }
 
-export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IBevelFilterProps> {
-	public static readonly filterName: string = 'bevel';
+export class DropShadowFilter extends BlurFilter implements IBitmapFilter<'dropShadow', IDropShadowFilterProps> {
+	public static readonly filterName: string = 'dropShadow';
 
-	protected _bevelTask = new BevelTask();
+	protected _shadowTask = new DropShadowTask();
 
 	@serialisable
-	@proxyTo('_bevelTask')
+	@proxyTo('_shadowTask')
 	distance: number = 1;
 
 	@serialisable
-	@proxyTo('_bevelTask')
+	@proxyTo('_shadowTask')
 	angle: number = 45;
 
 	@serialisable
-	@proxyTo('_bevelTask')
-	highlightColor: number = 0xffffff;
+	@proxyTo('_shadowTask')
+	color: number = 0x0;
 
 	@serialisable
-	@proxyTo('_bevelTask')
-	highlightAlpha: number = 1;
+	@proxyTo('_shadowTask')
+	alpha: number = 1;
 
 	@serialisable
-	@proxyTo('_bevelTask')
-	shadowColor: number = 1;
-
-	@serialisable
-	@proxyTo('_bevelTask')
-	shadowAlpha: number = 0;
-
-	@serialisable
-	@proxyTo('_bevelTask')
-	alphas: number[] = [];
-
-	@serialisable
-	@proxyTo('_bevelTask')
-	colors: number[] = [];
-
-	@serialisable
-	@proxyTo('_bevelTask')
-	ratios: number[] = []
-
-	@serialisable
-	@proxyTo('_bevelTask')
+	@proxyTo('_shadowTask')
 	strength: number = 1;
 
 	@serialisable
 	quality: number;
 
 	@serialisable
-	@proxyTo('_bevelTask')
-	type: 'inner' | 'outer' | 'both' = 'inner';
+	@proxyTo('_shadowTask')
+	inner: boolean = false;
 
 	@serialisable
-	@proxyTo('_bevelTask')
+	@proxyTo('_shadowTask')
 	knockout: boolean = false;
 
-	constructor(options?: Partial <IBevelFilterProps>) {
+	@serialisable
+	@proxyTo('_shadowTask')
+	hideObject: boolean = false;
+
+	constructor(options?: Partial <IDropShadowFilterProps>) {
 		super(options);
 
-		this.addTask(this._bevelTask);
+		this.addTask(this._shadowTask);
 
 		this.applyProps(options);
 	}
 
-	public applyProps(model: Partial<IBevelFilterProps>): void {
+	public applyProps(model: Partial<IDropShadowFilterProps>): void {
+		if (!model) return;
 		// run all model field that changed
 		for (const key of this[PROPS_LIST]) {
 			if (key in model) {
@@ -106,7 +87,7 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 
 		// for outer or both need render a drop shadow with valid pad
 		const dist = this.distance;
-		if (this.type !== 'inner' && dist > 0) {
+		if (!this.inner && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
 			pad.x += Math.sin(rad) * dist * 2;
@@ -141,8 +122,8 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 		// crop a dest rectanle
 		// ovveride blur target
 		// we use a copyFrom, because if we will use referece - we can corrupt instance
-		this._bevelTask.inputRect.copyFrom(this._vBlurTask.inputRect);
-		this._bevelTask.destRect.copyFrom(outRect);
+		this._shadowTask.inputRect.copyFrom(this._vBlurTask.inputRect);
+		this._shadowTask.destRect.copyFrom(outRect);
 
 		//reset output size
 		this._vBlurTask.inputRect.setTo(0,0,0,0);
@@ -151,9 +132,9 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 		// and reset target
 		this._vBlurTask.target = secondPass;
 
-		this._bevelTask.source = secondPass;
-		this._bevelTask.sourceImage = source;
-		this._bevelTask.target = target;
+		this._shadowTask.source = secondPass;
+		this._shadowTask.sourceImage = source;
+		this._shadowTask.target = target;
 
 		this._temp.push(secondPass);
 

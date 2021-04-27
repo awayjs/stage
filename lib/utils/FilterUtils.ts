@@ -108,3 +108,12 @@ export function proxyTo(fieldName: string, subFieldName?: string): any {
 		});
 	};
 }
+
+export const PROPS_LIST = Symbol('Model propery list');
+export function serialisable(target: any, properyKey: string) {
+	if (!target[PROPS_LIST]) {
+		target[PROPS_LIST] = [];
+	}
+
+	target[PROPS_LIST].push(properyKey);
+}

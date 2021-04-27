@@ -1,6 +1,6 @@
 import { BlurTask } from './tasks/BlurTask';
 import { FilterBase } from './FilterBase';
-import { FilterUtils, proxyTo } from '../utils/FilterUtils';
+import { FilterUtils, serialisable, proxyTo } from '../utils/FilterUtils';
 import { Image2D } from '../image/Image2D';
 import { Rectangle } from '@awayjs/core';
 import { FilterManager } from '../managers/FilterManager';
@@ -18,9 +18,11 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 	protected _hBlurTask: BlurTask;
 	protected _vBlurTask: BlurTask;
 
+	@serialisable
 	@proxyTo('_hBlurTask', 'amount')
 	public blurX: number;
 
+	@serialisable
 	@proxyTo('_vBlurTask', 'amount')
 	public blurY: number;
 
