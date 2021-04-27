@@ -75,7 +75,7 @@ export class DropShadowTask extends MultipleUVTask {
 	public set color(v: number) {
 		this._color = v;
 
-		FilterUtils.colorToArray(this._alpha, v, this._uColor);
+		FilterUtils.colorToArray(this._color, this._alpha , this._uColor);
 	}
 
 	public get color() {
