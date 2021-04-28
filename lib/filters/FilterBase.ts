@@ -5,6 +5,7 @@ import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ImageEvent } from '../events/ImageEvent';
 
 export class FilterBase {
 	private _tasks: Array<TaskBase> = [];
@@ -72,5 +73,6 @@ export class FilterBase {
 	public clear (_manage: FilterManager) {
 		this._temp.forEach((e) =>  _manage.pushTemp(e));
 		this._temp.length = 0;
+		this.imageScale = 1;
 	}
 }
