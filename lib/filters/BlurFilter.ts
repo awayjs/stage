@@ -11,12 +11,17 @@ export interface IBlurFilterProps extends IBitmapFilterProps {
 	blurY: number;
 	// not supported yet
 	quality: number;
+	// not falsh prop, passed from cache
+	imageScale: number;
 }
 export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlurFilterProps> {
 	public static readonly filterName: string = 'blur';
 
 	protected _hBlurTask: BlurTask;
 	protected _vBlurTask: BlurTask;
+
+	@serialisable
+	public imageScale: number = 1;
 
 	@serialisable
 	@proxyTo('_hBlurTask', 'amount')
@@ -43,6 +48,10 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 
 		if ('blurY' in props) {
 			this.blurY = props.blurY;
+		}
+
+		if('imageScale' in props) {
+			this.imageScale = props.imageScale || 1;
 		}
 	}
 
