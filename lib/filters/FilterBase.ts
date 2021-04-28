@@ -11,6 +11,8 @@ export class FilterBase {
 	private _requireDepthRender: boolean;
 	protected _temp: Image2D[] = [];
 
+	public imageScale: number = 1;
+
 	public get requireBlend() {
 		return false;
 	}
