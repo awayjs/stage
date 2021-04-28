@@ -5,11 +5,14 @@ import { Stage } from '../Stage';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ImageEvent } from '../events/ImageEvent';
 
 export class FilterBase {
 	private _tasks: Array<TaskBase> = [];
 	private _requireDepthRender: boolean;
 	protected _temp: Image2D[] = [];
+
+	public imageScale: number = 1;
 
 	public get requireBlend() {
 		return false;
@@ -70,5 +73,6 @@ export class FilterBase {
 	public clear (_manage: FilterManager) {
 		this._temp.forEach((e) =>  _manage.pushTemp(e));
 		this._temp.length = 0;
+		this.imageScale = 1;
 	}
 }
