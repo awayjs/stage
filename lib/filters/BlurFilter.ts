@@ -50,7 +50,7 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 			this.blurY = props.blurY;
 		}
 
-		if('imageScale' in props) {
+		if ('imageScale' in props) {
 			this.imageScale = props.imageScale || 1;
 		}
 	}
