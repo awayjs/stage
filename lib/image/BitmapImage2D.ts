@@ -741,6 +741,52 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		return d;
 	}
 
+	public hitTest(
+		firstPoint: Point,
+		firstAlphaThreshold: ui8,
+		secondObject: Point | Rectangle | BitmapImage2D,
+		secondBitmapDataPoint: Point = null,
+		secondAlphaThreshold: ui8 = 1
+	): boolean {
+
+		if (secondObject instanceof Point) {
+			const color = this.getPixel32(
+				secondObject.x - firstPoint.x,
+				secondObject.y - firstPoint.y);
+			const alpha = (color >> 24 & 0xff);
+
+			return alpha >= firstAlphaThreshold;
+		}
+
+		if (secondObject instanceof Rectangle) {
+			secondObject = secondObject.clone();
+			secondObject.x -= firstPoint.x;
+			secondObject.y -= firstPoint.y;
+
+			if (!this._rect.intersects(secondObject)) {
+				return false;
+			}
+
+			// slow, not require check a rect from left-right,
+			// more effective - scan from left and right to center and from to and bottom to center
+			// BUT for CPU this is good, because data can be cached easy
+			for (let j = secondObject.y; j < secondObject.bottom; j++) {
+				for (let i = secondObject.x; i < secondObject.right; i++) {
+
+					// slow, to many calls, we can validate outside
+					const color = this.getPixel32(i, j);
+					const alpha = (color >> 24 & 0xff);
+
+					if (alpha >= firstAlphaThreshold)
+						return true;
+				}
+			}
+		}
+
+		//console.log('Requiest hitTest', firstPoint, firstAlphaThreshold, secondObject);
+		return false;
+	}
+
 	// https://lodev.org/cgtutor/floodfill.html
 	// scanline method implementation
 
