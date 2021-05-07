@@ -120,6 +120,10 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public assertLost(when: string) {
+		if (!Settings.PROFILE_CONTEXT_LOST) {
+			return;
+		}
+
 		if (this._gl.isContextLost()) {
 			throw `[ContextWebGL] Context lost after ${when}, state: ${this.stats.toString()}`;
 		}

@@ -2,6 +2,7 @@ export interface IStageSettings {
 	PREF_WEBGL_VERSION: 1 | 2,
 	ENABLE_MULTISAMPLE_TEXTURE: boolean,
 	ENABLE_ANTIALIAS: boolean;
+	PROFILE_CONTEXT_LOST: boolean;
 
 	ENABLE_WEAK_REF: boolean;
 	ENABLE_UNLOAD_BITMAP: boolean;
@@ -52,6 +53,11 @@ export const Settings: IStageSettings = {
 	 * and trigering a dispose
 	 */
 	ENABLE_WEAK_REF: true,
+
+	/**
+	* @description Insert Context Lost check command after commands that can potentially drop context
+	 */
+	PROFILE_CONTEXT_LOST: false,
 
 	/**
 	 * @description Enable UnloadManager for unloading unused BitmapImage
