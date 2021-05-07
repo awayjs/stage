@@ -756,9 +756,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			const alpha = (color >> 24 & 0xff);
 
 			return alpha >= firstAlphaThreshold;
-		}
-
-		if (secondObject instanceof Rectangle) {
+		} else if (secondObject instanceof Rectangle) {
 			secondObject = secondObject.clone();
 			secondObject.x -= firstPoint.x;
 			secondObject.y -= firstPoint.y;
@@ -781,9 +779,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 						return true;
 				}
 			}
+		} else if (secondObject !== null) {
+			console.warn('[BitmapImage2D] HitTest not implemented for:', secondObject.assetType);
 		}
 
-		//console.log('Requiest hitTest', firstPoint, firstAlphaThreshold, secondObject);
 		return false;
 	}
 
