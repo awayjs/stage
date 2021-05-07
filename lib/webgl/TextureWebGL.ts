@@ -80,6 +80,7 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	/*internal*/ _isFilled: boolean = false;
 	/*internal*/ _isPMA: boolean = false;
 	/*internal*/ _isRT: boolean = false;
+	/*internal*/ _isMipmaped: boolean = false;
 
 	//keepAliveTime: number = 30_000;
 	lastUsedTime: number = 0;
@@ -172,8 +173,12 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 			return;
 		}
 
-		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
+		const last = this._context._texContext.bindTexture(this, true);
+
 		this._gl.generateMipmap(this._gl.TEXTURE_2D);
-		//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
+
+		this._context._texContext.bindTexture(last, true);
+
+		this._isMipmaped = true;
 	}
 }

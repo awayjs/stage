@@ -29,8 +29,14 @@ export class SamplerStateWebGL extends SamplerState {
 			gl.texParameteri(textureType,  gl.TEXTURE_WRAP_T, this.wrap);
 		}
 
+		let targetMip = this.mipfilter;
+		// fallback for texture that not has mip, because invalid mip is black
+		if (!texture._isMipmaped) {
+			targetMip = this.filter;
+		}
+
 		gl.texParameteri(textureType,  gl.TEXTURE_MAG_FILTER, this.filter);
-		gl.texParameteri(textureType,  gl.TEXTURE_MIN_FILTER, this.mipfilter);
+		gl.texParameteri(textureType,  gl.TEXTURE_MIN_FILTER, targetMip);
 
 		this.boundedTexture = texture;
 	}
