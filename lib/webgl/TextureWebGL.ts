@@ -167,6 +167,11 @@ export class TextureWebGL extends TextureBaseWebGL implements ITexture, IUnloada
 	}
 
 	public generateMipmaps(): void {
+		// cant be generated on nPOT texture in webgl1
+		if (!this.isPOT && this._context.glVersion !== 2) {
+			return;
+		}
+
 		this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
 		this._gl.generateMipmap(this._gl.TEXTURE_2D);
 		//this._gl.bindTexture( this._gl.TEXTURE_2D, null );
