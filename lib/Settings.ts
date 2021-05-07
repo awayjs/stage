@@ -1,4 +1,8 @@
 export interface IStageSettings {
+	PREF_WEBGL_VERSION: 1 | 2,
+	ENABLE_MULTISAMPLE_TEXTURE: boolean,
+	ENABLE_ANTIALIAS: boolean;
+
 	ENABLE_WEAK_REF: boolean;
 	ENABLE_UNLOAD_BITMAP: boolean;
 	ENABLE_UNLOAD_TEXTURE: boolean;
@@ -25,6 +29,24 @@ export interface IStageSettings {
 }
 
 export const Settings: IStageSettings = {
+	/**
+	 * @description Prefered WEBGL version, can be used for tracking degradation
+	 * @default 2
+	 */
+	PREF_WEBGL_VERSION: 2,
+
+	/**
+	 * @description Allow MSAA RenderTarget in Webgl2 mode
+	 * @default true
+	 */
+	ENABLE_MULTISAMPLE_TEXTURE: true,
+
+	/**
+	 * @description Allow use Antialiasing on main (canvas) buffer
+	 * @default true
+	 */
+	ENABLE_ANTIALIAS: true,
+
 	/**
 	 * @description Enable weak reference for track when adatpee is remove by GC
 	 * and trigering a dispose

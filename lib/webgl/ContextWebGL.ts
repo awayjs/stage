@@ -11,7 +11,6 @@ import { ContextGLTextureFilter } from '../base/ContextGLTextureFilter';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
 import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
 import { ContextGLWrapMode } from '../base/ContextGLWrapMode';
-import { ContextWebGLFlags, ContextWebGLVersion } from './ContextWebGLFlags';
 import { IContextGL } from '../base/IContextGL';
 import { CubeTextureWebGL } from './CubeTextureWebGL';
 import { IndexBufferWebGL } from './IndexBufferWebGL';
@@ -129,13 +128,13 @@ export class ContextWebGL implements IContextGL {
 	private initWebGL(alpha: boolean = false) {
 
 		const props: WebGLContextAttributes = {
-			alpha:alpha,
-			//antialias: (/\bCrOS\b/.test(navigator.userAgent))? false : true,
-			stencil:true
+			alpha: alpha,
+			antialias: Settings.ENABLE_ANTIALIAS,
+			stencil: true
 		};
 
 		try {
-			if (ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
+			if (Settings.PREF_WEBGL_VERSION === 2) {
 				this._gl = <WebGLRenderingContext> this._container.getContext('webgl2', props);
 				this._glVersion = 2;
 			}
@@ -147,18 +146,18 @@ export class ContextWebGL implements IContextGL {
 
 				this._glVersion = 1;
 
-				if (ContextWebGLFlags.PREF_VERSION === ContextWebGLVersion.WEBGL2) {
+				if (Settings.PREF_WEBGL_VERSION === 2) {
 					console.warn('[CONTEXT] Preferred WebGL2 not supported on you device. WebGL1 will used!');
 				}
 			}
 
+			console.debug(`[CONTEXT] Preferred WebGL: ${Settings.PREF_WEBGL_VERSION}, used: ${this._glVersion}`);
+
 		} catch (e) {
-			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_FAILED, e ) );
+			//
 		}
 
 		if (this._gl) {
-			//this.dispatchEvent( new away.events.AwayEvent( away.events.AwayEvent.INITIALIZE_SUCCESS ) );
-
 			const gl = this._gl;
 
 			this._standardDerivatives = this._glVersion === 2 || !!gl.getExtension('OES_standard_derivatives');
@@ -166,7 +165,7 @@ export class ContextWebGL implements IContextGL {
 			this._stencilCompareModeBack = gl.ALWAYS;
 			this._stencilCompareModeFront = gl.ALWAYS;
 
-			this._pixelRatio = window.devicePixelRatio || 1;
+			this._pixelRatio = self.devicePixelRatio || 1;
 		} else {
 			alert('WebGL is not available.');
 		}

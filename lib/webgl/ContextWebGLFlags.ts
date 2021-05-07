@@ -1,3 +1,4 @@
+import { Settings } from '../Settings';
 
 export const enum ContextWebGLVersion {
 	WEBGL = 1,
@@ -22,14 +23,30 @@ export const enum ContextWebGLPreference {
 export const ContextWebGLFlags = {
 	/**
      * Preferred  WebGL version for rendering
-     * @default WEBGL2
+     * @default 2
+     * @deprecated Use Settings.PREF_WEBGL_VERSION
      */
-	PREF_VERSION: ContextWebGLVersion.WEBGL2,
+
+	get PREF_VERSION () {
+		return Settings.PREF_WEBGL_VERSION;
+	},
+	set PREF_VERSION (v: number) {
+		Settings.PREF_WEBGL_VERSION = v !== 2 ? 1 : 2;
+	},
+
 	/**
      * Preferred  multisample for webgl2 on rendertargets.
+     * @deprecated Use Settings.ENABLE_MULTISAMPLE_TEXTURE
      * @default true
      */
-	PREF_MULTISAMPLE: true,
+	get PREF_MULTISAMPLE() {
+		return Settings.ENABLE_MULTISAMPLE_TEXTURE;
+	},
+
+	set PREF_MULTISAMPLE(v: boolean) {
+		Settings.ENABLE_MULTISAMPLE_TEXTURE = !!v;
+	},
+
 	/**
      * Preferred mipmaps for textures
      * @default ALL
