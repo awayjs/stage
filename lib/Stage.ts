@@ -90,6 +90,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	public readonly filterManager: FilterManager;
 
+	public set pixelRatio(v: number) {
+		this._context.pixelRatio = v;
+	}
+
+	public get pixelRatio(): number {
+		return this._context.pixelRatio;
+	}
+
 	public get glVersion(): number {
 		return this._context.glVersion;
 	}
@@ -291,7 +299,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			return;
 
 		this._container.style.width = val + 'px';
-		this._container.width = val * this._context.pixelRatio;
+		this._container.width = val * this.pixelRatio;
 
 		this._width = val;
 
@@ -315,7 +323,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			return;
 
 		this._container.style.height = val + 'px';
-		this._container.height = val * this._context.pixelRatio;
+		this._container.height = val * this.pixelRatio;
 
 		this._height = val;
 
@@ -557,14 +565,16 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	private _mapWindowToStage(x: number, y: number, out: {x: number, y: number} = { x: 0, y: 0 }) {
-		const container = this.container;
+		const container = <HTMLCanvasElement> this.container;
+
 		// IE 11 fix
 		const rect = (!container.parentElement)
 			? { x: 0, y: 0, width: 0, height: 0 }
 			: container.getBoundingClientRect();
 
-		out.x = (x - rect.x) * container.clientWidth / rect.width;
-		out.y = (y - rect.y) * container.clientHeight / rect.height;
+		// workground when pixelRatio !== self.devicePixelRatio
+		out.x = (x - rect.x) * container.width / (rect.width * this.pixelRatio);
+		out.y = (y - rect.y) * container.height / (rect.height * this.pixelRatio);
 
 		return out;
 	}

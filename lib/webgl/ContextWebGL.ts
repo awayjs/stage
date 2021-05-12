@@ -101,6 +101,10 @@ export class ContextWebGL implements IContextGL {
 		return this._pixelRatio;
 	}
 
+	public set pixelRatio(v: number) {
+		this._pixelRatio = v;
+	}
+
 	public get container(): HTMLCanvasElement {
 		return this._container;
 	}
