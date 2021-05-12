@@ -591,7 +591,7 @@ export class ContextWebGL implements IContextGL {
 
 		this._gl.enable(this._gl.SCISSOR_TEST);
 		this._gl.scissor(
-			rect.x * pr, targetY,
+			rect.x * pr, rect.y * pr,
 			rect.width * pr, rect.height * pr);
 
 		this.assertLost('scissor');
