@@ -62,7 +62,12 @@ export interface IContextGL
 
 	present();
 
-	setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor);
+	setBlendFactors(
+		sourceFactor: ContextGLBlendFactor,
+		destinationFactor: ContextGLBlendFactor,
+		sourceALphaFactor?: ContextGLBlendFactor,
+		destinationALphaFactor?: ContextGLBlendFactor
+	);
 
 	setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean);
 

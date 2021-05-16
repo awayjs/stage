@@ -47,8 +47,8 @@ export class ContextWebGL implements IContextGL {
 
 	// [x, y, w, h]
 	private _viewportState: State<number> = new State(0,0,0,0);
-	// [enable, func, src, dst];
-	private _blendState: State<number> = new State(0,0,0,0);
+	// [enable, func, src, dst, srcA, dstA];
+	private _blendState: State<number> = new State(0,0,0,0, -1, -1);
 	// [r, g, b, a]
 	private _colorMapState: State<boolean> = new State(true, true, true, true);
 	// [r, g, b, a]
@@ -436,12 +436,31 @@ export class ContextWebGL implements IContextGL {
 		this._blendState.setAt(0, +enable);
 	}
 
-	public setBlendFactors(sourceFactor: ContextGLBlendFactor, destinationFactor: ContextGLBlendFactor): void {
+	public setBlendFactors(
+		sourceFactor: ContextGLBlendFactor,
+		destinationFactor: ContextGLBlendFactor,
+		sourceAlphaFactor?: ContextGLBlendFactor,
+		destinationAlphaFactor?: ContextGLBlendFactor
+	): void {
+
 		const src = GL_MAP.BLEND_OP[sourceFactor];
 		const dst = GL_MAP.BLEND_OP[destinationFactor];
 		const gl = this._gl;
 
-		this._blendState.set(+true, gl.FUNC_ADD, src, dst);
+		if (sourceAlphaFactor == void 0) {
+			// disable separated mode
+			this._blendState.set(+true, gl.FUNC_ADD, src, dst, -1, -1);
+		} else {
+			if (typeof sourceAlphaFactor !== typeof destinationAlphaFactor) {
+				// eslint-disable-next-line max-len
+				throw '[Context] sourceAlphaFactor and destinationAlphaFactor MUST be BOTH presented for separated blend mode';
+			}
+
+			const srcA = GL_MAP.BLEND_OP[sourceAlphaFactor];
+			const dstA = GL_MAP.BLEND_OP[destinationAlphaFactor];
+			// endable seprated mode
+			this._blendState.set(+true, gl.FUNC_ADD, src, dst, srcA, dstA);
+		}
 	}
 
 	public setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void {
@@ -584,11 +603,12 @@ export class ContextWebGL implements IContextGL {
 		// for framebuffer we use framebuffer size without internal scale
 		const pr = isRT ? 1 : this._pixelRatio;
 
+		/*
 		// not require flip when renderer to RT, because already flipped
 		const targetY = isRT
 			? rect.y
 			: this._height - (rect.y + rect.height) * pr;
-
+		*/
 		this._gl.enable(this._gl.SCISSOR_TEST);
 		this._gl.scissor(
 			rect.x * pr, rect.y * pr,
@@ -697,16 +717,28 @@ export class ContextWebGL implements IContextGL {
 		const v = bs.values;
 		const delta = bs.deltaDirty();
 
-		// now fixedValues = values;
+		// lock last applied state, used for avoid change state over unused, like A (draw) => B => A (draw)
+		// B state is redurant and shoul be ignored
 		bs.lock(true);
 
-		if (v[0]) {
-			delta[0] && this._gl.enable(this._gl.BLEND);
-			// always ADD
-			(delta[1] || delta[0]) && this._gl.blendEquation(v[1]);
-			(delta[2] || delta[3] || delta[0]) && this._gl.blendFunc(v[2], v[3]);
-		} else {
-			delta[0] && this._gl.disable(this._gl.BLEND);
+		if (!v[0] && delta[0]) {
+			this._gl.disable(this._gl.BLEND);
+			return;
+		}
+
+		delta[0] && this._gl.enable(this._gl.BLEND);
+
+		// always ADD
+		(delta[1] || delta[0]) && this._gl.blendEquation(v[1]);
+
+		// we check that we use separatedBlendMode, for this v[4] (src_alpha) MUST be > -1
+		// not required check a delta for it
+		if (delta[0] || delta[2] || delta[3] || v[4] !== -1) {
+			if (v[4] !== -1) {
+				this._gl.blendFuncSeparate(v[2], v[3], v[4], v[5]);
+			} else {
+				this._gl.blendFunc(v[2], v[3]);
+			}
 		}
 	}
 
