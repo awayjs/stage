@@ -1,6 +1,7 @@
 import { ColorTransform, Matrix, Rectangle, Point, ColorUtils, IAssetAdapter, AssetEvent, IAsset } from '@awayjs/core';
 import { UnloadManager, IUnloadable, UnloadService } from './../managers/UnloadManager';
 import { Image2D } from './Image2D';
+import { Turbulence } from '../utils/Turbulence';
 import { Settings } from './../Settings';
 
 /**
@@ -891,6 +892,126 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			"FloodFill (sourceColor, targetColor, source rect, result, time):",
 			oldc32.toString(16), newc32.toString(16), this._rect._rawData, rect, delta,)
 		*/
+
+		this.invalidateGPU();
+	}
+
+	/**
+	 * Ruffle port of perlinNoise
+	 * There are not guarantees that it valid =)
+	 * RESULT IS NOT EQUAL A FLASH RESULT, SEED IS WRONG!!
+	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L713
+	 */
+	public perlinNoise (
+		baseX: number,
+		baseY: number,
+		numOctaves: number,
+		randomSeed: number,
+		stitch: boolean,
+		fractalNoise: boolean,
+		channelOptions: ui8 = 7,
+		grayScale: boolean = false,
+		offsets: Array<number | Point > = null
+	): void {
+
+		const w = this.width;
+		const h = this.height;
+		const data = this.getDataInternal(true, true);
+		const turb = Turbulence.fromSeed(randomSeed);
+
+		// translate [x, y, x, y] to [[x, y], [x, y] ...]
+		let octave_offsets: Array<[number, number]> = null;
+		if (offsets) {
+			octave_offsets = [];
+			if (typeof offsets[0] === 'number') {
+				for (let i = 0; i < offsets.length; i += 2) {
+					octave_offsets[i / 2] = [<number> offsets[i + 0], <number> offsets[i + 1]];
+				}
+			} else if (offsets[0] instanceof  Point) {
+				for (let i = 0; i < offsets.length; i += 2) {
+					octave_offsets[i / 2] = [(<Point> offsets[i]).x, (<Point> offsets[i]).y];
+				}
+			}
+		}
+
+		for (let y = 0; y < h; y++) {
+			for (let x = 0; x < w; x++) {
+				const noise = [0,0,0,0];
+				const index = (x + y * w) * 4;
+
+				if (grayScale) {
+					noise[0] = turb.turbulence(
+						0,
+						[x, y],
+						[1. / baseX, 1 / baseY],
+						numOctaves,
+						fractalNoise,
+						stitch,
+						[0,0],
+						[w, h],
+						octave_offsets
+					);
+
+					noise[1] = noise[2] = noise[0];
+					noise[3] = 1;
+
+					if ((channelOptions & 8) !== 0) {
+						noise[3] = turb.turbulence(
+							1,
+							[x, y],
+							[1. / baseX, 1 / baseY],
+							numOctaves,
+							fractalNoise,
+							stitch,
+							[0,0],
+							[w, h],
+							octave_offsets
+						);
+					}
+					// end grayscale
+				} else {
+					for (let channel = 0; channel < 4; channel++) {
+						noise[channel] = (channel === 3) ? 1 : -1;
+
+						if ((channelOptions & (1 << channel)) === 0) {
+							continue;
+						}
+
+						noise[channel] = turb.turbulence(
+							channel,
+							[x, y],
+							[1. / baseX, 1 / baseY],
+							numOctaves,
+							fractalNoise,
+							stitch,
+							[0,0],
+							[w, h],
+							octave_offsets
+						);
+					}
+				}
+
+				for (let i = 0; i < 4; i++) {
+					let mapped = 0;
+
+					// This is precisely how Adobe Flash converts the -1..1 or 0..1 floats to u8.
+					// Please don't touch, it was difficult to figure out the exact method. :)
+					if (fractalNoise) {
+						// Yes, the + 0.5 for correct (nearest) rounding is done before the division by 2.0,
+						// making it technically less correct (I think), but this is how it is!
+						mapped = ((noise[i] * 0xff + 0xff) + 0.5) / 2.0;
+					} else {
+						mapped = noise[i] * 0xff + 0.5;
+					}
+
+					data[index + i] = mapped | 0;
+
+					if (!this._transparent) {
+						data[index + 3] = 0xff;
+					}
+				}
+			}
+		}
 
 		this.invalidateGPU();
 	}
