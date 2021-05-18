@@ -1,4 +1,4 @@
-import { Point } from '@awayjs/core';
+import { Point, Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
 import { PROPS_LIST as PROPS_LIST, proxyTo, serialisable } from '../utils/FilterUtils';
 import { FilterBase } from './FilterBase';
@@ -79,4 +79,19 @@ export class DisplacementFilter extends FilterBase implements IBitmapFilter<'dis
 		}
 	}
 
+	meashurePad(input: Rectangle, target: Rectangle): Rectangle {
+		target = super.meashurePad(input, target);
+
+		// because by dock scaleX is half range how we can move left/right
+		// minX is -(scaleX / 2), maxX is (scaleX / 2)
+		const SCALE = 4;
+
+		target.x = Math.max(0, target.x - this.scaleX / SCALE | 0);
+		target.y = Math.max(0, target.y - this.scaleY / SCALE | 0);
+
+		target.width += Math.ceil(this.scaleX / SCALE);
+		target.height += Math.ceil(this.scaleY / SCALE);
+
+		return  target;
+	}
 }

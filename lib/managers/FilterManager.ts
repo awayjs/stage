@@ -148,7 +148,7 @@ export class FilterManager {
 		}
 	}
 
-	private _unbindFilterElemens() {
+	private _unbindFilterElements() {
 		// to be sure that VAO wasn't corrupted by next shader
 		this._filterVAO && this._filterVAO.unbind(true);
 	}
@@ -281,6 +281,10 @@ export class FilterManager {
 				sourceRect.width,
 				sourceRect.height
 			);
+
+			// todo there are bug with this on SceneImage2D for Bevel filter,
+			//  but ok for other, check this and fix
+			// filter.meashurePad(outRect, outRect);
 		} else {
 			outRect.copyFrom(targetRect);
 		}
@@ -356,7 +360,7 @@ export class FilterManager {
 
 		filter.clear(this);
 		this._stage.setScissor(null);
-		this._unbindFilterElemens();
+		this._unbindFilterElements();
 	}
 
 	public copyPixels(

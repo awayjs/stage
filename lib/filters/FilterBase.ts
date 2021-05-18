@@ -42,6 +42,8 @@ export class FilterBase {
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input.clone()): Rectangle {
+		if (input === target)
+			return  target;
 		target.copyFrom(input);
 		return target;
 	}

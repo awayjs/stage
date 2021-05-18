@@ -1,8 +1,8 @@
 import { Point, ProjectionBase } from '@awayjs/core';
-import { Image2D, _Stage_Image2D } from '../../image/Image2D';
+import { Image2D, _Stage_Image2D } from '../../image';
 import { Stage } from '../../Stage';
 import { FilterUtils } from '../../utils/FilterUtils';
-import { TaskBaseWebGL } from './webgl/TaskBaseWebgGL';
+import { MultipleUVTask } from './webgl/MultipleUVTask';
 
 const FRAG = ({ compX = 0, compY = 1, mode = 'wrap' }) => `
 precision highp float;
@@ -15,15 +15,19 @@ uniform vec2 uMapPoint;
 uniform vec2 uScale;
 ${mode === 'color' ? 'uniform vec4 uColor;' : ''}
 
-varying vec2 vUv;
+varying vec2 vUv[2];
+varying vec4 vUvLim[2];
+
 void main() {
-	vec4 map = texture2D(fs1, vUv - uMapPoint);
+	vec4 map = texture2D(fs1, vUv[1] - uMapPoint);
 	vec2 offset = vec2(map[${compX | 0}] - 0.5, map[${compY | 0}] - 0.5) * uScale; 
 
-	vec2 uv = vUv + offset;
+	vec2 uv = vUv[0] + offset;
 
+	// invalid, we must remap onto vUvLim[0]
 	${!mode || mode === 'wrap' ? 'uv = fract(uv);' : ''}
-	${mode === 'clamp' ? 'uv = clamp(uv, 0., 1.);' : ''}
+	${mode === 'clamp' ? 'uv = clamp(uv, vUvLim[0].xy, vUvLim[0].zw);' : ''}
+
 	${mode === 'ignore' ? 'uv = vUv;' : ''}
 	${mode === 'color'
 		? 'bool outside = uv.x < 0. || uv.x > 1. || uv.y < 0. || uv.y > 1.;'
@@ -36,7 +40,7 @@ void main() {
 
 `;
 
-export class DisplacementTask extends TaskBaseWebGL {
+export class DisplacementTask extends MultipleUVTask {
 	public mapBitmap: Image2D;
 	public mode: 'wrap' | 'clamp' | 'color' | 'ignore' = 'wrap';
 	public componentX: 1 | 2 | 4 | 8 = 1;
@@ -82,6 +86,11 @@ export class DisplacementTask extends TaskBaseWebGL {
 		return `Displacement:${this.mode}:${this.componentX}:${this.componentY}`;
 	}
 
+	constructor() {
+		// source + map and limits
+		super(2, true);
+	}
+
 	public getFragmentCode() {
 		return FRAG({
 			compX: Math.log2(this.componentX),
@@ -94,16 +103,26 @@ export class DisplacementTask extends TaskBaseWebGL {
 		super.computeVertexData();
 
 		const input = this.inputRect;
+		const output = this.destRect;
+		const map = this.mapBitmap;
 		const p = this._program3D;
 
-		p.uploadUniform('uTexMatrix', this._vertexConstantData);
+		// UV for displacementMap
+		this.uvMatrices[1].set([
+			0,0,
+			output.width / map.width,
+			output.height / map.height,
+		], 0);
+
+		this.uploadVertexData();
+
 		p.uploadUniform('uScale', [
 			this.scaleX / input.width,
 			this.scaleY / input.height
 		]);
 		p.uploadUniform('uMapPoint', [
-			this.mapPoint.x / this.mapBitmap.width,
-			this.mapPoint.y / this.mapBitmap.height
+			this.mapPoint.x / map.width,
+			this.mapPoint.y / map.height
 		]);
 
 		if (this.mode === 'color') {
