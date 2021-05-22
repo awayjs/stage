@@ -1165,7 +1165,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			return 0x0;
 
 		let index: number = (~~x + ~~y * this._rect.width) * 4;
-		const data: Uint8ClampedArray = this._data;
+		const data: Uint8ClampedArray = this.getDataInternal(true);
 
 		const
 			r = data[index++],
@@ -1390,7 +1390,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *
 	 * @param rect           Specifies the rectangular region of the BitmapImage2D
 	 *                       object.
-	 * @param inputByteArray A ByteArray object that consists of 32-bit
+	 * @param input A ByteArray object that consists of 32-bit
 	 *                       unmultiplied pixel values to be used in the
 	 *                       rectangular region.
 	 * @throws EOFError  The <code>inputByteArray</code> object does not include
