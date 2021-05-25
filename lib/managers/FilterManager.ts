@@ -383,6 +383,10 @@ export class FilterManager {
 
 		if (mergeAlpha || msaa || blend) {
 
+			const outRect = rect.clone();
+			outRect.x = destPoint.x;
+			outRect.y = destPoint.y;
+
 			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 			}
@@ -395,6 +399,7 @@ export class FilterManager {
 
 			this._copyPixelFilter.requireBlend = true;
 		} else {
+
 			rect = rect.clone();
 			destPoint = destPoint.clone();
 
@@ -416,13 +421,38 @@ export class FilterManager {
 			if (rect.height > target.height - destPoint.y)
 				rect.height = target.height - destPoint.y;
 
+			// clamp frame around source rect, we can't get frame that greater that source dimension
+			if (rect.left > source.width) {
+				rect.left = source.width;
+			}
+
+			if (rect.bottom > source.height) {
+				rect.bottom = source.height;
+			}
+
 			this._stage.setRenderTarget(source, false, 0, 0, true);
 			this._stage.setScissor(null);
+
+			let tmp: Image2D;
+			if (target === source) {
+				tmp = this.popTemp(source.width, source.height);
+
+				// copy to TMP, because we can't copy pixels from itself
+				// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
+				const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
+				this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, new Point(0,0));
+
+				this._stage.setRenderTarget(tmp, false, 0, 0, true);
+			}
 
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this._stage);
 
-			this.context.copyToTexture(<TextureBaseWebGL> targetImageAbst.getTexture(), rect, destPoint);
+			this.context.copyToTexture(<TextureBaseWebGL>targetImageAbst.getTexture(), rect, destPoint);
+
+			if (tmp) {
+				this.pushTemp(tmp);
+			}
 		}
 	}
 
