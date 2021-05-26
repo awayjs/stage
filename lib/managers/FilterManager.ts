@@ -3,9 +3,7 @@ import { ColorTransform, Point, Rectangle } from '@awayjs/core';
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat';
-import { Image2D } from '../image/Image2D';
-import { _Stage_ImageBase } from '../image/ImageBase';
-import { ImageSampler } from '../image/ImageSampler';
+import { Image2D, ImageSampler, _Stage_ImageBase } from '../image/';
 import { Stage } from '../Stage';
 import { ContextWebGL } from '../webgl/ContextWebGL';
 import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
@@ -29,7 +27,10 @@ import {
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
-const tmpRect0 = new Rectangle();
+const tmpInputRectCopy = new Rectangle();
+const tmpOutputRectCopy = new Rectangle();
+const tmpOutputRectFilter = new Rectangle();
+const tmpZERO = Object.freeze(new Point(0,0));
 
 export class FilterManager {
 	private static MAX_TMP_TEXTURE = 4096;
@@ -127,7 +128,7 @@ export class FilterManager {
 				1, 1
 			]), 0, 6);
 
-		this._filterSampler = new ImageSampler(false, true, false);
+		this._filterSampler = new ImageSampler(false, false, false);
 	}
 
 	private _bindFilterElements() {
@@ -220,7 +221,7 @@ export class FilterManager {
 
 			FilterUtils.nonAlocUnion(
 				target,
-				filter.meashurePad(bounds, tmpRect0),
+				filter.meashurePad(bounds, tmpInputRectCopy),
 				target
 			);
 		}
@@ -265,28 +266,31 @@ export class FilterManager {
 	public renderFilter(
 		source: Image2D,
 		target: Image2D,
-		sourceRect: Rectangle,
-		targetRect: Rectangle | Point,
+		inputRect: Rectangle,
+		outputRect: Rectangle | Point,
 		filter: FilterBase
 	): void {
 
 		this._initFilterElements();
 
-		const outRect = tmpRect0;
+		const stage = this._stage;
+		const context = this.context;
 
-		if (targetRect instanceof Point) {
+		const outRect = tmpOutputRectFilter;
+
+		if (outputRect instanceof Point) {
 			outRect.setTo(
-				targetRect.x,
-				targetRect.y,
-				sourceRect.width,
-				sourceRect.height
+				outputRect.x,
+				outputRect.y,
+				inputRect.width,
+				inputRect.height
 			);
 
 			// todo there are bug with this on SceneImage2D for Bevel filter,
 			//  but ok for other, check this and fix
 			// filter.meashurePad(outRect, outRect);
 		} else {
-			outRect.copyFrom(targetRect);
+			outRect.copyFrom(outputRect);
 		}
 
 		const renderToSelf = source === target;
@@ -302,7 +306,7 @@ export class FilterManager {
 
 		filter.setRenderState(
 			source, output,
-			sourceRect, outRect,
+			inputRect, outRect,
 			this
 		);
 
@@ -311,55 +315,55 @@ export class FilterManager {
 
 		if (filter.requireBlend) {
 			// context will enable blend when it was changed
-			this.context.setBlendFactors(filter.blendSrc, filter.blendDst);
+			context.setBlendFactors(filter.blendSrc, filter.blendDst);
 		} else {
-			this.context.setBlendState(false);
+			context.setBlendState(false);
 		}
 
-		this.context.setCulling(ContextGLTriangleFace.NONE);
+		context.setCulling(ContextGLTriangleFace.NONE);
 
 		// vao binds require shader, other shaders MUST use same locations
-		this.context.setProgram(tasks[0].getProgram(this._stage));
+		context.setProgram(tasks[0].getProgram(stage));
 		this._bindFilterElements();
 
 		const count = tasks.length;
 		for (let i = 0; i < count; i++) {
 			const task = tasks[i];
 
-			task.preActivate(this._stage);
-			this._stage.setRenderTarget(task.target, false, 0, 0, true);
-			this._stage.setScissor(task.clipRect);
+			task.preActivate(stage);
+			stage.setRenderTarget(task.target, false, 0, 0, true);
+			stage.setScissor(task.clipRect);
 
 			// because we use TMP image, need clear it
 			// but this is needed only when a blend composer is required, when a copy filter used
 			if (renderToSelf && filter.requireBlend || task.needClear) {
-				this._stage.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
+				context.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
 
-			this.context.setProgram(task.getProgram(this._stage));
-			this.context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
+			context.setProgram(task.getProgram(stage));
+			context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
 			if (!task.activateInternaly) {
 				task.source
-					.getAbstraction<_Stage_ImageBase>(this._stage)
+					.getAbstraction<_Stage_ImageBase>(stage)
 					.activate(task.sourceSamplerIndex, this._filterSampler);
 			}
 
-			task.activate(this._stage, null, null);
+			task.activate(stage, null, null);
 
-			this.context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
+			context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
 
-			task.deactivate(this._stage);
+			task.deactivate(stage);
 		}
 
 		if (renderToSelf) {
 			// copy output to target texture
-			this.copyPixels(output, target, outRect, targetRect as Point, false);
+			this.copyPixels(output, target, outRect, outputRect as Point, false);
 			this.pushTemp(output as TmpImage2D);
 		}
 
 		filter.clear(this);
-		this._stage.setScissor(null);
+		stage.setScissor(null);
 		this._unbindFilterElements();
 	}
 
@@ -378,14 +382,67 @@ export class FilterManager {
 			return;
 		}
 
+		const inputRect = tmpInputRectCopy;
+		inputRect.copyFrom(rect);
+
+		const outputRect = tmpOutputRectCopy;
+		outputRect.setTo(
+			destPoint.x,
+			destPoint.y,
+			rect.width,
+			rect.height
+		);
+
+		// clamp input rect above source size
+		// we can't use data outside
+		if (inputRect.x < 0) {
+			inputRect.width -= -inputRect.x;
+			outputRect.x += -inputRect.x;
+			inputRect.x = 0;
+		}
+
+		if (inputRect.y < 0) {
+			inputRect.height -= -inputRect.y;
+			outputRect.y += -inputRect.y;
+			inputRect.y = 0;
+		}
+
+		if (inputRect.right > source.width) {
+			const delta = source.width - inputRect.right;
+			inputRect.width -= delta;
+		}
+
+		if (inputRect.bottom > source.height) {
+			const delta = source.height - inputRect.bottom;
+			inputRect.height -= delta;
+		}
+
+		if (outputRect.x < 0) {
+			inputRect.x += -outputRect.x;
+			inputRect.width -= -outputRect.x;
+			outputRect.x = 0;
+		}
+
+		if (outputRect.y < 0) {
+			inputRect.y += -outputRect.y;
+			inputRect.height -= -outputRect.y;
+			outputRect.y = 0;
+		}
+
+		if (inputRect.width > target.width - outputRect.x)
+			inputRect.width = target.width - outputRect.x;
+
+		if (inputRect.height > target.height - outputRect.y)
+			inputRect.height = target.height - outputRect.y;
+
+		// we should use same size of output, because we should not change rectangle dimension, only offset
+		outputRect.width = inputRect.width;
+		outputRect.height = inputRect.height;
+
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
 		if (mergeAlpha || msaa || blend) {
-
-			const outRect = rect.clone();
-			outRect.x = destPoint.x;
-			outRect.y = destPoint.y;
 
 			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
@@ -395,52 +452,23 @@ export class FilterManager {
 			// because we in MSAA mode, but not has mergeAlpha - kill blending;
 			this._copyPixelFilter.requireBlend = mergeAlpha;
 
-			this.renderFilter(source, target, rect, destPoint,  this._copyPixelFilter);
+			this.renderFilter(source, target, inputRect, outputRect,  this._copyPixelFilter);
 
 			this._copyPixelFilter.requireBlend = true;
 		} else {
-
-			rect = rect.clone();
-			destPoint = destPoint.clone();
-
-			if (destPoint.x < 0) {
-				rect.x -= destPoint.x;
-				rect.width += destPoint.x;
-				destPoint.x = 0;
-			}
-
-			if (destPoint.y < 0) {
-				rect.y -= destPoint.y;
-				rect.height += destPoint.y;
-				destPoint.y = 0;
-			}
-
-			if (rect.width > target.width - destPoint.x)
-				rect.width = target.width - destPoint.x;
-
-			if (rect.height > target.height - destPoint.y)
-				rect.height = target.height - destPoint.y;
-
-			// clamp frame around source rect, we can't get frame that greater that source dimension
-			if (rect.left > source.width) {
-				rect.left = source.width;
-			}
-
-			if (rect.bottom > source.height) {
-				rect.bottom = source.height;
-			}
 
 			this._stage.setRenderTarget(source, false, 0, 0, true);
 			this._stage.setScissor(null);
 
 			let tmp: Image2D;
+
+			// copy to TMP, because we can't copy pixels from itself
 			if (target === source) {
 				tmp = this.popTemp(source.width, source.height);
 
-				// copy to TMP, because we can't copy pixels from itself
 				// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 				const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
-				this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, new Point(0,0));
+				this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
 
 				this._stage.setRenderTarget(tmp, false, 0, 0, true);
 			}
@@ -448,7 +476,7 @@ export class FilterManager {
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this._stage);
 
-			this.context.copyToTexture(<TextureBaseWebGL>targetImageAbst.getTexture(), rect, destPoint);
+			this.context.copyToTexture(<TextureBaseWebGL>targetImageAbst.getTexture(), inputRect, outputRect.topLeft);
 
 			if (tmp) {
 				this.pushTemp(tmp);
