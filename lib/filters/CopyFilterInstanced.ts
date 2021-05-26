@@ -1,5 +1,4 @@
-import { FilterBase } from './FilterBase';
-import { _Stage_ImageBase, Image2D } from '../image';
+import { _Stage_ImageBase, BlendMode, Image2D } from '../image';
 import { Rectangle } from '@awayjs/core';
 import { Stage } from '../Stage';
 import { FilterManager } from '../managers/FilterManager';
@@ -8,8 +7,10 @@ import { ContextWebGL } from '../webgl/ContextWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
 import { VaoWebGL } from '../webgl/VaoWebGL';
 import { ProgramWebGL } from '../webgl/ProgramWebGL';
-import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ContextGLBlendFactor as BF } from '../base/ContextGLBlendFactor';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
+import { TextureWebGL } from '../webgl/TextureWebGL';
+import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 
 export  interface ICopyTask {
 	from: Rectangle;
@@ -75,7 +76,14 @@ void main() {
 	${emitSamplerBlocks(samplers)}
 }`;
 
-export class CopyFilterInstanced extends FilterBase {
+const DEFAULT_BLEND_MAP = {
+	[''] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
+	[BlendMode.NORMAL] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
+	[BlendMode.LAYER] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
+	[BlendMode.ERASE] : [BF.ZERO, BF.ONE_MINUS_SOURCE_ALPHA],
+};
+
+export class CopyFilterInstanced {
 	public static SAMPLERS_LIMIT = 16;
 	public static TASKS_LIMIT = 100;
 
@@ -91,9 +99,54 @@ export class CopyFilterInstanced extends FilterBase {
 	private _stage: Stage;
 	private _manager: FilterManager;
 
-	constructor(manager: FilterManager) {
-		super();
+	private _blendDst: BF = BF.ONE_MINUS_SOURCE_ALPHA;
+	private _blendSrc: BF = BF.ONE;
 
+	public get blendDst() {
+		return this._blendDst;
+	}
+
+	public get blendSrc() {
+		return this._blendSrc;
+	}
+
+	private _requireBlend = true;
+	public get requireBlend() {
+		return this._requireBlend;
+	}
+
+	public set requireBlend(v: boolean) {
+		if (!this._requireBlend && v) {
+			this.blend = '';
+		}
+
+		this._requireBlend = v;
+	}
+
+	protected _blend: string = '';
+	public set blend(v: string) {
+		const map = DEFAULT_BLEND_MAP[v];
+
+		this._requireBlend = !!map;
+
+		if (map) {
+			this._blendDst = map[1];
+			this._blendSrc = map[0];
+		} else {
+			// go composite by shader
+		}
+	}
+
+	public get blend() {
+		return this._blend;
+	}
+
+	private _requireFlush: boolean = false;
+	public get requireFlush() {
+		return this._requireFlush;
+	}
+
+	constructor(manager: FilterManager) {
 		this._manager = manager;
 		this._stage = manager.stage;
 	}
@@ -135,11 +188,12 @@ export class CopyFilterInstanced extends FilterBase {
 
 		if (this._images.length === CopyFilterInstanced.SAMPLERS_LIMIT ||
 			this._copyTasks.length === CopyFilterInstanced.TASKS_LIMIT) {
-			this.flush();
+			this._requireFlush = true;
+			//this.flush();
 		}
 	}
 
-	private fillInstaceBuffer(offset: number, task: ICopyTask) {
+	private fillInstancesBuffer(offset: number, task: ICopyTask) {
 		const data = this._instanceData;
 		const dest = task.to;
 		const input = task.from;
@@ -191,6 +245,7 @@ export class CopyFilterInstanced extends FilterBase {
 				]), 0, 6);
 
 			this._instanceBuffer = context.createVertexBuffer(6, 9 * 4);
+			this._instanceBuffer.instanced = true;
 		}
 
 		if (!this._vao) {
@@ -199,19 +254,13 @@ export class CopyFilterInstanced extends FilterBase {
 
 			// pos
 			context.setVertexBufferAt(0, this._vertexBuffer, 0, ContextGLVertexBufferFormat.FLOAT_2);
-
 			// instancing
 			// posMatrix
 			context.setVertexBufferAt(1, this._instanceBuffer, 0, ContextGLVertexBufferFormat.FLOAT_4);
-
-			(<WebGL2RenderingContext> context._gl).vertexAttribDivisor(1, 1);
 			// uvMatrix
 			context.setVertexBufferAt(2, this._instanceBuffer, 4 * 4, ContextGLVertexBufferFormat.FLOAT_4);
-			(<WebGL2RenderingContext> context._gl).vertexAttribDivisor(2, 1);
-
 			// samplerId
 			context.setVertexBufferAt(3, this._instanceBuffer, 4 * 4 * 2, ContextGLVertexBufferFormat.FLOAT_1);
-			(<WebGL2RenderingContext> context._gl).vertexAttribDivisor(3, 1);
 
 		} else {
 			this._vao.bind();
@@ -228,7 +277,7 @@ export class CopyFilterInstanced extends FilterBase {
 
 		// Fill instanced buffer data
 		for (let i = 0; i < this._copyTasks.length; i++) {
-			this.fillInstaceBuffer(i, this._copyTasks[i]);
+			this.fillInstancesBuffer(i, this._copyTasks[i]);
 		}
 
 		// Bind textures to slots
@@ -238,30 +287,39 @@ export class CopyFilterInstanced extends FilterBase {
 	}
 
 	public flush() {
+		if (this._copyTasks.length === 0) {
+			return;
+		}
+
 		const stage = this._stage;
 		const context = <ContextWebGL> stage.context;
-		const gl = <WebGL2RenderingContext> context._gl;
 
-		stage.setRenderTarget(this._target, false, 0, 0, false);
-
-		this.prepareTask();
-
-		context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
+		// now we run instanced renderer until `drawVertices`
+		context.beginInstancedRender(this._copyTasks.length);
+		stage.setRenderTarget(
+			this._target,
+			false,
+			0,
+			0,
+			true
+		);
+		context.setBlendFactors(this._blendSrc, this._blendDst);
+		context.setBlendState(!!this.requireBlend);
 		context.setCulling(ContextGLTriangleFace.NONE);
 		//context.disableDepth();
 		//context.disableStencil();
 
 		context.setProgram(this.prog);
 
+		this.prepareTask();
 		this.activateElements();
 
-		(<any>context).updateBlendStatus();
-
 		// run instanced
-		gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 6, this._copyTasks.length);
+		context.drawVertices(ContextGLDrawMode.TRIANGLES, 0, 6);
 
 		this.deactivateElements();
 		this._target = null;
+		this._requireFlush = false;
 		this._images.length = 0;
 		this._copyTasks.length = 0;
 	}

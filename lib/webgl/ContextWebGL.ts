@@ -80,7 +80,13 @@ export class ContextWebGL implements IContextGL {
 	private _stencilReferenceValue: number = 0;
 	private _stencilReadMask: number = 0xff;
 	private _separateStencil: boolean = false;
-	private lastBoundedIndexBuffer: IndexBufferWebGL = null;
+	private _lastBoundedIndexBuffer: IndexBufferWebGL = null;
+
+	private _angleInstanced: ANGLE_instanced_arrays;
+
+	public hasInstancing() {
+		return (this._gl instanceof self.WebGL2RenderingContext) || !!this._angleInstanced;
+	}
 
 	public get hasFence() {
 		return !!this._fenceContext;
@@ -199,6 +205,10 @@ export class ContextWebGL implements IContextGL {
 			}
 		} else {
 			console.debug('[ContextWebGL] FenceSync disabled by settings \'ENABLE_ASYNC_READ\'');
+		}
+
+		if (this._glVersion === 1) {
+			this._angleInstanced = this._gl.getExtension('ANGLE_instanced_arrays');
 		}
 
 		// first locked state 0,0,0,0
@@ -364,8 +374,26 @@ export class ContextWebGL implements IContextGL {
 		return promise;
 	}
 
+	private _instancedEnabled: boolean = false;
+	private _instancesCount: number = 1;
+
+	/**
+	 * Begin instanced rendering, can't be disabled until drawArrays or drawElements will called
+	 * @param count Count of instances that will be rendered
+	 */
+	public beginInstancedRender(count: number = 1) {
+		if (!this.hasInstancing()) {
+			throw 'Instanced rendering not supported';
+		}
+
+		this._instancedEnabled = true;
+		this._instancesCount = count;
+	}
+
 	public drawIndices(
 		mode: ContextGLDrawMode, indexBuffer: IndexBufferWebGL, firstIndex: number = 0, numIndices: number = -1): void {
+
+		const gl = this._gl;
 
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
@@ -377,35 +405,49 @@ export class ContextWebGL implements IContextGL {
 		// so, if we delete the buffer, and then try to compare last bounded buffer - it will valid, because
 		// because reverence is same
 		// reset buffer when it not a buffer
-		if (this.lastBoundedIndexBuffer && !this.lastBoundedIndexBuffer.glBuffer) {
-			this.lastBoundedIndexBuffer = null;
+		if (this._lastBoundedIndexBuffer && !this._lastBoundedIndexBuffer.glBuffer) {
+			this._lastBoundedIndexBuffer = null;
 		}
 
 		// check, that VAO not bounded
 		// VAO store index buffer inself
 		if (!this._hasVao || !this._vaoContext._lastBoundedVao) {
 
-			if (this.lastBoundedIndexBuffer !== indexBuffer) {
-				this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
+			if (this._lastBoundedIndexBuffer !== indexBuffer) {
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 			}
 
-			this.lastBoundedIndexBuffer = indexBuffer;
+			this._lastBoundedIndexBuffer = indexBuffer;
 		}
 
 		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
 
-		this._gl.drawElements(
-			GL_MAP.DRAW_MODE[mode],
-			(numIndices == -1) ? indexBuffer.numIndices : numIndices,
-			this._gl.UNSIGNED_SHORT,
-			firstIndex * 2);
+		const glMode = GL_MAP.DRAW_MODE[mode];
+		const count = (numIndices == -1) ? indexBuffer.numIndices : numIndices;
+		const type = gl.UNSIGNED_SHORT;
+		const offset = firstIndex * 2;
+		const instances = this._instancesCount;
 
+		if (!this._instancedEnabled) {
+			gl.drawElements(glMode,count,type,offset);
+		} else if (this._angleInstanced) {
+			this._angleInstanced.drawElementsInstancedANGLE(
+				glMode,count,type,offset, instances
+			);
+		} else {
+			(<WebGL2RenderingContext> gl).drawElementsInstanced(
+				glMode,count,type,offset, instances
+			);
+		}
+
+		this._instancedEnabled = false;
+		this._instancesCount = 1;
 		this.assertLost('drawElements');
 	}
 
 	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
-		this.lastBoundedIndexBuffer = indexBuffer;
+		this._lastBoundedIndexBuffer = indexBuffer;
 	}
 
 	public drawVertices(mode: ContextGLDrawMode, firstVertex: number = 0, numVertices: number = -1): void {
@@ -421,7 +463,23 @@ export class ContextWebGL implements IContextGL {
 
 		mode = _DEBUG_renderMode === 'line' ? ContextGLDrawMode.LINES : mode;
 
-		this._gl.drawArrays(GL_MAP.DRAW_MODE[mode], firstVertex, numVertices);
+		const glMode = GL_MAP.DRAW_MODE[mode];
+		const instances = this._instancesCount;
+
+		if (!this._instancedEnabled) {
+			this._gl.drawArrays(glMode, firstVertex, numVertices);
+		} else if (this._angleInstanced) {
+			this._angleInstanced.drawArraysInstancedANGLE(
+				glMode, firstVertex, numVertices, instances
+			);
+		} else {
+			(<WebGL2RenderingContext> this._gl).drawArraysInstanced(
+				glMode, firstVertex, numVertices, instances
+			);
+		}
+
+		this._instancedEnabled = false;
+		this._instancesCount = 1;
 
 		this.assertLost('drawArrays');
 	}
@@ -642,7 +700,8 @@ export class ContextWebGL implements IContextGL {
 	public setVertexBufferAt(
 		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4): void {
 
-		const location: number = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
+		const location = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
+		const gl = this._gl;
 
 		// when we try bind any buffers without VAO we should unbound VAO
 		// othwerwithe we bind a buffer to vao instead main contex
@@ -657,7 +716,7 @@ export class ContextWebGL implements IContextGL {
 
 		if (!buffer) {
 			if (location > -1) {
-				this._gl.disableVertexAttribArray(index);
+				gl.disableVertexAttribArray(index);
 			}
 			return;
 		}
@@ -665,15 +724,22 @@ export class ContextWebGL implements IContextGL {
 		//buffer may not have changed if concatenated buffers are being used
 		if (this._currentArrayBuffer != buffer || (this.hasVao && this._vaoContext._lastBoundedVao)) {
 			this._currentArrayBuffer = buffer;
-			this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
 		}
 
 		const properties = GL_MAP.VERTEX_BUF_PROPS[format];
 
-		this._gl.enableVertexAttribArray(location);
-
-		this._gl.vertexAttribPointer(
+		gl.enableVertexAttribArray(location);
+		gl.vertexAttribPointer(
 			location, properties.size, properties.type, properties.normalized, buffer.dataPerVertex, bufferOffset);
+
+		if (this._instancedEnabled && buffer.instanced) {
+			if (this._angleInstanced) {
+				this._angleInstanced.vertexAttribDivisorANGLE(location, 1);
+			} else {
+				(<WebGL2RenderingContext> gl).vertexAttribDivisor(location, 1);
+			}
+		}
 
 		this.assertLost('setVertexBufferAt');
 	}

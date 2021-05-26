@@ -28,6 +28,7 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 	private _buffer: WebGLBuffer;
 	private _lastMemoryUsage: number = 0;
 
+	public instanced: boolean = false;
 	public lastUsedTime: number;
 	public canUnload: boolean = true;
 

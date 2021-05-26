@@ -465,22 +465,22 @@ export class FilterManager {
 		}
 
 		if (mergeAlpha || msaa || blend) {
+			const copy = this._copyFilterInstanced;
 
-			/*
-			if (!this._copyPixelFilter) {
-				this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
+			if (copy.requireBlend !== mergeAlpha ||
+				copy.target !== target && copy.target) {
+				copy.flush();
 			}
 
-			this._copyPixelFilter.blend = blend;
-			// because we in MSAA mode, but not has mergeAlpha - kill blending;
-			this._copyPixelFilter.requireBlend = mergeAlpha;
+			copy.blend = blend;
+			copy.requireBlend = mergeAlpha;
+			copy.target = target;
+			copy.addCopyTask(inputRect, outputRect, tmp || source);
 
-			this.renderFilter(source, target, inputRect, outputRect,  this._copyPixelFilter);
-
-			this._copyPixelFilter.requireBlend = true;*/
-			this._copyFilterInstanced.target = target;
-			this._copyFilterInstanced.addCopyTask(inputRect, outputRect, tmp || source);
+			// because we require copy to self, we can't do this delayed
+			//if (target === source) {
 			this._copyFilterInstanced.flush();
+			//}
 		} else {
 
 			if (!tmp) {
