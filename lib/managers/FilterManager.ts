@@ -24,6 +24,7 @@ import {
 	IBitmapFilter,
 	IBitmapFilterProps
 } from '../filters';
+import { CopyFilterInstanced } from '../filters/CopyFilterInstanced';
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
@@ -46,6 +47,7 @@ export class FilterManager {
 	private _filterVAO: IVao;
 
 	private _filterSampler: ImageSampler;
+	private _copyFilterInstanced: CopyFilterInstanced;
 	private _copyPixelFilter: ColorMatrixFilter;
 	private _thresholdFilter: ThresholdFilter;
 
@@ -62,8 +64,13 @@ export class FilterManager {
 		[DropShadowFilter.filterName]: DropShadowFilter
 	}
 
+	public get stage() {
+		return this._stage;
+	}
+
 	constructor (private _stage: Stage) {
 		FilterManager._instance = this;
+		this._copyFilterInstanced = new CopyFilterInstanced(this);
 	}
 
 	public popTemp (width: number, height: number, msaa: boolean = false): TmpImage2D {
@@ -442,8 +449,24 @@ export class FilterManager {
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
+		let tmp: Image2D;
+		// copy to TMP, because we can't copy pixels from itself
+		if (target === source) {
+			tmp = this.popTemp(source.width, source.height);
+
+			this._stage.setRenderTarget(source, false, 0, 0, true);
+			this._stage.setScissor(null);
+
+			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
+			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
+			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
+
+			this._stage.setRenderTarget(tmp, false, 0, 0, true);
+		}
+
 		if (mergeAlpha || msaa || blend) {
 
+			/*
 			if (!this._copyPixelFilter) {
 				this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 			}
@@ -454,33 +477,25 @@ export class FilterManager {
 
 			this.renderFilter(source, target, inputRect, outputRect,  this._copyPixelFilter);
 
-			this._copyPixelFilter.requireBlend = true;
+			this._copyPixelFilter.requireBlend = true;*/
+			this._copyFilterInstanced.target = target;
+			this._copyFilterInstanced.addCopyTask(inputRect, outputRect, tmp || source);
+			this._copyFilterInstanced.flush();
 		} else {
 
-			this._stage.setRenderTarget(source, false, 0, 0, true);
-			this._stage.setScissor(null);
-
-			let tmp: Image2D;
-
-			// copy to TMP, because we can't copy pixels from itself
-			if (target === source) {
-				tmp = this.popTemp(source.width, source.height);
-
-				// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
-				const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
-				this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
-
-				this._stage.setRenderTarget(tmp, false, 0, 0, true);
+			if (!tmp) {
+				this._stage.setRenderTarget(source, false, 0, 0, true);
+				this._stage.setScissor(null);
 			}
 
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this._stage);
 
 			this.context.copyToTexture(<TextureBaseWebGL>targetImageAbst.getTexture(), inputRect, outputRect.topLeft);
+		}
 
-			if (tmp) {
-				this.pushTemp(tmp);
-			}
+		if (tmp) {
+			this.pushTemp(tmp);
 		}
 	}
 
