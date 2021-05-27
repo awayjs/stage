@@ -9,7 +9,6 @@ import { VaoWebGL } from '../webgl/VaoWebGL';
 import { ProgramWebGL } from '../webgl/ProgramWebGL';
 import { ContextGLBlendFactor as BF } from '../base/ContextGLBlendFactor';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
-import { TextureWebGL } from '../webgl/TextureWebGL';
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 
 export  interface ICopyTask {
@@ -84,15 +83,20 @@ const DEFAULT_BLEND_MAP = {
 };
 
 export class CopyFilterInstanced {
+	public static  DATA_COUNT = 9; // 4 - posMatrix, 4 - texMatrix, 1 - texId
 	public static SAMPLERS_LIMIT = 16;
 	public static TASKS_LIMIT = 100;
 
+	private _samplerIds: number[] = Array.from({ length: CopyFilterInstanced.SAMPLERS_LIMIT }, e => 0);
 	private _prog: ProgramWebGL;
 	private _instanceBuffer: VertexBufferWebGL;
 	private _vertexBuffer: VertexBufferWebGL;
 	private _vao: VaoWebGL;
 
-	private _instanceData: Float32Array = new Float32Array(CopyFilterInstanced.TASKS_LIMIT * (4 + 4 + 1));
+	private _instanceData: Float32Array = new Float32Array(
+		CopyFilterInstanced.TASKS_LIMIT * CopyFilterInstanced.DATA_COUNT);
+
+	private _instanceView: Float32Array = this._instanceData;
 	private _target: Image2D;
 	private _copyTasks: ICopyTask[] = [];
 	private _images: Array<Image2D> = [];
@@ -141,9 +145,9 @@ export class CopyFilterInstanced {
 		return this._blend;
 	}
 
-	private _requireFlush: boolean = false;
-	public get requireFlush() {
-		return this._requireFlush;
+	private _mustBeFlushed: boolean = false;
+	public get mustBeFlushed() {
+		return this._mustBeFlushed;
 	}
 
 	constructor(manager: FilterManager) {
@@ -161,11 +165,11 @@ export class CopyFilterInstanced {
 		return this._prog;
 	}
 
-	public set target (image: Image2D) {
-		if (this._target && this._target !== image) {
-			this.flush();
-		}
+	public get length() {
+		return this._copyTasks.length;
+	}
 
+	public set target (image: Image2D) {
 		this._target = image;
 	}
 
@@ -175,7 +179,10 @@ export class CopyFilterInstanced {
 
 	public addCopyTask (from: Rectangle, to: Rectangle, source: Image2D) {
 
-		if (!this._images.includes(source)) {
+		let samplerID = this._images.indexOf(source);
+
+		if (samplerID === -1) {
+			samplerID = this._images.length;
 			this._images.push(source);
 		}
 
@@ -183,18 +190,18 @@ export class CopyFilterInstanced {
 			from: from.clone(),
 			to: to.clone(),
 			source: source,
-			samplerID: this._images.length - 1
+			samplerID: samplerID
 		});
 
 		if (this._images.length === CopyFilterInstanced.SAMPLERS_LIMIT ||
 			this._copyTasks.length === CopyFilterInstanced.TASKS_LIMIT) {
-			this._requireFlush = true;
+			this._mustBeFlushed = true;
 			//this.flush();
 		}
 	}
 
 	private fillInstancesBuffer(offset: number, task: ICopyTask) {
-		const data = this._instanceData;
+		const data = this._instanceView;
 		const dest = task.to;
 		const input = task.from;
 		const target = this._target;
@@ -205,6 +212,7 @@ export class CopyFilterInstanced {
 			dest.height = input.height;
 		}
 
+		offset *= 9;
 		// pos = scale * pos + offset
 		// pos in viewport MUST be -1 - 0, for this we multiple at 2 and decrease 1
 
@@ -244,8 +252,14 @@ export class CopyFilterInstanced {
 					1, 1
 				]), 0, 6);
 
-			this._instanceBuffer = context.createVertexBuffer(6, 9 * 4);
+			this._instanceBuffer = context.createVertexBuffer(
+				CopyFilterInstanced.TASKS_LIMIT,
+				CopyFilterInstanced.DATA_COUNT * 4
+			);
+
+			this._instanceBuffer.initAsDynamic(CopyFilterInstanced.TASKS_LIMIT);
 			this._instanceBuffer.instanced = true;
+			this._instanceBuffer.dynamic = true;
 		}
 
 		if (!this._vao) {
@@ -266,7 +280,7 @@ export class CopyFilterInstanced {
 			this._vao.bind();
 		}
 
-		this._instanceBuffer.uploadFromArray(this._instanceData);
+		this._instanceBuffer.uploadFromArray(this._instanceView);
 	}
 
 	private deactivateElements() {
@@ -274,16 +288,28 @@ export class CopyFilterInstanced {
 	}
 
 	private prepareTask() {
+		const tasks = this._copyTasks;
+		const len = tasks.length;
+
+		if (len !== this._instanceView.length / 9) {
+			// create new VIEW to fill sub data
+			this._instanceView = new Float32Array(this._instanceData.buffer,0, 9 * len);
+		}
 
 		// Fill instanced buffer data
-		for (let i = 0; i < this._copyTasks.length; i++) {
-			this.fillInstancesBuffer(i, this._copyTasks[i]);
+		for (let i = 0; i < len; i++) {
+			this.fillInstancesBuffer(i, tasks[i]);
 		}
 
+		const images = this._images;
+		const imLen = images.length;
 		// Bind textures to slots
-		for (let i = 0; i < this._images.length; i++) {
-			this._images[i].getAbstraction<_Stage_ImageBase>(this._stage).activate(i);
+		for (let i = 0; i < imLen; i++) {
+			images[i].getAbstraction<_Stage_ImageBase>(this._stage).activate(i);
+			this._samplerIds[i] = i;
 		}
+
+		this._prog.uploadUniform('uTex', this._samplerIds);
 	}
 
 	public flush() {
@@ -319,7 +345,7 @@ export class CopyFilterInstanced {
 
 		this.deactivateElements();
 		this._target = null;
-		this._requireFlush = false;
+		this._mustBeFlushed = false;
 		this._images.length = 0;
 		this._copyTasks.length = 0;
 	}

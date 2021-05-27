@@ -285,7 +285,11 @@ export class ProgramWebGL implements IProgram {
 		} = WEBGL_METHOD_MAP[info.type];
 
 		if (size === 1) {
-			this._gl[method](info.location, typeof data === 'number' ? data : data[0]);
+			if (typeof data === 'number' || info.size === 1) {
+				this._gl[method](info.location, typeof data === 'number' ? data : data[0]);
+			} else {
+				this._gl[method + 'v'](info.location, data);
+			}
 			return true;
 		}
 

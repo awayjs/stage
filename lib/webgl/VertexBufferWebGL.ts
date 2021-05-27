@@ -29,6 +29,7 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 	private _lastMemoryUsage: number = 0;
 
 	public instanced: boolean = false;
+	public dynamic: boolean = false;
 	public lastUsedTime: number;
 	public canUnload: boolean = true;
 
@@ -41,23 +42,53 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 		_context.stats.counter.vertex++;
 	}
 
+	public initAsDynamic(numVertices: number = this._numVertices) {
+		if (numVertices === 0) {
+			return;
+		}
+
+		this._numVertices = numVertices;
+		this.dynamic = true;
+
+		this._context.stats.memory.vertex -= this._lastMemoryUsage;
+		this._lastMemoryUsage = numVertices * this._dataPerVertex;
+		this._context.stats.memory.vertex += this._lastMemoryUsage;
+
+		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
+		this._gl.bufferData(
+			this._gl.ARRAY_BUFFER,
+			numVertices * this._dataPerVertex,
+			this._gl.DYNAMIC_DRAW
+		);
+	}
+
 	public uploadFromArray(
 		array: TTypedArray, startVertex: number = 0, _numVertices: number = this._numVertices
 	): void {
-		this.uploadFromByteArray(array.buffer, startVertex, _numVertices);
+		this.uploadFromByteArray(array, startVertex, _numVertices);
 	}
 
-	public uploadFromByteArray(data: ArrayBuffer, startVertex: number, _numVertices: number): void {
-		this._gl.bindBuffer(this._gl.ARRAY_BUFFER, this._buffer);
+	public uploadFromByteArray(data: TTypedArray, startVertex: number, _numVertices: number): void {
+		const gl = this._gl;
 
-		this._context.stats.memory.vertex -= this._lastMemoryUsage;
-		this._lastMemoryUsage = data.byteLength - startVertex * this._dataPerVertex;
-		this._context.stats.memory.vertex += this._lastMemoryUsage;
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._buffer);
 
-		if (startVertex)
-			this._gl.bufferSubData(this._gl.ARRAY_BUFFER, startVertex * this._dataPerVertex, data);
-		else
-			this._gl.bufferData(this._gl.ARRAY_BUFFER, data, this._gl.STATIC_DRAW);
+		// use subdata when buffer less that was and dynamic
+		if ((startVertex || data.byteLength < this._numVertices * this._dataPerVertex) && this.dynamic) {
+			gl.bufferSubData(gl.ARRAY_BUFFER, startVertex * this._dataPerVertex, data);
+		} else {
+			this._numVertices = data.byteLength / this._dataPerVertex;
+
+			this._context.stats.memory.vertex -= this._lastMemoryUsage;
+			this._lastMemoryUsage = data.byteLength;
+			this._context.stats.memory.vertex += this._lastMemoryUsage;
+
+			gl.bufferData(
+				gl.ARRAY_BUFFER,
+				data,
+				this.dynamic ? gl.DYNAMIC_DRAW : gl.STATIC_DRAW
+			);
+		}
 	}
 
 	public get numVertices(): number {
@@ -73,6 +104,9 @@ export class VertexBufferWebGL implements IVertexBuffer, IUnloadable {
 	}
 
 	public dispose(): void {
+		this.instanced = false;
+		this.dynamic = false;
+
 		if (Settings.ENABLE_BUFFER_POOLING && VertexBufferWebGL.pool.store(this)) {
 			return;
 		}

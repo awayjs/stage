@@ -449,6 +449,11 @@ export class FilterManager {
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
+		if (this._copyFilterInstanced.target !== target ||
+			this._copyFilterInstanced.target === source) {
+			this.flushDelayedTask('Manually');
+		}
+
 		let tmp: Image2D;
 		// copy to TMP, because we can't copy pixels from itself
 		if (target === source) {
@@ -477,11 +482,15 @@ export class FilterManager {
 			copy.target = target;
 			copy.addCopyTask(inputRect, outputRect, tmp || source);
 
+			this.context.stateChangeCallback = null;
 			// because we require copy to self, we can't do this delayed
-			//if (target === source) {
-			this._copyFilterInstanced.flush();
-			//}
+			if (this._copyFilterInstanced.mustBeFlushed || target === source) {
+				this._copyFilterInstanced.flush();
+			} else {
+				this.context.stateChangeCallback = (e) => this.flushDelayedTask(e);
+			}
 		} else {
+			this.flushDelayedTask('copyPixelByTexture');
 
 			if (!tmp) {
 				this._stage.setRenderTarget(source, false, 0, 0, true);
@@ -497,6 +506,17 @@ export class FilterManager {
 		if (tmp) {
 			this.pushTemp(tmp);
 		}
+	}
+
+	private flushDelayedTask(reason: string) {
+		if (!this._copyFilterInstanced.length) {
+			return;
+		}
+		// important! reset callback before flush, because flush change state
+		this.context.stateChangeCallback = null;
+		console.debug('[Instanced] Instanced copyPixel was flushed by:', reason, this._copyFilterInstanced.length);
+
+		this._copyFilterInstanced.flush();
 	}
 
 	public threshold(

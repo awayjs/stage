@@ -84,6 +84,8 @@ export class ContextWebGL implements IContextGL {
 
 	private _angleInstanced: ANGLE_instanced_arrays;
 
+	public stateChangeCallback: (name: string) => void;
+
 	public hasInstancing() {
 		return (this._gl instanceof self.WebGL2RenderingContext) || !!this._angleInstanced;
 	}
@@ -226,6 +228,8 @@ export class ContextWebGL implements IContextGL {
 		red: number = 0, green: number = 0, blue: number = 0, alpha: number = 1,
 		depth: number = 1, stencil: number = 0, mask: ContextGLClearMask = ContextGLClearMask.ALL): void {
 
+		this.stateChangeCallback && this.stateChangeCallback('clear');
+
 		if (!this._drawing) {
 			this.updateBlendStatus();
 			this._drawing = true;
@@ -255,6 +259,8 @@ export class ContextWebGL implements IContextGL {
 
 	public configureBackBuffer(
 		width: number, height: number, antiAlias: number, enableDepthAndStencil: boolean = true): void {
+
+		this.stateChangeCallback && this.stateChangeCallback('setBackBuffer');
 
 		this._width = width * this._pixelRatio;
 		this._height = height * this._pixelRatio;
@@ -311,6 +317,8 @@ export class ContextWebGL implements IContextGL {
 
 	public drawToBitmapImage2D(
 		destination: BitmapImage2D, invalidate = true, async: boolean = false): undefined | Promise<boolean> {
+
+		this.stateChangeCallback && this.stateChangeCallback('drawToBitmap');
 
 		const pixels = new Uint8Array(destination.getDataInternal().buffer);
 		const rt = this._texContext._currentRT;
@@ -393,6 +401,7 @@ export class ContextWebGL implements IContextGL {
 	public drawIndices(
 		mode: ContextGLDrawMode, indexBuffer: IndexBufferWebGL, firstIndex: number = 0, numIndices: number = -1): void {
 
+		this.stateChangeCallback && this.stateChangeCallback('drawIndices');
 		const gl = this._gl;
 
 		if (!this._drawing)
@@ -446,6 +455,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public bindIndexBuffer(indexBuffer: IndexBufferWebGL) {
+		this.stateChangeCallback && this.stateChangeCallback('bindIndexBuffer');
+
 		this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexBuffer.glBuffer);
 		this._lastBoundedIndexBuffer = indexBuffer;
 	}
@@ -453,6 +464,8 @@ export class ContextWebGL implements IContextGL {
 	public drawVertices(mode: ContextGLDrawMode, firstVertex: number = 0, numVertices: number = -1): void {
 		if (!this._drawing)
 			throw 'Need to clear before drawing if the buffer has not been cleared since the last present() call.';
+
+		this.stateChangeCallback && this.stateChangeCallback('drawVertices');
 
 		if (numVertices == 0)
 			return;
@@ -485,12 +498,14 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public present(): void {
+		this.stateChangeCallback && this.stateChangeCallback('present');
 		//this._drawing = false;
 
 		this._fenceContext && this._fenceContext.tick();
 	}
 
 	public setBlendState(enable: boolean) {
+		this.stateChangeCallback && this.stateChangeCallback('setBlendState');
 		this._blendState.setAt(0, +enable);
 	}
 
@@ -500,6 +515,8 @@ export class ContextWebGL implements IContextGL {
 		sourceAlphaFactor?: ContextGLBlendFactor,
 		destinationAlphaFactor?: ContextGLBlendFactor
 	): void {
+
+		this.stateChangeCallback && this.stateChangeCallback('setBlendFactors');
 
 		const src = GL_MAP.BLEND_OP[sourceFactor];
 		const dst = GL_MAP.BLEND_OP[destinationFactor];
@@ -522,6 +539,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setColorMask(red: boolean, green: boolean, blue: boolean, alpha: boolean): void {
+		this.stateChangeCallback && this.stateChangeCallback('setColorMask');
 
 		if (this._colorMapState.set(red, green, blue, alpha)) {
 			this._gl.colorMask(red, green, blue, alpha);
@@ -531,6 +549,8 @@ export class ContextWebGL implements IContextGL {
 	public setCulling(
 		triangleFaceToCull: ContextGLTriangleFace,
 		coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void {
+
+		this.stateChangeCallback && this.stateChangeCallback('setCulling');
 
 		if (triangleFaceToCull === ContextGLTriangleFace.NONE) {
 			this._cullState.setAt(0, +false) && this._gl.disable(this._gl.CULL_FACE);
@@ -543,6 +563,8 @@ export class ContextWebGL implements IContextGL {
 
 	// TODO ContextGLCompareMode
 	public setDepthTest(depthMask: boolean, passCompareMode: ContextGLCompareMode): void {
+		this.stateChangeCallback && this.stateChangeCallback('setDepthTest');
+
 		const mode = GL_MAP.COMPARE_OP[passCompareMode];
 
 		this._depthState.setAt(1, +depthMask) && this._gl.depthMask(depthMask);
@@ -550,6 +572,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setViewport(x: number, y: number, width: number, height: number) {
+		this.stateChangeCallback && this.stateChangeCallback('setViewport');
 
 		if (this._viewportState.set(x,y,width, height)) {
 			this._gl.viewport(x,y,width,height);
@@ -557,18 +580,24 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public enableDepth() {
+		this.stateChangeCallback && this.stateChangeCallback('enableDepth');
 		this._depthState.setAt(0, +true) && this._gl.enable(this._gl.DEPTH_TEST);
 	}
 
 	public disableDepth() {
+		this.stateChangeCallback && this.stateChangeCallback('disableDepth');
+
 		this._depthState.setAt(0, +false) && this._gl.disable(this._gl.DEPTH_TEST);
 	}
 
 	public enableStencil() {
+		this.stateChangeCallback && this.stateChangeCallback('enableStencil');
+
 		this._stencilState.setAt(0, +true) && this._gl.enable(this._gl.STENCIL_TEST);
 	}
 
 	public disableStencil() {
+		this.stateChangeCallback && this.stateChangeCallback('disableStencil');
 		this._stencilState.setAt(0, +false) && this._gl.disable(this._gl.STENCIL_TEST);
 	}
 
@@ -580,7 +609,7 @@ export class ContextWebGL implements IContextGL {
 		actionOnDepthPassStencilFail: ContextGLStencilAction = ContextGLStencilAction.KEEP,
 		coordinateSystem: CoordinateSystem = CoordinateSystem.LEFT_HANDED): void
 	{	/* eslint-disable-line */
-
+		this.stateChangeCallback && this.stateChangeCallback('setStencilActions');
 		this._separateStencil = triangleFace != ContextGLTriangleFace.FRONT_AND_BACK;
 
 		const compareModeGL = GL_MAP.COMPARE_OP[compareMode];
@@ -614,6 +643,7 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setStencilReferenceValue(referenceValue: number, readMask: number = 0xFF, writeMask: number = 0xFF): void {
+		this.stateChangeCallback && this.stateChangeCallback('setStencilReferenceValue');
 		this._stencilReferenceValue = referenceValue;
 		this._stencilReadMask = readMask;
 
@@ -635,14 +665,14 @@ export class ContextWebGL implements IContextGL {
 			return;
 		}
 
+		this.stateChangeCallback && this.stateChangeCallback('setProgram');
+
 		//TODO decide on construction/reference resposibilities
 		this._currentProgram = program;
 		program.focusProgram();
 
 		this.assertLost('setProgram');
 	}
-
-	public static modulo: number = 0;
 
 	public setProgramConstantsFromArray(programType: number, data: Float32Array): void {
 		if (data.length) {
@@ -651,6 +681,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setScissorRectangle(rect: Rectangle): void {
+		this.stateChangeCallback && this.stateChangeCallback('setScissorRectangle');
+
 		if (!rect) {
 			this._gl.disable(this._gl.SCISSOR_TEST);
 			return;
@@ -676,6 +708,8 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setTextureAt(sampler: number, texture: TextureBaseWebGL): void {
+		this.stateChangeCallback && this.stateChangeCallback('setTextureAt');
+
 		const id = this._texContext.setTextureAt(sampler, <TextureWebGL>texture);
 
 		// id - is real sampler id, because texture context can change id of sasmpler
@@ -689,7 +723,9 @@ export class ContextWebGL implements IContextGL {
 		sampler: number,
 		wrap: ContextGLWrapMode,
 		filter: ContextGLTextureFilter,
-		mipfilter: ContextGLMipFilter): void {
+		mipfilter: ContextGLMipFilter
+	): void {
+		this.stateChangeCallback && this.stateChangeCallback('setSamplerStateAt');
 
 		// proxy
 		this._texContext.setSamplerStateAt(sampler, wrap, filter, mipfilter);
@@ -698,7 +734,9 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setVertexBufferAt(
-		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4): void {
+		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4
+	): void {
+		this.stateChangeCallback && this.stateChangeCallback('setVertexBufferAt');
 
 		const location = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
 		const gl = this._gl;
@@ -746,7 +784,9 @@ export class ContextWebGL implements IContextGL {
 
 	public setRenderToTexture(
 		target: TextureBaseWebGL, enableDepthAndStencil: boolean = false, antiAlias: number = 0,
-		_surfaceSelector: number = 0, _mipmapSelector: number = 0): void {
+		_surfaceSelector: number = 0, _mipmapSelector: number = 0
+	): void {
+		this.stateChangeCallback && this.stateChangeCallback('setRenderToTexture');
 
 		// proxy
 		this._texContext.setRenderToTexture(
@@ -759,11 +799,14 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setRenderToBackBuffer(): void {
+		this.stateChangeCallback && this.stateChangeCallback('setRenderToBackBuffer');
 		this._texContext.setRenderToBackBuffer();
 		this.assertLost('setRenderToBackBuffer');
 	}
 
 	public copyToTexture(target: TextureBaseWebGL, rect: Rectangle, destPoint: Point): void {
+		this.stateChangeCallback && this.stateChangeCallback('setRenderToBackBuffer');
+
 		if (!this._texContext._currentRT) {
 			throw '[ContextWebGL] Try to copy from invalid frambuffer';
 		}
