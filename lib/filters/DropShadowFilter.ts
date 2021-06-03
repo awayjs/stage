@@ -19,16 +19,17 @@ export interface IDropShadowFilterProps extends IBlurFilterProps {
 
 export class DropShadowFilter extends BlurFilter implements IBitmapFilter<'dropShadow', IDropShadowFilterProps> {
 	public static readonly filterName: string = 'dropShadow';
+	public static readonly filterNameAlt: string = 'glow';
 
 	protected _shadowTask = new DropShadowTask();
 
 	@serialisable
 	@proxyTo('_shadowTask')
-	distance: number = 1;
+	distance: number = 0;
 
 	@serialisable
 	@proxyTo('_shadowTask')
-	angle: number = 45;
+	angle: number = 0;
 
 	@serialisable
 	@proxyTo('_shadowTask')
@@ -72,6 +73,11 @@ export class DropShadowFilter extends BlurFilter implements IBitmapFilter<'dropS
 			if (key in model) {
 				this[key] = model[key];
 			}
+		}
+
+		if (model.filterName === DropShadowFilter.filterNameAlt) {
+			this.angle = 0;
+			this.distance = 0;
 		}
 	}
 
@@ -135,7 +141,6 @@ export class DropShadowFilter extends BlurFilter implements IBitmapFilter<'dropS
 		this._shadowTask.source = secondPass;
 		this._shadowTask.sourceImage = source;
 		this._shadowTask.target = target;
-
 		this._temp.push(secondPass);
 
 	}

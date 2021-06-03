@@ -59,7 +59,9 @@ export class FilterManager {
 		[BlurFilter.filterName]: BlurFilter,
 		[DisplacementFilter.filterName]: DisplacementFilter,
 		[ColorMatrixFilter.filterName]: ColorMatrixFilter,
-		[DropShadowFilter.filterName]: DropShadowFilter
+		[DropShadowFilter.filterName]: DropShadowFilter,
+		// Glow has same implementation, but not has offsets. Drop shadow and glow - same filters
+		[DropShadowFilter.filterNameAlt /*glow */] : DropShadowFilter,
 	}
 
 	constructor (private _stage: Stage) {

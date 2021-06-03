@@ -125,13 +125,14 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		);
 
 		// but we can use a clip to kill non-used
-		this._hBlurTask.clipRect = new Rectangle(
+		/* this._vBlurTask.clipRect = new Rectangle(
 			0,0,
 			source.width,
 			source.height
 		);
+		*/
 
-		this._vBlurTask.clipRect = this._hBlurTask.clipRect;
+		//this._vBlurTask.clipRect = this._hBlurTask.clipRect;
 
 		// emit real
 		// crop a dest rectanle

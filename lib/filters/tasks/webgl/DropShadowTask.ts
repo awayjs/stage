@@ -19,7 +19,7 @@ void main() {
     vec4 color = uColor;
 	float shadow = texture2D(uBlur, vUv[0] + uDir).a;
 	color.a *= shadow * uProps[0];
-	color.rgb *= color.a;
+	color.rgb *= clamp(color.a, 0., 1.);
 
 	if (uProps[3] > 0.0) {
 		vec4 main = texture2D(uSource, vUv[1]);
@@ -27,6 +27,7 @@ void main() {
 		// we not support inner atm
 		color = uProps[2] * main + (1. - main.a) * color;
 	}
+
 	gl_FragColor = color;
 }`;
 export class DropShadowTask extends MultipleUVTask {
