@@ -361,18 +361,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public applySymbol(): boolean {
-		if (!this._lazySymbol || !this._lazySymbol.needParse) {
+		if (!this._lazySymbol /*|| !this._lazySymbol.needParse*/) {
 			return false;
 		}
 
-		this._lazySymbol.lazyParser();
+		if (this._lazySymbol.needParse) {
+			this._lazySymbol.lazyParser();
+		}
+
 		this._data = this._lazySymbol.definition.data;
 
-		// disable UNPACK_PREMULTIPLE_ALPHA becasue already is PMA
+		// disable UNPACK_PREMULTIPLE_ALPHA because already is PMA
 		this._unpackPMA = !this._lazySymbol.definition.isPMA;
-
-		// console.log("Run lazy bitmap parser", this.id);
-		// hop
 		this._lazySymbol = null;
 
 		return true;

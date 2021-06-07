@@ -114,7 +114,7 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Allow cache a uniforms
 	 */
-	ENABLE_UNIFORM_CACHE: true,
+	ENABLE_UNIFORM_CACHE: false,
 
 	/**
 	 * @description Allow async read from texture when unload it from GPU,
