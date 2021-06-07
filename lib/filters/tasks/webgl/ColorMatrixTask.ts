@@ -20,10 +20,11 @@ vec4 transform(vec4 color) {
 	if (color.a > 0.0) {
 		color.rgb /= color.a;
 	}
+
 	color *= clamp(uTransformData[0], 0.0, 1.0);	
 	color += uTransformData[1];
 
-	color.rgb *= color.a;
+	color.rgb *= clamp(color.a, 0., 1.);
 	return color;
 }
 `;
@@ -101,8 +102,9 @@ export class ColorMatrixTask extends TaskBaseWebGL {
 				this._fragData[i] /= 0xff;
 			}
 
-			// disable ALPHA offset, because can't allowed in PMA mode
-			this._fragData[7] = 0;
+			// disable positive ALPHA offset, because can't allowed in PMA mode
+			if (this._fragData[7] > 0)
+				this._fragData[7] = 0;
 		} else {
 			this._fragData.set(EMPTY_TRANSFORM);
 		}
