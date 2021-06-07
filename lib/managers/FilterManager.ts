@@ -354,7 +354,7 @@ export class FilterManager {
 			task.activate(stage, null, null);
 
 			context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
-
+			context._texContext._currentRT.present();
 			task.deactivate(stage);
 		}
 
