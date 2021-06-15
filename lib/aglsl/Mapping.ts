@@ -1,7 +1,25 @@
 /* eslint-disable max-len */
-import { OpLUT } from '../aglsl/OpLUT';
+import { OpLUT } from './OpLUT';
+
+export const enum OPPCODES {
+	Mat44 = 0x18,
+}
 
 export class Mapping {
+	static lib: Record<OPPCODES, string> = {
+		[OPPCODES.Mat44]: `
+// agal lib fun: multiply matrix4 onto v
+vec4 mul_mat44 (int matIndex, vec4 v) {
+	return vec4(
+		dot(v, vc[matIndex + 0]),
+		dot(v, vc[matIndex + 1]),
+		dot(v, vc[matIndex + 2]),
+		dot(v, vc[matIndex + 3])
+	);
+}
+`
+	};
+
 	static agal2glsllut: Array<OpLUT> = [
 
 		//         s 												flags   dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
@@ -31,7 +49,8 @@ export class Mapping {
 		new OpLUT('%dest = %cast(%a * -1.0);\n', 0, true, true, false, null, null, null, null, null, null), //neg                   //21
 		new OpLUT('%dest = %cast(clamp(%a,0.0,1.0));\n', 0, true, true, false, null, null, null, null, null, null), //sat           //22
 		new OpLUT('%dest = %cast(dot(vec3(%a),vec3(%b)));\n', null, true, true, true, 3, 3, true, null, null, null), //m33          //23
-		new OpLUT('%dest = %cast(dot(vec4(%a),vec4(%b)));\n', null, true, true, true, 4, 4, true, null, null, null), //m44          //24
+		// has mat44 lib
+		new OpLUT('%dest = %cast(mul_mat44(%ib,vec4(%a)));\n', null, true, true, true, 4, 4, true, null, null, null), //m44          //24
 		new OpLUT('%dest = %cast(dot(vec4(%a),vec4(%b)));\n', null, true, true, true, 4, 3, true, null, null, null), //m43          //25
 		//s:string, flags:number, dest:boolean, a:boolean, b:boolean, matrixwidth:number, matrixheight:number, ndwm:boolean, scaler:boolean, dm:boolean, lod:boolean
 		new OpLUT('%dest = %cast(dFdx(%a));\n', 0, true, true, false, null, null, null, null, null, null), //dFdx                   //26

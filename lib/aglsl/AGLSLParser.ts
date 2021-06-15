@@ -14,34 +14,54 @@ export class AGLSLParser {
 	public static maxstreams: number = 8;
 	public static maxtextures: number = 8;
 
+	private _usedLibs: Record<number, boolean> = {};
+	private _usedTemps: Record<string, boolean> = {};
+	private _desc: Description;
+	private _header: string;
+	private _body: string;
+
+	private _linkLib(opcode: number) {
+		const libs = this._usedLibs;
+
+		if (!libs[opcode] && Mapping.lib[opcode]) {
+			libs[opcode] = true;
+			this._header += '\n' + Mapping.lib[opcode] + '\n';
+			return true;
+		}
+
+		return libs[opcode];
+	}
+
 	public parse(desc: Description, precision: string, es300 = false): string {
 		es300 = Settings.USE_300_SHADERS_FOR_WEBGL2 && es300;
 
-		let header: string = '';
-		let body: string = '';
-
-		header += es300 ? '#version 300 es\n' : '#version 100\n';
-		header += 'precision ' + precision + ' float;\n';
+		this._usedTemps = {};
+		this._usedLibs = {};
+		this._header = '';
+		this._body = '';
+		this._header += es300 ? '#version 300 es\n' : '#version 100\n';
+		this._header += 'precision ' + precision + ' float;\n';
 
 		const tag = desc.header.type[0]; //TODO
 		const constcount = desc.regread[0x1].length;
 
 		if (constcount > 0) {
-			header += 'uniform vec4 ' + tag + 'c[' + constcount + '];\n';
+			this._header += 'uniform vec4 ' + tag + 'c[' + constcount + '];\n';
 		}
 
+		/*
 		// declare temps
 		for (let i = 0; i < desc.regread[REGISTER.TEMP].length || i < desc.regwrite[REGISTER.TEMP].length; i++) {
 			// duh, have to check write only also...
 			if (desc.regread[REGISTER.TEMP][i] || desc.regwrite[REGISTER.TEMP][i]) {
-				header += 'vec4 ' + tag + 't' + i + ';\n';
+				this._header += 'vec4 ' + tag + 't' + i + ';\n';
 			}
-		}
+		}*/
 
 		// declare streams
 		for (let i = 0; i < desc.regread[REGISTER.ATTR].length; i++) {
 			if (desc.regread[REGISTER.ATTR][i]) {
-				header += (es300 ? 'in' : 'attribute') + ' vec4 va' + i + ';\n';
+				this._header += (es300 ? 'in' : 'attribute') + ' vec4 va' + i + ';\n';
 			}
 		}
 
@@ -50,9 +70,9 @@ export class AGLSLParser {
 			if (desc.regread[REGISTER.VAR][i] || desc.regwrite[REGISTER.VAR][i]) {
 				if (es300) {
 					// in ES 300 out of vertex in of fragment
-					header += (desc.header.type === 'vertex' ? 'out' : 'in') + ' vec4 vi' + i + ';\n';
+					this._header += (desc.header.type === 'vertex' ? 'out' : 'in') + ' vec4 vi' + i + ';\n';
 				} else {
-					header += 'varying vec4 vi' + i + ';\n';
+					this._header += 'varying vec4 vi' + i + ';\n';
 				}
 			}
 		}
@@ -60,20 +80,21 @@ export class AGLSLParser {
 		// declare samplers
 		for (let i = 0; i < desc.samplers.length; i++) {
 			if (desc.samplers[i]) {
-				header += 'uniform sampler' + AGLSLParser.SAMPLERS[ desc.samplers[i].dim & 3 ] + ' fs' + i + ';\n';
+				this._header += 'uniform sampler' +
+						AGLSLParser.SAMPLERS[ desc.samplers[i].dim & 3 ] + ' fs' + i + ';\n';
 			}
 		}
 
 		// extra gl fluff: setup position and depth adjust temps
 		if (desc.header.type == 'vertex') {
-			header += 'vec4 outpos;\n';
+			this._header += 'vec4 outpos;\n';
 		} else if (es300) {
 			// target is es300, emit out color
-			header += 'out vec4 outColor;\n';
+			this._header += 'out vec4 outColor;\n';
 		}
 
 		if (desc.writedepth) {
-			header += 'vec4 tmp_FragDepth;\n';
+			this._header += 'vec4 tmp_FragDepth;\n';
 		}
 		//if ( desc.hasmatrix )
 		//    header += "vec4 tmp_matrix;\n";
@@ -81,18 +102,20 @@ export class AGLSLParser {
 		let derivatives: boolean = false;
 
 		// start body of code
-		body += 'void main() {\n';
+		this._body += 'void main() {\n';
 
 		for (let i = 0; i < desc.tokens.length; i++) {
-
-			const lutentry = Mapping.agal2glsllut[desc.tokens[i].opcode];
+			const token = desc.tokens[i];
+			const lutentry = Mapping.agal2glsllut[token.opcode];
+			const hasLib = this._linkLib(token.opcode);
 
 			if (lutentry.s.indexOf('dFdx') != -1 || lutentry.s.indexOf('dFdy') != -1) derivatives = true;
 			if (!lutentry) {
 				throw 'Opcode not valid or not implemented yet: ';
 				/*+token.opcode;*/
 			}
-			const sublines = lutentry.matrixheight || 1;
+
+			const sublines = hasLib ? 1 : lutentry.matrixheight || 1;
 
 			for (let sl = 0; sl < sublines; sl++) {
 				let line = '  ' + lutentry.s;
@@ -100,48 +123,48 @@ export class AGLSLParser {
 				let destcaststring = 'float';
 				let destmaskstring = '';
 
-				if (desc.tokens[i].dest) {
-					if (lutentry.matrixheight) {
-						if (((desc.tokens[i].dest.mask >> sl) & 1) != 1) {
+				if (token.dest) {
+					if (lutentry.matrixheight && !hasLib) {
+						if (((token.dest.mask >> sl) & 1) != 1) {
 							continue;
 						}
 
+						destmaskstring = AGLSLParser.SWIZZLE[sl];
+
 						destregstring = this.regtostring(
-							desc.tokens[i].dest.regtype,
-							desc.tokens[i].dest.regnum,
+							token.dest.regtype,
+							token.dest.regnum,
 							desc,
 							tag,
 							es300
 						);
-
-						destmaskstring = AGLSLParser.SWIZZLE[sl];
 						destregstring += '.' + destmaskstring;
 
 					} else {
 						destregstring = this.regtostring(
-							desc.tokens[i].dest.regtype,
-							desc.tokens[i].dest.regnum,
+							token.dest.regtype,
+							token.dest.regnum,
 							desc,
 							tag,
 							es300
 						);
 
-						if (desc.tokens[i].dest.mask != 0xf) {
+						if (token.dest.mask != 0xf) {
 							let ndest: number = 0;
 							destmaskstring = '';
-							if (desc.tokens[i].dest.mask & 1) {
+							if (token.dest.mask & 1) {
 								ndest++;
 								destmaskstring += 'x';
 							}
-							if (desc.tokens[i].dest.mask & 2) {
+							if (token.dest.mask & 2) {
 								ndest++;
 								destmaskstring += 'y';
 							}
-							if (desc.tokens[i].dest.mask & 4) {
+							if (token.dest.mask & 4) {
 								ndest++;
 								destmaskstring += 'z';
 							}
-							if (desc.tokens[i].dest.mask & 8) {
+							if (token.dest.mask & 8) {
 								ndest++;
 								destmaskstring += 'w';
 							}
@@ -164,33 +187,50 @@ export class AGLSLParser {
 							destmaskstring = 'xyzw';
 						}
 					}
+
+					if (token.dest.regtype == REGISTER.TEMP &&
+						!this._usedTemps[token.dest.regnum]
+					) {
+						const tmp = tag + 't' + token.dest.regnum;
+
+						if (destcaststring === 'vec4') {
+							destregstring = 'vec4 ' + tmp;
+						} else {
+							line = '    vec4 ' + tmp + ';\n' + line;
+						}
+
+						this._usedTemps[token.dest.regnum] = true;
+					}
+
 					line = line.replace('%dest', destregstring);
 					line = line.replace('%cast', destcaststring);
 					line = line.replace('%dm', destmaskstring);
 				}
 
 				let dwm: number = 0xf;
-				if (!lutentry.ndwm && lutentry.dest && desc.tokens[i].dest) {
-					dwm = desc.tokens[i].dest.mask;
+				if (!lutentry.ndwm && lutentry.dest && token.dest) {
+					dwm = token.dest.mask;
 				}
 
-				if (desc.tokens[i].a) {
+				if (token.a) {
 					line = line.replace(
 						'%a',
-						this.sourcetostring(desc.tokens[i].a, 0, dwm, lutentry.scalar, desc, tag, es300)
+						this.sourcetostring(token.a, 0, dwm, lutentry.scalar, desc, tag, es300)
 					);
+					line = line.replace('%ia', '' + token.a.regnum);
 				}
 
-				if (desc.tokens[i].b) {
+				if (token.b) {
 					line = line.replace(
 						'%b',
-						this.sourcetostring(desc.tokens[i].b, sl, dwm, lutentry.scalar, desc, tag, es300)
+						this.sourcetostring(token.b, sl, dwm, lutentry.scalar, desc, tag, es300)
 					);
+					line = line.replace('%ib', '' + token.b.regnum);
 
-					if (desc.tokens[i].b.regtype == 0x5) {
+					if (token.b.regtype == 0x5) {
 						// sampler dim
-						const texdim = AGLSLParser.SAMPLERS[desc.tokens[i].b.dim];
-						const texsize = ['vec2', 'vec3', 'vec3'][desc.tokens[i].b.dim];
+						const texdim = AGLSLParser.SAMPLERS[token.b.dim];
+						const texsize = ['vec2', 'vec3', 'vec3'][token.b.dim];
 
 						// for es 300 not required a texture type
 						line = line.replace('%texdim', es300 ? '' : texdim);
@@ -198,29 +238,29 @@ export class AGLSLParser {
 						line = line.replace('%lod', '');
 					}
 				}
-				body += line;
+				this._body += line;
 			}
 		}
 
 		// adjust z from opengl range of -1..1 to 0..1 as in d3d, this also enforces a left handed coordinate system
 		if (desc.header.type == 'vertex') {
-			body += '  gl_Position = vec4(outpos.x, outpos.y, outpos.z*2.0 - outpos.w, outpos.w);\n';
+			this._body += '  gl_Position = vec4(outpos.x, outpos.y, outpos.z*2.0 - outpos.w, outpos.w);\n';
 		}
 
 		//flag based switch
 		if (derivatives && desc.header.type == 'fragment') {
-			header = '#extension GL_OES_standard_derivatives : enable\n' + header;
+			this._header = '#extension GL_OES_standard_derivatives : enable\n' + this._header;
 		}
 
 		// clamp fragment depth
 		if (desc.writedepth) {
-			body += '  gl_FragDepth = clamp(tmp_FragDepth,0.0,1.0);\n';
+			this._body += '  gl_FragDepth = clamp(tmp_FragDepth,0.0,1.0);\n';
 		}
 
 		// close main
-		body += '}\n';
+		this._body += '}\n';
 
-		return header + body;
+		return this._header + this._body;
 	}
 
 	public regtostring(
@@ -241,8 +281,9 @@ export class AGLSLParser {
 			// 	} else {
 			// 		return tag + "c" + regnum;
 			// 	}
-			case REGISTER.TEMP:
+			case REGISTER.TEMP: {
 				return tag + 't' + regnum;
+			}
 			case REGISTER.OUT: {
 				if (desc.header.type == 'vertex') {
 					return 'outpos';
