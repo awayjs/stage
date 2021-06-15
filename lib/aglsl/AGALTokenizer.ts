@@ -4,9 +4,22 @@ import { Description } from '../aglsl/Description';
 import { Header } from '../aglsl/Header';
 import { Mapping } from '../aglsl/Mapping';
 import { Token } from '../aglsl/Token';
+import { REGISTER } from './assembler/RegMap';
+import { Part } from './assembler/Part';
 
 export class AGALTokenizer {
 	constructor() {
+	}
+
+	public decribeAGALPart(array: ByteArray | Part): Description {
+		if (array instanceof ByteArray) {
+			return this.decribeAGALByteArray(array);
+		}
+
+		const desc = this.decribeAGALByteArray(array.data);
+		desc.native = array.native;
+
+		return  desc;
 	}
 
 	public decribeAGALByteArray(bytes: ByteArray): Description {
@@ -90,8 +103,10 @@ export class AGALTokenizer {
 		s.indexoffset = bytes.readByte();
 		s.swizzle = bytes.readUnsignedByte();
 		s.regtype = bytes.readUnsignedByte();
-		desc.regread[s.regtype][s.regnum] = 0xf; // sould be swizzle to mask? should be |=
-		if (s.regtype == 0x5) {
+		// should be swizzle to mask? should be |=
+		desc.regread[s.regtype][s.regnum] = 0xf;
+
+		if (s.regtype === REGISTER.SAMPLER) {
 			// sampler
 			s.lodbiad = s.indexoffset;
 			s.indexoffset = undefined;
@@ -117,8 +132,8 @@ export class AGALTokenizer {
 			desc.hasindirect = true;
 		}
 		if (!s.indirectflag && mh) {
-			for (let mhi: number = 0; mhi < mh; mhi++) //TODO wrong, should be |=
-			{
+			//TODO wrong, should be |=
+			for (let mhi = 0; mhi < mh; mhi++) {
 				desc.regread[s.regtype][s.regnum + mhi] = desc.regread[s.regtype][s.regnum];
 			}
 		}

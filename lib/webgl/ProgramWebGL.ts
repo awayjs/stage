@@ -6,6 +6,7 @@ import { IProgram } from '../base/IProgram';
 import { Settings } from '../Settings';
 import { ContextWebGL } from './ContextWebGL';
 import { WEBGL_METHOD_MAP } from './WebGLDataMapping';
+import { Part } from '../aglsl/assembler/Part';
 
 const TEST_PLACE = /(#define|#version|precision).*\n/gi;
 
@@ -54,7 +55,7 @@ export class ProgramWebGL implements IProgram {
 		this._gl = _context._gl;
 	}
 
-	public upload(vertexProgram: ByteArray, fragmentProgram: ByteArray): void {
+	public upload(vertexProgram: ByteArray | Part, fragmentProgram: ByteArray | Part): void {
 		//detect whether highp can be used
 
 		const vertexPrecision = this._gl.getShaderPrecisionFormat(
@@ -66,12 +67,16 @@ export class ProgramWebGL implements IProgram {
 			this._gl.HIGH_FLOAT).precision;
 
 		const vertexString: string = ProgramWebGL._aglslParser.parse(
-			ProgramWebGL._tokenizer.decribeAGALByteArray(vertexProgram),
-			vertexPrecision ? 'highp' : 'mediump');
+			ProgramWebGL._tokenizer.decribeAGALPart(vertexProgram),
+			vertexPrecision ? 'highp' : 'mediump',
+			this._context.glVersion === 2
+		);
 
 		const fragmentString: string = ProgramWebGL._aglslParser.parse(
-			ProgramWebGL._tokenizer.decribeAGALByteArray(fragmentProgram),
-			fragmentPrecision ? 'highp' : 'mediump');
+			ProgramWebGL._tokenizer.decribeAGALPart(fragmentProgram),
+			fragmentPrecision ? 'highp' : 'mediump',
+			this._context.glVersion === 2
+		);
 
 		if (!this.name) {
 			this.name = 'PROG_AGAL_' + this._id;

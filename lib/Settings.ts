@@ -1,6 +1,7 @@
 export interface IStageSettings {
-	PREF_WEBGL_VERSION: 1 | 2,
-	ENABLE_MULTISAMPLE_TEXTURE: boolean,
+	PREF_WEBGL_VERSION: 1 | 2;
+	USE_300_SHADERS_FOR_WEBGL2: boolean;
+	ENABLE_MULTISAMPLE_TEXTURE: boolean;
 	ENABLE_ANTIALIAS: boolean;
 	PROFILE_CONTEXT_LOST: boolean;
 
@@ -35,6 +36,11 @@ export const Settings: IStageSettings = {
 	 * @default 2
 	 */
 	PREF_WEBGL_VERSION: 2,
+
+	/**
+	 * @description Use 300 es shaders for AGAL output in webgl2 mode
+	 */
+	USE_300_SHADERS_FOR_WEBGL2: true,
 
 	/**
 	 * @description Allow MSAA RenderTarget in Webgl2 mode
@@ -84,7 +90,7 @@ export const Settings: IStageSettings = {
 	/**
 	 * @description Enable texture pooling to prevent a recreation
 	 */
-	ENABLE_TEXTURE_POOLING: true,
+	ENABLE_TEXTURE_POOLING: false,
 
 	/**
 	 * @description Enable UnloadManager for unloading unused buffers from pool

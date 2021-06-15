@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { OpLUT } from '../aglsl/OpLUT';
 
 export class Mapping {
@@ -35,10 +36,26 @@ export class Mapping {
 		//s:string, flags:number, dest:boolean, a:boolean, b:boolean, matrixwidth:number, matrixheight:number, ndwm:boolean, scaler:boolean, dm:boolean, lod:boolean
 		new OpLUT('%dest = %cast(dFdx(%a));\n', 0, true, true, false, null, null, null, null, null, null), //dFdx                   //26
 		new OpLUT('%dest = %cast(dFdy(%a));\n', 0, true, true, false, null, null, null, null, null, null), //dFdy                   //27
-		new OpLUT('if (float(%a)==float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null), new OpLUT('if (float(%a)!=float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null), new OpLUT('if (float(%a)>=float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null), new OpLUT('if (float(%a)<float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null), new OpLUT('} else {;\n', 0, false, false, false, null, null, null, null, null, null), new OpLUT('};\n', 0, false, false, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null), new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
+		new OpLUT('if (float(%a)==float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null),
+		new OpLUT('if (float(%a)!=float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null),
+		new OpLUT('if (float(%a)>=float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null),
+		new OpLUT('if (float(%a)<float(%b)) {;\n', 0, false, true, true, null, null, null, true, null, null),
+		new OpLUT('} else {;\n', 0, false, false, false, null, null, null, null, null, null),
+		new OpLUT('};\n', 0, false, false, false, null, null, null, null, null, null),
+		new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
+		new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
+		new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
+		new OpLUT(null, null, null, null, false, null, null, null, null, null, null),
 
 		//         s 															flags  	dest    a     b 	    mw 	  mh    ndwm  scale dm	  lod
-		new OpLUT('%dest = %cast(texture%texdimLod(%b,%texsize(%a)).%dm);\n', null, true, true, true, null, null, null, null, true, null), new OpLUT('if ( float(%a)<0.0 ) discard;\n', null, false, true, false, null, null, null, true, null, null), new OpLUT('%dest = %cast(texture%texdim(%b,%texsize(%a)%lod).%dm);\n', null, true, true, true, null, null, true, null, true, true), new OpLUT('%dest = %cast(greaterThanEqual(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null), new OpLUT('%dest = %cast(lessThan(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null), new OpLUT('%dest = %cast(sign(%a));\n', 0, true, true, false, null, null, null, null, null, null), new OpLUT('%dest = %cast(equal(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null), new OpLUT('%dest = %cast(notEqual(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null)
+		new OpLUT('%dest = %cast(texture%texdimLod(%b,%texsize(%a)).%dm);\n', null, true, true, true, null, null, null, null, true, null),
+		new OpLUT('if ( float(%a)<0.0 ) discard;\n', null, false, true, false, null, null, null, true, null, null),
+		new OpLUT('%dest = %cast(texture%texdim(%b,%texsize(%a)%lod).%dm);\n', null, true, true, true, null, null, true, null, true, true),
+		new OpLUT('%dest = %cast(greaterThanEqual(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null),
+		new OpLUT('%dest = %cast(lessThan(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null),
+		new OpLUT('%dest = %cast(sign(%a));\n', 0, true, true, false, null, null, null, null, null, null),
+		new OpLUT('%dest = %cast(equal(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null),
+		new OpLUT('%dest = %cast(notEqual(%a,%b).%dm);\n', 0, true, true, true, null, null, true, null, true, null)
 
 	];
 

@@ -1,20 +1,32 @@
-import { Sampler } from '../../aglsl/assembler/Sampler';
-import { Opcode } from '../../aglsl/assembler/Opcode';
-import { OpcodeMap } from '../../aglsl/assembler/OpcodeMap';
-import { Part } from '../../aglsl/assembler/Part';
-import { RegMap } from '../../aglsl/assembler/RegMap';
-import { SamplerMap } from '../../aglsl/assembler/SamplerMap';
+import { Sampler } from './Sampler';
+import { Opcode } from './Opcode';
+import { OpcodeMap } from './OpcodeMap';
+import { Part } from './Part';
+import { RegMap } from './RegMap';
+import { SamplerMap } from './SamplerMap';
 
 export class AGALMiniAssembler {
-	public r: Object;
+	public r: {
+		vertex: Part,
+		fragment: Part,
+		native: Record<number, string>
+	};
+
 	public cur: Part;
+	protected nativeInstructionLastRegister = 0xffff - 1;
 
 	constructor() {
-		this.r = {};
+		this.r = {
+			vertex: null,
+			fragment: null,
+			native: {}
+		};
+
 		this.cur = new Part();
+		this.cur.native = this.r.native;
 	}
 
-	public assemble(source: string, ext_part = null, ext_version = null): Object {
+	public assemble(source: string, ext_part = null, ext_version = null): { vertex: Part, fragment: Part } {
 		if (!ext_version) {
 			ext_version = 1;
 		}
@@ -69,22 +81,24 @@ export class AGALMiniAssembler {
 				this.cur.data.position = 0;
 				this.cur = null;
 				return;
-			default:
+			default: {
 				if (!this.cur) {
 					console.log('Warning: bad line ' + linenr + ': ' + line + ' (Outside of any part definition)');
 					return;
 				}
+
 				if (this.cur.name == 'comment') {
 					return;
 				}
-				var op: Opcode = <Opcode> OpcodeMap.map[tokens[0]];
+
+				const op: Opcode = <Opcode>OpcodeMap.map[tokens[0]];
 				if (!op) {
 					throw 'Bad opcode ' + tokens[0] + ' ' + linenr + ': ' + line;
 				}
 				// console.log( 'AGALMiniAssembler' , 'op' , op );
 
 				this.emitOpcode(this.cur, op.opcode);
-				var ti: number = 1;
+				let ti: number = 1;
 				if (op.dest && op.dest != 'none') {
 					if (!this.emitDest(this.cur, tokens[ti++], op.dest)) {
 						throw 'Bad destination register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
@@ -94,7 +108,8 @@ export class AGALMiniAssembler {
 				}
 
 				if (op.a && op.a.format != 'none') {
-					if (!this.emitSource(this.cur, tokens[ti++], op.a)) throw 'Bad source register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
+					if (!this.emitSource(this.cur, tokens[ti++], op.a))
+						throw 'Bad source register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 				} else {
 					this.emitZeroQword(this.cur);
 				}
@@ -113,6 +128,7 @@ export class AGALMiniAssembler {
 					this.emitZeroQword(this.cur);
 				}
 				break;
+			}
 		}
 	}
 
@@ -253,32 +269,46 @@ export class AGALMiniAssembler {
 		return true;
 	}
 
-	public emitSource(pr, token, opsrc): boolean {
-		const indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([\+\-]\d+)?\](\.[xyzw]{1,4})?/i); // g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
+	public emitSource(pr, token: string, _): boolean {
+		// native instruction
+		if (token.indexOf('native:') !== -1) {
+			// native call, will be replaced without modification
+			this.r.native[this.nativeInstructionLastRegister] = token.replace('native:','');
+
+			token = `${this.cur.name === 'vertex' ? 'vn' : 'fn'}${this.nativeInstructionLastRegister}`;
+
+			this.nativeInstructionLastRegister--;
+		}
+
 		let reg;
+		// g1: indexregname, g2:indexregnum, g3:select, [g4:offset], [g5:swizzle]
+		const indexed = token.match(/vc\[(v[tcai])(\d+)\.([xyzw])([+-]\d+)?\](\.[xyzw]{1,4})?/i);
+
 		if (indexed) {
 			if (!RegMap.map[indexed[1]]) {
 				return false;
 			}
 			const selindex = { x:0, y:1, z:2, w:3 };
-			var em: any = { num:indexed[2] | 0, code:RegMap.map[indexed[1]].code, swizzle:this.stringToSwizzle(indexed[5]), select:selindex[indexed[3]], offset:indexed[4] | 0 };
-			pr.data.writeUnsignedShort(em.num);
-			pr.data.writeByte(em.offset);
-			pr.data.writeUnsignedByte(em.swizzle);
+
+			pr.data.writeUnsignedShort(+indexed[2] | 0);
+			pr.data.writeByte(+indexed[4] | 0);
+			pr.data.writeUnsignedByte(this.stringToSwizzle(indexed[5]));
 			pr.data.writeUnsignedByte(0x1); // constant reg
-			pr.data.writeUnsignedByte(em.code);
-			pr.data.writeUnsignedByte(em.select);
+			pr.data.writeUnsignedByte(RegMap.map[indexed[1]].code);
+			pr.data.writeUnsignedByte(selindex[indexed[3]]);
 			pr.data.writeUnsignedByte(1 << 7);
 		} else {
-			reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i); // g1: regname, g2:regnum, g3:swizzle
+			// g1: regname, g2:regnum, g3:swizzle
+			reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i);
+
 			if (!RegMap.map[reg[1]]) {
 				return false;
 			}
-			var em: any = { num:reg[2] | 0, code:RegMap.map[reg[1]].code, swizzle:this.stringToSwizzle(reg[3]) };
-			pr.data.writeUnsignedShort(em.num);
+
+			pr.data.writeUnsignedShort(reg[2] | 0);
 			pr.data.writeUnsignedByte(0);
-			pr.data.writeUnsignedByte(em.swizzle);
-			pr.data.writeUnsignedByte(em.code);
+			pr.data.writeUnsignedByte(this.stringToSwizzle(reg[3]));
+			pr.data.writeUnsignedByte(RegMap.map[reg[1]].code);
 			pr.data.writeUnsignedByte(0);
 			pr.data.writeUnsignedByte(0);
 			pr.data.writeUnsignedByte(0);
@@ -287,16 +317,14 @@ export class AGALMiniAssembler {
 		return true;
 	}
 
-	public addHeader(partname, version): void {
-		if (!version) {
-			version = 1;
-		}
+	public addHeader(partname: string, version: number = 1): void {
 		if (this.r[partname] == undefined) {
 			this.r[partname] = new Part(partname, version);
 			this.emitHeader(this.r[ partname ]);
 		} else if (this.r[partname].version != version) {
 			throw 'Multiple versions for part ' + partname;
 		}
+
 		this.cur = this.r[partname];
 	}
 }

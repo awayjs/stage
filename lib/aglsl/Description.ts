@@ -26,10 +26,13 @@ export class Description {
 	public writedepth: boolean = false;
 	public hasmatrix: boolean = false;
 	public samplers: any[] = [];
+	public constants: number = 0;
 
 	// added due to dynamic assignment 3*0xFFFFFFuuuu
 	public tokens: Token[] = [];
 	public header: Header = new Header();
+	// native instructions per register
+	public native: Record<number, string> = {};
 
 	constructor() {
 	}
