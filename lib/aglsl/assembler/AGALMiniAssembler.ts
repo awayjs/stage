@@ -9,7 +9,6 @@ export class AGALMiniAssembler {
 	public r: {
 		vertex: Part,
 		fragment: Part,
-		native: Record<number, string>
 	};
 
 	public cur: Part;
@@ -19,11 +18,9 @@ export class AGALMiniAssembler {
 		this.r = {
 			vertex: null,
 			fragment: null,
-			native: {}
 		};
 
 		this.cur = new Part();
-		this.cur.native = this.r.native;
 	}
 
 	public assemble(source: string, ext_part = null, ext_version = null): { vertex: Part, fragment: Part } {
@@ -38,13 +35,13 @@ export class AGALMiniAssembler {
 		const lines = source.replace(/[\f\n\r\v]+/g, '\n').split('\n'); // handle breaks, then split into lines
 
 		for (const i in lines) {
-			this.processLine(lines[i], i);
+			this.processLine(lines[i], +i);
 		}
 
 		return this.r;
 	}
 
-	private processLine(line, linenr): void {
+	private processLine(line: string, linenr: number): void {
 		const startcomment: number = line.search('//');  // remove comments
 		if (startcomment != -1) {
 			line = line.slice(0, startcomment);
@@ -58,6 +55,23 @@ export class AGALMiniAssembler {
 		if (optsi != -1) {
 			opts = line.slice(optsi).match(/([\w\.\-\+]+)/gi);
 			line = line.slice(0, optsi);
+		}
+
+		const natives = {};
+
+		let nativesLen = 0;
+		let idx: number;
+
+		while ((idx = line.indexOf('#native')) > 0) {
+			const start = idx;
+			idx = line.indexOf('native#', idx);
+			const end = idx > -1 ? idx + 7  : line.length;
+
+			natives['nat' + nativesLen] = line.substring(start + 7, end - 7);
+			// replace native block on to native index in block
+			line = line.substring(0, start) + 'nat' + (nativesLen) + line.substring(end);
+
+			nativesLen++;
 		}
 
 		// get opcode/command
@@ -108,7 +122,7 @@ export class AGALMiniAssembler {
 				}
 
 				if (op.a && op.a.format != 'none') {
-					if (!this.emitSource(this.cur, tokens[ti++], op.a))
+					if (!this.emitSource(this.cur, tokens[ti++], op.a, natives))
 						throw 'Bad source register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 				} else {
 					this.emitZeroQword(this.cur);
@@ -120,7 +134,7 @@ export class AGALMiniAssembler {
 							throw 'Bad sampler register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 						}
 					} else {
-						if (!this.emitSource(this.cur, tokens[ti++], op.b)) {
+						if (!this.emitSource(this.cur, tokens[ti++], op.b, natives)) {
 							throw 'Bad source register ' + tokens[ti - 1] + ' ' + linenr + ': ' + line;
 						}
 					}
@@ -269,11 +283,11 @@ export class AGALMiniAssembler {
 		return true;
 	}
 
-	public emitSource(pr, token: string, _): boolean {
+	public emitSource(pr, token: string, opp, natives: Record<string, string>): boolean {
 		// native instruction
-		if (token.indexOf('native:') !== -1) {
+		if (natives && (token in natives)) {
 			// native call, will be replaced without modification
-			this.r.native[this.nativeInstructionLastRegister] = token.replace('native:','');
+			this.cur.native[this.nativeInstructionLastRegister] = natives[token];
 
 			token = `${this.cur.name === 'vertex' ? 'vn' : 'fn'}${this.nativeInstructionLastRegister}`;
 
@@ -299,7 +313,7 @@ export class AGALMiniAssembler {
 			pr.data.writeUnsignedByte(1 << 7);
 		} else {
 			// g1: regname, g2:regnum, g3:swizzle
-			reg = token.match(/([fov]?[tpocidavs])(\d*)(\.[xyzw]{1,4})?/i);
+			reg = token.match(/([fov]?[tpocidavsn])(\d*)(\.[xyzw]{1,4})?/i);
 
 			if (!RegMap.map[reg[1]]) {
 				return false;

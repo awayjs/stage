@@ -293,8 +293,8 @@ export class AGLSLParser {
 			r = this.regtostring(s.regtype, s.regnum + subline, desc, tag, es300);
 		}
 
-		// samplers never add swizzle
-		if (s.regtype == 0x5) {
+		// samplers and native never add swizzle
+		if (s.regtype == REGISTER.SAMPLER || s.regtype == REGISTER.NATIVE) {
 			return r;
 		}
 

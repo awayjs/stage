@@ -1,26 +1,27 @@
 import { Header } from '../aglsl/Header';
 import { Token } from '../aglsl/Token';
+import { REGISTER } from './assembler/RegMap';
 
 export class Description {
-	public regread: any[] = [
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[]
-	];
+	public regread: Record<REGISTER, any[]> = {
+		[REGISTER.ATTR]: [],
+		[REGISTER.CONST]: [],
+		[REGISTER.VAR]: [],
+		[REGISTER.TEMP]: [],
+		[REGISTER.OUT]: [],
+		[REGISTER.SAMPLER] : [],
+		[REGISTER.NATIVE] : [],
+	}
 
-	public regwrite: any[] = [
-		[],
-		[],
-		[],
-		[],
-		[],
-		[],
-		[]
-	];
+	public regwrite: Record<REGISTER, any[]> = {
+		[REGISTER.ATTR]: [],
+		[REGISTER.CONST]: [],
+		[REGISTER.VAR]: [],
+		[REGISTER.TEMP]: [],
+		[REGISTER.OUT]: [],
+		[REGISTER.SAMPLER] : [],
+		[REGISTER.NATIVE] : [],
+	}
 
 	public hasindirect: boolean = false;
 	public writedepth: boolean = false;
