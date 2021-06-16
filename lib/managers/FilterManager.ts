@@ -73,7 +73,10 @@ export class FilterManager {
 
 	constructor (private _stage: Stage) {
 		FilterManager._instance = this;
-		this._copyFilterInstanced = new CopyFilterInstanced(this);
+
+		if (Settings.FILTERS_USE_INSTANCED_COPY) {
+			this._copyFilterInstanced = new CopyFilterInstanced(this);
+		}
 	}
 
 	public popTemp (width: number, height: number, msaa: boolean = false): TmpImage2D {
@@ -452,8 +455,10 @@ export class FilterManager {
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
-		if (this._copyFilterInstanced.target !== target ||
-			this._copyFilterInstanced.target === source) {
+		if (this._copyFilterInstanced &&
+			(this._copyFilterInstanced.target !== target ||
+			this._copyFilterInstanced.target === source)
+		) {
 			this.flushDelayedTask('Manually');
 		}
 
@@ -473,28 +478,35 @@ export class FilterManager {
 		}
 
 		if (mergeAlpha || msaa || blend) {
-			const copy = this._copyFilterInstanced;
+			const copy = Settings.FILTERS_USE_INSTANCED_COPY
+				? this._copyFilterInstanced
+				: (this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName));
 
-			if (copy.requireBlend !== mergeAlpha ||
-				copy.target !== target && copy.target) {
+			if (copy instanceof CopyFilterInstanced && (
+				copy.requireBlend !== mergeAlpha || (copy.target !== target && copy.target))
+			) {
 				copy.flush();
 			}
 
 			copy.blend = blend;
 			copy.requireBlend = mergeAlpha;
-			copy.target = target;
-			copy.addCopyTask(inputRect, outputRect, tmp || source);
 
-			this.context.stateChangeCallback = null;
-			// because we require copy to self, we can't do this delayed
-			if (!Settings.FILTERS_USE_INSTANCED_COPY ||
-				this._copyFilterInstanced.mustBeFlushed ||
-				target === source
-			) {
-				this._copyFilterInstanced.flush();
+			if (copy instanceof CopyFilterInstanced) {
+				copy.target = target;
+				copy.addCopyTask(inputRect, outputRect, tmp || source);
+
+				this.context.stateChangeCallback = null;
+				// because we require copy to self, we can't do this delayed
+				if (copy.mustBeFlushed || target === source) {
+					copy.flush();
+				} else {
+					this.context.stateChangeCallback = (e) => this.flushDelayedTask(e);
+				}
 			} else {
-				this.context.stateChangeCallback = (e) => this.flushDelayedTask(e);
+				this.renderFilter(source, target, inputRect, outputRect,  copy);
+				copy.requireBlend = true;
 			}
+
 		} else {
 			this.flushDelayedTask('copyPixelByTexture');
 
@@ -515,9 +527,10 @@ export class FilterManager {
 	}
 
 	private flushDelayedTask(reason: string) {
-		if (!this._copyFilterInstanced.length) {
+		if (!this._copyFilterInstanced || !this._copyFilterInstanced.length) {
 			return;
 		}
+
 		// important! reset callback before flush, because flush change state
 		this.context.stateChangeCallback = null;
 		console.debug('[Instanced] Instanced copyPixel was flushed by:', reason, this._copyFilterInstanced.length);
