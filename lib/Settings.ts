@@ -28,6 +28,8 @@ export interface IStageSettings {
 	UNSAFE_USE_AUTOINDEXED_SAMPLER: boolean;
 
 	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: boolean;
+
+	FILTERS_USE_INSTANCED_COPY: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -151,7 +153,13 @@ export const Settings: IStageSettings = {
 	 * This means that in shader with atrtributes `aPos, aUV` will be like `va0, va1`
 	 * This required for bound attrs by index instead of name on AGAL pipeline
 	 */
-	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: true
+	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: true,
+
+	/**
+	 * @description Try to use instanced copy filter for multimple copyPixel operation
+	 */
+	FILTERS_USE_INSTANCED_COPY: false,
+
 };
 
 // console.debug('[Stage settings]', Settings);

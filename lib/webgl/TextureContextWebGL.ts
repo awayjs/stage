@@ -34,6 +34,10 @@ export class TextureContextWebGL {
 
 		const gl = this._gl = _context._gl;
 
+		// for some devices there are bug when we use MAX samples, but ok when use MAX - 1
+		TextureContextWebGL.MAX_SAMPLERS =
+			Math.min(TextureContextWebGL.MAX_SAMPLERS, gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) - 1);
+
 		//defaults
 		for (let i = 0; i < TextureContextWebGL.MAX_SAMPLERS; ++i) {
 			this._samplerStates[i] = new SamplerStateWebGL(i,null, _context);

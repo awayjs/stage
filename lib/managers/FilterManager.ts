@@ -25,6 +25,7 @@ import {
 	IBitmapFilterProps
 } from '../filters';
 import { CopyFilterInstanced } from '../filters/CopyFilterInstanced';
+import { Settings } from '../Settings';
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
@@ -486,7 +487,10 @@ export class FilterManager {
 
 			this.context.stateChangeCallback = null;
 			// because we require copy to self, we can't do this delayed
-			if (this._copyFilterInstanced.mustBeFlushed || target === source) {
+			if (!Settings.FILTERS_USE_INSTANCED_COPY ||
+				this._copyFilterInstanced.mustBeFlushed ||
+				target === source
+			) {
 				this._copyFilterInstanced.flush();
 			} else {
 				this.context.stateChangeCallback = (e) => this.flushDelayedTask(e);
