@@ -58,6 +58,7 @@ export class VaoContextWebGL {
 	}
 
 	bindVertexArray (v: VaoWebGL) {
+		this._context.stateChangeCallback && this._context.stateChangeCallback('bindVertexArray');
 		// not unbound vao, to reduce bound flips
 		if (v === this._lastBoundedVao) {
 			return;

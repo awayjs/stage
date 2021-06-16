@@ -24,6 +24,7 @@ import {
 	IBitmapFilter,
 	IBitmapFilterProps
 } from '../filters';
+import { CopyFilterInstanced } from '../filters/CopyFilterInstanced';
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
@@ -46,6 +47,7 @@ export class FilterManager {
 	private _filterVAO: IVao;
 
 	private _filterSampler: ImageSampler;
+	private _copyFilterInstanced: CopyFilterInstanced;
 	private _copyPixelFilter: ColorMatrixFilter;
 	private _thresholdFilter: ThresholdFilter;
 
@@ -64,8 +66,13 @@ export class FilterManager {
 		[DropShadowFilter.filterNameAlt /*glow */] : DropShadowFilter,
 	}
 
+	public get stage() {
+		return this._stage;
+	}
+
 	constructor (private _stage: Stage) {
 		FilterManager._instance = this;
+		this._copyFilterInstanced = new CopyFilterInstanced(this);
 	}
 
 	public popTemp (width: number, height: number, msaa: boolean = false): TmpImage2D {
@@ -444,46 +451,74 @@ export class FilterManager {
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
-		if (mergeAlpha || msaa || blend) {
+		if (this._copyFilterInstanced.target !== target ||
+			this._copyFilterInstanced.target === source) {
+			this.flushDelayedTask('Manually');
+		}
 
-			if (!this._copyPixelFilter) {
-				this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
-			}
-
-			this._copyPixelFilter.blend = blend;
-			// because we in MSAA mode, but not has mergeAlpha - kill blending;
-			this._copyPixelFilter.requireBlend = mergeAlpha;
-
-			this.renderFilter(source, target, inputRect, outputRect,  this._copyPixelFilter);
-
-			this._copyPixelFilter.requireBlend = true;
-		} else {
+		let tmp: Image2D;
+		// copy to TMP, because we can't copy pixels from itself
+		if (target === source) {
+			tmp = this.popTemp(source.width, source.height);
 
 			this._stage.setRenderTarget(source, false, 0, 0, true);
 			this._stage.setScissor(null);
 
-			let tmp: Image2D;
+			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
+			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
+			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
 
-			// copy to TMP, because we can't copy pixels from itself
-			if (target === source) {
-				tmp = this.popTemp(source.width, source.height);
+			this._stage.setRenderTarget(tmp, false, 0, 0, true);
+		}
 
-				// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
-				const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
-				this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
+		if (mergeAlpha || msaa || blend) {
+			const copy = this._copyFilterInstanced;
 
-				this._stage.setRenderTarget(tmp, false, 0, 0, true);
+			if (copy.requireBlend !== mergeAlpha ||
+				copy.target !== target && copy.target) {
+				copy.flush();
+			}
+
+			copy.blend = blend;
+			copy.requireBlend = mergeAlpha;
+			copy.target = target;
+			copy.addCopyTask(inputRect, outputRect, tmp || source);
+
+			this.context.stateChangeCallback = null;
+			// because we require copy to self, we can't do this delayed
+			if (this._copyFilterInstanced.mustBeFlushed || target === source) {
+				this._copyFilterInstanced.flush();
+			} else {
+				this.context.stateChangeCallback = (e) => this.flushDelayedTask(e);
+			}
+		} else {
+			this.flushDelayedTask('copyPixelByTexture');
+
+			if (!tmp) {
+				this._stage.setRenderTarget(source, false, 0, 0, true);
+				this._stage.setScissor(null);
 			}
 
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const targetImageAbst = target.getAbstraction<_Stage_ImageBase>(this._stage);
 
 			this.context.copyToTexture(<TextureBaseWebGL>targetImageAbst.getTexture(), inputRect, outputRect.topLeft);
-
-			if (tmp) {
-				this.pushTemp(tmp);
-			}
 		}
+
+		if (tmp) {
+			this.pushTemp(tmp);
+		}
+	}
+
+	private flushDelayedTask(reason: string) {
+		if (!this._copyFilterInstanced.length) {
+			return;
+		}
+		// important! reset callback before flush, because flush change state
+		this.context.stateChangeCallback = null;
+		console.debug('[Instanced] Instanced copyPixel was flushed by:', reason, this._copyFilterInstanced.length);
+
+		this._copyFilterInstanced.flush();
 	}
 
 	public threshold(

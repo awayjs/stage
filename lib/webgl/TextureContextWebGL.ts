@@ -22,7 +22,7 @@ interface IRectangle extends IPoint {
 }
 
 export class TextureContextWebGL {
-	public static MAX_SAMPLERS = 8;
+	public static MAX_SAMPLERS = 16;
 
 	_lastBoundedTexture: TextureWebGL;
 	_samplerStates: SamplerStateWebGL[] = [];
