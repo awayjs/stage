@@ -13,6 +13,12 @@ export class Image2D extends ImageBase {
 
 	protected _powerOfTwo: boolean = true;
 
+	protected _isDisposed: boolean = false;
+
+	public get isDisposed() {
+		return this._isDisposed;
+	}
+
 	/**
 	 *
 	 * @returns {string}
@@ -72,6 +78,7 @@ export class Image2D extends ImageBase {
 	}
 
 	public dispose() {
+		this._isDisposed = true;
 		this.clear();
 	}
 

@@ -689,6 +689,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this._rect = null;
 		this._transparent = null;
 		this._locked = null;
+		this._isDisposed = true;
 	}
 
 	public getColorBoundsRect(mask: number, color: number, findColor: boolean = true): Rectangle {
@@ -1549,6 +1550,11 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 
 	public getTexture(): ITextureBase {
 		const asset = <BitmapImage2D> this._asset;
+
+		if (asset.isDisposed) {
+			throw 'Illegal upload of disposed BitmapImage2D:' + asset.id;
+		}
+
 		const sourceBitmap = asset.sourceBitmap;
 
 		if (sourceBitmap) {
@@ -1558,9 +1564,7 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		asset.markToUnload();
 		super.getTexture();
 
-		// not requred for empty buffer, becasue maybe RT that not has it by defalut
 		const pixels = <Uint8ClampedArray>(asset.getDataInternal(false, true));
-
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {
