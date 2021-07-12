@@ -47,6 +47,10 @@ export class DisplacementTask extends MultipleUVTask {
 	public componentY: 1 | 2 | 4 | 8 = 2;
 	public mapPoint: Point = new Point(0,0);
 
+	public get isValid(): boolean {
+		return this.mapBitmap && !this.mapBitmap.isDisposed;
+	}
+
 	private _uColor = [0,0,0,0];
 
 	private _color: number = 0x0;

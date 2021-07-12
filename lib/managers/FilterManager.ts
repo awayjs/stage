@@ -200,7 +200,7 @@ export class FilterManager {
 		const name = options.filterName;
 		const filter = this.getFilter(name, options);
 
-		if (!filter) {
+		if (!filter || !filter.isValid) {
 			return false;
 		}
 
@@ -228,7 +228,7 @@ export class FilterManager {
 
 			const filter = this.getFilter(prop.filterName, prop);
 
-			if (!filter) {
+			if (!filter || !filter.isValid) {
 				continue;
 			}
 
@@ -524,6 +524,9 @@ export class FilterManager {
 		if (tmp) {
 			this.pushTemp(tmp);
 		}
+
+		// reset target
+		this._stage.setRenderTarget(null);
 	}
 
 	private flushDelayedTask(reason: string) {

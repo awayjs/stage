@@ -12,6 +12,16 @@ export class FilterBase {
 	private _requireDepthRender: boolean;
 	protected _temp: Image2D[] = [];
 
+	public get isValid() {
+		for (const t of this._tasks) {
+			if (!t.isValid) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	public imageScale: number = 1;
 
 	public get requireBlend() {

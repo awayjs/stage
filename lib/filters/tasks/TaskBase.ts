@@ -15,6 +15,15 @@ export class TaskBase {
 		0.0, 0.0, 0.0, 0.0
 	]);
 
+	protected _isValid: boolean = true;
+
+	/**
+	 * Mark valid state of task, sometimes task has invalid arguments, we should track it
+	 */
+	public get isValid() {
+		return this._isValid;
+	}
+
 	public activateInternaly = false;
 	public _registerCache: ShaderRegisterCache;
 
