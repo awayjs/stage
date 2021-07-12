@@ -66,7 +66,7 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 
 		let count = 1;
 
-		for (let x = this._realStepSize; x <= this._amount; x += this._realStepSize) {
+		for (let x = this._realStepSize; x < this._amount; x += this._realStepSize) {
 			body.push(`
 						uv.${hor ? 'x' : 'y'} += uBlurData[1];
 						color += texture2D(fs0, uv);
