@@ -20,7 +20,7 @@ varying vec4 vUvLim[2];
 
 void main() {
 	vec4 map = texture2D(fs1, vUv[1] - uMapPoint);
-	vec2 offset = vec2(map[${compX | 0}] - 0.5, map[${compY | 0}] - 0.5) * uScale; 
+	vec2 offset = vec2(map[${compX | 0}] - 0.5, map[${compY | 0}] - 0.5) * uScale * 2.0; 
 
 	vec2 uv = vUv[0] + offset;
 
@@ -36,6 +36,8 @@ void main() {
 	${mode === 'color'
 		? 'gl_FragColor = outside ? uColor : texture2D(fs0, uv);'
 		: 'gl_FragColor = texture2D(fs0, uv);'}
+	
+	//gl_FragColor = map;
 }
 
 `;
@@ -114,8 +116,8 @@ export class DisplacementTask extends MultipleUVTask {
 		// UV for displacementMap
 		this.uvMatrices[1].set([
 			0,0,
-			output.width / map.width,
-			output.height / map.height,
+			map.width / output.width,
+			map.height / output.height,
 		], 0);
 
 		this.uploadVertexData();
