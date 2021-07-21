@@ -1,7 +1,7 @@
 import { Rectangle } from '@awayjs/core';
-import { Image2D } from '../image/Image2D';
+import { Image2D } from '../image';
 import { FilterManager } from '../managers/FilterManager';
-import { FilterUtils, serialisable, PROPS_LIST, proxyTo } from '../utils/FilterUtils';
+import { FilterUtils, PROPS_LIST, proxyTo, serialisable } from '../utils/FilterUtils';
 import { BlurFilter, IBlurFilterProps } from './BlurFilter';
 import { IBitmapFilter } from './IBitmapFilter';
 import { DropShadowTask } from './tasks/webgl/DropShadowTask';
@@ -125,8 +125,8 @@ export class DropShadowFilter extends BlurFilter implements IBitmapFilter<'dropS
 		);
 
 		// emit real
-		// crop a dest rectanle
-		// ovveride blur target
+		// crop a dest rectangle
+		// override blur target
 		// we use a copyFrom, because if we will use referece - we can corrupt instance
 		this._shadowTask.inputRect.copyFrom(this._vBlurTask.inputRect);
 		this._shadowTask.destRect.copyFrom(outRect);

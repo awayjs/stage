@@ -17,17 +17,27 @@ varying vec2 vUv[2];
 
 void main() {
     vec4 color = uColor;
-	float shadow = texture2D(uBlur, vUv[0] + uDir).a;
-	color.a *= shadow * uProps[0];
-	color.rgb *= clamp(color.a, 0., 1.);
+
+    float outer = 1. - uProps[1];
+    float inner = uProps[1];
+	float shadow = texture2D(uBlur, vUv[0] + uDir).a;	
+
+	vec4 main = texture2D(uSource, vUv[1]);
+
+	// mask inner by main
+	shadow = outer * shadow + (1. - shadow) * inner * main.a;
+
+	color.a = clamp(color.a * shadow * uProps[0], 0., 1.);
+	color.rgb *= color.a;
 
 	if (uProps[3] > 0.0) {
-		vec4 main = texture2D(uSource, vUv[1]);
-		// outer, inner = 0
-		// we not support inner atm
-		color = uProps[2] * main + (1. - main.a) * color;
-	}
+		vec4 composite = main * uProps[2];
 
+		color = 
+			outer * (composite + (1. - main.a) * color) + 
+			inner * (composite * (1. - color.a) + color);
+	}
+	
 	gl_FragColor = color;
 }`;
 export class DropShadowTask extends MultipleUVTask {

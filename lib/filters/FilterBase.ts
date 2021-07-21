@@ -82,8 +82,8 @@ export class FilterBase {
 
 	}
 
-	public clear (_manage: FilterManager) {
-		this._temp.forEach((e) =>  _manage.pushTemp(e));
+	public clear (_manager: FilterManager) {
+		this._temp.forEach((e) =>  _manager.pushTemp(e));
 		this._temp.length = 0;
 		this.imageScale = 1;
 	}
