@@ -1,11 +1,11 @@
 import { ProjectionBase } from '@awayjs/core';
 
 import { TaskBase } from './TaskBase';
-import { Image2D } from '../../image/Image2D';
+import { Image2D } from '../../image';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
-import { _Stage_ImageBase } from '../../image/ImageBase';
+import { _Stage_ImageBase } from '../../image';
 import { Stage } from '../../Stage';
 
 export class CompositeTask extends TaskBase {

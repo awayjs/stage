@@ -1,7 +1,7 @@
 import { ProjectionBase, Vector3D } from '@awayjs/core';
 
 import { TaskBase } from './TaskBase';
-import { Image2D } from '../../image/Image2D';
+import { _Stage_Image2D, Image2D } from '../../image';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
@@ -9,7 +9,7 @@ import { Stage } from '../../Stage';
 
 export type TThresholdOperator = '<' | '<=' | '>' | '>=' | '==' | '!=';
 export class ThresholdTask extends TaskBase {
-	private _fragmentConstantData: Float32Array;
+	private readonly _fragmentConstantData: Float32Array;
 
 	private _fragmentConstantsIndex: number;
 
@@ -160,6 +160,7 @@ export class ThresholdTask extends TaskBase {
 			code = 'tex ' + temp1 + ', ' + this._uvVarying + ', ' + inputTexture + ' <2d,linear,clamp>\n' +
 				'mul ' + temp2 + ', ' + temp1 + ', ' + mask + '\n' +
 				'dp4 ' + temp2 + ', ' + temp2 + ', ' + decode + '\n' +
+				// eslint-disable-next-line max-len
 				this._op + temp2 + ', ' + (this._th ? threshold : temp2) + ', ' + (this._th ? temp2 : threshold) + '\n' +
 				'sub ' + temp3 + ', ' + decode + '.zzzz, ' + temp2 + '\n' +
 				'mul ' + temp2 + ', ' + temp2 + ', ' + color + '\n' +
@@ -173,6 +174,7 @@ export class ThresholdTask extends TaskBase {
 			code = 'tex ' + temp1 + ', ' + this._uvVarying + ', ' + inputTexture + ' <2d,linear,clamp>\n' +
 				'mul ' + temp1 + ', ' + temp1 + ', ' + mask + '\n' +
 				'dp4 ' + temp1 + ', ' + temp1 + ', ' + decode + '\n' +
+				// eslint-disable-next-line max-len
 				this._op + temp1 + ', ' + (this._th ? threshold : temp1) + ', ' + (this._th ? temp1 : threshold) + '\n' +
 				'mul ' + temp1 + ', ' + temp1 + ', ' + color + '\n' +
 				'mov oc, ' + temp1 + '\n';
@@ -214,5 +216,7 @@ export class ThresholdTask extends TaskBase {
 		const context: IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragmentConstantData);
+
+		this._source.getAbstraction<_Stage_Image2D>(stage).activate(this.sourceSamplerIndex);
 	}
 }

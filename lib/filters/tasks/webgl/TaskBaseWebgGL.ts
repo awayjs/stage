@@ -1,6 +1,7 @@
 import { TaskBase } from '../TaskBase';
 import { Stage } from '../../../Stage';
 import { ProgramWebGL } from '../../../webgl/ProgramWebGL';
+import { _Stage_Image2D } from '../../../image';
 
 const VERTEX_DEF = `
 precision highp float;
@@ -57,6 +58,8 @@ export class TaskBaseWebGL extends TaskBase {
 
 	public activate(_stage: Stage, _projection: any, _depthTexture: any): void {
 		this.computeVertexData();
+
+		this._source.getAbstraction<_Stage_Image2D>(_stage).activate(this.sourceSamplerIndex);
 		this._program3D.uploadUniform('uTexMatrix', this._vertexConstantData);
 	}
 

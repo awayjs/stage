@@ -26,6 +26,7 @@ import {
 } from '../filters';
 import { CopyFilterInstanced } from '../filters/CopyFilterInstanced';
 import { Settings } from '../Settings';
+import { TaskBase } from '../filters/tasks/TaskBase';
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
@@ -323,27 +324,18 @@ export class FilterManager {
 			this
 		);
 
-		//render
-		const tasks = filter.tasks;
-
-		if (filter.requireBlend) {
-			// context will enable blend when it was changed
-			context.setBlendFactors(filter.blendSrc, filter.blendDst);
-		} else {
-			context.setBlendState(false);
-		}
-
+		// context will enable blend when it was changed
+		context.setBlendFactors(filter.blendSrc, filter.blendDst);
+		context.setBlendState(filter.requireBlend);
 		context.setCulling(ContextGLTriangleFace.NONE);
 
-		// vao binds require shader, other shaders MUST use same locations
-		context.setProgram(tasks[0].getProgram(stage));
-		this._bindFilterElements();
+		let vaoBounded = false;
+		let task: TaskBase;
 
-		const count = tasks.length;
-		for (let i = 0; i < count; i++) {
-			const task = tasks[i];
-
+		// iterate while filter have tasks
+		while ((task = filter.nextTask())) {
 			task.preActivate(stage);
+
 			stage.setRenderTarget(task.target, false, 0, 0, true);
 			stage.setScissor(task.clipRect);
 
@@ -356,16 +348,19 @@ export class FilterManager {
 			context.setProgram(task.getProgram(stage));
 			context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
-			if (!task.activateInternaly) {
-				task.source
-					.getAbstraction<_Stage_ImageBase>(stage)
-					.activate(task.sourceSamplerIndex, this._filterSampler);
+			// bind filter elements for first pass after set program
+			if (!vaoBounded) {
+				this._bindFilterElements();
+				vaoBounded = true;
 			}
 
 			task.activate(stage, null, null);
 
 			context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
+
+			// maybe MSAA, present is required
 			context._texContext._currentRT.present();
+
 			task.deactivate(stage);
 		}
 
@@ -377,6 +372,7 @@ export class FilterManager {
 
 		filter.clear(this);
 		stage.setScissor(null);
+
 		this._unbindFilterElements();
 	}
 

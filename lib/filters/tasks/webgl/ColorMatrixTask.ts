@@ -1,5 +1,5 @@
 import { ProjectionBase, ColorTransform } from '@awayjs/core';
-import { Image2D } from '../../../image/Image2D';
+import { _Stage_Image2D, Image2D } from '../../../image/Image2D';
 import { TaskBaseWebGL } from './TaskBaseWebgGL';
 import { Stage } from '../../../Stage';
 
@@ -168,11 +168,13 @@ export class ColorMatrixTask extends TaskBaseWebGL {
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
 		super.computeVertexData();
 
+		this._source.getAbstraction<_Stage_Image2D>(_stage).activate(0);
+
 		const prog = this._program3D;
 
 		prog.uploadUniform('uTexMatrix', this._vertexConstantData);
 
-		// upload only when a transfrom a REAL changed or after shader rebound
+		// upload only when a transform a REAL changed or after shader rebound
 		if (this._mode && (this._dataChanged || prog.focusId !== this._focusId)) {
 			prog.uploadUniform('uTransformData', this._fragData);
 		}

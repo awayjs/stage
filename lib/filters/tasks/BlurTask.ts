@@ -4,6 +4,7 @@ import { Stage } from '../../Stage';
 import { Image2D } from '../../image/Image2D';
 import { TaskBaseWebGL } from './webgl/TaskBaseWebgGL';
 import { ProgramWebGL } from '../../webgl/ProgramWebGL';
+import { _Stage_ImageBase } from '../../image';
 
 export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	private static MAX_AUTO_SAMPLES: number = 15;
@@ -97,9 +98,12 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
 		super.computeVertexData();
+		const program = this._program3D;
 
-		(<ProgramWebGL> this._program3D).uploadUniform('uTexMatrix', this._vertexConstantData);
-		(<ProgramWebGL> this._program3D).uploadUniform('uBlurData', this._data);
+		this._source.getAbstraction<_Stage_ImageBase>(_stage).activate(0);
+
+		program.uploadUniform('uTexMatrix', this._vertexConstantData);
+		program.uploadUniform('uBlurData', this._data);
 	}
 
 	public preActivate(_stage: Stage) {

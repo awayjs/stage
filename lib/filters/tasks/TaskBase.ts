@@ -1,13 +1,13 @@
 import { AbstractMethodError, ByteArray, ProjectionBase, Rectangle } from '@awayjs/core';
 import { ShaderRegisterCache } from '../../shaders/ShaderRegisterCache';
 import { ShaderRegisterElement } from '../../shaders/ShaderRegisterElement';
-import { Image2D } from '../../image/Image2D';
 import { IProgram } from '../../base/IProgram';
 import { ContextGLProfile } from '../../base/ContextGLProfile';
 import { Stage } from '../../Stage';
 import { AGALMiniAssembler } from '../../aglsl/assembler/AGALMiniAssembler';
 import { IContextGL } from '../../base/IContextGL';
 import { ContextGLProgramType } from '../../base/ContextGLProgramType';
+import { _Stage_ImageBase, Image2D } from '../../image';
 
 export class TaskBase {
 	protected _vertexConstantData = new Float32Array([
@@ -110,14 +110,13 @@ export class TaskBase {
 
 		this._uvVarying = this._registerCache.getFreeVarying();
 
-		const code = 'mul ' + temp1 + '.xy, ' + position + ', ' + posRect + '.zw\n' +
+		return 'mul ' + temp1 + '.xy, ' + position + ', ' + posRect + '.zw\n' +
 			'add ' + temp1 + '.xy, ' + temp1 + ', ' + posRect + '.xy\n' +
 			'mov ' + temp1 + '.w, ' + position + '.w\n' +
 			'mov op, ' + temp1 + '\n' +
 			'mul ' + temp1 + '.xy, ' + position + ', ' + uvRect + '.zw\n' +
 			'add ' + this._uvVarying + ', ' + temp1 + ', ' + uvRect + '.xy\n';
 
-		return code;
 	}
 
 	public getFragmentCode(): string {
@@ -175,6 +174,12 @@ export class TaskBase {
 		this.computeVertexData();
 
 		const context: IContextGL = stage.context;
+
+		// attach source
+		this.source
+			.getAbstraction<_Stage_ImageBase>(stage)
+			.activate(this.sourceSamplerIndex);
+
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
 	}
 

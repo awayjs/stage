@@ -1,5 +1,5 @@
 import { ProjectionBase } from '@awayjs/core';
-import { Image2D, _Stage_Image2D } from '../../../image/Image2D';
+import { Image2D, _Stage_Image2D } from '../../../image';
 import { Stage } from '../../../Stage';
 import { FilterUtils } from '../../../utils/FilterUtils';
 import { GradientAtlass } from '../../../utils/GradientAtlass';
@@ -332,7 +332,9 @@ export class BevelTask extends TaskBaseWebGL {
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
 		super.computeVertexData();
 
-		const tex = this._source;
+		const inputImage = this._source;
+		const inputRect = this.inputRect;
+		const sourceImage = this.sourceImage;
 		const prog = this._program3D;
 		const needUpload = prog.focusId !== this._focusId;
 
@@ -341,19 +343,20 @@ export class BevelTask extends TaskBaseWebGL {
 		if (needUpload || this._dirInvalid) {
 			const rad = this.angle * Math.PI / 180;
 			prog.uploadUniform('uDir', [
-				Math.cos(rad) * this.distance / tex.width,
-				Math.sin(rad) * this.distance / tex.height
+				Math.cos(rad) * this.distance / inputImage.width,
+				Math.sin(rad) * this.distance / inputImage.height
 			]);
 		}
 
 		prog.uploadUniform('uStrength', this.strength);
 		prog.uploadUniform('uTexMatrixSource', [
 			0, 0,
-			this.inputRect.width / this.sourceImage.width,
-			this.inputRect.height / this.sourceImage.height,
+			inputRect.width / sourceImage.width,
+			inputRect.height / sourceImage.height,
 		]);
 
-		this.sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
+		inputImage.getAbstraction<_Stage_Image2D>(_stage).activate(0);
+		sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
 
 		if (this._renderMode === BEVEL_MODE.GRADIENT) {
 			this._currentAtlass.getAbstraction<_Stage_Image2D>(_stage).activate(2);
