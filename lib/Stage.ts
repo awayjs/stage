@@ -35,6 +35,13 @@ import { FilterManager } from './managers/FilterManager';
 import { BUFFER_FORMATS_MAP } from './utils/BufferFormat';
 
 const TMP_POINT = { x: 0, y: 0 };
+interface ITargetConf {
+	target: ImageBase;
+	mipSelector: number;
+	surfaceSelector: number;
+	depthStencil: boolean;
+	msaa: boolean;
+}
 
 /**
  * Stage provides a proxy class to handle the creation and attachment of the Context
@@ -67,10 +74,16 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _profile: ContextGLProfile;
 	private _stageManager: StageManager;
 	private _antiAlias: number = 4;
-	private _enableDepthAndStencil: boolean;
-	private _renderTarget: ImageBase = null;
-	private _renderSurfaceSelector: number = 0;
-	private _renderMipmapSelector: number = 0;
+
+	private readonly savedTargetStack: Array<ITargetConf> = [];
+	private readonly _activeTargetConf: ITargetConf = {
+		mipSelector: 0,
+		surfaceSelector: 0,
+		target: null,
+		depthStencil: true,
+		msaa: true
+	};
+
 	private _color: number;
 	private _backBufferDirty: boolean;
 	private _sizeDirty: boolean;
@@ -136,8 +149,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._stageManager = stageManager;
 
-		this._enableDepthAndStencil = true;
-
 		CSS.setElementX(this._container, 0);
 		CSS.setElementY(this._container, 0);
 
@@ -175,6 +186,37 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		return this._programDataPool.getItem(vertexString, fragmentString);
 	}
 
+	/**
+	 * Safe current target config to stack
+	 */
+	public pushRenderTargetConfig() {
+		this.savedTargetStack.push(Object.assign({}, this._activeTargetConf));
+	}
+
+	/**
+	 * Pop render target config and apply it, used for deep caching
+	 */
+	public popRenderTarget() {
+		if (this.savedTargetStack.length === 0)
+			return;
+
+		const {
+			target,
+			depthStencil,
+			surfaceSelector,
+			mipSelector,
+			msaa
+		} = this.savedTargetStack.pop();
+
+		this.setRenderTarget(
+			target,
+			depthStencil,
+			surfaceSelector,
+			mipSelector,
+			!msaa
+		);
+	}
+
 	public setRenderTarget(
 		target: ImageBase & {antialiasQuality?: number},
 		enableDepthAndStencil: boolean = false,
@@ -182,18 +224,21 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		mipmapSelector: number = 0,
 		disableMSAA = false
 	): void {
+		const conf = this._activeTargetConf;
 
-		if (this._renderTarget === target
-			&& surfaceSelector === this._renderSurfaceSelector
-			&& mipmapSelector === this._renderMipmapSelector
-			&& this._enableDepthAndStencil === enableDepthAndStencil)
-
+		if (conf.target === target
+			&& surfaceSelector === conf.surfaceSelector
+			&& mipmapSelector === conf.mipSelector
+			&& conf.depthStencil === enableDepthAndStencil
+		) {
 			return;
+		}
 
-		this._renderTarget = target;
-		this._renderSurfaceSelector = surfaceSelector;
-		this._renderMipmapSelector = mipmapSelector;
-		this._enableDepthAndStencil = enableDepthAndStencil;
+		conf.msaa = !disableMSAA;
+		conf.target = target;
+		conf.surfaceSelector = surfaceSelector;
+		conf.mipSelector = mipmapSelector;
+		conf.depthStencil = enableDepthAndStencil;
 
 		if (target) {
 			const targetStageElement = target.getAbstraction<_Stage_ImageBase>(this);
@@ -213,7 +258,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			}
 		} else {
 			this._context.setRenderToBackBuffer();
-			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+			this.configureBackBuffer(this._width, this._height, this._antiAlias, conf.depthStencil);
 		}
 	}
 
@@ -437,7 +482,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this.height = backBufferHeight;
 
 		this._antiAlias = antiAlias;
-		this._enableDepthAndStencil = enableDepthAndStencil;
+		this._activeTargetConf.depthStencil = enableDepthAndStencil;
 
 		if (this._context)
 			this._context.configureBackBuffer(backBufferWidth, backBufferHeight, antiAlias, enableDepthAndStencil);
@@ -447,20 +492,19 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	 * Indicates whether the depth and stencil buffer is used
 	 */
 	public get enableDepthAndStencil(): boolean {
-		return this._enableDepthAndStencil;
+		return this._activeTargetConf.depthStencil;
 	}
 
 	public set enableDepthAndStencil(enableDepthAndStencil: boolean) {
-		if (this._enableDepthAndStencil == enableDepthAndStencil)
+		if (this._activeTargetConf.depthStencil == enableDepthAndStencil)
 			return;
 
-		this._enableDepthAndStencil = enableDepthAndStencil;
-
+		this._activeTargetConf.depthStencil = enableDepthAndStencil;
 		this._backBufferDirty = true;
 	}
 
 	public get renderSurfaceSelector(): number {
-		return this._renderSurfaceSelector;
+		return this._activeTargetConf.surfaceSelector;
 	}
 
 	/*
@@ -473,10 +517,14 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		if (!this._context)
 			return;
 
-		if (this._backBufferDirty && this._renderTarget == null) {
+		if (this._backBufferDirty && this._activeTargetConf.target == null) {
 			this._backBufferDirty = false;
 
-			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+			this.configureBackBuffer(
+				this._width,
+				this._height,
+				this._antiAlias,
+				this._activeTargetConf.depthStencil);
 		}
 
 		this._context.clear(red, green, blue, alpha, depth, stencil, mask);
@@ -632,8 +680,13 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		// Only configure back buffer if width and height have been set,
 		// which they may not have been if View.render() has yet to be
 		// invoked for the first time.
-		if (this._width && this._height)
-			this._context.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+		if (this._width && this._height) {
+			this._context.configureBackBuffer(
+				this._width,
+				this._height,
+				this._antiAlias,
+				this._activeTargetConf.depthStencil);
+		}
 
 		// Dispatch the appropriate event depending on whether context was
 		// created for the first time or recreated after a device loss.
@@ -653,10 +706,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public setScissor(rectangle: Rectangle): void {
-		if (this._backBufferDirty && this._renderTarget == null) {
+		if (this._backBufferDirty && this._activeTargetConf.target == null) {
 			this._backBufferDirty = false;
 
-			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._enableDepthAndStencil);
+			this.configureBackBuffer(this._width, this._height, this._antiAlias, this._activeTargetConf.depthStencil);
 		}
 
 		if (!this._lastScissorBox && !rectangle) {
