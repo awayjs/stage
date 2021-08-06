@@ -27,6 +27,7 @@ import {
 import { CopyFilterInstanced } from '../filters/CopyFilterInstanced';
 import { Settings } from '../Settings';
 import { TaskBase } from '../filters/tasks/TaskBase';
+import ImageUtils from '../utils/ImageUtils';
 
 type TmpImage2D = Image2D & {poolKey: string, antialiasQuality: number};
 
@@ -36,7 +37,10 @@ const tmpOutputRectFilter = new Rectangle();
 const tmpZERO = Object.freeze(new Point(0,0));
 
 export class FilterManager {
-	private static MAX_TMP_TEXTURE = 4096;
+	private static get MAX_TMP_TEXTURE() {
+		return ImageUtils.MAX_SIZE;
+	}
+
 	private static MIN_TMP_TEXTURE = 64;
 	private _texturePool: Record<string, TmpImage2D[]> = {};
 
@@ -80,14 +84,14 @@ export class FilterManager {
 		}
 	}
 
-	public popTemp (width: number, height: number, msaa: boolean = false): TmpImage2D {
-		width = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(width - 1));
-		height = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(height - 1));
+	public popTemp (_width: number, _height: number, msaa: boolean = false): TmpImage2D {
+		let width = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(_width - 1));
+		let height = Math.max(FilterManager.MIN_TMP_TEXTURE, 2 << Math.log2(_height - 1));
 
 		if (width > FilterManager.MAX_TMP_TEXTURE || height > FilterManager.MAX_TMP_TEXTURE) {
 
 			// eslint-disable-next-line max-len
-			console.warn(`[Filter manager] Temporary texture size ${width}x${height} is bigger that limit, clamp to ${FilterManager.MAX_TMP_TEXTURE}`);
+			console.warn(`[Filter manager] Temporary texture size ${width}x${height} for ${_width}x${_height} is bigger that limit, clamp to ${FilterManager.MAX_TMP_TEXTURE}`);
 
 			width = Math.min(width, FilterManager.MAX_TMP_TEXTURE);
 			height = Math.min(height, FilterManager.MAX_TMP_TEXTURE);
