@@ -56,6 +56,10 @@ export class FilterBase {
 			: null;
 	}
 
+	public hasNextTask() {
+		return this._tasks.length < this._activeTaskIndex;
+	}
+
 	public meashurePad(input: Rectangle, target: Rectangle = input.clone()): Rectangle {
 		if (input === target)
 			return  target;

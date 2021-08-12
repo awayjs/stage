@@ -195,6 +195,7 @@ export class FilterManager {
 		destRectOrPoint: Rectangle | Point,
 		_filterNameOrProps: string | IBitmapFilterProps, // legacy
 		_options?: IBitmapFilterProps,
+		_clearOutput: boolean = false
 	): boolean {
 		const options = typeof _filterNameOrProps === 'string' ? _options : _filterNameOrProps;
 
@@ -209,12 +210,13 @@ export class FilterManager {
 			return false;
 		}
 
-		this.context.setBlendFactors(ContextGLBlendFactor.ONE, ContextGLBlendFactor.ONE_MINUS_SOURCE_ALPHA);
 		this.renderFilter(
 			source,
 			target,
 			sourceRect || source.rect,
-			destRectOrPoint || source.rect, <FilterBase><any>filter);
+			destRectOrPoint || source.rect,
+			<FilterBase><any>filter
+		);
 
 		return true;
 	}
@@ -259,19 +261,45 @@ export class FilterManager {
 		if (opts.length === 0)
 			return false;
 
-		if (opts.length === 1)
-			return this.applyFilter(source, target, sourceRect, destRectOrPoint, opts[0]);
+		if (opts.length === 1) {
+			const filter = <FilterBase> this.getFilter(opts[0].filterName, opts[0]);
+
+			if (!filter.isValid) {
+				return false;
+			}
+
+			this.renderFilter(
+				source,
+				target,
+				sourceRect || source.rect,
+				destRectOrPoint || source.rect,
+				filter,
+				true
+			);
+
+			return true;
+		}
 
 		let flip = this.popTemp(target.width, target.height);
 		let flop = this.popTemp(target.width, target.height);
 
 		for (let i = 0; i < opts.length; i++) {
-			this.applyFilter(
-				(i === 0) ? source : flip,
-				(i === opts.length - 1) ? target : flop,
-				sourceRect,
-				destRectOrPoint,
-				opts[i]
+			const filter = <FilterBase> this.getFilter(opts[i].filterName, opts[i]);
+
+			if (!filter.isValid) {
+				return false;
+			}
+
+			const inputImage = i === 0 ? source : flip;
+			const outputImage = (i === opts.length - 1) ? target : flop;
+
+			this.renderFilter(
+				inputImage,
+				outputImage,
+				sourceRect || source.rect,
+				destRectOrPoint || source.rect,
+				filter,
+				i < (opts.length - 1)
 			);
 
 			[flip, flop] = [flop, flip];
@@ -279,6 +307,8 @@ export class FilterManager {
 
 		this.pushTemp(flip);
 		this.pushTemp(flop);
+
+		return true;
 	}
 
 	public renderFilter(
@@ -286,7 +316,8 @@ export class FilterManager {
 		target: Image2D,
 		inputRect: Rectangle,
 		outputRect: Rectangle | Point,
-		filter: FilterBase
+		filter: FilterBase,
+		clearOutput = false
 	): void {
 
 		this._initFilterElements();
@@ -333,7 +364,7 @@ export class FilterManager {
 		context.setBlendState(filter.requireBlend);
 		context.setCulling(ContextGLTriangleFace.NONE);
 
-		let vaoBounded = false;
+		let isFirstTask = true;
 		let task: TaskBase;
 
 		// iterate while filter have tasks
@@ -345,7 +376,8 @@ export class FilterManager {
 
 			// because we use TMP image, need clear it
 			// but this is needed only when a blend composer is required, when a copy filter used
-			if (renderToSelf && filter.requireBlend || task.needClear) {
+			// or when required by filter chain, clear output for end task
+			if (renderToSelf && filter.requireBlend || task.needClear || clearOutput && !filter.hasNextTask()) {
 				context.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
 			}
 
@@ -353,9 +385,9 @@ export class FilterManager {
 			context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
 			// bind filter elements for first pass after set program
-			if (!vaoBounded) {
+			if (isFirstTask) {
 				this._bindFilterElements();
-				vaoBounded = true;
+				isFirstTask = false;
 			}
 
 			task.activate(stage, null, null);

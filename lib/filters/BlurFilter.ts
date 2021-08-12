@@ -93,15 +93,6 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		outRect: Rectangle,
 		filterManage: FilterManager
 	) {
-		/*
-		const pad = FilterUtils.meashureBlurPad(
-			this.blurX,
-			this.blurY,
-			3,
-			false
-		);
-		*/
-
 		const subPassTarget = filterManage.popTemp(
 			source.width,
 			source.height
@@ -125,14 +116,12 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		);
 
 		// but we can use a clip to kill non-used
-		/* this._vBlurTask.clipRect = new Rectangle(
+		this._vBlurTask.clipRect = new Rectangle(
 			0,0,
 			source.width,
 			source.height
 		);
-		*/
-
-		//this._vBlurTask.clipRect = this._hBlurTask.clipRect;
+		this._hBlurTask.clipRect = this._vBlurTask.clipRect;
 
 		// emit real
 		// crop a dest rectanle
