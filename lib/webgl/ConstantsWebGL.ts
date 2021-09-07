@@ -1,5 +1,5 @@
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
-import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ContextGLBlendEquation, ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLMipFilter } from '../base/ContextGLMipFilter';
 import { ContextGLStencilAction } from '../base/ContextGLStencilAction';
@@ -43,6 +43,7 @@ export const MIP_FILTER = {
 /* eslint-disable */
 //setup shortcut dictionaries
 const BF = ContextGLBlendFactor;
+const BE = ContextGLBlendEquation;
 
 export const BLEND_OP = {
 	[BF.ONE]: 0x1, // gl.ONE,
@@ -56,6 +57,14 @@ export const BLEND_OP = {
 	[BF.SOURCE_COLOR]: 0x0300, // gl.SRC_COLOR,
 	[BF.ZERO]: 0x0 // gl.ZERO
 };
+
+export const BLEND_EQ = {
+	[BE.ADD]: 0x8006,
+	[BE.SUBTRACT]: 0x800A,
+	[BE.REVERSE_SUBTRACT]: 0x800B,
+	[BE.MIN]: 0x8007,
+	[BE.MAX]: 0x8008
+}
 
 export const DRAW_MODE = {
 	[ContextGLDrawMode.LINES]: 0x0001, // gl.LINES,

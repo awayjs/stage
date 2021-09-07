@@ -1,6 +1,6 @@
-import { Rectangle, CoordinateSystem, Point } from '@awayjs/core';
+import { CoordinateSystem, Point, Rectangle } from '@awayjs/core';
 import { BitmapImage2D } from '../image/BitmapImage2D';
-import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ContextGLBlendEquation, ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
@@ -47,8 +47,10 @@ export class ContextWebGL implements IContextGL {
 
 	// [x, y, w, h]
 	private _viewportState: State<number> = new State(0,0,0,0);
-	// [enable, func, src, dst, srcA, dstA];
-	private _blendState: State<number> = new State(0,0,0,0, -1, -1);
+	// [enable, func, funcA, src, dst, srcA, dstA];
+	private _blendState: State<number> = new State(
+		0,GL_MAP.BLEND_EQ[ContextGLBlendEquation.ADD], GL_MAP.BLEND_EQ[ContextGLBlendEquation.ADD], 0,0, -1, -1);
+
 	// [r, g, b, a]
 	private _colorMapState: State<boolean> = new State(true, true, true, true);
 	// [r, g, b, a]
@@ -509,6 +511,14 @@ export class ContextWebGL implements IContextGL {
 		this._blendState.setAt(0, +enable);
 	}
 
+	public setBlendEquation (
+		equationRGB: ContextGLBlendEquation,
+		equationA: ContextGLBlendEquation = equationRGB
+	) {
+		this._blendState.setAt(1, GL_MAP.BLEND_EQ[equationRGB]);
+		this._blendState.setAt(2, GL_MAP.BLEND_EQ[equationA]);
+	}
+
 	public setBlendFactors(
 		sourceFactor: ContextGLBlendFactor,
 		destinationFactor: ContextGLBlendFactor,
@@ -524,7 +534,7 @@ export class ContextWebGL implements IContextGL {
 
 		if (sourceAlphaFactor == void 0) {
 			// disable separated mode
-			this._blendState.set(+true, gl.FUNC_ADD, src, dst, -1, -1);
+			this._blendState.set(+true, gl.FUNC_ADD, gl.FUNC_ADD, src, dst, -1, -1);
 		} else {
 			if (typeof sourceAlphaFactor !== typeof destinationAlphaFactor) {
 				// eslint-disable-next-line max-len
@@ -534,7 +544,7 @@ export class ContextWebGL implements IContextGL {
 			const srcA = GL_MAP.BLEND_OP[sourceAlphaFactor];
 			const dstA = GL_MAP.BLEND_OP[destinationAlphaFactor];
 			// endable seprated mode
-			this._blendState.set(+true, gl.FUNC_ADD, src, dst, srcA, dstA);
+			this._blendState.set(+true, gl.FUNC_ADD, gl.FUNC_ADD, src, dst, srcA, dstA);
 		}
 	}
 
@@ -827,7 +837,7 @@ export class ContextWebGL implements IContextGL {
 		const delta = bs.deltaDirty();
 
 		// lock last applied state, used for avoid change state over unused, like A (draw) => B => A (draw)
-		// B state is redurant and shoul be ignored
+		// B state is redundant and should be ignored
 		bs.lock(true);
 
 		if (!v[0] && delta[0]) {
@@ -838,15 +848,21 @@ export class ContextWebGL implements IContextGL {
 		delta[0] && this._gl.enable(this._gl.BLEND);
 
 		// always ADD
-		(delta[1] || delta[0]) && this._gl.blendEquation(v[1]);
+		if (delta[0] || delta[1] || delta[2]) {
+			if (v[1] !== v[2]) {
+				this._gl.blendEquationSeparate(v[1], v[2]);
+			} else {
+				this._gl.blendEquation(v[1]);
+			}
+		}
 
 		// we check that we use separatedBlendMode, for this v[4] (src_alpha) MUST be > -1
 		// not required check a delta for it
-		if (delta[0] || delta[2] || delta[3] || v[4] !== -1) {
-			if (v[4] !== -1) {
-				this._gl.blendFuncSeparate(v[2], v[3], v[4], v[5]);
+		if (delta[0] || delta[3] || delta[4] || v[5] !== -1) {
+			if (v[5] !== -1) {
+				this._gl.blendFuncSeparate(v[3], v[4], v[5], v[6]);
 			} else {
-				this._gl.blendFunc(v[2], v[3]);
+				this._gl.blendFunc(v[3], v[4]);
 			}
 		}
 	}

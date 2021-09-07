@@ -18,7 +18,7 @@ export { Mapping } from './lib/aglsl/Mapping';
 export { OpLUT } from './lib/aglsl/OpLUT';
 export { Token } from './lib/aglsl/Token';
 
-export { ContextGLBlendFactor } from './lib/base/ContextGLBlendFactor';
+export { ContextGLBlendFactor, ContextGLBlendEquation } from './lib/base/ContextGLBlendFactor';
 export { ContextGLClearMask } from './lib/base/ContextGLClearMask';
 export { ContextGLCompareMode } from './lib/base/ContextGLCompareMode';
 export { ContextGLDrawMode } from './lib/base/ContextGLDrawMode';

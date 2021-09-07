@@ -1,7 +1,7 @@
 import { Rectangle, CoordinateSystem, Point } from '@awayjs/core';
 
 import { BitmapImage2D } from '../image/BitmapImage2D';
-import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ContextGLBlendEquation, ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import { ContextGLClearMask } from '../base/ContextGLClearMask';
 import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
@@ -62,6 +62,10 @@ export interface IContextGL
 
 	present();
 
+	setBlendEquation (
+		equationRGB: ContextGLBlendEquation,
+		equationA: ContextGLBlendEquation
+	);
 	setBlendFactors(
 		sourceFactor: ContextGLBlendFactor,
 		destinationFactor: ContextGLBlendFactor,
