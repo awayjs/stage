@@ -32,8 +32,8 @@ export class ThresholdTask extends TaskBase {
 	}
 
 	private _operation: TThresholdOperator = '<';
-	private _op: string;
-	private _th: boolean;
+	private _op: string = 'slt ';
+	private _th: boolean = false;
 
 	private _threshold: number = 0;
 	private _thresholdRGBA: Vector3D = new Vector3D();
