@@ -2,22 +2,24 @@ import { ITexture } from '../base/ITexture';
 import { Image2D, _Stage_Image2D } from '../image/Image2D';
 import { FilterUtils } from './FilterUtils';
 
-interface IAtlassEntry {
+interface IAtlasEntry {
 	hash: string;
 	index: number;
 }
 
-export class GradientAtlass extends Image2D {
+export class GradientAtlas extends Image2D {
+	public static assetType = '[image GradientAtlas]';
+
 	/* internal*/ _data: Uint8Array = new Uint8Array(4 * 256 * 256);
-	private _gradMap: Record<string, IAtlassEntry> = {};
+	private _gradMap: Record<string, IAtlasEntry> = {};
 	private _count: number = 0;
 
-	public static gradientAtlasses: GradientAtlass[] = [];
+	public static gradientAtlases: GradientAtlas[] = [];
 
-	public static getAtlassForHash(hash: string, findEmpty = true): GradientAtlass {
-		let atlass: GradientAtlass;
+	public static getAtlassForHash(hash: string, findEmpty = true): GradientAtlas {
+		let atlass: GradientAtlas;
 
-		for (const at of this.gradientAtlasses) {
+		for (const at of this.gradientAtlases) {
 			if (at.hasGradient(hash)) {
 				atlass = at;
 				break;
@@ -32,14 +34,14 @@ export class GradientAtlass extends Image2D {
 			return null;
 		}
 
-		for (const at of this.gradientAtlasses) {
+		for (const at of this.gradientAtlases) {
 			if (!at.full) {
 				return at;
 			}
 		}
 
-		atlass = new GradientAtlass();
-		this.gradientAtlasses.push(atlass);
+		atlass = new GradientAtlas();
+		this.gradientAtlases.push(atlass);
 
 		return atlass;
 	}
@@ -56,7 +58,7 @@ export class GradientAtlass extends Image2D {
 		return this._count === 256;
 	}
 
-	public get lenght() {
+	public get length() {
 		return this._count;
 	}
 
@@ -68,7 +70,7 @@ export class GradientAtlass extends Image2D {
 		return this._gradMap[hash];
 	}
 
-	public setGradient (colors: number[], alphas: number[], ratios: number[]): IAtlassEntry | null {
+	public setGradient (colors: number[], alphas: number[], ratios: number[]): IAtlasEntry | null {
 		if (!colors || !alphas || !ratios) {
 			return null;
 		}
@@ -78,7 +80,7 @@ export class GradientAtlass extends Image2D {
 			return;
 		}
 
-		const hash = GradientAtlass.computeHash(colors, alphas, ratios);
+		const hash = GradientAtlas.computeHash(colors, alphas, ratios);
 
 		if (hash in this._gradMap) {
 			return this._gradMap[hash];
@@ -144,7 +146,7 @@ export class _Stage_GradientAtlass extends _Stage_Image2D {
 		super.getTexture();
 
 		if (this._invalid) {
-			(<ITexture> this._texture).uploadFromArray((<GradientAtlass> this._asset)._data, 0, false);
+			(<ITexture> this._texture).uploadFromArray((<GradientAtlas> this._asset)._data, 0, false);
 		}
 
 		this._invalid = false;

@@ -2,7 +2,7 @@ import { ProjectionBase } from '@awayjs/core';
 import { Image2D, _Stage_Image2D } from '../../../image';
 import { Stage } from '../../../Stage';
 import { FilterUtils } from '../../../utils/FilterUtils';
-import { GradientAtlass } from '../../../utils/GradientAtlass';
+import { GradientAtlas } from '../../../utils/GradientAtlas';
 import { TaskBaseWebGL } from './TaskBaseWebgGL';
 
 const enum BEVEL_MODE {
@@ -103,7 +103,7 @@ export class BevelTask extends TaskBaseWebGL {
 
 	public sourceImage: Image2D;
 
-	private _currentAtlass: GradientAtlass;
+	private _currentAtlass: GradientAtlas;
 	private _currentIndex: number = 0;
 	private _currentHash: string;
 	private _gradInvalid: boolean = false;
@@ -300,7 +300,7 @@ export class BevelTask extends TaskBaseWebGL {
 			return;
 		}
 
-		const hash = GradientAtlass.computeHash(this._colors, this._alphas, this._ratios);
+		const hash = GradientAtlas.computeHash(this._colors, this._alphas, this._ratios);
 
 		this._gradInvalid = false;
 
@@ -308,7 +308,7 @@ export class BevelTask extends TaskBaseWebGL {
 			return;
 		}
 
-		const atlass = this._currentAtlass = GradientAtlass.getAtlassForHash(hash, true);
+		const atlass = this._currentAtlass = GradientAtlas.getAtlassForHash(hash, true);
 
 		if (atlass.hasGradient(hash)) {
 			this._currentIndex = atlass.getGradient(hash).index;

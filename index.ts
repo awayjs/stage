@@ -111,7 +111,7 @@ import {
 	SpecularImage2D, /* _Stage_BitmapImage2D */
 } from './lib/image';
 
-import { GradientAtlass, _Stage_GradientAtlass } from './lib/utils/GradientAtlass';
+import { GradientAtlas, _Stage_GradientAtlass } from './lib/utils/GradientAtlas';
 import { DefaultGraphicsFactory } from './lib/factories/DefaultGraphicsFactory';
 import { Image2DParser } from './lib/parsers/Image2DParser';
 import { ImageCubeParser } from './lib/parsers/ImageCubeParser';
@@ -138,4 +138,4 @@ Stage.registerAbstraction(_Stage_BitmapImage2D, BitmapImage2D);
 Stage.registerAbstraction(_Stage_BitmapImageCube, BitmapImageCube);
 Stage.registerAbstraction(_Stage_ExternalImage2D, ExternalImage2D);
 Stage.registerAbstraction(_Stage_BitmapImage2D, SpecularImage2D);
-Stage.registerAbstraction(_Stage_GradientAtlass, GradientAtlass);
+Stage.registerAbstraction(_Stage_GradientAtlass, GradientAtlas);
