@@ -11,6 +11,7 @@ const DEFAULT_BLEND_MAP = {
 	[BlendMode.NORMAL] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
 	[BlendMode.LAYER] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
 	[BlendMode.ERASE] : [BF.ZERO, BF.ONE_MINUS_SOURCE_ALPHA],
+	[BlendMode.ALPHA + '_back'] : [BF.DESTINATION_ALPHA, BF.ZERO],
 };
 
 export interface IColorMatrix {
