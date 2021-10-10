@@ -594,7 +594,10 @@ export class FilterManager {
 		this._thresholdFilter.threshold = threshold;
 		this._thresholdFilter.color = color;
 		this._thresholdFilter.mask = mask;
-		this._thresholdFilter.copySource = copySource;
+		// if we copy self to self with same location - this means that anyways source pixel will used
+		// without this hack need use a more complex implementation
+		// eslint-disable-next-line max-len
+		this._thresholdFilter.copySource = copySource || (source === target && rect.x === destPoint.x && rect.y === destPoint.y);
 
 		this.renderFilter(source, target, rect, destPoint, this._thresholdFilter);
 	}

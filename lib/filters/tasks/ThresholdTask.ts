@@ -36,13 +36,13 @@ export class ThresholdTask extends TaskBase {
 	private _th: boolean = false;
 
 	private _threshold: number = 0;
-	private _thresholdRGBA: Vector3D = new Vector3D();
+	private _thresholdRGBA: Vector3D = new Vector3D(0,0,0,0);
 
 	private _color: number = 0;
-	private _colorRGBA: Vector3D = new Vector3D();
+	private _colorRGBA: Vector3D = new Vector3D(0,0,0,0);
 
 	private _mask: number = 0;
-	private _maskRGBA: Vector3D = new Vector3D();
+	private _maskRGBA: Vector3D = new Vector3D(1,1,1,1);
 
 	private _copySource: boolean = false;
 
@@ -129,7 +129,10 @@ export class ThresholdTask extends TaskBase {
 		super();
 
 		this._fragmentConstantData = new Float32Array([
-			0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 65025.0, 255.0, 1.0, 16581375.0
+			0.0, 0.0, 0.0, 0.0, // comparable
+			0.0, 0.0, 0.0, 0.0, // color
+			0.0, 0.0, 0.0, 0.0, // mask
+			65025.0, 255.0, 1.0, 16581375.0 //decode
 		]);
 	}
 
