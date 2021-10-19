@@ -34,8 +34,8 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 	constructor(props?: Partial<IBlurFilterProps>) {
 		super();
 
-		this._hBlurTask = new BlurTask(props?.blurX || 4, -1, true);
-		this._vBlurTask = new BlurTask(props?.blurY || 4, -1, false);
+		this._hBlurTask = new BlurTask(props?.blurX || 4, true);
+		this._vBlurTask = new BlurTask(props?.blurY || 4, false);
 
 		this.addTask(this._hBlurTask);
 		this.addTask(this._vBlurTask);
@@ -53,19 +53,6 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		if ('imageScale' in props) {
 			this.imageScale = props.imageScale || 1;
 		}
-	}
-
-	/**
-	 * The distance between two blur samples. Set to -1 to autodetect with acceptable quality (default value).
-	 * Higher values provide better performance at the cost of reduces quality.
-	 */
-	public get stepSize(): number {
-		return this._hBlurTask.stepSize;
-	}
-
-	public set stepSize(value: number) {
-		this._hBlurTask.stepSize = value;
-		this._vBlurTask.stepSize = value;
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
