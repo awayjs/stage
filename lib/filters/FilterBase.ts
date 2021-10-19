@@ -25,7 +25,7 @@ export class FilterBase {
 		return true;
 	}
 
-	public imageScale: number = 1;
+	public imageScale: number;
 
 	public get requireBlend() {
 		return false;
@@ -48,6 +48,15 @@ export class FilterBase {
 
 		if (this._requireDepthRender == null)
 			this._requireDepthRender = filter.requireDepthRender;
+	}
+
+	public removeTask(filter: TaskBase): void {
+		const index = this._tasks.indexOf(filter);
+		if (index === -1) {
+			return;
+		}
+
+		this._tasks.slice(index, 1);
 	}
 
 	/**

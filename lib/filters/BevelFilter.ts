@@ -5,6 +5,7 @@ import { FilterUtils, PROPS_LIST, proxyTo, serialisable } from '../utils/FilterU
 import { BlurFilter, IBlurFilterProps } from './BlurFilter';
 import { IBitmapFilter } from './IBitmapFilter';
 import { BevelTask } from './tasks/webgl/BevelTask';
+import { FilterBase } from './FilterBase';
 
 export interface IBevelFilterProps extends IBlurFilterProps {
 	distance: number;
@@ -21,9 +22,10 @@ export interface IBevelFilterProps extends IBlurFilterProps {
 	knockout?: number;
 }
 
-export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IBevelFilterProps> {
+export class BevelFilter extends FilterBase implements IBitmapFilter<'bevel', IBevelFilterProps> {
 	public static readonly filterName: string = 'bevel';
 
+	protected _blurFilter = new BlurFilter();
 	protected _bevelTask = new BevelTask();
 
 	@serialisable
@@ -77,11 +79,14 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 	@proxyTo('_bevelTask')
 	knockout: boolean = false;
 
+	@serialisable
+	@proxyTo('_bevelTask')
+	imageScale: number = 1;
+
 	constructor(options?: Partial <IBevelFilterProps>) {
-		super(options);
+		super();
 
 		this.addTask(this._bevelTask);
-
 		this.applyProps(options);
 	}
 
@@ -92,33 +97,54 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 				this[key] = model[key];
 			}
 		}
+
+		this._blurFilter.applyProps(model);
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
-		const pad = FilterUtils.meashureBlurPad(
-			this.blurX,
-			this.blurY,
-			3,
-			false
-		);
+		target = this._blurFilter.meashurePad(input, target);
 
-		target.copyFrom(input);
+		let offsetX = 0;
+		let offsetY = 0;
 
 		// for outer or both need render a drop shadow with valid pad
 		const dist = this.distance;
 		if (this.type !== 'inner' && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
-			pad.x += Math.sin(rad) * dist * 2;
-			pad.y += Math.sin(rad) * dist * 2;
+			offsetX += Math.sin(rad) * dist * this.imageScale * 2;
+			offsetY += Math.sin(rad) * dist * this.imageScale * 2;
 		}
 
-		target.x -= pad.x;
-		target.y -= pad.y;
-		target.width += pad.x;
-		target.height += pad.y;
+		target.x -= offsetX;
+		target.y -= offsetY;
+		target.width += offsetX * 2;
+		target.height += offsetY * 2;
 
 		return target;
+	}
+
+	public apply(
+		source: Image2D,
+		target: Image2D,
+		sourceRect,
+		destRect,
+		filterManager: FilterManager,
+		clearOutput: boolean = false
+	) {
+		const tmp = filterManager.popTemp(source.width, source.height);
+
+		this._blurFilter.apply(source, tmp, sourceRect, tmp.rect, filterManager, true);
+		this._bevelTask.sourceImage = source;
+
+		super.apply(
+			tmp,
+			target,
+			sourceRect,
+			destRect,
+			filterManager,
+			clearOutput
+		);
 	}
 
 	public setRenderState (
@@ -131,31 +157,10 @@ export class BevelFilter extends BlurFilter implements IBitmapFilter<'bevel', IB
 
 		super.setRenderState(source, target, sourceRect, outRect, filterManager);
 
-		const subtarget = this._hBlurTask.target;
-		const secondPass = filterManager.popTemp(
-			subtarget.width,
-			subtarget.height
-		);
-
-		// emit real
-		// crop a dest rectanle
-		// ovveride blur target
-		// we use a copyFrom, because if we will use referece - we can corrupt instance
-		this._bevelTask.inputRect.copyFrom(this._vBlurTask.inputRect);
+		this._bevelTask.inputRect.copyFrom(sourceRect);
 		this._bevelTask.destRect.copyFrom(outRect);
 
-		//reset output size
-		this._vBlurTask.inputRect.setTo(0,0,0,0);
-		this._vBlurTask.destRect.setTo(0,0,0,0);
-
-		// and reset target
-		this._vBlurTask.target = secondPass;
-
-		this._bevelTask.source = secondPass;
-		this._bevelTask.sourceImage = source;
+		this._bevelTask.source = source;
 		this._bevelTask.target = target;
-
-		this._temp.push(secondPass);
-
 	}
 }

@@ -40,6 +40,8 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 
 		this.addTask(this._hBlurTask);
 		this.addTask(this._vBlurTask);
+
+		props && this.applyProps(props);
 	}
 
 	public applyProps(props: Partial<IBlurFilterProps>) {
@@ -83,7 +85,7 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 			quality++;
 		}
 
-		this.quality = quality;
+		this.quality = quality + 1;
 
 	}
 
@@ -126,7 +128,7 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 				source,
 				tmp1,
 				sourceRect,
-				destRect,
+				tmp1.rect,
 				filterManager,
 				true
 			);
@@ -138,8 +140,8 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 				super.apply(
 					tmp1,
 					tmp2,
-					sourceRect,
-					destRect,
+					tmp1.rect,
+					tmp2.rect,
 					filterManager,
 					false
 				);
@@ -153,31 +155,35 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 			super.apply(
 				tmp1,
 				target,
-				sourceRect,
+				tmp1.rect,
 				destRect,
 				filterManager,
 				clearOutput
 			);
+
+			filterManager.pushTemp(tmp1);
+			filterManager.pushTemp(tmp2);
 		}
 
 		this._hBlurTask.stepSize = stepX;
 		this._vBlurTask.stepSize = stepY;
+
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
 		const pad = FilterUtils.meashureBlurPad(
 			this.blurX,
 			this.blurY,
-			3,
+			this.quality,
 			true
 		);
 
 		target.copyFrom(input);
 
-		target.x -= pad.x;
-		target.y -= pad.y;
-		target.width += pad.x;
-		target.height += pad.y;
+		target.x -= pad.x * 2;
+		target.y -= pad.y * 2;
+		target.width += pad.x * 2;
+		target.height += pad.y * 2;
 
 		return target;
 	}

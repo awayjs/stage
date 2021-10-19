@@ -90,7 +90,7 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 		for (let i = 0; i < kernel; i++) {
 			const kernelValueIndex = i >= len ? kernel - i - 1 : i;
 			const value = gaus[kernelValueIndex].toFixed(6);
-			const offsetValue = ((2 * i + 1 - kernel) / 2).toFixed(6);
+			const offsetValue = ((2 * i + 1 - kernel)).toFixed(6);
 			const offset = hor ? `vec2(${offsetValue}, 0.0)` : `vec2(0.0, ${offsetValue})`;
 
 			body.push(`

@@ -120,6 +120,8 @@ export class DropShadowTask extends MultipleUVTask {
 		return this._distance;
 	}
 
+	public imageScale: number = 1;
+
 	constructor() {
 		// blur + source
 		super(2);
@@ -136,17 +138,18 @@ export class DropShadowTask extends MultipleUVTask {
 	public activate(_stage: Stage) {
 		const sourceImage = this.sourceImage;
 		const inputImage = this._source;
+		const sx = this.inputRect.width / sourceImage.width;
+		const sy = this.inputRect.height / sourceImage.height;
 
 		// UV for source
 		this.uvMatrices[1].set([
 			0,0,
-			this.inputRect.width / sourceImage.width,
-			this.inputRect.height / sourceImage.height,
+			sx, sy
 		], 0);
 
 		const rad = Math.PI * this._angle / 180;
-		this._uDir[0] = -Math.cos(rad) * this._distance / inputImage.width;
-		this._uDir[1] = -Math.sin(rad) * this._distance / inputImage.height;
+		this._uDir[0] = this.imageScale * -Math.cos(rad) * this._distance / sourceImage.width;
+		this._uDir[1] = this.imageScale * -Math.sin(rad) * this._distance / sourceImage.height;
 
 		inputImage.getAbstraction<_Stage_Image2D>(_stage).activate(0);
 		sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);

@@ -103,6 +103,8 @@ export class BevelTask extends TaskBaseWebGL {
 
 	public sourceImage: Image2D;
 
+	public imageScale: number = 1;
+
 	private _currentAtlass: GradientAtlas;
 	private _currentIndex: number = 0;
 	private _currentHash: string;
@@ -343,8 +345,8 @@ export class BevelTask extends TaskBaseWebGL {
 		if (needUpload || this._dirInvalid) {
 			const rad = this.angle * Math.PI / 180;
 			prog.uploadUniform('uDir', [
-				Math.cos(rad) * this.distance / inputImage.width,
-				Math.sin(rad) * this.distance / inputImage.height
+				this.imageScale * Math.cos(rad) * this.distance / inputImage.width,
+				this.imageScale *  Math.sin(rad) * this.distance / inputImage.height
 			]);
 		}
 
