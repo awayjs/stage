@@ -145,6 +145,8 @@ export class BevelFilter extends FilterBase implements IBitmapFilter<'bevel', IB
 			filterManager,
 			clearOutput
 		);
+
+		filterManager.pushTemp(tmp);
 	}
 
 	public setRenderState (

@@ -134,6 +134,8 @@ export class DropShadowFilter extends FilterBase implements IBitmapFilter<'dropS
 			filterManager,
 			clearOutput
 		);
+
+		filterManager.pushTemp(tmp);
 	}
 
 	public setRenderState (
