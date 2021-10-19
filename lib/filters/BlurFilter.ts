@@ -19,40 +19,149 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 
 	protected _hBlurTask: BlurTask;
 	protected _vBlurTask: BlurTask;
+	public quality: number = 1;
 
 	@serialisable
 	public imageScale: number = 1;
 
-	@serialisable
-	@proxyTo('_hBlurTask', 'amount')
-	public blurX: number;
+	//@serialisable
+	//@proxyTo('_hBlurTask', 'amount')
+	public blurX: number = 1;
 
-	@serialisable
-	@proxyTo('_vBlurTask', 'amount')
-	public blurY: number;
+	//@serialisable
+	//@proxyTo('_vBlurTask', 'amount')
+	public blurY: number = 1;
 
 	constructor(props?: Partial<IBlurFilterProps>) {
 		super();
 
-		this._hBlurTask = new BlurTask(props?.blurX || 4, true);
-		this._vBlurTask = new BlurTask(props?.blurY || 4, false);
+		this._hBlurTask = new BlurTask(3, true);
+		this._vBlurTask = new BlurTask(3, false);
 
 		this.addTask(this._hBlurTask);
 		this.addTask(this._vBlurTask);
 	}
 
 	public applyProps(props: Partial<IBlurFilterProps>) {
-		if ('blurX' in props) {
-			this.blurX = props.blurX;
+
+		let kernel: number;
+		let blurX = this.blurX = props.blurX;
+		let blurY = this.blurY = props.blurY;
+		let quality = props.quality || 1;
+
+		blurX = blurX > 1 ? blurX - 1 : 0;
+		blurY = blurY > 1 ? blurY - 1 : 0;
+
+		switch (quality) {
+			case 1: {
+				kernel = 2;
+				break;
+			}
+			case 2: {
+				kernel = 3;
+				blurX *= 1.05;
+				blurY *= 1.05;
+				break;
+			}
+			default: {
+				blurX *= 0.65;
+				blurY *= 0.65;
+				kernel = 5;
+			}
 		}
 
-		if ('blurY' in props) {
-			this.blurY = props.blurY;
+		this._hBlurTask.stepSize = blurX;
+		this._vBlurTask.stepSize = blurY;
+		this._hBlurTask.kernel = this._vBlurTask.kernel = kernel;
+
+		let maxAmount = Math.max(blurX, blurY);
+
+		quality = 1;
+
+		while (maxAmount >= 1.1) {
+			maxAmount /= 2;
+			quality++;
 		}
 
-		if ('imageScale' in props) {
-			this.imageScale = props.imageScale || 1;
+		this.quality = quality;
+
+	}
+
+	public apply(
+		source: Image2D,
+		target: Image2D,
+		sourceRect: Rectangle,
+		destRect: Rectangle,
+		filterManager: FilterManager,
+		clearOutput: boolean = false,
+	) {
+		const passes = this.quality;
+		const stepX = this._vBlurTask.stepSize;
+		const stepY = this._hBlurTask.stepSize;
+
+		let n = 1;
+		let t = 1;
+		for (let i = 1; i < passes; i++) {
+			t *= 2;
+			n += t;
 		}
+
+		this._hBlurTask.stepSize = stepX / n;
+		this._vBlurTask.stepSize = stepY / n;
+
+		if (passes === 1) {
+			return super.apply(
+				source,
+				target,
+				sourceRect,
+				destRect,
+				filterManager,
+				clearOutput
+			);
+		} else {
+			let tmp1 = filterManager.popTemp(source.width, source.height);
+			let tmp2 = passes > 2 ? filterManager.popTemp(source.width, source.height) : null;
+
+			super.apply(
+				source,
+				tmp1,
+				sourceRect,
+				destRect,
+				filterManager,
+				true
+			);
+
+			for (let i = 1; i < passes - 1; i++) {
+				this._hBlurTask.stepSize *= 2;
+				this._vBlurTask.stepSize *= 2;
+
+				super.apply(
+					tmp1,
+					tmp2,
+					sourceRect,
+					destRect,
+					filterManager,
+					false
+				);
+
+				[tmp1, tmp2] = [tmp2, tmp1];
+			}
+
+			this._hBlurTask.stepSize *= 2;
+			this._vBlurTask.stepSize *= 2;
+
+			super.apply(
+				tmp1,
+				target,
+				sourceRect,
+				destRect,
+				filterManager,
+				clearOutput
+			);
+		}
+
+		this._hBlurTask.stepSize = stepX;
+		this._vBlurTask.stepSize = stepY;
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {

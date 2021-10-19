@@ -5,6 +5,9 @@ import { Stage } from '../Stage';
 import { Image2D } from '../image';
 import { FilterManager } from '../managers/FilterManager';
 import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
+import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
+import { ContextGLClearMask } from '../base/ContextGLClearMask';
+import { ContextWebGL } from '../webgl/ContextWebGL';
 
 export class FilterBase {
 	private _tasks: Array<TaskBase> = [];
@@ -65,6 +68,50 @@ export class FilterBase {
 			return  target;
 		target.copyFrom(input);
 		return target;
+	}
+
+	public apply(
+		source: Image2D,
+		target: Image2D,
+		sourceRect: Rectangle,
+		destRect: Rectangle,
+		filterManager: FilterManager,
+		clearOutput: boolean = false,
+	) {
+		const stage = filterManager.stage;
+		const context = <ContextWebGL>stage.context;
+
+		this.setRenderState(
+			source, target,
+			sourceRect, destRect,
+			filterManager
+		);
+
+		// context will enable blend when it was changed
+		context.setBlendFactors(this.blendSrc, this.blendDst);
+		context.setBlendState(this.requireBlend);
+		context.setCulling(ContextGLTriangleFace.NONE);
+
+		let task: TaskBase;
+
+		// iterate while filter have tasks
+		while ((task = this.nextTask())) {
+			task.preActivate(filterManager.stage);
+
+			stage.setRenderTarget(task.target, false, 0, 0, true);
+			stage.setScissor(task.clipRect);
+
+			// because we use TMP image, need clear it
+			// but this is needed only when a blend composer is required, when a copy filter used
+			// or when required by filter chain, clear output for end task
+			if (source === target && this.requireBlend || task.needClear || clearOutput && !this.hasNextTask()) {
+				context.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
+			}
+
+			filterManager.drawTask(task);
+		}
+
+		this.clear(filterManager);
 	}
 
 	// link up the filters correctly with the next filter

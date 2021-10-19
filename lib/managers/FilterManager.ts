@@ -9,9 +9,6 @@ import { ContextWebGL } from '../webgl/ContextWebGL';
 import { TextureBaseWebGL } from '../webgl/TextureBaseWebGL';
 import { VertexBufferWebGL } from '../webgl/VertexBufferWebGL';
 import { IVao } from '../base/IVao';
-import { ContextGLClearMask } from '../base/ContextGLClearMask';
-import { ContextGLTriangleFace } from '../base/ContextGLTriangleFace';
-import { ContextGLBlendFactor } from '../base/ContextGLBlendFactor';
 import { FilterUtils } from '../utils/FilterUtils';
 import {
 	DisplacementFilter,
@@ -56,6 +53,8 @@ export class FilterManager {
 	private _copyFilterInstanced: CopyFilterInstanced;
 	private _copyPixelFilter: ColorMatrixFilter;
 	private _thresholdFilter: ThresholdFilter;
+
+	private _activeFilterTask: TaskBase = null;
 
 	private get context(): ContextWebGL {
 		return  <ContextWebGL> this._stage.context;
@@ -311,6 +310,30 @@ export class FilterManager {
 		return true;
 	}
 
+	/*internal*/ drawTask (task: TaskBase) {
+		const stage = this._stage;
+		const context = this.context;
+
+		context.setProgram(task.getProgram(stage));
+		context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
+
+		// bind filter elements for first pass after set program
+		if (!this._activeFilterTask) {
+			this._bindFilterElements();
+		}
+
+		this._activeFilterTask = task;
+
+		task.activate(stage, null, null);
+
+		context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
+
+		// maybe MSAA, present is required
+		context._texContext._currentRT.present();
+
+		task.deactivate(stage);
+	}
+
 	public renderFilter(
 		source: Image2D,
 		target: Image2D,
@@ -322,9 +345,6 @@ export class FilterManager {
 
 		this._initFilterElements();
 
-		const stage = this._stage;
-		const context = this.context;
-
 		const outRect = tmpOutputRectFilter;
 
 		if (outputRect instanceof Point) {
@@ -335,81 +355,32 @@ export class FilterManager {
 				inputRect.height
 			);
 
-			// todo there are bug with this on SceneImage2D for Bevel filter,
-			//  but ok for other, check this and fix
-			// filter.meashurePad(outRect, outRect);
 		} else {
 			outRect.copyFrom(outputRect);
 		}
 
-		const renderToSelf = source === target;
-
 		// tmp texture, avoid framebuffer loop
 		let output = target;
-		if (renderToSelf) {
+		if (source === target) {
 			// we render to tmp, not require use offset
 			output = this.popTemp(outRect.width, outRect.height);
 			outRect.x = 0;
 			outRect.y = 0;
 		}
 
-		filter.setRenderState(
-			source, output,
-			inputRect, outRect,
-			this
-		);
+		filter.apply(source, output, inputRect, <Rectangle>outputRect, this, clearOutput);
 
-		// context will enable blend when it was changed
-		context.setBlendFactors(filter.blendSrc, filter.blendDst);
-		context.setBlendState(filter.requireBlend);
-		context.setCulling(ContextGLTriangleFace.NONE);
-
-		let isFirstTask = true;
-		let task: TaskBase;
-
-		// iterate while filter have tasks
-		while ((task = filter.nextTask())) {
-			task.preActivate(stage);
-
-			stage.setRenderTarget(task.target, false, 0, 0, true);
-			stage.setScissor(task.clipRect);
-
-			// because we use TMP image, need clear it
-			// but this is needed only when a blend composer is required, when a copy filter used
-			// or when required by filter chain, clear output for end task
-			if (renderToSelf && filter.requireBlend || task.needClear || clearOutput && !filter.hasNextTask()) {
-				context.clear(0,0,0,0,0,0, ContextGLClearMask.ALL);
-			}
-
-			context.setProgram(task.getProgram(stage));
-			context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
-
-			// bind filter elements for first pass after set program
-			if (isFirstTask) {
-				this._bindFilterElements();
-				isFirstTask = false;
-			}
-
-			task.activate(stage, null, null);
-
-			context.drawVertices(ContextGLDrawMode.TRIANGLES,0, 6);
-
-			// maybe MSAA, present is required
-			context._texContext._currentRT.present();
-
-			task.deactivate(stage);
-		}
-
-		if (renderToSelf) {
+		if (source === target) {
 			// copy output to target texture
 			this.copyPixels(output, target, outRect, outputRect as Point, false);
 			this.pushTemp(output as TmpImage2D);
 		}
 
 		filter.clear(this);
-		stage.setScissor(null);
 
+		this.stage.setScissor(null);
 		this._unbindFilterElements();
+		this._activeFilterTask = null;
 	}
 
 	public copyPixels(

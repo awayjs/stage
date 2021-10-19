@@ -79,6 +79,8 @@ export class DropShadowFilter extends BlurFilter implements IBitmapFilter<'dropS
 			this.angle = 0;
 			this.distance = 0;
 		}
+
+		super.applyProps(model);
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {

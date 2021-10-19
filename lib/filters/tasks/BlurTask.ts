@@ -27,38 +27,51 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	private static MAX_AUTO_SAMPLES: number = 15;
 	public readonly horizontalPass: boolean = true;
 
-	private _clampedAmount: number = 0;
-	private _amount: number = 0;
+	private _clampedKernel: number = 0;
+	private _kernel: number = 0;
 	private _data: Float32Array;
-	private _realStepSize: number;
+	private _realStepSize: number =1;
+	private _stepSize: number = -1;
 
 	public get name() {
-		return `FilterBlurTask:${(this.horizontalPass ? 'hor' : 'vert')}:${this._amount}`;
+		return `FilterBlurTask:${(this.horizontalPass ? 'hor' : 'vert')}:${this._kernel}`;
 	}
 
 	/**
-	 * @param amount The maximum amount of blur to apply in pixels at the most out-of-focus areas
+	 * @param kernel The maximum amount of blur to apply in pixels at the most out-of-focus areas
 	 * @param horizonal Pass direction
 	 */
-	constructor(amount: number, horizonal = true) {
+	constructor(kernel: number, horizonal = true) {
 		super();
 
-		this.amount = amount;
+		this.kernel = kernel;
 		this._data = new Float32Array([0, 0, 0]);
 		this.horizontalPass = horizonal;
 	}
 
-	public get amount(): number {
-		return this._amount;
+	public get stepSize(): number {
+		return this._stepSize;
 	}
 
-	public set amount(value: number) {
-		if (this._amount == Math.round(value))
+	public set stepSize(value: number) {
+		if (this._kernel == this._stepSize)
 			return;
 
-		this._amount = Math.round(value);
-		this._clampedAmount = this._amount > 2
-			? Math.min(BlurTask.MAX_AUTO_SAMPLES, this._amount)
+		this._stepSize = value;
+		this.calculateStepSize();
+	}
+
+	public get kernel(): number {
+		return this._kernel;
+	}
+
+	public set kernel(value: number) {
+		if (this._kernel == Math.round(value))
+			return;
+
+		this._kernel = Math.round(value);
+		this._clampedKernel = this._kernel > 2
+			? Math.min(BlurTask.MAX_AUTO_SAMPLES, this._kernel)
 			: 2;
 
 		this.calculateStepSize();
@@ -66,7 +79,7 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	}
 
 	public getFragmentCode() {
-		const kernel = this._clampedAmount;
+		const kernel = this._clampedKernel;
 		const hor = this.horizontalPass;
 		const body = [];
 		const gaus = BlurTask.KERNEL_GAUSIAN[kernel];
@@ -77,8 +90,8 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 		for (let i = 0; i < kernel; i++) {
 			const kernelValueIndex = i >= len ? kernel - i - 1 : i;
 			const value = gaus[kernelValueIndex].toFixed(6);
-			const offsetIndex = (this._realStepSize * (2 * i + 1 - kernel) / 2).toFixed(6);
-			const offset = hor ? `vec2(${offsetIndex}, 0.0)` : `vec2(0.0, ${offsetIndex})`;
+			const offsetValue = ((2 * i + 1 - kernel) / 2).toFixed(6);
+			const offset = hor ? `vec2(${offsetValue}, 0.0)` : `vec2(0.0, ${offsetValue})`;
 
 			body.push(`
 				color += texture2D(fs0, uv + uBlurData[1] * ${offset}) * ${value};
@@ -118,18 +131,22 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	}
 
 	private updateBlurData(): void {
-		// todo: must be normalized using view size ratio instead of texture
 		const size = this.horizontalPass
 			? this._source.width
 			: this._source.height;
 
-		this._data[0] = this._amount * .5 / size;
+		this._data[0] = this._kernel * .5 / size;
 		this._data[1] = this._realStepSize / size;
 	}
 
 	private calculateStepSize(): void {
-		this._realStepSize = this._amount > BlurTask.MAX_AUTO_SAMPLES
-			? this._amount / BlurTask.MAX_AUTO_SAMPLES
+		if (this._stepSize > 0) {
+			this._realStepSize = this._stepSize;
+			return;
+		}
+
+		this._realStepSize = this._kernel > BlurTask.MAX_AUTO_SAMPLES
+			? this._kernel / BlurTask.MAX_AUTO_SAMPLES
 			: 1;
 	}
 }
