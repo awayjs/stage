@@ -1,7 +1,7 @@
 import { Rectangle } from '@awayjs/core';
 import { Image2D } from '../image/Image2D';
 import { FilterManager } from '../managers/FilterManager';
-import { FilterUtils, PROPS_LIST, proxyTo, serialisable } from '../utils/FilterUtils';
+import { PROPS_LIST, proxyTo, serialisable } from '../utils/FilterUtils';
 import { BlurFilter, IBlurFilterProps } from './BlurFilter';
 import { IBitmapFilter } from './IBitmapFilter';
 import { BevelTask } from './tasks/webgl/BevelTask';
@@ -108,18 +108,18 @@ export class BevelFilter extends FilterBase implements IBitmapFilter<'bevel', IB
 		let offsetY = 0;
 
 		// for outer or both need render a drop shadow with valid pad
-		const dist = this.distance;
+		const dist = Math.abs(this.distance);
 		if (this.type !== 'inner' && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
-			offsetX += Math.sin(rad) * dist * this.imageScale * 2;
+			offsetX += Math.cos(rad) * dist * this.imageScale * 2;
 			offsetY += Math.sin(rad) * dist * this.imageScale * 2;
 		}
 
 		target.x -= offsetX;
 		target.y -= offsetY;
-		target.width += offsetX * 2;
-		target.height += offsetY * 2;
+		target.width += offsetX;
+		target.height += offsetY;
 
 		return target;
 	}

@@ -15,7 +15,7 @@ precision highp float;
 uniform vec4 uTexMatrix[2];
 uniform vec4 uTexMatrixSource;
 
-/* AGAL legacy atribb resolver MUST reolver this as va0 */
+/* AGAL legacy atrib resolver MUST resolver this as va0 */
 attribute vec4 aPos; // position
 
 varying vec2 vUv[2];
@@ -58,7 +58,7 @@ vec4 bevel(float shadow, float high) {
 
 	vec2 pos = vec2(0.5 * (1. + shadow - high), uGradIndex);
 
-	return texture2D(uGrad, pos) * (shadow + high);
+	return texture2D(uGrad, pos);
 }`;
 
 const FRAG = (mode =  BEVEL_MODE.COLOR, knokout = false, type = 'inner') =>  `
@@ -71,7 +71,7 @@ uniform vec2 uDir;
 /* AGAL uniforms will be reolved this as fs0 */
 // blur
 uniform sampler2D uBlur;
-/* AGAL uniforms will be reolved this as fs1 */
+/* AGAL uniforms will be resolved this as fs1 */
 // source
 uniform sampler2D uSource;
 ${
@@ -80,12 +80,7 @@ ${
 
 void main() {
 	vec4 color = texture2D(uSource, vUv[1]);
-	
 	float a = color.a;
-
-	// LOOL.. there are a bug - we PMA it twice, devide to compense
-	// if (a > 0.) color.a /= a;
-
 	float shadow = texture2D(uBlur, vUv[0] + uDir).a;
 	float high = texture2D(uBlur, vUv[0] - uDir).a;
 	${ !type || type === 'inner' ? 'vec4 outColor = bevel(shadow, high) * color.a;' : ''}
@@ -94,8 +89,6 @@ void main() {
 	${ knokout
 		? 'gl_FragColor = outColor;'
 		: 'gl_FragColor = color * (1.0 - outColor.a) + outColor;'}
-
-	//gl_FragColor *= a;
 }`;
 
 export class BevelTask extends TaskBaseWebGL {

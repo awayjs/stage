@@ -97,7 +97,7 @@ export class DropShadowFilter extends FilterBase implements IBitmapFilter<'dropS
 		let offsetY = 0;
 
 		// for outer or both need render a drop shadow with valid pad
-		const dist = this.distance;
+		const dist = Math.abs(this.distance);
 		if (!this.inner && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
