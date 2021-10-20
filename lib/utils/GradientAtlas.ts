@@ -108,6 +108,24 @@ export class GradientAtlas extends Image2D {
 	}
 
 	private fillRow(colors: number[], alphas: number[], ratios: number[], index: number) {
+		if (ratios[0] !== 0 || ratios[ratios.length] !== 255) {
+			colors = colors.slice();
+			ratios = ratios.slice();
+			alphas = alphas.slice();
+
+			if (ratios[0] !== 0) {
+				ratios.unshift(0);
+				colors.unshift(colors[0]);
+				alphas.unshift(alphas[0]);
+			}
+
+			if (ratios[ratios.length - 1] !== 255) {
+				ratios.push(255);
+				colors.push(colors[colors.length - 1]);
+				alphas.push(alphas[alphas.length - 1]);
+			}
+		}
+
 		const len = ratios.length;
 		const colorA = [0,0,0,0];
 		const colorB = [0,0,0,0];
@@ -115,7 +133,8 @@ export class GradientAtlas extends Image2D {
 
 		buff.fill(0);
 
-		for (let i = 0; i < len - 1; i++) {
+		for (let i = 0; i < len; i++) {
+			// we should end pallete, because ratios can not end with 255
 			FilterUtils.colorToU8(colors[i + 0], alphas[i + 0], colorA);
 			FilterUtils.colorToU8(colors[i + 1], alphas[i + 1], colorB);
 
@@ -132,14 +151,12 @@ export class GradientAtlas extends Image2D {
 				buff[k + 2] = colorA[2] + (colorB[2] - colorA[2]) * factor | 0;
 				buff[k + 3] = colorA[3] + (colorB[3] - colorA[3]) * factor | 0;
 
-				/*
 				const a = buff[k + 3] / 0xff;
 
 				// PMA
 				buff[k + 0] = buff[k + 0] * a | 0;
 				buff[k + 1] = buff[k + 1] * a | 0;
 				buff[k + 2] = buff[k + 2] * a | 0;
-				*/
 			}
 		}
 
