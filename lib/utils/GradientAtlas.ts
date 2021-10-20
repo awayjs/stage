@@ -16,6 +16,10 @@ export class GradientAtlas extends Image2D {
 
 	public static gradientAtlases: GradientAtlas[] = [];
 
+	public get assetType(): string {
+		return GradientAtlas.assetType;
+	}
+
 	public static getAtlassForHash(hash: string, findEmpty = true): GradientAtlas {
 		let atlass: GradientAtlas;
 
@@ -118,7 +122,7 @@ export class GradientAtlas extends Image2D {
 			const from = ratios[i + 0];
 			const to   = ratios[i + 1];
 
-			for (let j = from; j < to; j++) {
+			for (let j = from; j <= to; j++) {
 				const factor = (j - from) / (to - from);
 				const k = j * 4;
 				// interpolate each color
@@ -128,12 +132,14 @@ export class GradientAtlas extends Image2D {
 				buff[k + 2] = colorA[2] + (colorB[2] - colorA[2]) * factor | 0;
 				buff[k + 3] = colorA[3] + (colorB[3] - colorA[3]) * factor | 0;
 
+				/*
 				const a = buff[k + 3] / 0xff;
 
 				// PMA
 				buff[k + 0] = buff[k + 0] * a | 0;
 				buff[k + 1] = buff[k + 1] * a | 0;
 				buff[k + 2] = buff[k + 2] * a | 0;
+				*/
 			}
 		}
 
