@@ -112,8 +112,8 @@ export class BevelFilter extends FilterBase implements IBitmapFilter<'bevel', IB
 		if (this.type !== 'inner' && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
-			offsetX += Math.cos(rad) * dist * this.imageScale * 2;
-			offsetY += Math.sin(rad) * dist * this.imageScale * 2;
+			offsetX += Math.abs(Math.cos(rad)) * dist * this.imageScale * 2;
+			offsetY += Math.abs(Math.sin(rad)) * dist * this.imageScale * 2;
 		}
 
 		target.x -= offsetX;
