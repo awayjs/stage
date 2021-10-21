@@ -98,8 +98,8 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		clearOutput: boolean = false,
 	) {
 		const passes = this.quality;
-		const stepX = this._vBlurTask.stepSize;
-		const stepY = this._hBlurTask.stepSize;
+		const stepX = this._hBlurTask.stepSize;
+		const stepY = this._vBlurTask.stepSize;
 
 		let n = 1;
 		let t = 1;
