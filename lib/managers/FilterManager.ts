@@ -21,8 +21,6 @@ import {
 	IBitmapFilter,
 	IBitmapFilterProps
 } from '../filters';
-import { CopyFilterInstanced } from '../filters/CopyFilterInstanced';
-import { Settings } from '../Settings';
 import { TaskBase } from '../filters/tasks/TaskBase';
 import ImageUtils from '../utils/ImageUtils';
 
@@ -50,7 +48,6 @@ export class FilterManager {
 	private _filterVAO: IVao;
 
 	private _filterSampler: ImageSampler;
-	private _copyFilterInstanced: CopyFilterInstanced;
 	private _copyPixelFilter: ColorMatrixFilter;
 	private _thresholdFilter: ThresholdFilter;
 
@@ -77,10 +74,6 @@ export class FilterManager {
 
 	constructor (private _stage: Stage) {
 		FilterManager._instance = this;
-
-		if (Settings.FILTERS_USE_INSTANCED_COPY) {
-			this._copyFilterInstanced = new CopyFilterInstanced(this);
-		}
 	}
 
 	public popTemp (_width: number, _height: number, msaa: boolean = false): TmpImage2D {
@@ -458,13 +451,6 @@ export class FilterManager {
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
 
-		if (this._copyFilterInstanced &&
-			(this._copyFilterInstanced.target !== target ||
-			this._copyFilterInstanced.target === source)
-		) {
-			this.flushDelayedTask('Manually');
-		}
-
 		let tmp: Image2D;
 		// copy to TMP, because we can't copy pixels from itself
 		if (target === source) {
@@ -481,38 +467,15 @@ export class FilterManager {
 		}
 
 		if (mergeAlpha || msaa || blend) {
-			const copy = Settings.FILTERS_USE_INSTANCED_COPY
-				? this._copyFilterInstanced
-				: (this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName));
-
-			if (copy instanceof CopyFilterInstanced && (
-				copy.requireBlend !== mergeAlpha || (copy.target !== target && copy.target))
-			) {
-				copy.flush();
-			}
+			const copy = this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 
 			copy.blend = blend;
 			copy.requireBlend = mergeAlpha;
 
-			if (copy instanceof CopyFilterInstanced) {
-				copy.target = target;
-				copy.addCopyTask(inputRect, outputRect, tmp || source);
-
-				this.context.stateChangeCallback = null;
-				// because we require copy to self, we can't do this delayed
-				if (copy.mustBeFlushed || target === source) {
-					copy.flush();
-				} else {
-					this.context.stateChangeCallback = (e) => this.flushDelayedTask(e);
-				}
-			} else {
-				this.renderFilter(source, target, inputRect, outputRect,  copy);
-				copy.requireBlend = true;
-			}
+			this.renderFilter(source, target, inputRect, outputRect,  copy);
+			copy.requireBlend = true;
 
 		} else {
-			this.flushDelayedTask('copyPixelByTexture');
-
 			if (!tmp) {
 				this._stage.setRenderTarget(source, false, 0, 0, true);
 				this._stage.setScissor(null);
@@ -530,18 +493,6 @@ export class FilterManager {
 
 		// reset target
 		this._stage.setRenderTarget(null);
-	}
-
-	private flushDelayedTask(reason: string) {
-		if (!this._copyFilterInstanced || !this._copyFilterInstanced.length) {
-			return;
-		}
-
-		// important! reset callback before flush, because flush change state
-		this.context.stateChangeCallback = null;
-		console.debug('[Instanced] Instanced copyPixel was flushed by:', reason, this._copyFilterInstanced.length);
-
-		this._copyFilterInstanced.flush();
 	}
 
 	public threshold(
