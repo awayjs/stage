@@ -2,6 +2,8 @@ import { ProjectionBase, ColorTransform } from '@awayjs/core';
 import { _Stage_Image2D, Image2D } from '../../../image/Image2D';
 import { TaskBaseWebGL } from './TaskBaseWebgGL';
 import { Stage } from '../../../Stage';
+import { MultipleUVTask } from './MultipleUVTask';
+import { BlendMode } from '../../../image';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);
 const EMPTY_MATRIX = new Float32Array([
@@ -12,6 +14,24 @@ const EMPTY_MATRIX = new Float32Array([
 	// offsets
 	0, 0, 0, 0
 ]);
+
+const COMPOSITE_PART = `
+uniform float uComposite;
+uniform sampler2D fs1;
+
+vec4 opp_difference(vec4 src, vec4 dst) {
+	//i don't know real what need doing with alpha. lets save it as 1
+    return vec4(dst.rgb - src.rgb, 1.);
+    return out
+}
+
+vec4 composite (vec4 src) {
+	vec4 dst = texture2D(fs0, vUv[1]);
+	
+	// only 1 operation supported now =)
+	return opp_difference(src, dst);
+}
+`;
 
 const TRANSFORM_PART = `
 uniform vec4 uTransformData[2];
@@ -50,24 +70,30 @@ vec4 transform(vec4 color) {
 }
 `;
 
-const FRAG = (mode: '' | 'transform' | 'matrix') =>`
+const FRAG = (mode: '' | 'transform' | 'matrix', composite = 0) =>`
 precision highp float;
 uniform sampler2D fs0;
 
-varying vec2 vUv;
+varying vec2 vUv[2];
 
 ${ mode === 'transform'
 		? TRANSFORM_PART
 		: mode === 'matrix'
 			? MATRIX_PART : ''
 }
-void main() {
-	vec4 color = texture2D(fs0, vUv);
 
-    gl_FragColor = ${ mode ? 'transform(color)' : 'color'};
+${ composite
+		? COMPOSITE_PART
+		: ''
+}
+
+void main() {
+	vec4 color = texture2D(fs0, vUv[0]);
+	color = ${mode ? 'transform(color)' : 'color'};	
+    gl_FragColor = ${composite ? 'composite(color);' : 'color;'};
 }`;
 
-export class ColorMatrixTask extends TaskBaseWebGL {
+export class ColorMatrixTask extends MultipleUVTask {
 	readonly activateInternaly = false;
 
 	protected _vertexConstantData: Float32Array;
@@ -77,7 +103,15 @@ export class ColorMatrixTask extends TaskBaseWebGL {
 	private _transform: ColorTransform;
 	private _matrix: number[];
 
+	public composite: number = 0;
+
+	public back: Image2D;
+
 	private _mode: '' | 'transform' | 'matrix' = '';
+
+	constructor() {
+		super(2, false);
+	}
 
 	public get transform(): ColorTransform {
 		return this._transform;
@@ -158,21 +192,15 @@ export class ColorMatrixTask extends TaskBaseWebGL {
 	public _focusId = -1;
 
 	public get name() {
-		return 'CopyPixel:' + this._mode;
+		return 'CopyPixel:' + this._mode + ',c:' + this.composite;
 	}
 
 	public getFragmentCode(): string {
-		return FRAG(this._mode);
+		return FRAG(this._mode, this.composite);
 	}
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
-		super.computeVertexData();
-
-		this._source.getAbstraction<_Stage_Image2D>(_stage).activate(0);
-
 		const prog = this._program3D;
-
-		prog.uploadUniform('uTexMatrix', this._vertexConstantData);
 
 		// upload only when a transform a REAL changed or after shader rebound
 		if (this._mode && (this._dataChanged || prog.focusId !== this._focusId)) {
@@ -181,5 +209,20 @@ export class ColorMatrixTask extends TaskBaseWebGL {
 
 		this._focusId = prog.focusId;
 		this._dataChanged = false;
+
+		this
+			.source
+			.getAbstraction<_Stage_Image2D>(_stage)
+			.activate(0);
+
+		if (this.composite > 0 && this.back) {
+			prog.uploadUniform('uComposite', this.composite);
+			this
+				.back
+				.getAbstraction<_Stage_Image2D>(_stage)
+				.activate(1);
+		}
+
+		this.uploadVertexData();
 	}
 }
