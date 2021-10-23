@@ -1,6 +1,5 @@
 import { ProjectionBase, ColorTransform } from '@awayjs/core';
 import { _Stage_Image2D, Image2D } from '../../../image/Image2D';
-import { TaskBaseWebGL } from './TaskBaseWebgGL';
 import { Stage } from '../../../Stage';
 import { MultipleUVTask } from './MultipleUVTask';
 import { BlendMode } from '../../../image';
@@ -20,13 +19,15 @@ uniform float uComposite;
 uniform sampler2D fs1;
 
 vec4 opp_difference(vec4 src, vec4 dst) {
+	if (src.a > 0.0) src.rgb /= src.a;
+	if (dst.a > 0.0) dst.rgb /= dst.a;
+	
 	//i don't know real what need doing with alpha. lets save it as 1
-    return vec4(dst.rgb - src.rgb, 1.);
-    return out
+    return vec4(abs(src.rgb - dst.rgb), 1.);
 }
 
 vec4 composite (vec4 src) {
-	vec4 dst = texture2D(fs0, vUv[1]);
+	vec4 dst = texture2D(fs1, vUv[1]);
 	
 	// only 1 operation supported now =)
 	return opp_difference(src, dst);
@@ -94,7 +95,9 @@ void main() {
 }`;
 
 export class ColorMatrixTask extends MultipleUVTask {
-	readonly activateInternaly = false;
+	public static readonly COMPOSITE_EQ: Record<string, number> = {
+		[BlendMode.DIFFERENCE]: 1,
+	}
 
 	protected _vertexConstantData: Float32Array;
 
@@ -111,6 +114,24 @@ export class ColorMatrixTask extends MultipleUVTask {
 
 	constructor() {
 		super(2, false);
+	}
+
+	public setCompositeBlend(blend: string): boolean {
+		if (!blend) {
+			this.composite = 0;
+			this.back = null;
+			return true;
+		}
+
+		if (blend in ColorMatrixTask.COMPOSITE_EQ) {
+			this.composite = ColorMatrixTask.COMPOSITE_EQ[blend];
+			this.invalidateProgram();
+			return true;
+		}
+
+		this.composite = 0;
+		this.back = null;
+		return false;
 	}
 
 	public get transform(): ColorTransform {
@@ -217,6 +238,15 @@ export class ColorMatrixTask extends MultipleUVTask {
 
 		if (this.composite > 0 && this.back) {
 			prog.uploadUniform('uComposite', this.composite);
+
+			const sx = this.inputRect.width / this.back.width;
+			const sy = this.inputRect.height / this.back.height;
+
+			this.uvMatrices[1].set([
+				0,0,
+				sx, sy
+			], 0);
+
 			this
 				.back
 				.getAbstraction<_Stage_Image2D>(_stage)

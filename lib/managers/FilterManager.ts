@@ -450,6 +450,7 @@ export class FilterManager {
 
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
+		const needFilter = mergeAlpha || msaa || blend;
 
 		let tmp: Image2D;
 		// copy to TMP, because we can't copy pixels from itself
@@ -466,7 +467,7 @@ export class FilterManager {
 			this._stage.setRenderTarget(tmp, false, 0, 0, true);
 		}
 
-		if (mergeAlpha || msaa || blend) {
+		if (needFilter) {
 			const copy = this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 
 			copy.blend = blend;
