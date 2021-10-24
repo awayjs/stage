@@ -117,21 +117,20 @@ export class ColorMatrixTask extends MultipleUVTask {
 	}
 
 	public setCompositeBlend(blend: string): boolean {
-		if (!blend) {
-			this.composite = 0;
-			this.back = null;
-			return true;
-		}
-
-		if (blend in ColorMatrixTask.COMPOSITE_EQ) {
-			this.composite = ColorMatrixTask.COMPOSITE_EQ[blend];
-			this.invalidateProgram();
-			return true;
-		}
+		const old = this.composite;
 
 		this.composite = 0;
 		this.back = null;
-		return false;
+
+		if (blend in ColorMatrixTask.COMPOSITE_EQ) {
+			this.composite = ColorMatrixTask.COMPOSITE_EQ[blend];
+		}
+
+		if (this.composite !== old) {
+			this.invalidateProgram();
+		}
+
+		return this.composite !== 0;
 	}
 
 	public get transform(): ColorTransform {
@@ -213,7 +212,8 @@ export class ColorMatrixTask extends MultipleUVTask {
 	public _focusId = -1;
 
 	public get name() {
-		return 'CopyPixel:' + this._mode + ',c:' + this.composite;
+		const composeName = this.composite ? Object.keys(ColorMatrixTask.COMPOSITE_EQ)[this.composite] : 'none';
+		return 'CopyFilter:' + this._mode + ',c:' + composeName;
 	}
 
 	public getFragmentCode(): string {
