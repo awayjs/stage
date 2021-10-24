@@ -1514,6 +1514,40 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		super._setSize(width, height);
 	}
+
+	private /*internal */ getDebugCanvas(onlyA = false) {
+		const canvas = document.createElement('canvas');
+		const ctx = canvas.getContext('2d');
+		canvas.height = this.height;
+		canvas.width = this.width;
+
+		const data = this.getDataInternal(true, false);
+		const imageData = new ImageData(new Uint8ClampedArray(data), this.width, this.height);
+
+		if (onlyA) {
+			for (let i = 0; i < imageData.data.length; i += 4) {
+				const a = imageData.data[i + 3];
+
+				imageData.data[i + 0] = a;
+				imageData.data[i + 1] = a;
+				imageData.data[i + 2] = a;
+			}
+		}
+
+		ctx.putImageData(imageData, 0,0);
+
+		return canvas;
+	}
+
+	private /*internal*/ getDebugImage(onlyA = false) {
+		const canvas = this.getDebugCanvas(onlyA);
+		const pngString = canvas.toDataURL('image/png');
+
+		const a = document.createElement('a');
+		a.href = pngString;
+		a.download = 'SceneImage_' + this.id + (onlyA ? '_alpha' : '_full');
+		a.click();
+	}
 }
 
 import { ITexture } from '../base/ITexture';
