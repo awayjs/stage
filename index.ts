@@ -50,16 +50,12 @@ export { RTTEvent } from './lib/events/RTTEvent';
 // export named all from subpackage
 export * from './lib/image';
 
-//export {VideoSourceImage2D} from "./lib/image/VideoSourceImage2D";
-
 export { IGraphicsFactory } from './lib/factories/IGraphicsFactory';
 
-export { CompositeTask as Filter3DCompositeTask } from './lib/filters/tasks/CompositeTask';
 export { FXAATask as Filter3DFXAATask } from './lib/filters/tasks/FXAATask';
 export { BlurTask as Filter3DBlurTask } from './lib/filters/tasks/BlurTask';
 export { TaskBase as Filter3DTaskBase } from './lib/filters/tasks/TaskBase';
 export { BlurFilter as BlurFilter3D } from './lib/filters/BlurFilter';
-export { CompositeFilter as CompositeFilter3D } from './lib/filters/CompositeFilter';
 export { FilterBase as Filter3DBase } from './lib/filters/FilterBase';
 export { FXAAFilter as FXAAFilter3D } from './lib/filters/FXAAFilter';
 
