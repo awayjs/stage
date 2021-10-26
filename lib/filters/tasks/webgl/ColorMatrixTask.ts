@@ -2,7 +2,7 @@ import { ProjectionBase, ColorTransform } from '@awayjs/core';
 import { _Stage_Image2D, Image2D } from '../../../image/Image2D';
 import { Stage } from '../../../Stage';
 import { MultipleUVTask } from './MultipleUVTask';
-import { BlendMode } from '../../../image';
+import { COMPOSITE_PART, supportComposition } from './CompositionParts';
 
 const EMPTY_TRANSFORM = new Float32Array([1,1,1,1,0,0,0,0]);
 const EMPTY_MATRIX = new Float32Array([
@@ -13,26 +13,6 @@ const EMPTY_MATRIX = new Float32Array([
 	// offsets
 	0, 0, 0, 0
 ]);
-
-const COMPOSITE_PART = `
-uniform float uComposite;
-uniform sampler2D fs1;
-
-vec4 opp_difference(vec4 src, vec4 dst) {
-	if (src.a > 0.0) src.rgb /= src.a;
-	if (dst.a > 0.0) dst.rgb /= dst.a;
-	
-	//i don't know real what need doing with alpha. lets save it as 1
-    return vec4(abs(src.rgb - dst.rgb), 1.);
-}
-
-vec4 composite (vec4 src) {
-	vec4 dst = texture2D(fs1, vUv[1]);
-	
-	// only 1 operation supported now =)
-	return opp_difference(src, dst);
-}
-`;
 
 const TRANSFORM_PART = `
 uniform vec4 uTransformData[2];
@@ -71,7 +51,7 @@ vec4 transform(vec4 color) {
 }
 `;
 
-const FRAG = (mode: '' | 'transform' | 'matrix', composite = 0) =>`
+const FRAG = (mode: '' | 'transform' | 'matrix', composite: string) =>`
 precision highp float;
 uniform sampler2D fs0;
 
@@ -84,29 +64,24 @@ ${ mode === 'transform'
 }
 
 ${ composite
-		? COMPOSITE_PART
+		? COMPOSITE_PART(composite)
 		: ''
 }
 
 void main() {
 	vec4 color = texture2D(fs0, vUv[0]);
 	color = ${mode ? 'transform(color)' : 'color'};	
-    gl_FragColor = ${composite ? 'composite(color);' : 'color;'};
+    gl_FragColor = ${composite ? 'composite(color)' : 'color'};
 }`;
 
 export class ColorMatrixTask extends MultipleUVTask {
-	public static readonly COMPOSITE_EQ: Record<string, number> = {
-		[BlendMode.DIFFERENCE]: 1,
-	}
-
 	protected _vertexConstantData: Float32Array;
 
 	private _fragData: Float32Array;
 	private _dataChanged: boolean = false;
 	private _transform: ColorTransform;
 	private _matrix: number[];
-
-	public composite: number = 0;
+	private _composite: string = '';
 
 	public back: Image2D;
 
@@ -117,20 +92,20 @@ export class ColorMatrixTask extends MultipleUVTask {
 	}
 
 	public setCompositeBlend(blend: string): boolean {
-		const old = this.composite;
+		const old = this._composite;
 
-		this.composite = 0;
+		this._composite = null;
 		this.back = null;
 
-		if (blend in ColorMatrixTask.COMPOSITE_EQ) {
-			this.composite = ColorMatrixTask.COMPOSITE_EQ[blend];
+		if (supportComposition(blend)) {
+			this._composite = blend;
 		}
 
-		if (this.composite !== old) {
+		if (this._composite !== old) {
 			this.invalidateProgram();
 		}
 
-		return this.composite !== 0;
+		return this._composite !== null;
 	}
 
 	public get transform(): ColorTransform {
@@ -190,9 +165,6 @@ export class ColorMatrixTask extends MultipleUVTask {
 				this._fragData[16 + i] = value[4 + i * 5] / 0xff;
 			}
 
-			//for (let i = 16; i < 20; i++)
-			//	this._fragData[i] = value[i * 4 + 5] / 0xff;
-
 		} else {
 			this._fragData.set(EMPTY_MATRIX);
 		}
@@ -212,12 +184,11 @@ export class ColorMatrixTask extends MultipleUVTask {
 	public _focusId = -1;
 
 	public get name() {
-		const composeName = this.composite ? Object.keys(ColorMatrixTask.COMPOSITE_EQ)[this.composite] : 'none';
-		return 'CopyFilter:' + this._mode + ',c:' + composeName;
+		return 'CopyFilter:' + this._mode + ',c:' + this._composite;
 	}
 
 	public getFragmentCode(): string {
-		return FRAG(this._mode, this.composite);
+		return FRAG(this._mode, this._composite);
 	}
 
 	public activate(_stage: Stage, _projection: ProjectionBase, _depthTexture: Image2D): void {
@@ -236,8 +207,7 @@ export class ColorMatrixTask extends MultipleUVTask {
 			.getAbstraction<_Stage_Image2D>(_stage)
 			.activate(0);
 
-		if (this.composite > 0 && this.back) {
-			prog.uploadUniform('uComposite', this.composite);
+		if (this._composite && this.back) {
 
 			const sx = this.inputRect.width / this.back.width;
 			const sy = this.inputRect.height / this.back.height;
