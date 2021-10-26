@@ -22,17 +22,8 @@ const COMPOSITE_OPP: Record<string, string> = {
 	`vec4 top = vec4(max(src.rgb, dst.rgb), 1.0) * src.a * dst.a;
 
 	return top + normal * (1.0 - top.a);`,
-	[BlendMode.OVERLAY]:
-	`vec3 factor = step(src.rgb, vec3(0.5));
-	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
-	vec3 multiple =  2. * src.rgb * dst.rgb;
-
-	vec4 top = vec4(factor * screen + (1. - factor) * multiple, 1.);
-	top *= dst.a * src.a;
-
-	return top + normal * (1.0 - top.a);`,
 	[BlendMode.HARDLIGHT]:
-	`vec3 factor = step(src.rgb, vec3(0.5));
+	`vec3 factor = step(vec3(0.5), src.rgb);
 	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
 	vec3 multiple =  2. * src.rgb * dst.rgb;
 
@@ -40,8 +31,18 @@ const COMPOSITE_OPP: Record<string, string> = {
 	top *= dst.a * src.a;
 
 	return top + normal * (1.0 - top.a);`,
+
+	[BlendMode.OVERLAY]:
+	`vec3 factor = step(vec3(0.5), src.rgb);
+	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
+	vec3 multiple =  2. * src.rgb * dst.rgb;
+
+	vec4 top = vec4(factor * screen + (1. - factor) * multiple, 1.);
+	top *= dst.a * src.a;
+
+	return top + normal * (1.0 - top.a);`,
 	[BlendMode.SCREEN]:
-		`vec3 screen = (1. - (1. - src.rgb) * (1. - dst.rgb));
+	`vec3 screen = (1. - (1. - src.rgb) * (1. - dst.rgb));
 	vec4 top = vec4(screen, 1.);
 	top *= dst.a * src.a;
 
