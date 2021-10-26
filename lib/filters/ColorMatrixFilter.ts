@@ -7,6 +7,7 @@ import { BlendMode } from '../image/BlendMode';
 import { IBitmapFilter } from './IBitmapFilter';
 import { FilterManager } from '../managers/FilterManager';
 import { Image2D } from '../image';
+import { Settings } from '../Settings';
 
 const DEFAULT_BLEND_MAP = {
 	[''] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
@@ -38,7 +39,7 @@ export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colo
 
 	private _requireBlend = true;
 	public get requireBlend() {
-		return this._requireBlend;
+		return this._requireBlend && !this._compositeOverShader;
 	}
 
 	public set requireBlend(v: boolean) {
@@ -120,7 +121,10 @@ export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colo
 	) {
 		let tmp: Image2D;
 
-		if (this._compositeOverShader && this._copyPixelTask.setCompositeBlend(this._blend)) {
+		if (this._compositeOverShader &&
+			this._copyPixelTask.setCompositeBlend(this._blend) &&
+			Settings.UNSAFE_USE_SHADER_COMPOSER
+		) {
 			tmp = filterManager.popTemp(target.width, target.height);
 			this._copyPixelTask.back = target;
 		}

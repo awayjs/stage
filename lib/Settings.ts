@@ -29,7 +29,7 @@ export interface IStageSettings {
 
 	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: boolean;
 
-	FILTERS_USE_INSTANCED_COPY: boolean;
+	UNSAFE_USE_SHADER_COMPOSER: boolean;
 }
 
 export const Settings: IStageSettings = {
@@ -156,9 +156,11 @@ export const Settings: IStageSettings = {
 	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: true,
 
 	/**
-	 * @description Try to use instanced copy filter for multimple copyPixel operation
+	 * @description use shader implemented blendModes in copyPixel filter pass
+	 * when blend mode not supported in regular GL operation
+	 * Has problems in some games
 	 */
-	FILTERS_USE_INSTANCED_COPY: false,
+	UNSAFE_USE_SHADER_COMPOSER: true,
 
 };
 

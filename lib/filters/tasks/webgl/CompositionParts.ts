@@ -23,7 +23,7 @@ const COMPOSITE_OPP: Record<string, string> = {
 
 	return top + normal * (1.0 - top.a);`,
 	[BlendMode.HARDLIGHT]:
-	`vec3 factor = step(vec3(0.5), src.rgb);
+	`vec3 factor = step(vec3(0.5), dst.rgb);
 	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
 	vec3 multiple =  2. * src.rgb * dst.rgb;
 
@@ -32,8 +32,14 @@ const COMPOSITE_OPP: Record<string, string> = {
 
 	return top + normal * (1.0 - top.a);`,
 
+	/**
+	 * This is not real overlay
+	 * for overlay need a remove `1.-`,
+	 * but! if i do this, in GetInTop begin visible artefacts
+	 * looks like composite equation not fully true
+	 */
 	[BlendMode.OVERLAY]:
-	`vec3 factor = step(vec3(0.5), src.rgb);
+	`vec3 factor = 1. - step(src.rgb, vec3(0.5));
 	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
 	vec3 multiple =  2. * src.rgb * dst.rgb;
 
