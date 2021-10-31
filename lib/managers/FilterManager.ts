@@ -336,6 +336,14 @@ export class FilterManager {
 		clearOutput = false
 	): void {
 
+		if (source.width * source.height === 0) {
+			return;
+		}
+
+		if ((inputRect.width * inputRect.height | 0)  === 0) {
+			return;
+		}
+
 		this._initFilterElements();
 
 		const outRect = tmpOutputRectFilter;
@@ -350,6 +358,10 @@ export class FilterManager {
 
 		} else {
 			outRect.copyFrom(outputRect);
+		}
+
+		if ((outRect.width * outRect.height | 0) === 0) {
+			return;
 		}
 
 		// tmp texture, avoid framebuffer loop
@@ -388,6 +400,11 @@ export class FilterManager {
 			|| destPoint.x > target.width
 			|| destPoint.y < -rect.height
 			|| destPoint.y > target.height) {
+			return;
+		}
+
+		// copy empty is redundant
+		if ((rect.width * rect.height | 0) === 0) {
 			return;
 		}
 
@@ -447,6 +464,11 @@ export class FilterManager {
 		// we should use same size of output, because we should not change rectangle dimension, only offset
 		outputRect.width = inputRect.width;
 		outputRect.height = inputRect.height;
+
+		// we should be sure that output rect is not zero, otherwise will be wrong output
+		if (Math.floor(outputRect.width * outputRect.height) === 0) {
+			return;
+		}
 
 		// target image has MSAA
 		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
