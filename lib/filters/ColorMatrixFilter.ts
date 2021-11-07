@@ -81,10 +81,7 @@ export class ColorMatrixFilter extends FilterBase implements IBitmapFilter<'colo
 
 	public set matrix(value: number[]) {
 		this._copyPixelTask.matrix = value;
-
-		if (!value) {
-			this._requireBlend = false;
-		}
+		this._requireBlend = !value;
 	}
 
 	constructor (props?: Partial<IColorMatrix>) {
