@@ -1,3 +1,5 @@
+import { ConfigManager } from '@awayjs/core';
+
 export interface IStageSettings {
 	PREF_WEBGL_VERSION: 1 | 2;
 	USE_300_SHADERS_FOR_WEBGL2: boolean;
@@ -32,7 +34,7 @@ export interface IStageSettings {
 	FILTERS_USE_INSTANCED_COPY: boolean;
 }
 
-export const Settings: IStageSettings = {
+export const Settings: IStageSettings = ConfigManager.instance.addStore<any>('stage', {
 	/**
 	 * @description Prefered WEBGL version, can be used for tracking degradation
 	 * @default 2
@@ -160,6 +162,6 @@ export const Settings: IStageSettings = {
 	 */
 	FILTERS_USE_INSTANCED_COPY: false,
 
-};
+});
 
 // console.debug('[Stage settings]', Settings);
