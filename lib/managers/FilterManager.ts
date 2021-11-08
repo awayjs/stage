@@ -373,7 +373,7 @@ export class FilterManager {
 			outRect.y = 0;
 		}
 
-		filter.apply(source, output, inputRect, outRect, this, clearOutput);
+		filter.apply(source, output, inputRect, outRect, this, source === target);
 
 		if (source === target) {
 			// copy output to target texture

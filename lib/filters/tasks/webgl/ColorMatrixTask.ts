@@ -148,6 +148,7 @@ export class ColorMatrixTask extends MultipleUVTask {
 
 	public set matrix(value: number[] | null) {
 		this._matrix = value;
+		this._dataChanged = true;
 
 		if (!this._fragData || this._fragData.length !== 20) {
 			this._fragData = new Float32Array(20);
