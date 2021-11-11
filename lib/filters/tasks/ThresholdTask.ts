@@ -1,4 +1,4 @@
-import { ProjectionBase, Vector3D } from '@awayjs/core';
+import { ProjectionBase } from '@awayjs/core';
 
 import { TaskBase } from './TaskBase';
 import { _Stage_Image2D, Image2D } from '../../image';
@@ -36,17 +36,17 @@ export class ThresholdTask extends TaskBase {
 	private _th: boolean = false;
 
 	private _threshold: number = 0;
-	private _thresholdRGBA: Vector3D = new Vector3D(0,0,0,0);
+	private _thresholdRGBA: Float32Array = new Float32Array([0,0,0,0]);
 
 	private _color: number = 0;
-	private _colorRGBA: Vector3D = new Vector3D(0,0,0,0);
+	private _colorRGBA: Float32Array;
 
 	private _mask: number = 0;
-	private _maskRGBA: Vector3D = new Vector3D(1,1,1,1);
+	private _maskRGBA: Float32Array;
 
 	private _copySource: boolean = false;
 
-	private _decodeVector: Vector3D = new Vector3D(65025.0, 255.0, 1.0, 16581375.0);
+	private _decodeVector: Float32Array ;
 
 	public get operation(): TThresholdOperator {
 		return this._operation;
@@ -73,10 +73,12 @@ export class ThresholdTask extends TaskBase {
 
 		this._threshold = value;
 
-		this._thresholdRGBA.x = ((value >> 16) & 0xff) / 0xff;
-		this._thresholdRGBA.y = ((value >> 8) & 0xff) / 0xff;
-		this._thresholdRGBA.z = (value & 0xff) / 0xff;
-		this._thresholdRGBA.w = ((value >> 24) & 0xff) / 0xff;
+		this._thresholdRGBA.set([
+			((value >> 16) & 0xff) / 0xff,
+			((value >> 8) & 0xff) / 0xff,
+			(value & 0xff) / 0xff,
+			((value >> 24) & 0xff) / 0xff]
+		);
 	}
 
 	public get color(): number {
@@ -91,10 +93,12 @@ export class ThresholdTask extends TaskBase {
 
 		//pre-multiply alpha
 		const alpha: number = ((value >> 24) & 0xff) / 0xff;
-		this._colorRGBA.x = alpha * ((value >> 16) & 0xff) / 0xff;
-		this._colorRGBA.y = alpha * ((value >> 8) & 0xff) / 0xff;
-		this._colorRGBA.z = alpha * (value & 0xff) / 0xff;
-		this._colorRGBA.w = alpha;
+		this._colorRGBA.set([
+			alpha * ((value >> 16) & 0xff) / 0xff,
+			alpha * ((value >> 8) & 0xff) / 0xff,
+			alpha * (value & 0xff) / 0xff,
+			alpha
+		]);
 	}
 
 	public get mask(): number {
@@ -107,10 +111,12 @@ export class ThresholdTask extends TaskBase {
 
 		this._mask = value;
 
-		this._maskRGBA.x = ((value >> 16) & 0xff) / 0xff;
-		this._maskRGBA.y = ((value >> 8) & 0xff) / 0xff;
-		this._maskRGBA.z = (value & 0xff) / 0xff;
-		this._maskRGBA.w = ((value >> 24) & 0xff) / 0xff;
+		this._maskRGBA.set([
+			((value >> 16) & 0xff) / 0xff,
+			((value >> 8) & 0xff) / 0xff,
+			(value & 0xff) / 0xff,
+			((value >> 24) & 0xff) / 0xff
+		]);
 	}
 
 	public get copySource(): boolean {
@@ -134,6 +140,10 @@ export class ThresholdTask extends TaskBase {
 			0.0, 0.0, 0.0, 0.0, // mask
 			65025.0, 255.0, 1.0, 16581375.0 //decode
 		]);
+
+		this._colorRGBA = this._fragmentConstantData.subarray(4, 4 * 2);
+		this._maskRGBA = this._fragmentConstantData.subarray(4 * 2, 4 * 3);
+		this._decodeVector = this._fragmentConstantData.subarray(4 * 3, 4 * 4);
 	}
 
 	public getFragmentCode(): string {
@@ -191,12 +201,17 @@ export class ThresholdTask extends TaskBase {
 	public activate(stage: Stage, projection: ProjectionBase, depthTexture: Image2D): void {
 		super.computeVertexData();
 
-		const tVector: Vector3D = new Vector3D(
-			this._thresholdRGBA.x * this._maskRGBA.x,
-			this._thresholdRGBA.y * this._maskRGBA.y,
-			this._thresholdRGBA.z * this._maskRGBA.z,
-			this._thresholdRGBA.w * this._maskRGBA.w);
-		const tValue: number = tVector.dotProduct(this._decodeVector);
+		const thRGBA = this._thresholdRGBA;
+		const maskRGBA = this._maskRGBA;
+		const decRGBA = this._decodeVector;
+
+		// this is equal dot(threshold * mask, decode)
+		const tValue = (
+			thRGBA[0] * maskRGBA[0] * decRGBA[0] +
+			thRGBA[1] * maskRGBA[1] * decRGBA[1] +
+			thRGBA[2] * maskRGBA[2] * decRGBA[2] +
+			thRGBA[3] * maskRGBA[3] * decRGBA[3]
+		);
 
 		const index = this._fragmentConstantsIndex;
 		const data = this._fragmentConstantData;
@@ -205,16 +220,6 @@ export class ThresholdTask extends TaskBase {
 		data[index + 1] = tValue;
 		data[index + 2] = tValue;
 		data[index + 3] = tValue;
-
-		data[index + 4] = this._colorRGBA.x;
-		data[index + 5] = this._colorRGBA.y;
-		data[index + 6] = this._colorRGBA.z;
-		data[index + 7] = this._colorRGBA.w;
-
-		data[index + 8] = this._maskRGBA.x;
-		data[index + 9] = this._maskRGBA.y;
-		data[index + 10] = this._maskRGBA.z;
-		data[index + 11] = this._maskRGBA.w;
 
 		const context: IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
