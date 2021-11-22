@@ -114,8 +114,10 @@ export const Settings: IStageSettings = ConfigManager.instance.addStore<any>('st
 
 	/**
 	 * @description Enable buffer pooling to prevent a recreation
+	 * Bug! Chrome 95+ crashing
+	 * @see https://bugs.chromium.org/p/chromium/issues/detail?id=1272238&q=webgl&can=1
 	 */
-	ENABLE_BUFFER_POOLING: true,
+	ENABLE_BUFFER_POOLING: false,
 
 	/**
 	 * @description Allow use VAO if supported
