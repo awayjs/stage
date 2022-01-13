@@ -49,6 +49,7 @@
     "@awayjs/core": "^0.9.0",
     "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/parser": "^4.4.1",
+    "assemblyscript": "^0.19.22",
     "eslint": "^7.11.0",
     "rimraf": "^2.5.2",
     "rollup": "^2.37.1",
