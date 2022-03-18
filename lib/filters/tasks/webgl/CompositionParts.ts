@@ -39,7 +39,7 @@ const COMPOSITE_OPP: Record<string, string> = {
 	 * looks like composite equation not fully true
 	 */
 	[BlendMode.OVERLAY]:
-	`vec3 factor = 1. - step(src.rgb, vec3(0.5));
+	`vec3 factor = step(src.rgb, vec3(0.5));
 	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
 	vec3 multiple =  2. * src.rgb * dst.rgb;
 
@@ -66,6 +66,9 @@ uniform sampler2D fs1;
 vec4 composite (vec4 src) {
 	vec4 dst = texture2D(fs1, vUv[1]);
 	vec4 normal = src + (1.0 - src.a) * dst;
+
+	vec4 pma_src = src;
+	vec4 pma_dst = dst;
 
 	if (src.a > 0.0) src.rgb /= src.a;
 	if (dst.a > 0.0) dst.rgb /= dst.a;
