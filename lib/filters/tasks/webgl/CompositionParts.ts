@@ -39,14 +39,14 @@ const COMPOSITE_OPP: Record<string, string> = {
 	 * looks like composite equation not fully true
 	 */
 	[BlendMode.OVERLAY]:
-	`vec3 factor = step(src.rgb, vec3(0.5));
-	vec3 screen = (1. - 2. * (1. - src.rgb) * (1. - dst.rgb));
-	vec3 multiple =  2. * src.rgb * dst.rgb;
-
-	vec4 top = vec4(factor * screen + (1. - factor) * multiple, 1.);
+	`
+	vec4 factor = step(dst, vec4(0.5));
+	vec4 base = factor - dst;
+	vec4 blend = src * src.a - factor; //why do we need to multiply by src.a?
+	vec4 top = base * blend / (factor - 0.5) + factor;
 	top *= dst.a * src.a;
 
-	return top + normal * (1.0 - top.a);`,
+	return top;`,
 	[BlendMode.SCREEN]:
 	`vec3 screen = (1. - (1. - src.rgb) * (1. - dst.rgb));
 	vec4 top = vec4(screen, 1.);
