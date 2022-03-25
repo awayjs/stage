@@ -40,9 +40,9 @@ const COMPOSITE_OPP: Record<string, string> = {
 	 */
 	[BlendMode.OVERLAY]:
 	`
-	vec4 factor = step(dst, vec4(0.5));
+	vec4 factor = 1.0 - step(dst, vec4(0.5));
 	vec4 base = factor - dst;
-	vec4 blend = src * src.a - factor; //why do we need to multiply by src.a?
+	vec4 blend = src - factor;
 	vec4 top = base * blend / (factor - 0.5) + factor;
 	top *= dst.a * src.a;
 
