@@ -45,6 +45,8 @@ const COMPOSITE_OPP: Record<string, string> = {
 	vec4 blend = src - factor;
 	vec4 top = base * blend / (factor - 0.5) + factor;
 	top *= dst.a * src.a;
+	top += dst * dst.a * (1.0 - src.a);
+	top.a = dst.a;
 
 	return top;`,
 	[BlendMode.SCREEN]:
