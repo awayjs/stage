@@ -308,7 +308,7 @@ export class FilterManager {
 		const context = this.context;
 
 		context.setProgram(task.getProgram(stage));
-		//context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL); 
+		//context.setDepthTest(false, ContextGLCompareMode.LESS_EQUAL);
 
 		// bind filter elements for first pass after set program
 		if (!this._activeFilterTask) {
