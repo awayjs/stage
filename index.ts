@@ -1,4 +1,4 @@
-console.debug('AwayJS - Stage - 0.11.130');
+console.debug('AwayJS - Stage - 0.11.131');
 
 export { AGALMiniAssembler } from './lib/aglsl/assembler/AGALMiniAssembler';
 export { Flags } from './lib/aglsl/assembler/Flags';
