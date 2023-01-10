@@ -419,7 +419,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 			if (v) {
 				this._weakRefAdapter = new WeakRef<IAssetAdapter>(v);
-				this._finalizer.register(v, this.id, this);
+				this._finalizer.register(this, this.id, this);
 			} else {
 				this._weakRefAdapter = null;
 			}
