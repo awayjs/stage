@@ -192,6 +192,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		return this._data;
 	}
 
+	public needUpload: boolean = false;
+
 	/**
 	 * @description Upload flag, marking a image that it was uploaded on GPU
 	 * and can use GPU operations
@@ -203,25 +205,19 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		return this._sourceBitmap;
 	}
 
-	private _needUpload: boolean = false;
 	public invalidateGPU() {
-		this._needUpload = true;
+		if (this.needUpload)
+			return;
+
+		this.needUpload = true;
 		this.invalidate();
 	}
 
 	public invalidate() {
-		if (!this._needUpload) {
-			return;
-		}
 
-		if (this._locked) {
+		if (this._locked)
 			return;
-		}
 
-		// WE should reset a flag
-		// because in next pass it will damage mem
-		// not all operations require invalidate a mem
-		this._needUpload = false;
 		super.invalidate();
 	}
 
@@ -1606,9 +1602,11 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 			// throw new Error('Invalid BitmapData state, pixles can\'t be null' + asset.id);
 		}
 
-		if (this._invalid && pixels) {
+		if (asset.needUpload && pixels) {
+
 			t.uploadFromArray(new Uint8Array(pixels.buffer), 0, asset.unpackPMA);
 
+			asset.needUpload = false;
 			asset.wasUpload = true;
 
 			const mipLevels = asset.mipLevels;
