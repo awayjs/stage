@@ -3,14 +3,14 @@ import { BitmapImageCube } from '../image/BitmapImageCube';
 import { Image2D } from '../image/Image2D';
 
 import { ImageSampler } from '../image/ImageSampler';
-import { IGraphicsFactory } from '../factories/IGraphicsFactory';
+import { IImageFactory } from '../factories/IImageFactory';
 
 export class ImageUtils {
 	private static CANVAS: HTMLCanvasElement;
 	public static MAX_SIZE: number = 8192;
 	private static _defaultBitmap2DCtor: { new (...args: any[]): BitmapImage2D };
 	private static _defaultBitmapCubeCtor: { new (...args: any[]): BitmapImageCube };
-	private static _defaultFactoryCtor: { new(): IGraphicsFactory };
+	private static _defaultFactoryCtor: { new(): IImageFactory };
 
 	private static _defaultSampler: ImageSampler;
 	private static _defaultBitmapImage2D: BitmapImage2D;
@@ -38,7 +38,7 @@ export class ImageUtils {
 	 */
 	public static imageToBitmapImage2D(
 		img: HTMLImageElement | ImageBitmap,
-		powerOfTwo: boolean = true, factory: IGraphicsFactory = null): BitmapImage2D {
+		powerOfTwo: boolean = true, factory: IImageFactory = null): BitmapImage2D {
 
 		if (!factory)
 			factory = new this._defaultFactoryCtor();
@@ -175,7 +175,7 @@ export class ImageUtils {
 	public static registerDefaults (
 		bitmapCtor: {new(...args: any[]): BitmapImage2D},
 		cubeCtor: {new(...args: any[]): BitmapImageCube},
-		factoryCtor: {new(): IGraphicsFactory}
+		factoryCtor: {new(): IImageFactory}
 	) {
 		this._defaultBitmap2DCtor = bitmapCtor;
 		this._defaultBitmapCubeCtor = cubeCtor;

@@ -1,9 +1,9 @@
 import { BitmapImage2D } from '../image/BitmapImage2D';
 import { Image2D } from '../image/Image2D';
 
-import { IGraphicsFactory } from './IGraphicsFactory';
+import { IImageFactory } from './IImageFactory';
 
-export class DefaultGraphicsFactory implements IGraphicsFactory {
+export class DefaultStageFactory implements IImageFactory {
 	public createImage2D(
 		width: number,
 		height: number,

@@ -50,7 +50,7 @@ export { RTTEvent } from './lib/events/RTTEvent';
 // export named all from subpackage
 export * from './lib/image';
 
-export { IGraphicsFactory } from './lib/factories/IGraphicsFactory';
+export { IImageFactory } from './lib/factories/IImageFactory';
 
 export { FXAATask as Filter3DFXAATask } from './lib/filters/tasks/FXAATask';
 export { BlurTask as Filter3DBlurTask } from './lib/filters/tasks/BlurTask';
@@ -108,13 +108,13 @@ import {
 } from './lib/image';
 
 import { GradientAtlas, _Stage_GradientAtlass } from './lib/utils/GradientAtlas';
-import { DefaultGraphicsFactory } from './lib/factories/DefaultGraphicsFactory';
+import { DefaultStageFactory } from './lib/factories/DefaultStageFactory';
 import { Image2DParser } from './lib/parsers/Image2DParser';
 import { ImageCubeParser } from './lib/parsers/ImageCubeParser';
 import { TextureAtlasParser } from './lib/parsers/TextureAtlasParser';
 import { ImageUtils } from './lib/utils/ImageUtils';
 
-export { DefaultGraphicsFactory };
+export { DefaultStageFactory };
 export { ImageUtils };
 export { Stage };
 
@@ -125,7 +125,7 @@ Loader.enableParser(TextureAtlasParser);
 ImageUtils.registerDefaults(
 	BitmapImage2D,
 	BitmapImageCube,
-	DefaultGraphicsFactory
+	DefaultStageFactory
 );
 
 Stage.registerAbstraction(_Stage_Image2D, Image2D);

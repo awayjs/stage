@@ -3,8 +3,8 @@ import { IAsset, URLLoaderDataFormat, ParserBase, ByteArray, URLRequest } from '
 import { Image2D } from '../image/Image2D';
 import { ExternalImage2D } from '../image/ExternalImage2D';
 import { ImageUtils } from '../utils/ImageUtils';
-import { DefaultGraphicsFactory } from '../factories/DefaultGraphicsFactory';
-import { IGraphicsFactory } from '../factories/IGraphicsFactory';
+import { DefaultStageFactory } from '../factories/DefaultStageFactory';
+import { IImageFactory } from '../factories/IImageFactory';
 import { Settings } from '../Settings';
 
 /**
@@ -42,7 +42,7 @@ function getImageFromData (blob: Blob, callback: (arg: TImage) => boolean): TIma
 export class Image2DParser extends ParserBase {
 	public static SUPPORTED_TYPES = ['jpg', 'jpeg', 'png', 'gif'];
 
-	private _factory: IGraphicsFactory;
+	private _factory: IImageFactory;
 	private _startedParsing: boolean;
 	private _doneParsing: boolean;
 	private _loadingImage: boolean;
@@ -55,9 +55,9 @@ export class Image2DParser extends ParserBase {
 	 * @param uri The url or id of the data or file to be parsed.
 	 * @param extra The holder for extra contextual data that the parser might need.
 	 */
-	constructor(factory: IGraphicsFactory = null, alphaChannel: Uint8Array = null) {
+	constructor(factory: IImageFactory = null, alphaChannel: Uint8Array = null) {
 		super(URLLoaderDataFormat.BLOB);
-		this._factory = factory || new DefaultGraphicsFactory();
+		this._factory = factory || new DefaultStageFactory();
 		this._alphaChannel = alphaChannel;
 	}
 
