@@ -62,20 +62,6 @@ import { Settings } from './../Settings';
  * is 2,880 pixels in height and 2,880 in width.</p>
  */
 
-declare global {
-	class WeakRef<T> {
-		deref(): T;
-		constructor(arg: T);
-	}
-
-	class FinalizationRegistry {
-		constructor(callback: (v: any) => void);
-		register(target: object, heldValue: any, token?: object): void;
-		unregister(token: object): void;
-	}
-
-}
-
 let HAS_REF = ('WeakRef' in window);
 let alerted = false;
 
@@ -146,7 +132,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	protected _isSymbolSource: boolean = false;
 	protected _data: Uint8ClampedArray;
 	protected _isWeakRef: boolean = false;
-	protected _finalizer: FinalizationRegistry;
+	protected _finalizer: FinalizationRegistry<any>;
 	protected _weakRefAdapter: WeakRef<IAssetAdapter>;
 	protected _transparent: boolean;
 	protected _unpackPMA: boolean = true;
