@@ -1,14 +1,14 @@
 import {
 	EventDispatcher,
 	Rectangle,
-	AbstractionBase,
 	IAssetClass,
 	IAbstractionPool,
 	IAbstractionClass,
 	CSS,
 	Point,
 	ColorTransform,
-	IAsset
+	IAsset,
+	UUID
 } from '@awayjs/core';
 
 import { ContextMode } from './base/ContextMode';
@@ -136,7 +136,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		super();
 
-		this.id = AbstractionBase.ID_COUNT++;
+		this.id = UUID.Next();
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
