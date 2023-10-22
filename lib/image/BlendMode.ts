@@ -188,11 +188,11 @@ export class BlendMode {
 
 /**
  * Checks whether the blendmode is one that can be achived natively in WebGL
- * 
- * @param blend 
- * @returns 
+ *
+ * @param blend
+ * @returns
  */
-export function isNativeBlend(blend:BlendMode): boolean {
+export function isNativeBlend(blend: BlendMode): boolean {
 	switch (blend) {
 		case BlendMode.LAYER:
 		case BlendMode.MULTIPLY:
