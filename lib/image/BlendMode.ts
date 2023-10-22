@@ -185,3 +185,24 @@ export class BlendMode {
 	 */
 	public static SUBTRACT: string = 'subtract';
 }
+
+/**
+ * Checks whether the blendmode is one that can be achived natively in WebGL
+ * 
+ * @param blend 
+ * @returns 
+ */
+export function isNativeBlend(blend:BlendMode): boolean {
+	switch (blend) {
+		case BlendMode.LAYER:
+		case BlendMode.MULTIPLY:
+		case BlendMode.NORMAL:
+		case BlendMode.ADD:
+		case BlendMode.SCREEN:
+		case BlendMode.ALPHA:
+		case BlendMode.SUBTRACT:
+			return true;
+		default:
+			return false;
+	}
+}
