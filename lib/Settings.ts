@@ -32,6 +32,8 @@ export interface IStageSettings {
 	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: boolean;
 
 	UNSAFE_USE_SHADER_COMPOSER: boolean;
+
+	USE_NON_NATIVE_BLEND: boolean;
 }
 
 export const Settings: IStageSettings = ConfigManager.instance.addStore<any>('stage', {
@@ -166,6 +168,11 @@ export const Settings: IStageSettings = ConfigManager.instance.addStore<any>('st
 	 */
 	UNSAFE_USE_SHADER_COMPOSER: true,
 
+	/**
+	 * @description Enable use of blendmodes that cannot be achived natively in WebGL,
+	 * such as Overlay, Hardlight, Invert etc
+	 */
+	USE_NON_NATIVE_BLEND: false,
 });
 
 // console.debug('[Stage settings]', Settings);
