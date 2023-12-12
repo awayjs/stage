@@ -587,10 +587,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		programData.id = -1;
 	}
 
-	public interactionHandler(event) {
+	public interactionHandler(event: MouseEvent | TouchEvent) {
 
-		const screenX: number = (event.clientX != null) ? event.clientX : event.changedTouches[0].clientX;
-		const screenY: number = (event.clientY != null) ? event.clientY : event.changedTouches[0].clientY;
+		const screenX: number = ((<MouseEvent> event).clientX != null) ? (<MouseEvent> event).clientX : (<TouchEvent> event).changedTouches[0].clientX;
+		const screenY: number = ((<MouseEvent> event).clientY != null) ? (<MouseEvent> event).clientY : (<TouchEvent> event).changedTouches[0].clientY;
 
 		let point = this._mapWindowToStage(screenX, screenY, TMP_POINT);
 		this._screenX = point.x;
@@ -598,11 +598,9 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._touchPoints.length = 0;
 
-		if (event.touches) {
-			let touch;
-			const len_touches: number = event.touches.length;
-			for (let t: number = 0; t < len_touches; t++) {
-				touch = event.touches[t];
+		if ((<TouchEvent> event).touches) {
+			for (let i: number = 0; i < (<TouchEvent> event).touches.length; i++) {
+				const touch = (<TouchEvent> event).touches[i];
 
 				point = this._mapWindowToStage(touch.clientX, touch.clientY, TMP_POINT);
 
