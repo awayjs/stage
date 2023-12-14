@@ -592,7 +592,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const screenX: number = ((<MouseEvent> event).clientX != null) ? (<MouseEvent> event).clientX : (<TouchEvent> event).changedTouches[0].clientX;
 		const screenY: number = ((<MouseEvent> event).clientY != null) ? (<MouseEvent> event).clientY : (<TouchEvent> event).changedTouches[0].clientY;
 
-		let point = this._mapWindowToStage(screenX, screenY, TMP_POINT);
+		let point = this.mapWindowToStage(screenX, screenY, TMP_POINT);
 		this._screenX = point.x;
 		this._screenY = point.y;
 
@@ -602,7 +602,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			for (let i: number = 0; i < (<TouchEvent> event).touches.length; i++) {
 				const touch = (<TouchEvent> event).touches[i];
 
-				point = this._mapWindowToStage(touch.clientX, touch.clientY, TMP_POINT);
+				point = this.mapWindowToStage(touch.clientX, touch.clientY, TMP_POINT);
 
 				this._touchPoints.push(new TouchPoint(point.x, point.y, touch.identifier));
 			}
@@ -610,7 +610,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 	}
 
-	private _mapWindowToStage(x: number, y: number, out: {x: number, y: number} = { x: 0, y: 0 }) {
+	public mapWindowToStage(x: number, y: number, out: {x: number, y: number} = { x: 0, y: 0 }) {
 		const container = <HTMLCanvasElement> this.container;
 
 		// IE 11 fix
