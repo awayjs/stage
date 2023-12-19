@@ -136,27 +136,27 @@ export class Image2DParser extends ParserBase {
 			let blob: Blob;
 
 			if (this.data instanceof ByteArray) { // Parse a ByteArray
-	
+
 				const ba: ByteArray = this.data;
 				ba.position = 0;
 				blob =  new Blob([this.data.arraybytes]);
-	
+
 			} else if (this.data instanceof ArrayBuffer) {// Parse an ArrayBuffer
 				blob = new Blob([this.data]);
-	
+
 			} else if (this.data instanceof Blob) {
 				blob = this.data;
-	
+
 			} else {
 				throw 'Unknow data';
 			}
-	
+
 			const image = getImageFromData(blob, (image) => {
 				this._finalizeAssetFromImage(image);
 				//notify parser of async parsing completion
 				this.finishParsing();
 			});
-	
+
 			if (image)
 				this._finalizeAssetFromImage(image);
 		}
@@ -166,7 +166,7 @@ export class Image2DParser extends ParserBase {
 			this.finishParsing();
 	}
 
-	private _finalizeAssetFromImage(image:TImage): void {
+	private _finalizeAssetFromImage(image: TImage): void {
 		const asset = ImageUtils.imageToBitmapImage2D(image, false, this._factory);
 
 		this.finalizeAsset(asset, this.fileName);
