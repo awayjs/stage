@@ -13,7 +13,7 @@ export class TextureAtlasParser extends ParserBase {
 	private _imagePath: string;
 	private _imageData: BitmapImage2D;
 	private _subTextureNodes: NodeList;
-	private _parseState: number = 0;
+	private _parseState: TextureAtlasParserState = TextureAtlasParserState.PARSE_XML;
 
 	/**
 	 * Creates a new TextureAtlasParser object.
@@ -55,10 +55,10 @@ export class TextureAtlasParser extends ParserBase {
 	/**
 	 * @inheritDoc
 	 */
-	public _iResolveDependency(resourceDependency: ResourceDependency): void {
+	public resolveDependency(resourceDependency: ResourceDependency): void {
 		if (resourceDependency.assets.length) {
 			this._imageData = <BitmapImage2D> resourceDependency.assets[0];
-			this._pFinalizeAsset(this._imageData);
+			this.finalizeAsset(this._imageData);
 			this._parseState = TextureAtlasParserState.PARSE_SUBTEXTURES;
 		} else {
 			this._parseState = TextureAtlasParserState.PARSE_COMPLETE;
@@ -68,20 +68,20 @@ export class TextureAtlasParser extends ParserBase {
 	/**
 	 * @inheritDoc
 	 */
-	public _iResolveDependencyFailure(resourceDependency: ResourceDependency): void {
+	public resolveDependencyFailure(resourceDependency: ResourceDependency): void {
 		this._parseState = TextureAtlasParserState.PARSE_COMPLETE;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _pProceedParsing(): boolean {
+	protected proceedParsing(): void {
 		let nodes: NodeList;
 
 		switch (this._parseState) {
 			case TextureAtlasParserState.PARSE_XML:
 				try {
-					this._doc = XmlUtils.getChildrenWithTag(XmlUtils.strToXml(this._pGetTextData()), 'TextureAtlas')[0];
+					this._doc = XmlUtils.getChildrenWithTag(XmlUtils.strToXml(this.getTextData()), 'TextureAtlas')[0];
 
 					this._imagePath = XmlUtils.readAttributeValue(this._doc, 'imagePath');
 
@@ -89,17 +89,20 @@ export class TextureAtlasParser extends ParserBase {
 
 					this._parseState = TextureAtlasParserState.PARSE_IMAGE;
 
+					if (this.hasTime())
+						this.proceedParsing();
+
 				} catch (Error) {
-					return ParserBase.PARSING_DONE;
+					this.dieWithError('TextureAtlasParser Error parsing XML');
 				}
 				break;
 
 			case TextureAtlasParserState.PARSE_IMAGE:
 				if (this._imagePath) {
-					this._pAddDependency(this._imagePath, new URLRequest(this._imagePath));
-					this._pPauseAndRetrieveDependencies();
+					this.addDependency(this._imagePath, new URLRequest(this._imagePath));
+					this.pauseAndRetrieveDependencies();
 				} else {
-					return ParserBase.PARSING_DONE;
+					this.dieWithError('TextureAtlasParser Missing imagePath attribute in XML');
 				}
 
 				break;
@@ -132,7 +135,7 @@ export class TextureAtlasParser extends ParserBase {
 					if (x || y || width || height)
 						sampler.frameRect = new Rectangle(parseInt(x), parseInt(y), parseInt(width), parseInt(height));
 
-					this._pFinalizeAsset(sampler, XmlUtils.readAttributeValue(element, 'name'));
+					this.finalizeAsset(sampler, XmlUtils.readAttributeValue(element, 'name'));
 				}
 
 				this._parseState = TextureAtlasParserState.PARSE_COMPLETE;
@@ -140,16 +143,14 @@ export class TextureAtlasParser extends ParserBase {
 				break;
 
 			case TextureAtlasParserState.PARSE_COMPLETE:
-				return ParserBase.PARSING_DONE;
+				return this.finishParsing();
 		}
-
-		return ParserBase.MORE_TO_PARSE;
 	}
 }
 
-export class TextureAtlasParserState {
-	public static PARSE_XML: number = 0;
-	public static PARSE_IMAGE: number = 1;
-	public static PARSE_SUBTEXTURES: number = 2;
-	public static PARSE_COMPLETE: number = 3;
+enum TextureAtlasParserState {
+	PARSE_XML,
+	PARSE_IMAGE,
+	PARSE_SUBTEXTURES,
+	PARSE_COMPLETE,
 }

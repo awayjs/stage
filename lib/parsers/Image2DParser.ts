@@ -15,7 +15,7 @@ import { Settings } from '../Settings';
 
 type TImage = HTMLImageElement | ImageBitmap;
 
-function getImageFromData (blob: Blob, callback: (arg: TImage) => boolean): TImage {
+function getImageFromData (blob: Blob, callback: (arg: TImage) => void): TImage {
 	// self is window for main ui or self for worker, need use it
 	const supportImageBitmap = Settings.ENABLE_PARSER_NATIVE_BITMAP && ('createImageBitmap' in self);
 
@@ -39,14 +39,11 @@ function getImageFromData (blob: Blob, callback: (arg: TImage) => boolean): TIma
 
 	return image;
 }
+
 export class Image2DParser extends ParserBase {
 	public static SUPPORTED_TYPES = ['jpg', 'jpeg', 'png', 'gif'];
 
 	private _factory: IImageFactory;
-	private _startedParsing: boolean;
-	private _doneParsing: boolean;
-	private _loadingImage: boolean;
-	private _htmlImageElement: HTMLImageElement | ImageBitmap;
 
 	private _alphaChannel: Uint8Array;
 
@@ -111,87 +108,68 @@ export class Image2DParser extends ParserBase {
 
 	}
 
-	public _pFinalizeAsset(asset: IAsset, fileName: string): void {
+	protected finalizeAsset(asset: IAsset, fileName: string): void {
 		if (this._alphaChannel)
 			(<Image2D>asset).alphaChannel = this._alphaChannel;
 
-		super._pFinalizeAsset(asset, fileName);
+		super.finalizeAsset(asset, fileName);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _pProceedParsing(): boolean {
-
-		if (this._loadingImage) {
-			return ParserBase.MORE_TO_PARSE;
-		}
+	protected proceedParsing(): void {
 
 		let asset: Image2D;
 
-		if (!this._htmlImageElement && this.data instanceof HTMLImageElement) {
-			this._htmlImageElement = this.data;
-		}
-
-		if (this._htmlImageElement) {
-			const asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
-
-			this._pFinalizeAsset(asset, this._iFileName);
-			this._pContent = asset;
-
-			return ParserBase.PARSING_DONE;
-
-		}
-
-		if (this.data instanceof URLRequest) {
+		if (this.data instanceof HTMLImageElement) {
+			//data is already an image
+			this._finalizeAssetFromImage(this.data);
+		} else if (this.data instanceof URLRequest) {
+			//data is an external image
 			asset = new ExternalImage2D(<URLRequest> this.data);
 
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
-			this._pContent = asset;
-
-			return ParserBase.PARSING_DONE;
-		}
-
-		let blob: Blob;
-
-		if (this.data instanceof ByteArray) { // Parse a ByteArray
-
-			const ba: ByteArray = this.data;
-			ba.position = 0;
-			blob =  new Blob([this.data.arraybytes]);
-
-		} else if (this.data instanceof ArrayBuffer) {// Parse an ArrayBuffer
-			blob = new Blob([this.data]);
-
-		} else if (this.data instanceof Blob) {
-			blob = this.data;
-
+			this.finalizeAsset(<IAsset> asset, this.fileName);
+			this._content = asset;
 		} else {
-			throw 'Unknow data';
+			//check if data can be resolved to a blob
+			let blob: Blob;
+
+			if (this.data instanceof ByteArray) { // Parse a ByteArray
+	
+				const ba: ByteArray = this.data;
+				ba.position = 0;
+				blob =  new Blob([this.data.arraybytes]);
+	
+			} else if (this.data instanceof ArrayBuffer) {// Parse an ArrayBuffer
+				blob = new Blob([this.data]);
+	
+			} else if (this.data instanceof Blob) {
+				blob = this.data;
+	
+			} else {
+				throw 'Unknow data';
+			}
+	
+			const image = getImageFromData(blob, (image) => {
+				this._finalizeAssetFromImage(image);
+				//notify parser of async parsing completion
+				this.finishParsing();
+			});
+	
+			if (image)
+				this._finalizeAssetFromImage(image);
 		}
 
-		const task = getImageFromData(blob, (image) => {
-			this._htmlImageElement = image;
-			this.onLoadComplete(null);
-
-			return true;
-		});
-
-		if (task instanceof HTMLImageElement && task.naturalWidth) {
-			this._htmlImageElement = task;
-
-			asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
-
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
-			this._pContent = asset;
-
-		}
-
-		this._loadingImage = true;
-		return ParserBase.MORE_TO_PARSE;
+		//notify parser of sync parsing completion
+		if (this._content)
+			this.finishParsing();
 	}
 
-	public onLoadComplete(event): void {
-		this._loadingImage = false;
+	private _finalizeAssetFromImage(image:TImage): void {
+		const asset = ImageUtils.imageToBitmapImage2D(image, false, this._factory);
+
+		this.finalizeAsset(asset, this.fileName);
+		this._content = asset;
 	}
 }

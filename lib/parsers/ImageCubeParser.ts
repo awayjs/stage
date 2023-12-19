@@ -59,21 +59,21 @@ export class ImageCubeParser extends ParserBase {
 	/**
 	 * @inheritDoc
 	 */
-	public _iResolveDependency(resourceDependency: ResourceDependency): void {
+	public resolveDependency(resourceDependency: ResourceDependency): void {
 
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _iResolveDependencyFailure(resourceDependency: ResourceDependency): void {
+	public resolveDependencyFailure(resourceDependency: ResourceDependency): void {
 
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _pProceedParsing(): boolean {
+	protected proceedParsing(): void {
 		if (this._imgDependencyDictionary != null) { //all images loaded
 			const asset: BitmapImageCube = new BitmapImageCube(this._getBitmapImage2D(ImageCubeParser.posX).width);
 			const rect: Rectangle = new Rectangle(0, 0, asset.size, asset.size);
@@ -88,51 +88,45 @@ export class ImageCubeParser extends ParserBase {
 			//clear dictionary
 			this._imgDependencyDictionary = null;
 
-			asset.name = this._iFileName;
+			asset.name = this.fileName;
 
-			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
+			this.finalizeAsset(<IAsset> asset, this.fileName);
 
-			return ParserBase.PARSING_DONE;
+			return this.finishParsing();
 		}
 
 		try {
 			const json: any = JSON.parse(this.data);
-			const data: Array<Object> = <Array<Object>> json.data;
+
+			if (!json || !json.data || json.data.length != 6)
+				return this.dieWithError('ImageCubeParser: Error - cube texture should have exactly 6 images');
+
 			let rec: any;
+			const data: Array<Object> = <Array<Object>> json.data;
 
-			if (data.length != 6)
-				this._pDieWithError('ImageCubeParser: Error - cube texture should have exactly 6 images');
+			this._imgDependencyDictionary = new Object();
 
-			if (json) {
-				this._imgDependencyDictionary = new Object();
-
-				for (let c: number = 0; c < data.length; c++) {
-					rec = data[c];
-					this._imgDependencyDictionary[rec.id] = this._pAddDependency(rec.id, new URLRequest(rec.image.toString()));
-				}
-
-				if (!this._validateCubeData()) {
-
-					this._pDieWithError('ImageCubeParser: JSON data error - cubes require id of:   \n' + ImageCubeParser.posX + ', ' + ImageCubeParser.negX + ',  \n' + ImageCubeParser.posY + ', ' + ImageCubeParser.negY + ',  \n' + ImageCubeParser.posZ + ', ' + ImageCubeParser.negZ);
-
-					return ParserBase.PARSING_DONE;
-
-				}
-
-				this._pPauseAndRetrieveDependencies();
-
-				return ParserBase.MORE_TO_PARSE;
+			for (let c: number = 0; c < data.length; c++) {
+				rec = data[c];
+				this._imgDependencyDictionary[rec.id] = this.addDependency(rec.id, new URLRequest(rec.image.toString()));
 			}
+
+			if (!this._validateCubeData())
+				return this.dieWithError('ImageCubeParser: JSON data error - cubes require id of:   \n' + ImageCubeParser.posX + ', ' + ImageCubeParser.negX + ',  \n' + ImageCubeParser.posY + ', ' + ImageCubeParser.negY + ',  \n' + ImageCubeParser.posZ + ', ' + ImageCubeParser.negZ);
+
+			this.pauseAndRetrieveDependencies();
 		} catch (e) {
-			this._pDieWithError('CubeTexturePaser Error parsing JSON');
+			this.dieWithError('CubeTexturePaser Error parsing JSON');
 		}
-
-		return ParserBase.PARSING_DONE;
-
 	}
 
 	private _validateCubeData(): boolean {
-		return  (this._imgDependencyDictionary[ ImageCubeParser.posX ] != null && this._imgDependencyDictionary[ ImageCubeParser.negX ] != null && this._imgDependencyDictionary[ ImageCubeParser.posY ] != null && this._imgDependencyDictionary[ ImageCubeParser.negY ] != null && this._imgDependencyDictionary[ ImageCubeParser.posZ ] != null && this._imgDependencyDictionary[ ImageCubeParser.negZ ] != null);
+		return (this._imgDependencyDictionary[ ImageCubeParser.posX ] != null
+			&& this._imgDependencyDictionary[ ImageCubeParser.negX ] != null
+			&& this._imgDependencyDictionary[ ImageCubeParser.posY ] != null
+			&& this._imgDependencyDictionary[ ImageCubeParser.negY ] != null
+			&& this._imgDependencyDictionary[ ImageCubeParser.posZ ] != null
+			&& this._imgDependencyDictionary[ ImageCubeParser.negZ ] != null);
 	}
 
 	private _getBitmapImage2D(name: string): BitmapImage2D {
