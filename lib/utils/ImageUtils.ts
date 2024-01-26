@@ -4,17 +4,19 @@ import { Image2D } from '../image/Image2D';
 
 import { ImageSampler } from '../image/ImageSampler';
 import { IImageFactory } from '../factories/IImageFactory';
+import { ImageCube } from '../image';
 
 export class ImageUtils {
 	private static CANVAS: HTMLCanvasElement;
 	public static MAX_SIZE: number = 8192;
-	private static _defaultBitmap2DCtor: { new (...args: any[]): BitmapImage2D };
-	private static _defaultBitmapCubeCtor: { new (...args: any[]): BitmapImageCube };
-	private static _defaultFactoryCtor: { new(): IImageFactory };
+	private static _defaultImage2DFactory: () => Image2D;
+	private static _defaultImageCubeFactory: () => ImageCube;
+	private static _defaultImageSamplerFactory: () => ImageSampler;
+	private static _defaultFactory: () => IImageFactory;
 
-	private static _defaultSampler: ImageSampler;
-	private static _defaultBitmapImage2D: BitmapImage2D;
-	private static _defaultBitmapImageCube: BitmapImageCube;
+	private static _defaultImageSampler: ImageSampler;
+	private static _defaultImage2D: Image2D;
+	private static _defaultImageCube: ImageCube;
 
 	private static getImageBuffer(img: HTMLImageElement | ImageBitmap): Uint8ClampedArray {
 
@@ -38,10 +40,7 @@ export class ImageUtils {
 	 */
 	public static imageToBitmapImage2D(
 		img: HTMLImageElement | ImageBitmap,
-		powerOfTwo: boolean = true, factory: IImageFactory = null): BitmapImage2D {
-
-		if (!factory)
-			factory = new this._defaultFactoryCtor();
+		factory: IImageFactory, powerOfTwo: boolean = true): BitmapImage2D {
 
 		let width: number;
 		let height: number;
@@ -116,70 +115,36 @@ export class ImageUtils {
 		return p;
 	}
 
-	public static getDefaultImage2D(): BitmapImage2D {
-		if (!this._defaultBitmapImage2D)
-			this.createDefaultImage2D();
-
-		return this._defaultBitmapImage2D;
+	public static getDefaultImage2D(): Image2D {
+		return this._defaultImage2D || (this._defaultImage2D = this._defaultImage2DFactory());
 	}
 
-	public static getDefaultImageCube(): BitmapImageCube {
-		if (!this._defaultBitmapImageCube)
-			this.createDefaultImageCube();
-
-		return this._defaultBitmapImageCube;
+	public static getDefaultImageCube(): ImageCube {
+		return this._defaultImageCube || (this._defaultImageCube = this._defaultImageCubeFactory());
 	}
 
-	public static getDefaultSampler(): ImageSampler {
-		if (!this._defaultSampler)
-			this.createDefaultSampler();
-
-		return this._defaultSampler;
-	}
-
-	private static createDefaultImageCube(): void {
-		if (!this._defaultBitmapImage2D)
-			this.createDefaultImage2D();
-
-		const b = new this._defaultBitmapCubeCtor(this._defaultBitmapImage2D.width);
-
-		for (let i = 0; i < 6; i++) {
-			b.drawBitmap(
-				i,
-				this._defaultBitmapImage2D.data,
-				0, 0,
-				this._defaultBitmapImage2D.width,
-				this._defaultBitmapImage2D.height);
-		}
-
-		this._defaultBitmapImageCube = b;
-	}
-
-	private static createDefaultSampler(): void {
-		this._defaultSampler = new ImageSampler();
-	}
-
-	private static createDefaultImage2D() {
-		const b: BitmapImage2D = new this._defaultBitmap2DCtor(8, 8, false, 0x000000);
-
-		//create chekerboard
-		let i: number, j: number;
-		for (i = 0; i < 8; i++)
-			for (j = 0; j < 8; j++)
-				if ((j & 1) ^ (i & 1))
-					b.setPixel(i, j, 0XFFFFFF);
-
-		return b;
+	public static getDefaultImageSampler(): ImageSampler {
+		return this._defaultImageSampler || (this._defaultImageSampler = this._defaultImageSamplerFactory());
 	}
 
 	public static registerDefaults (
-		bitmapCtor: {new(...args: any[]): BitmapImage2D},
-		cubeCtor: {new(...args: any[]): BitmapImageCube},
-		factoryCtor: {new(): IImageFactory}
+		defaultImage2DFactory: () => BitmapImage2D = null,
+		defaultImageCubeFactory: () => BitmapImageCube = null,
+		defaultImageSamplerFactory: () => ImageSampler = null,
+		defaultFactory: () => IImageFactory = null
 	) {
-		this._defaultBitmap2DCtor = bitmapCtor;
-		this._defaultBitmapCubeCtor = cubeCtor;
-		this._defaultFactoryCtor = factoryCtor;
+		if (defaultImage2DFactory) {
+			this._defaultImage2DFactory = defaultImage2DFactory;
+		}
+		if (defaultImageCubeFactory) {
+			this._defaultImageCubeFactory = defaultImageCubeFactory;
+		}
+		if (defaultImageSamplerFactory) {
+			this._defaultImageSamplerFactory = defaultImageSamplerFactory;
+		}
+		if (defaultFactory) {
+			this._defaultFactory = defaultFactory;
+		}
 	}
 
 }

@@ -104,7 +104,8 @@ import {
 	BitmapImage2D, _Stage_BitmapImage2D,
 	BitmapImageCube, _Stage_BitmapImageCube,
 	ExternalImage2D, _Stage_ExternalImage2D,
-	SpecularImage2D, /* _Stage_BitmapImage2D */
+	SpecularImage2D,
+	ImageSampler,
 } from './lib/image';
 
 import { GradientAtlas, _Stage_GradientAtlass } from './lib/utils/GradientAtlas';
@@ -123,9 +124,35 @@ Loader.enableParser(ImageCubeParser);
 Loader.enableParser(TextureAtlasParser);
 
 ImageUtils.registerDefaults(
-	BitmapImage2D,
-	BitmapImageCube,
-	DefaultStageFactory
+	() => {
+		const b: BitmapImage2D = new BitmapImage2D(8, 8, false, 0x000000);
+
+		//create chekerboard
+		let i: number, j: number;
+		for (i = 0; i < 8; i++)
+			for (j = 0; j < 8; j++)
+				if ((j & 1) ^ (i & 1))
+					b.setPixel(i, j, 0XFFFFFF);
+
+		return b;
+	},
+	() => {
+		const image2D:BitmapImage2D = <BitmapImage2D> ImageUtils.getDefaultImage2D();
+		const b = new BitmapImageCube(image2D.width);
+
+		for (let i = 0; i < 6; i++) {
+			b.drawBitmap(
+				i,
+				image2D.data,
+				0, 0,
+				image2D.width,
+				image2D.height);
+		}
+
+		return b;
+	},
+	() => new ImageSampler(),
+	() => new DefaultStageFactory(),
 );
 
 Stage.registerAbstraction(_Stage_Image2D, Image2D);

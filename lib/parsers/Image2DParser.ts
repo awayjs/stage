@@ -167,7 +167,7 @@ export class Image2DParser extends ParserBase {
 	}
 
 	private _finalizeAssetFromImage(image: TImage): void {
-		const asset = ImageUtils.imageToBitmapImage2D(image, false, this._factory);
+		const asset = ImageUtils.imageToBitmapImage2D(image, this._factory, false);
 
 		this.finalizeAsset(asset, this.fileName);
 		this._content = asset;

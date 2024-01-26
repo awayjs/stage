@@ -93,7 +93,7 @@ export class _Stage_ImageBase extends AbstractionBase {
 
 	public activate(index: number, sampler: ImageSampler = null): void {
 		if (!sampler)
-			sampler = ImageUtils.getDefaultSampler();
+			sampler = ImageUtils.getDefaultImageSampler();
 
 		const mipmap: boolean = (sampler.mipmap && !this._stage.globalDisableMipmap) ? sampler.mipmap : false;
 
