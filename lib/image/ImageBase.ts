@@ -3,7 +3,21 @@ import { AssetBase } from '@awayjs/core';
 import { ImageEvent } from '../events/ImageEvent';
 
 export class ImageBase extends AssetBase {
-	public _pFormat: string = 'bgra';
+	protected _format: string = 'bgra';
+
+	protected _isDisposed: boolean = false;
+
+	public get isDisposed() {
+		return this._isDisposed;
+	}
+
+	/**
+	 *
+	 * @returns {string}
+	 */
+	public get format(): string {
+		return this._format;
+	}
 
 	/**
 	 *
@@ -12,12 +26,9 @@ export class ImageBase extends AssetBase {
 		super();
 	}
 
-	/**
-	 *
-	 * @returns {string}
-	 */
-	public get format(): string {
-		return this._pFormat;
+	public dispose() {
+		this._isDisposed = true;
+		this.clear();
 	}
 
 	/**

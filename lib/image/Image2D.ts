@@ -13,12 +13,6 @@ export class Image2D extends ImageBase {
 
 	protected _powerOfTwo: boolean = true;
 
-	protected _isDisposed: boolean = false;
-
-	public get isDisposed() {
-		return this._isDisposed;
-	}
-
 	/**
 	 *
 	 * @returns {string}
@@ -75,11 +69,6 @@ export class Image2D extends ImageBase {
 		this._rect = new Rectangle(0, 0, Math.round(width), Math.round(height));
 		this._powerOfTwo = powerOfTwo;
 		this._testDimensions();
-	}
-
-	public dispose() {
-		this._isDisposed = true;
-		this.clear();
 	}
 
 	/**
