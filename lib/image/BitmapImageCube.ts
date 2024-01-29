@@ -1,4 +1,4 @@
-import { ColorTransform, Matrix, Rectangle, Point, ByteArray, ColorUtils } from '@awayjs/core';
+import { ColorTransform, Matrix, Rectangle, Point, ColorUtils } from '@awayjs/core';
 
 import { BitmapImage2D } from './BitmapImage2D';
 import { ImageCube } from './ImageCube';

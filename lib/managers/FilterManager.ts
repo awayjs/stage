@@ -1,7 +1,6 @@
 import { ColorTransform, Point, Rectangle } from '@awayjs/core';
 
 import { ContextGLDrawMode } from '../base/ContextGLDrawMode';
-import { ContextGLCompareMode } from '../base/ContextGLCompareMode';
 import { ContextGLVertexBufferFormat } from '../base/ContextGLVertexBufferFormat';
 import { Image2D, ImageSampler, _Stage_ImageBase } from '../image/';
 import { Stage } from '../Stage';

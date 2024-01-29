@@ -1,4 +1,4 @@
-import { ColorTransform, Matrix, Rectangle, Point, ColorUtils, URLRequest } from '@awayjs/core';
+import { URLRequest } from '@awayjs/core';
 
 import { Image2D } from './Image2D';
 

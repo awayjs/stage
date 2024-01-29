@@ -76,8 +76,6 @@ export class TextureAtlasParser extends ParserBase {
 	 * @inheritDoc
 	 */
 	protected proceedParsing(): void {
-		let nodes: NodeList;
-
 		switch (this._parseState) {
 			case TextureAtlasParserState.PARSE_XML:
 				try {

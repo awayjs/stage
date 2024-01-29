@@ -1,5 +1,3 @@
-import { AbstractMethodError } from '@awayjs/core';
-
 import { ImageUtils } from '../utils/ImageUtils';
 
 import { ImageBase } from './ImageBase';
@@ -70,8 +68,6 @@ export class ImageCube extends ImageBase {
 import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
 
 import { _Stage_ImageBase } from './ImageBase';
-
-import { Stage } from '../Stage';
 
 /**
  *
