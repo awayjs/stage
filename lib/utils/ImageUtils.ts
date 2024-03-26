@@ -8,6 +8,7 @@ import { ImageCube } from '../image';
 
 export class ImageUtils {
 	private static CANVAS: HTMLCanvasElement;
+	private static CONTEXT: CanvasRenderingContext2D;
 	public static MAX_SIZE: number = 8192;
 	private static _defaultImage2DFactory: () => Image2D;
 	private static _defaultImageCubeFactory: () => ImageCube;
@@ -21,7 +22,7 @@ export class ImageUtils {
 	private static getImageBuffer(img: HTMLImageElement | ImageBitmap): Uint8ClampedArray {
 
 		const canvas = this.CANVAS || (this.CANVAS = document.createElement('canvas'));
-		const context = canvas.getContext('2d');
+		const context = this.CONTEXT || (this.CONTEXT = canvas.getContext('2d', { willReadFrequently: true }));
 
 		if (img instanceof HTMLImageElement) {
 			canvas.width = img.naturalWidth;
