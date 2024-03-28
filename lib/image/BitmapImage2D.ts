@@ -1,6 +1,8 @@
 import { ColorTransform, Matrix, Rectangle, Point, ColorUtils, IAssetAdapter, AssetEvent, IAsset } from '@awayjs/core';
 import { UnloadManager, IUnloadable, UnloadService } from './../managers/UnloadManager';
 import { Image2D } from './Image2D';
+import { BitmapImageChannel } from './BitmapImageChannel';
+import { LehmerRng } from '../utils/LehmerRng';
 import { Turbulence } from '../utils/Turbulence';
 import { Settings } from './../Settings';
 
@@ -876,6 +878,49 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			"FloodFill (sourceColor, targetColor, source rect, result, time):",
 			oldc32.toString(16), newc32.toString(16), this._rect._rawData, rect, delta,)
 		*/
+
+		this.invalidateGPU();
+	}
+
+	/**
+	 * Ruffle port of noise
+	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L326
+	 */
+	public noise(
+		randomSeed: number,
+		low: ui8 = 0,
+		high: ui8 = 255,
+		channelOptions: ui8 = 7, 
+		grayScale: boolean = false
+	): void {
+		let rng = new LehmerRng(randomSeed);
+		const w = this.width;
+		const h = this.height;
+		const data = this.getDataInternal(true, true);
+
+		for (let y = 0; y < h; y++) {
+			for (let x = 0; x < w; x++) {
+				const index = (x + y * w) * 4;
+				if (grayScale) {
+					const gray = rng.genRange(low, high);
+					data[index] = gray | 0;
+					data[index + 1] = gray | 0;
+					data[index + 2] = gray | 0;
+				} else {
+					let r = (channelOptions & BitmapImageChannel.RED)? rng.genRange(low, high) : 0;
+
+					let g = (channelOptions & BitmapImageChannel.GREEN)? rng.genRange(low, high) : 0;
+
+					let b = (channelOptions & BitmapImageChannel.BLUE)? rng.genRange(low, high) : 0;
+	
+					data[index] = r | 0;
+					data[index + 1] = g | 0;
+					data[index + 2] = b | 0;
+				}
+
+				data[index + 3] = (channelOptions & BitmapImageChannel.ALPHA)? rng.genRange(low, high) : 255;
+			}
+		}
 
 		this.invalidateGPU();
 	}
