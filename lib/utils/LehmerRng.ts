@@ -8,16 +8,16 @@ export class LehmerRng {
 	private _x: ui32;
 
 	constructor(seed: ui32) {
-        this._x = seed;
-    }
+		this._x = seed;
+	}
 
-    /// Generate the next value in the sequence via the following formula
-    /// X_(k+1) = a * X_k mod m
-    public gen(): ui32 {
-        return (this._x = (this._x * 16807) % 2147483647);
-    }
+	/// Generate the next value in the sequence via the following formula
+	/// X_(k+1) = a * X_k mod m
+	public gen(): ui32 {
+		return (this._x = (this._x * 16807) % 2147483647);
+	}
 
-    public genRange(start: ui32, end: ui32): ui8 {
-        return (start + (this.gen() % (end - start + 1)));
-    }
+	public genRange(start: ui32, end: ui32): ui8 {
+		return (start + (this.gen() % (end - start + 1)));
+	}
 }

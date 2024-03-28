@@ -890,10 +890,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		randomSeed: number,
 		low: ui8 = 0,
 		high: ui8 = 255,
-		channelOptions: ui8 = 7, 
+		channelOptions: ui8 = 7,
 		grayScale: boolean = false
 	): void {
-		let rng = new LehmerRng(randomSeed);
+		const rng = new LehmerRng(randomSeed);
 		const w = this.width;
 		const h = this.height;
 		const data = this.getDataInternal(true, true);
@@ -907,18 +907,18 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 					data[index + 1] = gray | 0;
 					data[index + 2] = gray | 0;
 				} else {
-					let r = (channelOptions & BitmapImageChannel.RED)? rng.genRange(low, high) : 0;
+					const r = (channelOptions & BitmapImageChannel.RED) ? rng.genRange(low, high) : 0;
 
-					let g = (channelOptions & BitmapImageChannel.GREEN)? rng.genRange(low, high) : 0;
+					const g = (channelOptions & BitmapImageChannel.GREEN) ? rng.genRange(low, high) : 0;
 
-					let b = (channelOptions & BitmapImageChannel.BLUE)? rng.genRange(low, high) : 0;
-	
+					const b = (channelOptions & BitmapImageChannel.BLUE) ? rng.genRange(low, high) : 0;
+
 					data[index] = r | 0;
 					data[index + 1] = g | 0;
 					data[index + 2] = b | 0;
 				}
 
-				data[index + 3] = (channelOptions & BitmapImageChannel.ALPHA)? rng.genRange(low, high) : 255;
+				data[index + 3] = (channelOptions & BitmapImageChannel.ALPHA) ? rng.genRange(low, high) : 255;
 			}
 		}
 
