@@ -357,6 +357,11 @@ export class ProgramWebGL implements IProgram {
 		this._gl.uniform4fv(location, value);
 	}
 
+	public uniformMatrix4fv(type: number, transpose: boolean, matrixRawData:Float32Array):void{
+		const location = this.getUniformLocation(type)
+		this._gl.uniformMatrix4fv(type, transpose, matrixRawData)
+	}
+
 	public dispose(): void {
 		// not real delete progs, because maybe will be recreted in nearest future
 		// then progs in prety small, we can store 1000 + without overhead
