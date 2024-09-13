@@ -359,7 +359,7 @@ export class ProgramWebGL implements IProgram {
 
 	public uniformMatrix4fv(type: number, transpose: boolean, matrixRawData:Float32Array):void{
 		const location = this.getUniformLocation(type)
-		this._gl.uniformMatrix4fv(type, transpose, matrixRawData)
+		this._gl.uniformMatrix4fv(location, transpose, matrixRawData)
 	}
 
 	public dispose(): void {
