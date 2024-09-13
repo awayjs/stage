@@ -12,17 +12,16 @@ export class AGALTokenizer {
 	}
 
 	public decribeAGALPart(array: ByteArray | Part): Description {
-		if (array instanceof ByteArray) {
-			return this.decribeAGALByteArray(array);
-		}
-
-		const desc = this.decribeAGALByteArray(array.data);
-		desc.native = array.native;
-
-		return  desc;
+		if (array instanceof Part) {
+			const desc = this.decribeAGALByteArray(array.data);
+			desc.native = array.native;
+			return desc;
+		} else
+		return this.decribeAGALByteArray(array);
 	}
 
 	public decribeAGALByteArray(bytes: ByteArray): Description {
+		bytes.position = 0
 		const header: Header = new Header();
 
 		if (bytes.readUnsignedByte() != 0xa0) {
@@ -57,6 +56,7 @@ export class AGALTokenizer {
 		const desc: Description = new Description();
 		const tokens: Token[] = [];
 		while (bytes.position < bytes.length) {
+			console.log(bytes.position)
 			const token: Token = new Token();
 
 			token.opcode = bytes.readUnsignedInt();
