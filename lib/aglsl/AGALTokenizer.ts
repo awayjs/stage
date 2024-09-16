@@ -56,7 +56,6 @@ export class AGALTokenizer {
 		const desc: Description = new Description();
 		const tokens: Token[] = [];
 		while (bytes.position < bytes.length) {
-			console.log(bytes.position)
 			const token: Token = new Token();
 
 			token.opcode = bytes.readUnsignedInt();

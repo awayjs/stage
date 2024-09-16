@@ -357,9 +357,24 @@ export class ProgramWebGL implements IProgram {
 		this._gl.uniform4fv(location, value);
 	}
 
-	public uniformMatrix4fv(type: number, transpose: boolean, matrixRawData:Float32Array):void{
+	public uniformMatrix4fv(type: number, transpose: boolean, value:Float32Array):void{
 		const location = this.getUniformLocation(type)
-		this._gl.uniformMatrix4fv(location, transpose, matrixRawData)
+
+		if (!location) {
+			return;
+		}
+
+		if (Settings.ENABLE_UNIFORM_CACHE) {
+			const hash = this._needCache(type * 4, value);
+
+			// return undef hash if not require to uppload;
+			if (hash === void 0) {
+				return;
+			}
+			this._uniformCache[type * 4] = hash;
+		}
+		
+		this._gl.uniformMatrix4fv(location, transpose, value)
 	}
 
 	public dispose(): void {
