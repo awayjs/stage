@@ -17,11 +17,11 @@ export class AGALTokenizer {
 			desc.native = array.native;
 			return desc;
 		} else
-		return this.decribeAGALByteArray(array);
+			return this.decribeAGALByteArray(array);
 	}
 
 	public decribeAGALByteArray(bytes: ByteArray): Description {
-		bytes.position = 0
+		bytes.position = 0;
 		const header: Header = new Header();
 
 		if (bytes.readUnsignedByte() != 0xa0) {
