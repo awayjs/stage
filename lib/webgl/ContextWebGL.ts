@@ -770,16 +770,17 @@ export class ContextWebGL implements IContextGL {
 		// FOR OSx - IT CAN BE DIFFERENT
 
 		if (!buffer) {
-			if (location > -1) {
+			//if (location > -1) {
 				gl.disableVertexAttribArray(index);
-			}
+				//gl.bindBuffer(gl.ARRAY_BUFFER, null);
+			//}
 			return;
 		}
 
 		//buffer may not have changed if concatenated buffers are being used
 		if (this._currentArrayBuffer != buffer || (this.hasVao && this._vaoContext._lastBoundedVao)) {
 			this._currentArrayBuffer = buffer;
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer.glBuffer);
 		}
 
 		const properties = GL_MAP.VERTEX_BUF_PROPS[format];
