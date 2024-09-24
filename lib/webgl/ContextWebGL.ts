@@ -747,7 +747,6 @@ export class ContextWebGL implements IContextGL {
 		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4, safeAttributeLocation:boolean = true
 	): void {
 		this.stateChangeCallback && this.stateChangeCallback('setVertexBufferAt');
-		if(index < 0) return;
 
 		var location: number
 
@@ -770,10 +769,10 @@ export class ContextWebGL implements IContextGL {
 		// FOR OSx - IT CAN BE DIFFERENT
 
 		if (!buffer) {
-			//if (location > -1) {
+			if (location > -1) {
 				gl.disableVertexAttribArray(index);
 				//gl.bindBuffer(gl.ARRAY_BUFFER, null);
-			//}
+			}
 			return;
 		}
 
