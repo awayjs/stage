@@ -779,7 +779,7 @@ export class ContextWebGL implements IContextGL {
 		//buffer may not have changed if concatenated buffers are being used
 		if (this._currentArrayBuffer != buffer || (this.hasVao && this._vaoContext._lastBoundedVao)) {
 			this._currentArrayBuffer = buffer;
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer.glBuffer);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : 1);
 		}
 
 		const properties = GL_MAP.VERTEX_BUF_PROPS[format];
