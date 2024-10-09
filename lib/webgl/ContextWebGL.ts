@@ -747,14 +747,8 @@ export class ContextWebGL implements IContextGL {
 		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4, safeAttributeLocation:boolean = true
 	): void {
 		this.stateChangeCallback && this.stateChangeCallback('setVertexBufferAt');
-
-		var location: number
-
-		if(safeAttributeLocation)
-			location = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1
-		else
-			location = index;
-
+		
+		const location = safeAttributeLocation ? this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1 : index;
 		const gl = this._gl;
 
 		// when we try bind any buffers without VAO we should unbound VAO
@@ -771,7 +765,6 @@ export class ContextWebGL implements IContextGL {
 		if (!buffer) {
 			if (location > -1) {
 				gl.disableVertexAttribArray(index);
-				//gl.bindBuffer(gl.ARRAY_BUFFER, null);
 			}
 			return;
 		}
@@ -779,7 +772,7 @@ export class ContextWebGL implements IContextGL {
 		//buffer may not have changed if concatenated buffers are being used
 		if (this._currentArrayBuffer != buffer || (this.hasVao && this._vaoContext._lastBoundedVao)) {
 			this._currentArrayBuffer = buffer;
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : 1);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer ? buffer.glBuffer : null);
 		}
 
 		const properties = GL_MAP.VERTEX_BUF_PROPS[format];
