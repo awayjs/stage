@@ -316,18 +316,8 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 
 	public _mipmap: boolean;
 
-	public _invalid: boolean;
-
-	public get vertexValid() {
-		return !this._invalid && this._vertexBuffer;
-	}
-
-	public get indexValid() {
-		return !this._invalid && this._indexBuffer;
-	}
-
-	constructor(attributesBuffer: AttributesBuffer, stage: Stage) {
-		super(attributesBuffer, stage);
+	public init(attributesBuffer: AttributesBuffer, stage: Stage): void {
+		super.init(attributesBuffer, stage);
 
 		this._stage = stage;
 

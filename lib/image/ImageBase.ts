@@ -80,8 +80,8 @@ export class _Stage_ImageBase extends AbstractionBase {
 		throw new AbstractMethodError();
 	}
 
-	constructor(asset: IAsset, stage: Stage) {
-		super(asset, stage);
+	public init(asset: IAsset, stage: Stage): void {
+		super.init(asset, stage);
 
 		this._stage = stage;
 

@@ -1683,8 +1683,8 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		}
 	}
 
-	constructor(asset: IAsset, pool: Stage) {
-		super(asset, pool);
+	public init(asset: IAsset, pool: Stage): void {
+		super.init(asset, pool);
 
 		this._asset.addEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
 	}

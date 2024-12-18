@@ -8,7 +8,8 @@ import {
 	Point,
 	ColorTransform,
 	IAsset,
-	UUID
+	UUID,
+	IAbstraction
 } from '@awayjs/core';
 
 import { ContextMode } from './base/ContextMode';
@@ -288,8 +289,12 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		this.filterManager.colorTransform(source, target, rect, colorTransform);
 	}
 
-	public requestAbstraction(asset: IAsset): IAbstractionClass {
-		return Stage._abstractionClassPool[asset.assetType];
+	public requestAbstraction(asset: IAsset): IAbstraction {
+		return new Stage._abstractionClassPool[asset.assetType];
+	}
+
+	public storeAbstraction(abstraction: IAbstraction): void {
+		
 	}
 
 	/**
