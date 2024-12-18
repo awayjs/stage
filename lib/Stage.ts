@@ -294,7 +294,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	}
 
 	public storeAbstraction(abstraction: IAbstraction): void {
-		
+
 	}
 
 	/**
