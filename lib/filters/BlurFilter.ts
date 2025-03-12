@@ -72,8 +72,8 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 			}
 		}
 
-		this._hBlurTask.stepSize = blurX;
-		this._vBlurTask.stepSize = blurY;
+		this._hBlurTask.stepSize = blurX/1.2;
+		this._vBlurTask.stepSize = blurY/1.2;
 		this._hBlurTask.kernel = this._vBlurTask.kernel = kernel;
 
 		let maxAmount = Math.max(blurX, blurY);

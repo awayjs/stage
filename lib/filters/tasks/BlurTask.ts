@@ -54,7 +54,7 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 	}
 
 	public set stepSize(value: number) {
-		if (this._kernel == this._stepSize)
+		if (this._stepSize == value)
 			return;
 
 		this._stepSize = value;
@@ -74,7 +74,6 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 			? Math.min(BlurTask.MAX_AUTO_SAMPLES, this._kernel)
 			: 2;
 
-		this.calculateStepSize();
 		this.invalidateProgram();
 	}
 
@@ -145,8 +144,6 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 			return;
 		}
 
-		this._realStepSize = this._kernel > BlurTask.MAX_AUTO_SAMPLES
-			? this._kernel / BlurTask.MAX_AUTO_SAMPLES
-			: 1;
+		this._realStepSize = 0;
 	}
 }
