@@ -25,6 +25,7 @@ import { Settings } from '../Settings';
 import { FenceContextWebGL } from './FenceContextWebGL';
 import * as GL_MAP from './ConstantsWebGL';
 import { StatsWebGL } from './StatsWebGL';
+import { IVertexBuffer } from '../base/IVertexBuffer';
 
 let _DEBUG_renderMode: '' | 'line' = '';
 
@@ -744,10 +745,10 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setVertexBufferAt(
-		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4, safeAttributeLocation:boolean = true
+		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4, safeAttributeLocation: boolean = true
 	): void {
 		this.stateChangeCallback && this.stateChangeCallback('setVertexBufferAt');
-		
+
 		const location = safeAttributeLocation ? this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1 : index;
 		const gl = this._gl;
 
