@@ -15,6 +15,7 @@ const DEFAULT_BLEND_MAP = {
 	[BlendMode.LAYER] : [BF.ONE, BF.ONE_MINUS_SOURCE_ALPHA],
 	[BlendMode.ADD]: [BF.ONE, BF.ONE],
 	[BlendMode.ERASE] : [BF.ZERO, BF.ONE_MINUS_SOURCE_ALPHA],
+	[BlendMode.ALPHA] : [BF.ZERO, BF.SOURCE_ALPHA],
 	[BlendMode.ALPHA + '_back'] : [BF.DESTINATION_ALPHA, BF.ZERO],
 };
 
