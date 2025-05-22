@@ -2,9 +2,10 @@ import { BlendMode } from '../../../image';
 
 const COMPOSITE_OPP: Record<string, string> = {
 	[BlendMode.DIFFERENCE]:
-	`vec4 top = vec4(abs(src.rgb - dst.rgb), 1.0) * max(src.a, dst.a);
+	`dst.rgb = (dst.rgb * (1.0 - src.a) + (src.rgb - dst.rgb) * src.a);
+	dst.rgb *= dst.a;
 
-	return top + normal * (1.0 - top.a);`,
+	return dst;`,
 	[BlendMode.SUBTRACT]:
 	`vec4 top = vec4(dst.rgb - src.rgb, 1.0) * max(src.a, dst.a);
 
@@ -32,12 +33,6 @@ const COMPOSITE_OPP: Record<string, string> = {
 
 	return top + normal * (1.0 - top.a);`,
 
-	/**
-	 * This is not real overlay
-	 * for overlay need a remove `1.-`,
-	 * but! if i do this, in GetInTop begin visible artefacts
-	 * looks like composite equation not fully true
-	 */
 	[BlendMode.OVERLAY]:
 	`
 	vec4 factor = 1.0 - step(dst, vec4(0.5));
