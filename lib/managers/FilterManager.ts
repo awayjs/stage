@@ -517,6 +517,140 @@ export class FilterManager {
 		this._stage.setRenderTarget(null);
 	}
 
+	public copyChannel(
+		source: Image2D, target: Image2D,
+		rect: Rectangle, destPoint: Point,
+		sourceChannel: number, destChannel: number,
+	): void {
+
+		//early out for values that won't produce any visual update
+		if (destPoint.x < -rect.width
+			|| destPoint.x > target.width
+			|| destPoint.y < -rect.height
+			|| destPoint.y > target.height) {
+			return;
+		}
+
+		// copy empty is redundant
+		if ((rect.width * rect.height | 0) === 0) {
+			return;
+		}
+
+		const inputRect = tmpInputRectCopy;
+		inputRect.copyFrom(rect);
+
+		const outputRect = tmpOutputRectCopy;
+		outputRect.setTo(
+			destPoint.x,
+			destPoint.y,
+			rect.width,
+			rect.height
+		);
+
+		// clamp input rect above source size
+		// we can't use data outside
+		if (inputRect.x < 0) {
+			inputRect.width -= -inputRect.x;
+			outputRect.x += -inputRect.x;
+			inputRect.x = 0;
+		}
+
+		if (inputRect.y < 0) {
+			inputRect.height -= -inputRect.y;
+			outputRect.y += -inputRect.y;
+			inputRect.y = 0;
+		}
+
+		if (inputRect.right > source.width) {
+			const delta = source.width - inputRect.right;
+			inputRect.width -= delta;
+		}
+
+		if (inputRect.bottom > source.height) {
+			const delta = source.height - inputRect.bottom;
+			inputRect.height -= delta;
+		}
+
+		if (outputRect.x < 0) {
+			inputRect.x += -outputRect.x;
+			inputRect.width -= -outputRect.x;
+			outputRect.x = 0;
+		}
+
+		if (outputRect.y < 0) {
+			inputRect.y += -outputRect.y;
+			inputRect.height -= -outputRect.y;
+			outputRect.y = 0;
+		}
+
+		if (inputRect.width > target.width - outputRect.x)
+			inputRect.width = target.width - outputRect.x;
+
+		if (inputRect.height > target.height - outputRect.y)
+			inputRect.height = target.height - outputRect.y;
+
+		// we should use same size of output, because we should not change rectangle dimension, only offset
+		outputRect.width = inputRect.width;
+		outputRect.height = inputRect.height;
+
+		// we should be sure that output rect is not zero, otherwise will be wrong output
+		if (Math.floor(outputRect.width * outputRect.height) === 0) {
+			return;
+		}
+
+		// target image has MSAA
+		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
+
+		let tmp: Image2D;
+		// copy to TMP, because we can't copy pixels from itself
+		if (target === source) {
+			tmp = this.popTemp(source.width, source.height);
+
+			this._stage.setRenderTarget(source, false, 0, 0, true);
+			this._stage.setScissor(null);
+
+			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
+			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
+			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
+
+			this._stage.setRenderTarget(tmp, false, 0, 0, true);
+		}
+		
+		if (!this._copyPixelFilter)
+			this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
+
+		const sourceOffset: number = Math.round(Math.log(sourceChannel) / Math.log(2));
+		const destOffset: number = Math.round(Math.log(destChannel) / Math.log(2));
+
+		const matrix = [
+			0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0,
+			0, 0, 0, 0, 0
+		]
+
+		if (destOffset == 3) {
+			this._copyPixelFilter.blend = 'alpha';
+		} else {
+			matrix[19] = 255;
+		}
+			
+		matrix[destOffset*5 + sourceOffset] = 1;
+
+		this._copyPixelFilter.matrix = matrix;
+		
+
+		this.renderFilter(source, target, inputRect, outputRect,  this._copyPixelFilter);
+
+		this._copyPixelFilter.matrix = null;
+		this._copyPixelFilter.blend = '';
+		this._copyPixelFilter.requireBlend = true;
+
+		if (tmp) {
+			this.pushTemp(tmp);
+		}
+	}
+
 	public threshold(
 		source: Image2D, target: Image2D,
 		rect: Rectangle, destPoint: Point,
@@ -547,9 +681,8 @@ export class FilterManager {
 	}
 
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {
-		if (!this._copyPixelFilter) {
+		if (!this._copyPixelFilter)
 			this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
-		}
 
 		this._copyPixelFilter.blend = '';
 		this._copyPixelFilter.requireBlend = false;

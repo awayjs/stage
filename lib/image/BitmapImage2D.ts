@@ -473,7 +473,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 			if (v) {
 				this._weakRefAdapter = new WeakRef<IAssetAdapter>(v);
-				this._finalizer.register(this, this.id, this);
+				this._finalizer.register(v, this.id, this);
 			} else {
 				this._weakRefAdapter = null;
 			}
@@ -655,30 +655,58 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	/* eslint-disable-next-line */
 	public copyChannel(sourceBitmap: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, sourceChannel: number, destChannel: number): void {
+
+		this._lastUsedFill = null;
 		this.dropAllReferences();
+		this.unmarkToUnload();
 
-		const sourceData: Uint8ClampedArray = sourceBitmap.data;
-		const destData: Uint8ClampedArray = this.data;
+		if (destChannel != 8 || !this._imageDataDirty && !sourceBitmap._imageDataDirty) {
+			const sourceData: Uint8ClampedArray = sourceBitmap.data;
+			const destData: Uint8ClampedArray = this.data;
+			const sourceOffset: number = Math.round(Math.log(sourceChannel) / Math.log(2));
+			const destOffset: number = Math.round(Math.log(destChannel) / Math.log(2));
 
-		const sourceOffset: number = Math.round(Math.log(sourceChannel) / Math.log(2));
-		const destOffset: number = Math.round(Math.log(destChannel) / Math.log(2));
+			const sourceX: number = Math.round(sourceRect.x);
+			const sourceY: number = Math.round(sourceRect.y);
+			const destX: number = Math.round(destPoint.x);
+			const destY: number = Math.round(destPoint.y);
+			let value: number;
 
-		const sourceX: number = Math.round(sourceRect.x);
-		const sourceY: number = Math.round(sourceRect.y);
-		const destX: number = Math.round(destPoint.x);
-		const destY: number = Math.round(destPoint.y);
+			let i: number, j: number, sourceIndex: number, destIndex: number;
+			for (i = 0; i < sourceRect.width; ++i) {
+				for (j = 0; j < sourceRect.height; ++j) {
+					sourceIndex = (i + sourceX + (j + sourceY) * sourceBitmap.width) * 4;
+					destIndex = (i + destX + (j + destY) * this._rect.width) * 4;
 
-		let i: number, j: number, sourceIndex: number, destIndex: number;
-		for (i = 0; i < sourceRect.width; ++i) {
-			for (j = 0; j < sourceRect.height; ++j) {
-				sourceIndex = (i + sourceX + (j + sourceY) * sourceBitmap.width) * 4;
-				destIndex = (i + destX + (j + destY) * this._rect.width) * 4;
-
-				destData[destIndex + destOffset] = sourceData[sourceIndex + sourceOffset];
+					value = (sourceOffset == 3)? sourceData[sourceIndex + 3] : sourceData[sourceIndex + 3]? sourceData[sourceIndex + sourceOffset]*255/sourceData[sourceIndex + 3] : 0;
+					if (destOffset == 3) {
+						destData[destIndex + 0] = destData[sourceIndex + 3]? destData[destIndex + 0] * value/destData[sourceIndex + 3] : 0;
+						destData[destIndex + 1] = destData[sourceIndex + 3]? destData[destIndex + 1] * value/destData[sourceIndex + 3] : 0;
+						destData[destIndex + 2] = destData[sourceIndex + 3]? destData[destIndex + 2] * value/destData[sourceIndex + 3] : 0;
+						destData[destIndex + 3] = value;
+					} else {
+						destData[destIndex + destOffset] = value;
+					}
+				}
 			}
+
+			this.invalidateGPU();
+			return;
 		}
 
-		this.invalidateGPU();
+		if (this._initalFillColor !== null)
+			this.fillRect(this._rect, this._initalFillColor);
+
+		this._stage.filterManager.copyChannel(
+			sourceBitmap,
+			this,
+			sourceRect,
+			destPoint,
+			sourceChannel,
+			destChannel
+		);
+
+		this._imageDataDirty = true;
 	}
 
 	/* eslint-disable-next-line */
