@@ -615,7 +615,7 @@ export class FilterManager {
 
 			this._stage.setRenderTarget(tmp, false, 0, 0, true);
 		}
-		
+
 		if (!this._copyPixelFilter)
 			this._copyPixelFilter = <ColorMatrixFilter> this.getFilter(ColorMatrixFilter.filterName);
 
@@ -627,18 +627,17 @@ export class FilterManager {
 			0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0
-		]
+		];
 
 		if (destOffset == 3) {
 			this._copyPixelFilter.blend = 'alpha';
 		} else {
 			matrix[19] = 255;
 		}
-			
-		matrix[destOffset*5 + sourceOffset] = 1;
+
+		matrix[destOffset * 5 + sourceOffset] = 1;
 
 		this._copyPixelFilter.matrix = matrix;
-		
 
 		this.renderFilter(source, target, inputRect, outputRect,  this._copyPixelFilter);
 

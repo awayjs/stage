@@ -678,11 +678,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 					sourceIndex = (i + sourceX + (j + sourceY) * sourceBitmap.width) * 4;
 					destIndex = (i + destX + (j + destY) * this._rect.width) * 4;
 
-					value = (sourceOffset == 3)? sourceData[sourceIndex + 3] : sourceData[sourceIndex + 3]? sourceData[sourceIndex + sourceOffset]*255/sourceData[sourceIndex + 3] : 0;
+					value = (sourceOffset == 3) ? sourceData[sourceIndex + 3] : sourceData[sourceIndex + 3] ? sourceData[sourceIndex + sourceOffset] * 255 / sourceData[sourceIndex + 3] : 0;
 					if (destOffset == 3) {
-						destData[destIndex + 0] = destData[sourceIndex + 3]? destData[destIndex + 0] * value/destData[sourceIndex + 3] : 0;
-						destData[destIndex + 1] = destData[sourceIndex + 3]? destData[destIndex + 1] * value/destData[sourceIndex + 3] : 0;
-						destData[destIndex + 2] = destData[sourceIndex + 3]? destData[destIndex + 2] * value/destData[sourceIndex + 3] : 0;
+						destData[destIndex + 0] = destData[sourceIndex + 3] ? destData[destIndex + 0] * value / destData[sourceIndex + 3] : 0;
+						destData[destIndex + 1] = destData[sourceIndex + 3] ? destData[destIndex + 1] * value / destData[sourceIndex + 3] : 0;
+						destData[destIndex + 2] = destData[sourceIndex + 3] ? destData[destIndex + 2] * value / destData[sourceIndex + 3] : 0;
 						destData[destIndex + 3] = value;
 					} else {
 						destData[destIndex + destOffset] = value;
