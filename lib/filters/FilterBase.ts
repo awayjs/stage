@@ -107,9 +107,9 @@ export class FilterBase {
 		while ((task = this.nextTask())) {
 			task.preActivate(filterManager.stage);
 
-			stage.setRenderTarget(task.target, false, 0, 0, true);
-			stage.setScissor(task.clipRect);
-
+			stage.setRenderTarget(task.target, true, 0, 0, true);
+			stage.setScissor(task.destRect);
+			stage.context.disableStencil();
 			// because we use TMP image, need clear it
 			// but this is needed only when a blend composer is required, when a copy filter used
 			// or when required by filter chain, clear output for end task

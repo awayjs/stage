@@ -478,14 +478,14 @@ export class FilterManager {
 		if (target === source) {
 			tmp = this.popTemp(source.width, source.height);
 
-			this._stage.setRenderTarget(source, false, 0, 0, true);
-			this._stage.setScissor(null);
-
+			this._stage.setRenderTarget(source, true, 0, 0, true);
+			this._stage.setScissor(outputRect);
+			this._stage.context.disableStencil();
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
 			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
 
-			this._stage.setRenderTarget(tmp, false, 0, 0, true);
+			this._stage.setRenderTarget(tmp, true, 0, 0, true);
 		}
 
 		if (needFilter) {
@@ -499,8 +499,9 @@ export class FilterManager {
 
 		} else {
 			if (!tmp) {
-				this._stage.setRenderTarget(source, false, 0, 0, true);
-				this._stage.setScissor(null);
+				this._stage.setRenderTarget(source, true, 0, 0, true);
+				this._stage.setScissor(outputRect);
+				this._stage.context.disableStencil();
 			}
 
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
@@ -606,14 +607,15 @@ export class FilterManager {
 		if (target === source) {
 			tmp = this.popTemp(source.width, source.height);
 
-			this._stage.setRenderTarget(source, false, 0, 0, true);
-			this._stage.setScissor(null);
+			this._stage.setRenderTarget(source, true, 0, 0, true);
+			this._stage.setScissor(outputRect);
+			this._stage.context.disableStencil();
 
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
 			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
 
-			this._stage.setRenderTarget(tmp, false, 0, 0, true);
+			this._stage.setRenderTarget(tmp, true, 0, 0, true);
 		}
 
 		if (!this._copyPixelFilter)
