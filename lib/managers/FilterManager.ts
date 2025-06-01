@@ -434,12 +434,12 @@ export class FilterManager {
 
 		if (inputRect.right > source.width) {
 			const delta = source.width - inputRect.right;
-			inputRect.width -= delta;
+			inputRect.width += delta;
 		}
 
 		if (inputRect.bottom > source.height) {
 			const delta = source.height - inputRect.bottom;
-			inputRect.height -= delta;
+			inputRect.height += delta;
 		}
 
 		if (outputRect.x < 0) {
@@ -564,12 +564,12 @@ export class FilterManager {
 
 		if (inputRect.right > source.width) {
 			const delta = source.width - inputRect.right;
-			inputRect.width -= delta;
+			inputRect.width += delta;
 		}
 
 		if (inputRect.bottom > source.height) {
 			const delta = source.height - inputRect.bottom;
-			inputRect.height -= delta;
+			inputRect.height += delta;
 		}
 
 		if (outputRect.x < 0) {
