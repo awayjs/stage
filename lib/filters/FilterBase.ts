@@ -103,11 +103,14 @@ export class FilterBase {
 
 		let task: TaskBase;
 
+		// target image has MSAA
+		const msaa = context.glVersion === 2;
+
 		// iterate while filter have tasks
 		while ((task = this.nextTask())) {
 			task.preActivate(filterManager.stage);
 
-			stage.setRenderTarget(task.target, true, 0, 0, true);
+			stage.setRenderTarget(task.target, !msaa, 0, 0, true);
 			stage.setScissor(task.destRect);
 			stage.context.disableStencil();
 			// because we use TMP image, need clear it

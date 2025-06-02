@@ -470,7 +470,7 @@ export class FilterManager {
 		}
 
 		// target image has MSAA
-		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
+		const msaa = this.context.glVersion === 2;
 		const needFilter = mergeAlpha || msaa || blend;
 
 		let tmp: Image2D;
@@ -478,14 +478,14 @@ export class FilterManager {
 		if (target === source) {
 			tmp = this.popTemp(source.width, source.height);
 
-			this._stage.setRenderTarget(source, true, 0, 0, true);
+			this._stage.setRenderTarget(source, !msaa, 0, 0, true);
 			this._stage.setScissor(outputRect);
 			this._stage.context.disableStencil();
 			// TS !== AS3, it use a auto-type inference, not needed to insert it in all places
 			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
 			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
 
-			this._stage.setRenderTarget(tmp, true, 0, 0, true);
+			this._stage.setRenderTarget(tmp, !msaa, 0, 0, true);
 		}
 
 		if (needFilter) {
@@ -499,7 +499,7 @@ export class FilterManager {
 
 		} else {
 			if (!tmp) {
-				this._stage.setRenderTarget(source, true, 0, 0, true);
+				this._stage.setRenderTarget(source, !msaa, 0, 0, true);
 				this._stage.setScissor(outputRect);
 				this._stage.context.disableStencil();
 			}
@@ -600,14 +600,14 @@ export class FilterManager {
 		}
 
 		// target image has MSAA
-		const msaa = this.context.glVersion === 2 && (<any>target).antialiasQuality > 0;
+		const msaa = this.context.glVersion === 2;
 
 		let tmp: Image2D;
 		// copy to TMP, because we can't copy pixels from itself
 		if (target === source) {
 			tmp = this.popTemp(source.width, source.height);
 
-			this._stage.setRenderTarget(source, true, 0, 0, true);
+			this._stage.setRenderTarget(source, !msaa, 0, 0, true);
 			this._stage.setScissor(outputRect);
 			this._stage.context.disableStencil();
 
@@ -615,7 +615,7 @@ export class FilterManager {
 			const tmpImageAbst = tmp.getAbstraction<_Stage_ImageBase>(this._stage);
 			this.context.copyToTexture(<TextureBaseWebGL>tmpImageAbst.getTexture(), source.rect, tmpZERO);
 
-			this._stage.setRenderTarget(tmp, true, 0, 0, true);
+			this._stage.setRenderTarget(tmp, !msaa, 0, 0, true);
 		}
 
 		if (!this._copyPixelFilter)
