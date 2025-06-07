@@ -677,7 +677,7 @@ export class FilterManager {
 			rect.width,
 			rect.height,
 		);
-	
+
 		if (!this._thresholdFilter)
 			this._thresholdFilter = new ThresholdFilter();
 

@@ -163,7 +163,7 @@ export class ThresholdTask extends TaskBase {
 		const temp2: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
 		this._registerCache.addFragmentTempUsages(temp2, 1);
 
-			const temp3: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
+		const temp3: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
 		this._registerCache.addFragmentTempUsages(temp3, 1);
 
 		const sourceTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
@@ -235,10 +235,10 @@ export class ThresholdTask extends TaskBase {
 		data[index + 2] = tValue;
 		data[index + 3] = tValue;
 
-		data[index + 16] = (this.mapPoint.x - this.inputRect.x)/this.bitmap.width;
-		data[index + 17] = (this.mapPoint.y - this.inputRect.y)/this.bitmap.height;
-		data[index + 18] = this._source.width/this.bitmap.width;
-		data[index + 19] = this._source.height/this.bitmap.height;
+		data[index + 16] = (this.mapPoint.x - this.inputRect.x) / this.bitmap.width;
+		data[index + 17] = (this.mapPoint.y - this.inputRect.y) / this.bitmap.height;
+		data[index + 18] = this._source.width / this.bitmap.width;
+		data[index + 19] = this._source.height / this.bitmap.height;
 
 		const context: IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
