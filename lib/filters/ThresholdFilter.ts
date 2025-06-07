@@ -1,9 +1,17 @@
 import { ThresholdTask, TThresholdOperator } from './tasks/ThresholdTask';
 import { FilterBase } from './FilterBase';
 import { proxyTo } from '../utils/FilterUtils';
+import { Image2D } from '../image';
+import { Point } from '@awayjs/core';
 
 export class ThresholdFilter extends FilterBase {
 	private _thresholdTask: ThresholdTask;
+
+	@proxyTo('_thresholdTask')
+	public mapPoint: Point;
+
+	@proxyTo('_thresholdTask')
+	public bitmap: Image2D;
 
 	@proxyTo('_thresholdTask')
 	public operation: TThresholdOperator;

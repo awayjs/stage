@@ -656,7 +656,7 @@ export class FilterManager {
 		source: Image2D, target: Image2D,
 		rect: Rectangle, destPoint: Point,
 		operation: string, threshold: number,
-		color: number, mask: number, copySource: boolean): void {
+		color: number, mask: number = 0xFFFFFFFF, copySource: boolean = false): void {
 
 		//early out for values that won't produce any visual update
 		if (destPoint.x < -rect.width
@@ -666,6 +666,18 @@ export class FilterManager {
 			return;
 		}
 
+		const mapPoint = destPoint.clone();
+		mapPoint.x = rect.x;
+		mapPoint.y = rect.y;
+
+		const inputRect = tmpOutputRectCopy;
+		inputRect.setTo(
+			destPoint.x,
+			destPoint.y,
+			rect.width,
+			rect.height,
+		);
+	
 		if (!this._thresholdFilter)
 			this._thresholdFilter = new ThresholdFilter();
 
@@ -673,12 +685,14 @@ export class FilterManager {
 		this._thresholdFilter.threshold = threshold;
 		this._thresholdFilter.color = color;
 		this._thresholdFilter.mask = mask;
+		this._thresholdFilter.bitmap = source;
+		this._thresholdFilter.mapPoint = mapPoint;
 		// if we copy self to self with same location - this means that anyways source pixel will used
 		// without this hack need use a more complex implementation
 		// eslint-disable-next-line max-len
 		this._thresholdFilter.copySource = copySource || (source === target && rect.x === destPoint.x && rect.y === destPoint.y);
 
-		this.renderFilter(source, target, rect, destPoint, this._thresholdFilter);
+		this.renderFilter(target, target, inputRect, destPoint, this._thresholdFilter);
 	}
 
 	public colorTransform(source: Image2D, target: Image2D, rect: Rectangle, colorTransform: ColorTransform): void {

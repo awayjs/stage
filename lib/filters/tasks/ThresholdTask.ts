@@ -1,4 +1,4 @@
-import { ProjectionBase } from '@awayjs/core';
+import { Point, ProjectionBase } from '@awayjs/core';
 
 import { TaskBase } from './TaskBase';
 import { _Stage_Image2D, Image2D } from '../../image';
@@ -46,7 +46,9 @@ export class ThresholdTask extends TaskBase {
 
 	private _copySource: boolean = false;
 
-	private _decodeVector: Float32Array ;
+	private _decodeVector: Float32Array;
+
+	private _rect: Float32Array;
 
 	public get operation(): TThresholdOperator {
 		return this._operation;
@@ -62,6 +64,12 @@ export class ThresholdTask extends TaskBase {
 
 		this.invalidateProgram();
 	}
+
+	public bitmapSamplerIndex: number = 0;
+
+	public bitmap: Image2D;
+
+	public mapPoint: Point;
 
 	public get threshold(): number {
 		return this._threshold;
@@ -135,23 +143,34 @@ export class ThresholdTask extends TaskBase {
 		super();
 
 		this._fragmentConstantData = new Float32Array([
-			0.0, 0.0, 0.0, 0.0, // comparable
+			0.0, 0.0, 0.0, 0.0, // threshold
 			0.0, 0.0, 0.0, 0.0, // color
 			0.0, 0.0, 0.0, 0.0, // mask
-			65025.0, 255.0, 1.0, 16581375.0 //decode
+			65025.0, 255.0, 1.0, 16581375.0, //decode
+			0.0, 0.0, 0.0, 0.0, // rect
 		]);
 
 		this._colorRGBA = this._fragmentConstantData.subarray(4, 4 * 2);
 		this._maskRGBA = this._fragmentConstantData.subarray(4 * 2, 4 * 3);
 		this._decodeVector = this._fragmentConstantData.subarray(4 * 3, 4 * 4);
+		this._rect = this._fragmentConstantData.subarray(4 * 4, 4 * 5);
 	}
 
 	public getFragmentCode(): string {
 		const temp1: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
 		this._registerCache.addFragmentTempUsages(temp1, 1);
 
-		const inputTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
-		this.sourceSamplerIndex = inputTexture.index;
+		const temp2: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
+		this._registerCache.addFragmentTempUsages(temp2, 1);
+
+			const temp3: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
+		this._registerCache.addFragmentTempUsages(temp3, 1);
+
+		const sourceTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
+		this.sourceSamplerIndex = sourceTexture.index;
+
+		const bitmapTexture: ShaderRegisterElement = this._registerCache.getFreeTextureReg();
+		this.bitmapSamplerIndex = bitmapTexture.index;
 
 		const threshold: ShaderRegisterElement = this._registerCache.getFreeFragmentConstant();
 		this._fragmentConstantsIndex = threshold.index;
@@ -162,37 +181,32 @@ export class ThresholdTask extends TaskBase {
 
 		const decode: ShaderRegisterElement = this._registerCache.getFreeFragmentConstant();
 
-		let code: string;
+		const rect: ShaderRegisterElement = this._registerCache.getFreeFragmentConstant();
+
+		let code: string = 'mul ' + temp1 + ', ' + this._uvVarying + ', ' + rect + '.zw\n' +
+			'add ' + temp1 + ', ' + temp1 + ', ' + rect + '.xy\n' +
+			'tex ' + temp1 + ', ' + temp1 + ', ' + bitmapTexture + ' <2d,linear,clamp>\n' +
+			'mul ' + temp2 + ', ' + temp1 + ', ' + mask + '\n' +
+			'dp4 ' + temp2 + ', ' + temp2 + ', ' + decode + '\n' +
+			// eslint-disable-next-line max-len
+			this._op + temp2 + ', ' + (this._th ? threshold : temp2) + ', ' + (this._th ? temp2 : threshold) + '\n' +
+			'sub ' + temp3 + ', ' + decode + '.zzzz, ' + temp2 + '\n' +
+			'mul ' + temp2 + ', ' + temp2 + ', ' + color + '\n';
 
 		if (this._copySource) {
-			const temp2: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
-			this._registerCache.addFragmentTempUsages(temp2, 1);
-			const temp3: ShaderRegisterElement = this._registerCache.getFreeFragmentVectorTemp();
-			this._registerCache.addFragmentTempUsages(temp3, 1);
 
-			code = 'tex ' + temp1 + ', ' + this._uvVarying + ', ' + inputTexture + ' <2d,linear,clamp>\n' +
-				'mul ' + temp2 + ', ' + temp1 + ', ' + mask + '\n' +
-				'dp4 ' + temp2 + ', ' + temp2 + ', ' + decode + '\n' +
-				// eslint-disable-next-line max-len
-				this._op + temp2 + ', ' + (this._th ? threshold : temp2) + ', ' + (this._th ? temp2 : threshold) + '\n' +
-				'sub ' + temp3 + ', ' + decode + '.zzzz, ' + temp2 + '\n' +
-				'mul ' + temp2 + ', ' + temp2 + ', ' + color + '\n' +
+			code = code + 'mul ' + temp3 + ', ' + temp3 + ', ' + temp1 + '\n' +
+				'add ' + temp1 + ', ' + temp2 + ', ' + temp3 + '\n' +
+				'mov oc, ' + temp1 + '\n';
+		} else {
+			code = code + 'tex ' + temp1 + ', ' + this._uvVarying + ', ' + sourceTexture + ' <2d,linear,clamp>\n' +
 				'mul ' + temp3 + ', ' + temp3 + ', ' + temp1 + '\n' +
 				'add ' + temp1 + ', ' + temp2 + ', ' + temp3 + '\n' +
 				'mov oc, ' + temp1 + '\n';
-
-			this._registerCache.removeFragmentTempUsage(temp3);
-			this._registerCache.removeFragmentTempUsage(temp2);
-		} else {
-			code = 'tex ' + temp1 + ', ' + this._uvVarying + ', ' + inputTexture + ' <2d,linear,clamp>\n' +
-				'mul ' + temp1 + ', ' + temp1 + ', ' + mask + '\n' +
-				'dp4 ' + temp1 + ', ' + temp1 + ', ' + decode + '\n' +
-				// eslint-disable-next-line max-len
-				this._op + temp1 + ', ' + (this._th ? threshold : temp1) + ', ' + (this._th ? temp1 : threshold) + '\n' +
-				'mul ' + temp1 + ', ' + temp1 + ', ' + color + '\n' +
-				'mov oc, ' + temp1 + '\n';
 		}
 
+		this._registerCache.removeFragmentTempUsage(temp3);
+		this._registerCache.removeFragmentTempUsage(temp2);
 		this._registerCache.removeFragmentTempUsage(temp1);
 
 		return code;
@@ -221,10 +235,16 @@ export class ThresholdTask extends TaskBase {
 		data[index + 2] = tValue;
 		data[index + 3] = tValue;
 
+		data[index + 16] = (this.mapPoint.x - this.inputRect.x)/this.bitmap.width;
+		data[index + 17] = (this.mapPoint.y - this.inputRect.y)/this.bitmap.height;
+		data[index + 18] = this._source.width/this.bitmap.width;
+		data[index + 19] = this._source.height/this.bitmap.height;
+
 		const context: IContextGL = stage.context;
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragmentConstantData);
 
 		this._source.getAbstraction<_Stage_Image2D>(stage).activate(this.sourceSamplerIndex);
+		this.bitmap.getAbstraction<_Stage_Image2D>(stage).activate(this.bitmapSamplerIndex);
 	}
 }
