@@ -228,9 +228,10 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		const conf = this._activeTargetConf;
 
 		if (conf.target === target
-			&& surfaceSelector === conf.surfaceSelector
-			&& mipmapSelector === conf.mipSelector
+			&& conf.surfaceSelector === surfaceSelector
+			&& conf.mipSelector === mipmapSelector
 			&& conf.depthStencil === enableDepthAndStencil
+			&& conf.msaa !== disableMSAA
 		) {
 			return;
 		}

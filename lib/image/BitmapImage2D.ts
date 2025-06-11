@@ -171,7 +171,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		const context = <ContextWebGL> this._stage.context;
 
-		this._stage.setRenderTarget(this, false);
+		this._stage.setRenderTarget(this, true, 0, 0, true);
+		this._stage.context.disableStencil();
 
 		// when we call syncData, we already loose other data
 		// not require apply symbol etc, because it already should be applied
