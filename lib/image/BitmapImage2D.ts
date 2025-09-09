@@ -1718,9 +1718,9 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 		this._asset.addEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
 	}
 
-	public onClear(event: AssetEvent) {
+	public onClear() {
 		this._asset.removeEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
-		super.onClear(event);
+		super.onClear();
 	}
 
 	public getTexture(): ITextureBase {

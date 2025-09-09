@@ -327,8 +327,8 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 	/**
      *
      */
-	public onClear(event: AssetEvent): void {
-		super.onClear(event);
+	public onClear(): void {
+		super.onClear();
 
 		this._attributesBuffer = null;
 

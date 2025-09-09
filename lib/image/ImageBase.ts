@@ -93,8 +93,8 @@ export class _Stage_ImageBase extends AbstractionBase {
 	/**
      *
      */
-	public onClear(event: AssetEvent): void {
-		super.onClear(event);
+	public onClear(): void {
+		super.onClear();
 
 		if (this._texture) {
 			this._texture.dispose();
