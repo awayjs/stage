@@ -99,7 +99,7 @@ export interface IContextGL
 
 	setTextureAt(sampler: number, texture: ITextureBase);
 
-	setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: number, safeAttributeLocation?: boolean);
+	setVertexBufferAt(index: number, buffer: IVertexBuffer, bufferOffset?: number, format?: number);
 
 	setRenderToTexture(
 		target: ITextureBase,

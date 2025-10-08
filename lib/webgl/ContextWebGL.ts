@@ -745,11 +745,11 @@ export class ContextWebGL implements IContextGL {
 	}
 
 	public setVertexBufferAt(
-		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4, safeAttributeLocation: boolean = true
+		index: number, buffer: VertexBufferWebGL, bufferOffset: number = 0, format: number = 4
 	): void {
 		this.stateChangeCallback && this.stateChangeCallback('setVertexBufferAt');
 
-		const location = safeAttributeLocation ? this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1 : index;
+		const location = this._currentProgram ? this._currentProgram.getAttribLocation(index) : -1;
 		const gl = this._gl;
 
 		// when we try bind any buffers without VAO we should unbound VAO
