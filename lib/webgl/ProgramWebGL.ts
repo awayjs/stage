@@ -300,7 +300,7 @@ export class ProgramWebGL implements IProgram {
 
 		const arr: ArrayLike<number> = <any> data;
 
-		if (arr.length !== info.size * size) {
+		if (arr.length !== info.size * size && arr.length !== info.size * size * 2) {
 
 			throw (
 				`[ProgramWebGL] Invalid data length for ${name}, expected ${info.size * size}, actual ${arr.length}`
