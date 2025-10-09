@@ -243,10 +243,10 @@ export class ProgramWebGL implements IProgram {
 			: <string>indexOrName;
 
 		const info = this._program.uniforms[name];
-		
+	
 		if (!info)
 			return null;
-		
+	
 		return info.location;
 	}
 
