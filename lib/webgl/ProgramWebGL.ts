@@ -247,13 +247,9 @@ export class ProgramWebGL implements IProgram {
 		{
 			// Needed because sometimes the uniform exists, but grabLocationData didn't find it
 			let loc = this._gl.getUniformLocation(this.glProgram, name);
+			
 			if(loc != null)
-			{
-				const info = this._gl.getUniform(this.glProgram, loc);
-				this._program.uniforms[name] = {type: info.type, size: info.size, location: loc};
-				return loc;
-			}
-			else return null;
+				return null;
 		}
 		return info.location;
 	}
