@@ -207,7 +207,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		// if it empty, fill with initlal value
 		if (this._initalFillColor !== null) {
 			//use CPU fill to avoid a readback when syncing
-			this.fillRect(this.rect, this._initalFillColor, !skipSync);
+			this.fillRect(this.rect, this._initalFillColor, !skipSync || !this._stage);
 		}
 
 		if (!skipSync && this._imageDataDirty) {
