@@ -25,8 +25,6 @@ export interface IStageSettings {
 
 	ENABLE_PARSER_NATIVE_BITMAP: boolean;
 
-	ENABLE_TEXTURE_REF_CLONE: boolean;
-
 	UNSAFE_USE_AUTOINDEXED_SAMPLER: boolean;
 
 	UNSAFE_USE_AUTOINDEXED_ATTRIBUTES: boolean;
@@ -141,11 +139,6 @@ export const Settings: IStageSettings = ConfigManager.instance.addStore<any>('st
 	 * @description Allow parsing via createImageBitmap on supported platforms
 	 */
 	ENABLE_PARSER_NATIVE_BITMAP: true,
-
-	/**
-	 * @description Allow reference clonnig of BitmapImage2D
-	 */
-	ENABLE_TEXTURE_REF_CLONE: false,
 
 	/**
 	 * @description Use sampler index as index of SAMPLER2D location instead of name.

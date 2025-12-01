@@ -144,9 +144,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	protected _locked: boolean = false;
 	protected _floodStack: number[] = [];
 
-	protected _nestedBitmap: BitmapImage2D[] = [];
-	protected _sourceBitmap: BitmapImage2D;
-
 	protected _imageDataDirty: boolean;
 
 	protected _initalFillColor: number = null;
@@ -258,10 +255,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 */
 	public wasUpload: boolean = false;
 
-	public get sourceBitmap(): BitmapImage2D {
-		return this._sourceBitmap;
-	}
-
 	public invalidateGPU() {
 		if (this.needUpload)
 			return;
@@ -281,10 +274,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public isUnloaded = false;
 	public lastUsedTime = 0;
 	public get canUnload(): boolean {
-		return !this._sourceBitmap
-				&& !this._nestedBitmap.length
-				&& !this._locked
-				&& !this._isSymbolSource;
+		return !this._locked && !this._isSymbolSource;
 	}
 
 	public unmarkToUnload() {
@@ -495,63 +485,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this.dispose();
 	}
 
-	public addNestedReference(child: BitmapImage2D) {
-		if (this._sourceBitmap) {
-			this._sourceBitmap.addNestedReference(child);
-			return;
-		}
-
-		this._nestedBitmap.push(child);
-		child._sourceBitmap = this;
-
-		//console.debug(`[BitmapImage] Add nested ${child.id} -> ${this.id}`);
-	}
-
-	public dropNestedReference(child: BitmapImage2D): boolean {
-		const index = this._nestedBitmap.indexOf(child);
-		return index > -1 && !!this._nestedBitmap.splice(index, 1);
-	}
-
-	/**
-	 * @description Detach clone from source, and apply texture directly
-	 */
-	public dropAllReferences(fireDroping = true) {
-
-		if (this._nestedBitmap.length) {
-			for (const nest of this._nestedBitmap) {
-				nest.dropAllReferences(false);
-			}
-			this._nestedBitmap.length = 0;
-		}
-
-		if (!this._sourceBitmap) {
-			return;
-		}
-
-		const source = this._sourceBitmap;
-
-		this._sourceBitmap = null;
-
-		fireDroping && source.dropNestedReference(this);
-
-		this.deepClone(source);
-
-		//console.debug("[BitmapImage] drop nested references:", source.id);
-	}
-
-	protected deepClone(from: BitmapImage2D) {
-		this.setPixels(this._rect, from.data);
-		this.invalidateGPU();
-	}
-
-	public copyTo(target: BitmapImage2D): BitmapImage2D {
-		if (Settings.ENABLE_TEXTURE_REF_CLONE) {
-			this.addNestedReference(target);
-		} else {
-			target.deepClone(this);
-		}
-
-		return target;
+	public copyTo(target: BitmapImage2D): void {
+		target.setPixels(target.rect, this.data);
+		target.invalidateGPU();
 	}
 
 	/**
@@ -568,11 +504,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			null,
 			this._powerOfTwo);
 
-		if (Settings.ENABLE_TEXTURE_REF_CLONE) {
-			this.addNestedReference(clone);
-		} else {
-			clone.deepClone(this);
-		}
+		this.copyTo(clone);
 
 		return clone;
 	}
@@ -589,8 +521,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *                       transformation values to apply.
 	 */
 	public colorTransform(rect: Rectangle, colorTransform: ColorTransform): void {
-		this.dropAllReferences();
-
 		let i: number,
 			j: number,
 			index: number;
@@ -658,7 +588,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public copyChannel(sourceBitmap: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, sourceChannel: number, destChannel: number): void {
 
 		this._lastUsedFill = null;
-		this.dropAllReferences();
 		this.unmarkToUnload();
 
 		if (destChannel != 8 || !this._imageDataDirty && !sourceBitmap._imageDataDirty) {
@@ -712,8 +641,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	/* eslint-disable-next-line */
 	public merge(source: BitmapImage2D, sourceRect: Rectangle, destPoint: Point, redMultiplier: number, greenMultiplier: number, blueMultiplier: number, alphaMultiplier: number) {
-		this.dropAllReferences();
-
 		const dest: Uint8ClampedArray = this.getDataInternal(true);
 		const src: Uint8ClampedArray = source.data;
 
@@ -764,8 +691,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (this._isWeakRef) {
 			this._finalizer.unregister(this);
 		}
-
-		this.dropAllReferences();
 
 		this._data = null;
 		this._rect = null;
@@ -876,8 +801,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	// scanline method implementation
 
 	public floodFill(x: number, y: number, color: number): void {
-		this.dropAllReferences();
-
 		const startX = x, startY = y;
 		x = x | 0;
 		y = y | 0;
@@ -1148,8 +1071,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		source: Uint8ClampedArray, offsetX: number, offsetY: number,
 		width: number, height: number, matrix: Matrix = null): void {
 
-		this.dropAllReferences();
-
 		BitmapImageUtils.drawBitmap(
 			source, offsetX, offsetY, width, height, this.data, 0, 0, this._rect.width, this._rect.height, matrix);
 
@@ -1166,7 +1087,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @throws TypeError The rect is null.
 	 */
 	public fillRect(rect: Rectangle, color: number, useCPU: boolean = false): void {
-		this.dropAllReferences();
 		//ensure we reset initial color to stop recursive texture writes
 		this._initalFillColor = null;
 		if (useCPU) {
@@ -1366,8 +1286,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public setPixelData(x, y, imagePixel: Uint8ClampedArray): void {
-		this.dropAllReferences();
-
 		const index: number = (x + y * this._rect.width) * 4;
 		const data: Uint8ClampedArray = this.getDataInternal(true);
 
@@ -1407,8 +1325,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 *                    pixel data.
 	 */
 	public setArray(rect: Rectangle, inputArray: Array<number>): void {
-		this.dropAllReferences();
-
 		let i: number, j: number, index: number, argb: number[];
 		const data = this.getDataInternal(true);
 
@@ -1449,8 +1365,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (!this._rect.contains(x, y))
 			return;
 
-		this.dropAllReferences();
-
 		const
 			index = (~~x + ~~y * this._rect.width) * 4,
 			argb = ColorUtils.float32ColorToARGB(color),
@@ -1465,8 +1379,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public setPixelFromArray(x: number, y: number, colors: number[]): void {
-		this.dropAllReferences();
-
 		const
 			index: number = (x + y * this._rect.width) * 4,
 			data: Uint8ClampedArray = this.getDataInternal(true);
@@ -1542,8 +1454,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @throws TypeError The rect or inputByteArray are null.
 	 */
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
-		this.dropAllReferences();
-
 		const data = this.getDataInternal(true);
 
 		//fast path for full imageData
@@ -1595,8 +1505,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @inheritdoc
 	 */
 	set alphaChannel(buff: Uint8Array) {
-		this.dropAllReferences();
-
 		if (!buff) {
 			return;
 		}
@@ -1640,8 +1548,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	 * @private
 	 */
 	public _setSize(width: number, height: number): void {
-		this.dropAllReferences();
-
 		const data: Uint8ClampedArray = this.data;
 
 		this._data = new Uint8ClampedArray(4 * width * height);
@@ -1728,12 +1634,6 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 
 		if (asset.isDisposed) {
 			throw 'Illegal upload of disposed BitmapImage2D:' + asset.id;
-		}
-
-		const sourceBitmap = asset.sourceBitmap;
-
-		if (sourceBitmap) {
-			return (<_Stage_BitmapImage2D> sourceBitmap.getAbstraction(this._stage)).getTexture();
 		}
 
 		asset.markToUnload();
