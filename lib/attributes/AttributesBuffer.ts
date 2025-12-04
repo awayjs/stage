@@ -72,7 +72,7 @@ export class AttributesBuffer extends AssetBase {
 
 	public set bufferView(value: Uint8Array) {
 		this._bufferView = value;
-		this._buffer = this._bufferView.buffer;
+		this._buffer = <ArrayBuffer> this._bufferView.buffer;
 	}
 
 	public get length(): number {
@@ -294,7 +294,7 @@ class ViewVO {
 	}
 }
 
-import { AssetEvent, AbstractionBase } from '@awayjs/core';
+import { AbstractionBase } from '@awayjs/core';
 
 import { IIndexBuffer } from '../base/IIndexBuffer';
 import { IVertexBuffer } from '../base/IVertexBuffer';
@@ -313,8 +313,6 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 	public _stage: Stage;
 
 	public _attributesBuffer: AttributesBuffer;
-
-	public _mipmap: boolean;
 
 	public init(attributesBuffer: AttributesBuffer, stage: Stage): void {
 		super.init(attributesBuffer, stage);
