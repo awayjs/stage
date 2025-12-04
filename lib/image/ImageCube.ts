@@ -40,6 +40,10 @@ export class ImageCube extends ImageBase {
 		this._testDimensions();
 	}
 
+	public getImageType(): string {
+		return 'cube';
+	}
+
 	/**
 	 *
 	 * @param width
@@ -74,10 +78,6 @@ import { _Stage_ImageBase } from './ImageBase';
  * @class away.pool.GL_ImageCubeBase
  */
 export class _Stage_ImageCube extends _Stage_ImageBase {
-	public getType(): string {
-		return 'cube';
-	}
-
 	/**
      *
      * @param context

@@ -3,9 +3,9 @@ import { AssetBase } from '@awayjs/core';
 import { ImageEvent } from '../events/ImageEvent';
 
 export class ImageBase extends AssetBase {
-	protected _format: string = 'bgra';
+	private _format: string = 'bgra';
 
-	protected _isDisposed: boolean = false;
+	private _isDisposed: boolean = false;
 
 	public get isDisposed() {
 		return this._isDisposed;
@@ -17,6 +17,10 @@ export class ImageBase extends AssetBase {
 	 */
 	public get format(): string {
 		return this._format;
+	}
+
+	public getImageType(): string {
+		throw new AbstractMethodError();
 	}
 
 	/**
@@ -74,10 +78,6 @@ export class _Stage_ImageBase extends AbstractionBase {
 		}
 
 		return this._texture;
-	}
-
-	public getType(): string {
-		throw new AbstractMethodError();
 	}
 
 	public init(asset: IAsset, stage: Stage): void {

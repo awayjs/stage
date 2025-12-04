@@ -21,6 +21,10 @@ export class Image2D extends ImageBase {
 		return Image2D.assetType;
 	}
 
+	public getImageType(): string {
+		return '2d';
+	}
+
 	/**
 	 * The height of the image in pixels.
 	 */
@@ -125,10 +129,6 @@ import { _Stage_ImageBase } from './ImageBase';
  * @class away.pool.ImageStateBase
  */
 export class _Stage_Image2D extends _Stage_ImageBase {
-
-	public getType(): string {
-		return '2d';
-	}
 
 	/**
      *

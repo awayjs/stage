@@ -696,9 +696,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		this._rect = null;
 		this._transparent = null;
 		this._locked = null;
-		this._isDisposed = true;
 
-		this.clear();
+		super.dispose();
 	}
 
 	public getColorBoundsRect(mask: number, color: number, findColor: boolean = true): Rectangle {
