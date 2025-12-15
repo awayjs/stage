@@ -135,7 +135,7 @@ export class DisplacementTask extends MultipleUVTask {
 			p.uploadUniform('uColor', this._uColor);
 		}
 
-		this._source.getAbstraction<_Stage_Image2D>(_stage).activate(0);
-		this.mapBitmap.getAbstraction<_Stage_Image2D>(_stage).activate(1);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(this._source).activate(0);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(this.mapBitmap).activate(1);
 	}
 }

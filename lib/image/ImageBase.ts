@@ -43,7 +43,7 @@ export class ImageBase extends AssetBase {
 	}
 }
 
-import { AbstractMethodError, AssetEvent, IAsset, AbstractionBase } from '@awayjs/core';
+import { AbstractMethodError, AbstractionBase } from '@awayjs/core';
 
 import { ITextureBase } from '../base/ITextureBase';
 import { ImageUtils } from '../utils/ImageUtils';
@@ -80,26 +80,32 @@ export class _Stage_ImageBase extends AbstractionBase {
 		return this._texture;
 	}
 
-	public init(asset: IAsset, stage: Stage): void {
-		super.init(asset, stage);
+	public get image(): ImageBase {
+		return this._useWeak ? (<WeakRef<ImageBase>> this._asset).deref() : <ImageBase> this._asset;
+	}
+
+	public init(image: ImageBase, stage: Stage): void {
+		super.init(image, stage, true);
 
 		this._stage = stage;
 
 		this._onInvalidateMipmapsDelegate = (event: ImageEvent) => this._onInvalidateMipmaps(event);
 
-		this._asset.addEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
+		image.addEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
 	}
 
 	/**
      *
      */
 	public onClear(): void {
-		super.onClear();
-
 		if (this._texture) {
 			this._texture.dispose();
 			this._texture = null;
 		}
+
+		this.image?.removeEventListener(ImageEvent.INVALIDATE_MIPMAPS, this._onInvalidateMipmapsDelegate);
+
+		super.onClear();
 	}
 
 	public activate(index: number, sampler: ImageSampler = null): void {

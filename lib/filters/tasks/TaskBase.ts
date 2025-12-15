@@ -176,8 +176,8 @@ export class TaskBase {
 		const context: IContextGL = stage.context;
 
 		// attach source
-		this.source
-			.getAbstraction<_Stage_ImageBase>(stage)
+		stage.abstractions
+			.getAbstraction<_Stage_ImageBase>(this.source)
 			.activate(this.sourceSamplerIndex);
 
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);

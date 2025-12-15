@@ -119,7 +119,7 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 		super.computeVertexData();
 		const program = this._program3D;
 
-		this._source.getAbstraction<_Stage_ImageBase>(_stage).activate(0);
+		_stage.abstractions.getAbstraction<_Stage_ImageBase>(this._source).activate(0);
 
 		program.uploadUniform('uTexMatrix', this._vertexConstantData);
 		program.uploadUniform('uBlurData', this._data);

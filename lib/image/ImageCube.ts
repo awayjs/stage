@@ -84,7 +84,7 @@ export class _Stage_ImageCube extends _Stage_ImageBase {
      * @returns {ITexture}
      */
 	protected _createTexture(): void {
-		this._texture = this._stage.context.createCubeTexture((<ImageCube> this._asset).size, ContextGLTextureFormat.BGRA, false);
+		this._texture = this._stage.context.createCubeTexture((<ImageCube> this.image).size, ContextGLTextureFormat.BGRA, false);
 	}
 }
 // MOVED TO LIB ROOT

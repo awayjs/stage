@@ -244,7 +244,7 @@ export class ThresholdTask extends TaskBase {
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, this._vertexConstantData);
 		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, this._fragmentConstantData);
 
-		this._source.getAbstraction<_Stage_Image2D>(stage).activate(this.sourceSamplerIndex);
-		this.bitmap.getAbstraction<_Stage_Image2D>(stage).activate(this.bitmapSamplerIndex);
+		stage.abstractions.getAbstraction<_Stage_Image2D>(this._source).activate(this.sourceSamplerIndex);
+		stage.abstractions.getAbstraction<_Stage_Image2D>(this.bitmap).activate(this.bitmapSamplerIndex);
 	}
 }

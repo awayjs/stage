@@ -1613,53 +1613,53 @@ export class _Stage_BitmapImage2D extends _Stage_Image2D {
 			this._texture.dispose();
 			this._texture = null;
 			this._invalid = true;
-			(<BitmapImage2D> this._asset).wasUpload = false;
+			(<BitmapImage2D> this.image).wasUpload = false;
 		}
 	}
 
-	public init(asset: IAsset, pool: Stage): void {
-		super.init(asset, pool);
+	public init(image: BitmapImage2D, pool: Stage): void {
+		super.init(image, pool);
 
-		this._asset.addEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
+		image.addEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
 	}
 
 	public onClear() {
-		this._asset.removeEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
+		this.image?.removeEventListener(BitmapImage2D.UNLOAD_EVENT, this.onUnload);
 		super.onClear();
 	}
 
 	public getTexture(): ITextureBase {
-		const asset = <BitmapImage2D> this._asset;
+		const image = <BitmapImage2D> this.image;
 
-		if (asset.isDisposed) {
-			throw 'Illegal upload of disposed BitmapImage2D:' + asset.id;
+		if (image.isDisposed) {
+			throw 'Illegal upload of disposed BitmapImage2D:' + image.id;
 		}
 
-		asset.markToUnload();
+		image.markToUnload();
 		super.getTexture();
 
-		const pixels = <Uint8ClampedArray>(asset.getDataInternal(false, true));
+		const pixels = <Uint8ClampedArray>(image.getDataInternal(false, true));
 		const t = <ITexture> this._texture;
 
 		if (!pixels) {
 			// throw new Error('Invalid BitmapData state, pixles can\'t be null' + asset.id);
 		}
 
-		if (asset.needUpload && pixels) {
+		if (image.needUpload && pixels) {
 
-			t.uploadFromArray(new Uint8Array(pixels.buffer), 0, asset.unpackPMA);
+			t.uploadFromArray(new Uint8Array(pixels.buffer), 0, image.unpackPMA);
 
-			asset.needUpload = false;
-			asset.wasUpload = true;
+			image.needUpload = false;
+			image.wasUpload = true;
 
-			const mipLevels = asset.mipLevels;
+			const mipLevels = image.mipLevels;
 			if (mipLevels && mipLevels.length > 0) {
 
 				for (let i = 0; i < mipLevels.length; i++) {
 					t.uploadFromArray(
 						new Uint8Array(mipLevels[i].data.buffer),
 						i + 1,
-						asset.transparent);
+						image.transparent);
 				}
 
 				this._mipmap = true;

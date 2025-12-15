@@ -136,7 +136,8 @@ export class _Stage_Image2D extends _Stage_ImageBase {
      * @returns {ITexture}
      */
 	protected _createTexture(): void {
-		this._texture = this._stage.context.createTexture((<Image2D> this._asset).width, (<Image2D> this._asset).height, ContextGLTextureFormat.BGRA, true);
+		const image: Image2D = <Image2D> this.image;
+		this._texture = this._stage.context.createTexture(image.width, image.height, ContextGLTextureFormat.BGRA, true);
 	}
 }
 

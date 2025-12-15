@@ -34,6 +34,7 @@ import { ImageUtils } from './utils/ImageUtils';
 import { TouchPoint } from './base/TouchPoint';
 import { FilterManager } from './managers/FilterManager';
 import { BUFFER_FORMATS_MAP } from './utils/BufferFormat';
+import { AbstractionSet } from '@awayjs/core/dist/lib/base/AbstractionSet';
 
 const TMP_POINT = { x: 0, y: 0 };
 interface ITargetConf {
@@ -62,6 +63,8 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	private _height: number;
 	private _x: number = 0;
 	private _y: number = 0;
+
+	public readonly abstractions: AbstractionSet;
 
 	public _screenX: number;
 	public _screenY: number;
@@ -138,6 +141,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		super();
 
 		this.id = UUID.Next();
+		this.abstractions = new AbstractionSet(this);
 		this._programDataPool = new ProgramDataPool(this);
 
 		this._container = container;
@@ -243,7 +247,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 		conf.depthStencil = enableDepthAndStencil;
 
 		if (target) {
-			const targetStageElement = target.getAbstraction<_Stage_ImageBase>(this);
+			const targetStageElement = this.abstractions.getAbstraction<_Stage_ImageBase>(target);
 			const antiallias = typeof target.antialiasQuality === 'number' // for SceneImage2D MSAA
 				? target.antialiasQuality
 				: this._antiAlias;
@@ -460,12 +464,6 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 	 * Disposes the Stage object, freeing the Context attached to the Stage.
 	 */
 	public dispose(): void {
-		/*
-		for (var id in this._abstractionPool){
-			if(this._abstractionPool[id].clear)
-				this._abstractionPool[id].clear();
-		}*/
-
 		this._stageManager.iRemoveStage(this);
 		this.freeContext();
 		this._stageManager = null;

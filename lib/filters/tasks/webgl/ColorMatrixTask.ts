@@ -203,9 +203,8 @@ export class ColorMatrixTask extends MultipleUVTask {
 		this._focusId = prog.focusId;
 		this._dataChanged = false;
 
-		this
-			.source
-			.getAbstraction<_Stage_Image2D>(_stage)
+		_stage.abstractions
+			.getAbstraction<_Stage_Image2D>(this.source)
 			.activate(0);
 
 		if (this._composite && this.back) {
@@ -218,9 +217,8 @@ export class ColorMatrixTask extends MultipleUVTask {
 				sx, sy
 			], 0);
 
-			this
-				.back
-				.getAbstraction<_Stage_Image2D>(_stage)
+			_stage.abstractions
+				.getAbstraction<_Stage_Image2D>(this.back)
 				.activate(1);
 		}
 

@@ -690,8 +690,9 @@ export class _Stage_BitmapImageCube extends _Stage_ImageCube {
 		if (this._invalid) {
 			this._invalid = false;
 
+			const image: BitmapImageCube = <BitmapImageCube> this.image;
 			for (let i: number = 0; i < 6; ++i)
-				(<ICubeTexture> this._texture).uploadFromArray(new Uint8Array((<BitmapImageCube> this._asset).data[i].buffer), i, 0, (<BitmapImageCube> this._asset).transparent);
+				(<ICubeTexture> this._texture).uploadFromArray(new Uint8Array(image.data[i].buffer), i, 0, image.transparent);
 
 			this._invalidMipmaps = true;
 		}

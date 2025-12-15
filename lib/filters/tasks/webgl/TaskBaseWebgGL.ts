@@ -59,7 +59,7 @@ export class TaskBaseWebGL extends TaskBase {
 	public activate(_stage: Stage, _projection: any, _depthTexture: any): void {
 		this.computeVertexData();
 
-		this._source.getAbstraction<_Stage_Image2D>(_stage).activate(this.sourceSamplerIndex);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(this._source).activate(this.sourceSamplerIndex);
 		this._program3D.uploadUniform('uTexMatrix', this._vertexConstantData);
 	}
 

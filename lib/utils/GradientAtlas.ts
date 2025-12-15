@@ -169,10 +169,10 @@ export class _Stage_GradientAtlass extends _Stage_Image2D {
 		super.getTexture();
 
 		if (this._invalid) {
-			(<ITexture> this._texture).uploadFromArray((<GradientAtlas> this._asset)._data, 0, false);
+			this._invalid = false;
+			(<ITexture> this._texture).uploadFromArray((<GradientAtlas> this.image)._data, 0, false);
 		}
 
-		this._invalid = false;
 		return this._texture;
 	}
 }

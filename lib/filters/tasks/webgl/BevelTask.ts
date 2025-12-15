@@ -350,11 +350,11 @@ export class BevelTask extends TaskBaseWebGL {
 			inputRect.height / sourceImage.height,
 		]);
 
-		inputImage.getAbstraction<_Stage_Image2D>(_stage).activate(0);
-		sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(inputImage).activate(0);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(sourceImage).activate(1);
 
 		if (this._renderMode === BEVEL_MODE.GRADIENT) {
-			this._currentAtlass.getAbstraction<_Stage_Image2D>(_stage).activate(2);
+			_stage.abstractions.getAbstraction<_Stage_Image2D>(this._currentAtlass).activate(2);
 			prog.uploadUniform('uGradIndex', this._currentIndex / this._currentAtlass.height);
 		} else if (this._gradInvalid || needUpload) {
 

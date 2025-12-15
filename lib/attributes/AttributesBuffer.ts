@@ -306,20 +306,16 @@ import { Stage } from '../Stage';
  * @class away.pool._Stage_AttributesBuffer
  */
 export class _Stage_AttributesBuffer extends AbstractionBase {
-	public _indexBuffer: IIndexBuffer;
+	private _indexBuffer: IIndexBuffer;
+	private _vertexBuffer: IVertexBuffer;
 
-	public _vertexBuffer: IVertexBuffer;
-
-	public _stage: Stage;
-
-	public _attributesBuffer: AttributesBuffer;
+	public get attributesBuffer(): AttributesBuffer
+	{
+		return this._useWeak ? (<WeakRef<AttributesBuffer>> this._asset).deref() : <AttributesBuffer> this._asset;
+	}
 
 	public init(attributesBuffer: AttributesBuffer, stage: Stage): void {
-		super.init(attributesBuffer, stage);
-
-		this._stage = stage;
-
-		this._attributesBuffer = attributesBuffer;
+		super.init(attributesBuffer, stage, true);
 	}
 
 	/**
@@ -327,8 +323,6 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
      */
 	public onClear(): void {
 		super.onClear();
-
-		this._attributesBuffer = null;
 
 		if (this._indexBuffer) {
 			this._indexBuffer.dispose();
@@ -342,38 +336,42 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 	}
 
 	public activate(index: number, size: number, dimensions: number, offset: number, unsigned: boolean = false): void {
-		this._stage.setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset, unsigned);
+		(<Stage> this._pool).setVertexBuffer(index, this._getVertexBuffer(), size, dimensions, offset, unsigned);
 	}
 
 	public draw(mode: ContextGLDrawMode, firstIndex: number, numIndices: number): void {
-		this._stage.context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
+		(<Stage> this._pool).context.drawIndices(mode, this._getIndexBuffer(), firstIndex, numIndices);
 	}
 
 	public _getIndexBuffer(): IIndexBuffer {
+		const stage: Stage = <Stage> this._pool;
+		const attributesBuffer = <AttributesBuffer> this.attributesBuffer;
+
 		if (!this._indexBuffer) {
 			this._invalid = true;
-			this._indexBuffer = this._stage.context.createIndexBuffer(
-				this._attributesBuffer.count * this._attributesBuffer.stride / 2); //hardcoded assuming UintArray
+			this._indexBuffer = stage.context.createIndexBuffer(attributesBuffer.count * attributesBuffer.stride / 2); //hardcoded assuming UintArray
 		}
 
 		if (this._invalid) {
 			this._invalid = false;
-			this._indexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.length);
+			this._indexBuffer.uploadFromByteArray(attributesBuffer.buffer, 0, attributesBuffer.length);
 		}
 
 		return this._indexBuffer;
 	}
 
 	public _getVertexBuffer(): IVertexBuffer {
+		const stage: Stage = <Stage> this._pool;
+		const attributesBuffer = <AttributesBuffer> this.attributesBuffer;
+
 		if (!this._vertexBuffer) {
 			this._invalid = true;
-			this._vertexBuffer = this._stage.context.createVertexBuffer(
-				this._attributesBuffer.count, this._attributesBuffer.stride);
+			this._vertexBuffer = stage.context.createVertexBuffer(attributesBuffer.count, attributesBuffer.stride);
 		}
 
 		if (this._invalid) {
 			this._invalid = false;
-			this._vertexBuffer.uploadFromByteArray(this._attributesBuffer.buffer, 0, this._attributesBuffer.count);
+			this._vertexBuffer.uploadFromByteArray(attributesBuffer.buffer, 0, attributesBuffer.count);
 		}
 
 		return this._vertexBuffer;

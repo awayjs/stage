@@ -305,7 +305,7 @@ export class CopyFilterInstanced {
 		const imLen = images.length;
 		// Bind textures to slots
 		for (let i = 0; i < imLen; i++) {
-			images[i].getAbstraction<_Stage_ImageBase>(this._stage).activate(i);
+			this._stage.abstractions.getAbstraction<_Stage_ImageBase>(images[i]).activate(i);
 			this._samplerIds[i] = i;
 		}
 

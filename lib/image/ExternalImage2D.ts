@@ -63,7 +63,7 @@ export class _Stage_ExternalImage2D extends _Stage_Image2D {
 		if (this._invalid) {
 			this._invalid = false;
 
-			(<ITexture> this._texture).uploadFromURL((<ExternalImage2D> this._asset).urlRequest, 0);
+			(<ITexture> this._texture).uploadFromURL((<ExternalImage2D> this.image).urlRequest, 0);
 
 			this._invalidMipmaps = true;
 		}

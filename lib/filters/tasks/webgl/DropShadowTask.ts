@@ -151,8 +151,8 @@ export class DropShadowTask extends MultipleUVTask {
 		this._uDir[0] = this.imageScale * -Math.cos(rad) * this._distance / sourceImage.width;
 		this._uDir[1] = this.imageScale * -Math.sin(rad) * this._distance / sourceImage.height;
 
-		inputImage.getAbstraction<_Stage_Image2D>(_stage).activate(0);
-		sourceImage.getAbstraction<_Stage_Image2D>(_stage).activate(1);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(inputImage).activate(0);
+		_stage.abstractions.getAbstraction<_Stage_Image2D>(sourceImage).activate(1);
 
 		// UV for base image should be computed automatically
 		// call after compute uvMatrices
