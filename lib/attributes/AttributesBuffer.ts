@@ -309,8 +309,7 @@ export class _Stage_AttributesBuffer extends AbstractionBase {
 	private _indexBuffer: IIndexBuffer;
 	private _vertexBuffer: IVertexBuffer;
 
-	public get attributesBuffer(): AttributesBuffer
-	{
+	public get attributesBuffer(): AttributesBuffer {
 		return this._useWeak ? (<WeakRef<AttributesBuffer>> this._asset).deref() : <AttributesBuffer> this._asset;
 	}
 
