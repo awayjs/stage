@@ -63,8 +63,6 @@ export class _Stage_ImageBase extends AbstractionBase {
 
 	public _mipmap: boolean;
 
-	public _stage: Stage;
-
 	public _invalidMipmaps: boolean = true;
 
 	public _invalidMapper: boolean = true;
@@ -86,8 +84,6 @@ export class _Stage_ImageBase extends AbstractionBase {
 
 	public init(image: ImageBase, stage: Stage): void {
 		super.init(image, stage, true);
-
-		this._stage = stage;
 
 		this._onInvalidateMipmapsDelegate = (event: ImageEvent) => this._onInvalidateMipmaps(event);
 
@@ -112,10 +108,10 @@ export class _Stage_ImageBase extends AbstractionBase {
 		if (!sampler)
 			sampler = ImageUtils.getDefaultImageSampler();
 
-		const mipmap: boolean = (sampler.mipmap && !this._stage.globalDisableMipmap) ? sampler.mipmap : false;
+		const mipmap: boolean = (sampler.mipmap && !(<Stage> this._pool).globalDisableMipmap) ? sampler.mipmap : false;
 
-		this._stage.setSamplerAt(index, sampler);
-		this._stage.context.setTextureAt(index, this.getTexture());
+		(<Stage> this._pool).setSamplerAt(index, sampler);
+		(<Stage> this._pool).context.setTextureAt(index, this.getTexture());
 
 		if (!this._mipmap && mipmap) {
 			this._mipmap = true;

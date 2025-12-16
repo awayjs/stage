@@ -123,6 +123,7 @@ export class Image2D extends ImageBase {
 import { ContextGLTextureFormat } from '../base/ContextGLTextureFormat';
 
 import { _Stage_ImageBase } from './ImageBase';
+import { Stage } from '../Stage';
 
 /**
  *
@@ -137,7 +138,7 @@ export class _Stage_Image2D extends _Stage_ImageBase {
      */
 	protected _createTexture(): void {
 		const image: Image2D = <Image2D> this.image;
-		this._texture = this._stage.context.createTexture(image.width, image.height, ContextGLTextureFormat.BGRA, true);
+		this._texture = (<Stage> this._pool).context.createTexture(image.width, image.height, ContextGLTextureFormat.BGRA, true);
 	}
 }
 
