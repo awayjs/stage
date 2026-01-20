@@ -201,6 +201,7 @@ export function isNativeBlend(blend: BlendMode): boolean {
 		case BlendMode.SCREEN:
 		case BlendMode.ALPHA:
 		case BlendMode.SUBTRACT:
+		case BlendMode.ERASE:
 			return true;
 		default:
 			return false;
