@@ -268,6 +268,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (this._locked)
 			return;
 
+		this.invalidateOwners();
 		super.invalidate();
 	}
 
@@ -637,6 +638,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		);
 
 		this._imageDataDirty = true;
+		this.invalidateOwners();
 	}
 
 	/* eslint-disable-next-line */
@@ -1160,6 +1162,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			this._stage.setScissor(null);
 
 			this._imageDataDirty = true;
+			this.invalidateOwners();
 		}
 	}
 

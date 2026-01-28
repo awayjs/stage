@@ -1,3 +1,4 @@
+export * from './IImageOwner';
 export * from './Image2D';
 export * from './ImageBase';
 export * from './BitmapImage2D';

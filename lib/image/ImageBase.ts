@@ -1,4 +1,4 @@
-import { AssetBase } from '@awayjs/core';
+import { AssetBase, WeakAssetSet } from '@awayjs/core';
 
 import { ImageEvent } from '../events/ImageEvent';
 
@@ -6,6 +6,8 @@ export class ImageBase extends AssetBase {
 	private _format: string = 'bgra';
 
 	private _isDisposed: boolean = false;
+
+	private _owners: WeakAssetSet<IImageOwner> = new WeakAssetSet<IImageOwner>();
 
 	public get isDisposed() {
 		return this._isDisposed;
@@ -30,6 +32,23 @@ export class ImageBase extends AssetBase {
 		super();
 	}
 
+
+	public addOwner(owner: IImageOwner): void {
+		this._owners.add(owner);
+	}
+
+	public removeOwner(owner: IImageOwner): void {
+		this._owners.remove(owner);
+	}
+
+	public invalidateOwners(): void {
+		this._owners.forEach((owner: IImageOwner) => owner.onImageInvalidate(this));
+	}
+
+	public clearOwners(): void {
+		this._owners.forEach((owner: IImageOwner) => owner.onImageClear(this));
+	}
+
 	public dispose() {
 		this._isDisposed = true;
 		this.clear();
@@ -51,6 +70,7 @@ import { ImageUtils } from '../utils/ImageUtils';
 import { ImageSampler } from './ImageSampler';
 
 import { Stage } from '../Stage';
+import { IImageOwner } from './IImageOwner';
 
 /**
  *
