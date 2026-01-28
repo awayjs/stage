@@ -32,7 +32,6 @@ export class ImageBase extends AssetBase {
 		super();
 	}
 
-
 	public addOwner(owner: IImageOwner): void {
 		this._owners.add(owner);
 	}
