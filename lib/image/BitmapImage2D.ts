@@ -919,7 +919,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		const rng = new LehmerRng(randomSeed);
 		const w = this.width;
 		const h = this.height;
-		const data = this.getDataInternal(true, true);
+		const data = this.getDataInternal(true);
 
 		for (let y = 0; y < h; y++) {
 			for (let x = 0; x < w; x++) {
@@ -968,7 +968,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		const w = this.width;
 		const h = this.height;
-		const data = this.getDataInternal(true, true);
+		const data = this.getDataInternal(true);
 		const turb = Turbulence.fromSeed(randomSeed);
 
 		// translate [x, y, x, y] to [[x, y], [x, y] ...]
@@ -1146,6 +1146,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			const alpha = this._transparent ? argb[0] / 255 : 1;
 			const isCrop = rect !== this._rect && !this._rect.equals(rect);
 
+			this._stage.pushRenderTargetConfig();
 			this._stage.setRenderTarget(this, true, 0, 0, true);
 			this._stage.setScissor(rect);
 
@@ -1159,6 +1160,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				alpha
 			);
 
+			this._stage.popRenderTarget();
 			this._stage.setScissor(null);
 
 			this._imageDataDirty = true;
@@ -1255,10 +1257,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	public getPixels(rect: Rectangle): Uint8ClampedArray {
 		if (rect.equals(this._rect)) {
-			return this.getDataInternal(true, false);
+			return this.getDataInternal(true);
 		}
 
-		const data = this.getDataInternal(true, false);
+		const data = this.getDataInternal(true);
 		const target = new Uint8ClampedArray(rect.width * rect.height * 4);
 
 		const x = rect.x | 0;
