@@ -47,7 +47,7 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 	public applyProps(props: Partial<IBlurFilterProps>) {
 
 		let kernel: number;
-		let imageScale = this.imageScale = props.imageScale;
+		const imageScale = this.imageScale = props.imageScale;
 		let blurX = this.blurX = props.blurX;
 		let blurY = this.blurY = props.blurY;
 		let quality = props.quality || 1;
