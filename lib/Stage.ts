@@ -343,9 +343,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 			this._callback(this._context);
 	}
 
-
-	public get quality(): StageQuality
-	{
+	public get quality(): StageQuality {
 		return this._quality;
 	}
 
@@ -355,7 +353,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		this._quality = val;
 
-		switch(val) {
+		switch (val) {
 			case StageQuality.LOW:
 				Settings.ENABLE_MULTISAMPLE_TEXTURE = false;
 				break;
