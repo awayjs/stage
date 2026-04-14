@@ -148,8 +148,8 @@ export class DropShadowTask extends MultipleUVTask {
 		], 0);
 
 		const rad = Math.PI * this._angle / 180;
-		this._uDir[0] = this.imageScale * -Math.cos(rad) * this._distance / sourceImage.width;
-		this._uDir[1] = this.imageScale * -Math.sin(rad) * this._distance / sourceImage.height;
+		this._uDir[0] = this.imageScale * -Math.cos(rad) * this._distance / inputImage.width;
+		this._uDir[1] = this.imageScale * -Math.sin(rad) * this._distance / inputImage.height;
 
 		_stage.abstractions.getAbstraction<_Stage_Image2D>(inputImage).activate(0);
 		_stage.abstractions.getAbstraction<_Stage_Image2D>(sourceImage).activate(1);
