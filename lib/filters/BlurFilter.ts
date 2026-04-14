@@ -47,6 +47,7 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 	public applyProps(props: Partial<IBlurFilterProps>) {
 
 		let kernel: number;
+		let imageScale = this.imageScale = props.imageScale;
 		let blurX = this.blurX = props.blurX;
 		let blurY = this.blurY = props.blurY;
 		let quality = props.quality || 1;
@@ -71,9 +72,10 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 				kernel = 5;
 			}
 		}
-
-		this._hBlurTask.stepSize = blurX / 1.2;
-		this._vBlurTask.stepSize = blurY / 1.2;
+		this._hBlurTask.imageScale = imageScale;
+		this._vBlurTask.imageScale = imageScale;
+		this._hBlurTask.stepSize = blurX / 2.4;
+		this._vBlurTask.stepSize = blurY / 2.4;
 		this._hBlurTask.kernel = this._vBlurTask.kernel = kernel;
 
 		let maxAmount = Math.max(blurX, blurY);

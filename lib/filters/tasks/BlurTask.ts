@@ -77,6 +77,8 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 		this.invalidateProgram();
 	}
 
+	public imageScale: number = 1;
+
 	public getFragmentCode() {
 		const kernel = this._clampedKernel;
 		const hor = this.horizontalPass;
@@ -131,8 +133,8 @@ export class BlurTask extends TaskBaseWebGL /*Filter3DTaskBase*/ {
 
 	private updateBlurData(): void {
 		const size = this.horizontalPass
-			? this._source.width
-			: this._source.height;
+			? this._source.width / this.imageScale
+			: this._source.height / this.imageScale;
 
 		this._data[0] = this._kernel * .5 / size;
 		this._data[1] = this._realStepSize / size;
