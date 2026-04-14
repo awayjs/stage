@@ -94,6 +94,7 @@ export { Float4Attributes } from './lib/attributes/Float4Attributes';
 export { Short2Attributes } from './lib/attributes/Short2Attributes';
 export { Short3Attributes } from './lib/attributes/Short3Attributes';
 export { ContextWebGLFlags, ContextWebGLPreference } from './lib/webgl/ContextWebGLFlags';
+export { StageQuality } from './lib/StageQuality';
 export * from './lib/Settings';
 
 import { Loader } from '@awayjs/core';

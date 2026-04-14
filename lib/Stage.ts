@@ -35,6 +35,8 @@ import { TouchPoint } from './base/TouchPoint';
 import { FilterManager } from './managers/FilterManager';
 import { BUFFER_FORMATS_MAP } from './utils/BufferFormat';
 import { AbstractionSet } from '@awayjs/core/dist/lib/base/AbstractionSet';
+import { StageQuality } from './StageQuality';
+import { Settings } from './Settings';
 
 const TMP_POINT = { x: 0, y: 0 };
 interface ITargetConf {
@@ -55,6 +57,7 @@ interface ITargetConf {
  */
 export class Stage extends EventDispatcher implements IAbstractionPool {
 	private static _abstractionClassPool: Record<string, IAbstractionClass> = {};
+	private _quality: StageQuality = StageQuality.HIGH;
 	private _programData: Array<ProgramData> = new Array<ProgramData>();
 	private _programDataPool: ProgramDataPool;
 	private _context: IContextGL;
@@ -338,6 +341,34 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 
 		if (this._context)
 			this._callback(this._context);
+	}
+
+
+	public get quality(): StageQuality
+	{
+		return this._quality;
+	}
+
+	public set quality(val: StageQuality) {
+		if (this._quality == val)
+			return;
+
+		this._quality = val;
+
+		switch(val) {
+			case StageQuality.LOW:
+				Settings.ENABLE_MULTISAMPLE_TEXTURE = false;
+				break;
+			case StageQuality.MEDIUM:
+				Settings.ENABLE_MULTISAMPLE_TEXTURE = true;
+				break;
+			case StageQuality.HIGH:
+				Settings.ENABLE_MULTISAMPLE_TEXTURE = true;
+				break;
+			default:
+		}
+
+		this._invalidateSize();
 	}
 
 	/**
