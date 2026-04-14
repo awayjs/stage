@@ -112,6 +112,10 @@ export interface IContextGL
 
 	copyToTexture(target: ITextureBase, rect: Rectangle, destPoint: Point): void
 
+	enableDepth();
+
+	disableDepth();
+
 	enableStencil();
 
 	disableStencil();
