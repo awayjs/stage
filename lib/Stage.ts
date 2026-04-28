@@ -361,6 +361,7 @@ export class Stage extends EventDispatcher implements IAbstractionPool {
 				Settings.ENABLE_MULTISAMPLE_TEXTURE = true;
 				break;
 			case StageQuality.HIGH:
+			case StageQuality.BEST:
 				Settings.ENABLE_MULTISAMPLE_TEXTURE = true;
 				break;
 			default:
