@@ -55,7 +55,7 @@ const FRAG = (mode: '' | 'transform' | 'matrix', composite: string) =>`
 precision highp float;
 uniform sampler2D fs0;
 
-varying vec2 vUv[2];
+varying vec2 vUv[1];
 
 ${ mode === 'transform'
 		? TRANSFORM_PART
@@ -88,7 +88,7 @@ export class ColorMatrixTask extends MultipleUVTask {
 	private _mode: '' | 'transform' | 'matrix' = '';
 
 	constructor() {
-		super(2, false);
+		super(1, false);
 	}
 
 	public setCompositeBlend(blend: string): boolean {
