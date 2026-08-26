@@ -243,10 +243,10 @@ export class ProgramWebGL implements IProgram {
 			: <string>indexOrName;
 
 		const info = this._program.uniforms[name];
-
+	
 		if (!info)
 			return null;
-
+	
 		return info.location;
 	}
 
@@ -300,7 +300,7 @@ export class ProgramWebGL implements IProgram {
 
 		const arr: ArrayLike<number> = <any> data;
 
-		if (arr.length !== info.size * size) {
+		if (arr.length !== info.size * size && arr.length !== info.size * size * 2) {
 
 			throw (
 				`[ProgramWebGL] Invalid data length for ${name}, expected ${info.size * size}, actual ${arr.length}`
@@ -373,6 +373,6 @@ export class ProgramWebGL implements IProgram {
 	}
 
 	public get glProgram(): WebGLProgram {
-		return this._program;
+		return this._program.program;
 	}
 }
