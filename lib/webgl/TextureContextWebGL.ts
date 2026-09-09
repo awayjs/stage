@@ -109,14 +109,10 @@ export class TextureContextWebGL {
 	public setTextureAt(sampler: number, texture: TextureWebGL): number {
 		const gl = this._context._gl;
 		const samplerState = this._samplerStates[sampler];
-		const textureType = GL_MAP.TEXTURE[texture.textureType];
-
-		if ((texture || samplerState.type)) {
-			gl.activeTexture(gl.TEXTURE0 + sampler);
-		}
 
 		if (!texture) {
 			if (samplerState.type) {
+				gl.activeTexture(gl.TEXTURE0 + sampler);
 
 				// disable link to sampler in bounded texture
 				if (samplerState.boundedTexture) {
@@ -132,9 +128,16 @@ export class TextureContextWebGL {
 			return -1;
 		}
 
+		const textureType = GL_MAP.TEXTURE[texture.textureType];
+		const alreadyBound = samplerState.boundedTexture === texture && samplerState.type === textureType;
+
+		// Always activate the sampler unit before commit (texParameteri needs it).
+		gl.activeTexture(gl.TEXTURE0 + sampler);
+
 		texture._state.id = sampler;
 
-		this.bindTexture(texture, false, textureType);
+		// Skip redundant GL bindTexture when this sampler already holds the texture.
+		this.bindTexture(texture, alreadyBound, textureType);
 
 		samplerState.commit(textureType, texture);
 
