@@ -1295,6 +1295,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		return ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
 	}
 
+	/**
+	 * Returns unmultiplied ARGB bytes for a rectangular region:
+	 * packed as [A,R,G,B, A,R,G,B, ...] (same channel order as getPixel32 / ByteArray).
+	 * Always returns a copy - never aliases internal RGBA storage.
+	 */
 	public getPixels(rect: Rectangle): Uint8ClampedArray {
 		const data = this.getDataInternal(true);
 		const isPMA = !this.unpackPMA;
@@ -1303,22 +1308,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		const width = rect.width | 0;
 		const height = rect.height | 0;
 
-		// Straight-alpha full rect: return internal buffer (unchanged callers).
-		// PMA storage: always copy + unpremul so GPU PMA _data is not mutated.
-		if (rect.equals(this._rect) && !isPMA) {
-			return data;
-		}
-
+		// Internal _data stays RGBA (PMA when !_unpackPMA). Copy out as ARGB.
 		const target = new Uint8ClampedArray(width * height * 4);
-
-		if (!isPMA) {
-			let index: number;
-			for (let j = 0; j < height; ++j) {
-				index = x + (j + y) * this._rect.width;
-				target.set(data.subarray(index * 4, (index + width) * 4), j * width * 4);
-			}
-			return target;
-		}
 
 		for (let j = 0; j < height; ++j) {
 			let src = (x + (j + y) * this._rect.width) * 4;
@@ -1328,10 +1319,16 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				const g = data[src + 1];
 				const b = data[src + 2];
 				const a = data[src + 3];
-				target[dst] = unpremultiplyChannel(r, a);
-				target[dst + 1] = unpremultiplyChannel(g, a);
-				target[dst + 2] = unpremultiplyChannel(b, a);
-				target[dst + 3] = a;
+				target[dst] = a;
+				if (isPMA) {
+					target[dst + 1] = unpremultiplyChannel(r, a);
+					target[dst + 2] = unpremultiplyChannel(g, a);
+					target[dst + 3] = unpremultiplyChannel(b, a);
+				} else {
+					target[dst + 1] = r;
+					target[dst + 2] = g;
+					target[dst + 3] = b;
+				}
 				src += 4;
 				dst += 4;
 			}
@@ -1341,8 +1338,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	/**
-	 * Raw storage RGBA for one pixel (PMA when !_unpackPMA). Internal use —
-	 * public unmultiplied reads should use getPixel32 / getPixels.
+	 * Raw storage RGBA for one pixel (PMA when !_unpackPMA). Internal use -
+	 * public unmultiplied ARGB reads should use getPixel32 / getPixels.
 	 */
 	public getPixelData(x, y, imagePixel: Uint8ClampedArray): void {
 		let index: number = (x + y * this._rect.width) * 4;
@@ -1452,7 +1449,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			index: number = (x + y * this._rect.width) * 4,
 			data: Uint8ClampedArray = this.getDataInternal(true);
 
-		// colors: [alpha 0..1, r, g, b] unmultiplied — premul into PMA storage
+		// colors: [alpha 0..1, r, g, b] unmultiplied - premul into PMA storage
 		const a = (colors[0] * 0xff) | 0;
 		data[index + 0] = premultiplyChannel(colors[1] | 0, a);
 		data[index + 1] = premultiplyChannel(colors[2] | 0, a);
@@ -1527,9 +1524,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
 		const data = this.getDataInternal(true);
 
-		// Input is unmultiplied RGBA; convert to PMA for storage.
-		// Callers that previously passed already-PMA buffers will double-premul —
-		// raw PMA writers should assign into getDataInternal() / _data directly.
+		// Input is unmultiplied ARGB bytes [A,R,G,B,...]; convert to PMA RGBA storage.
+		// Raw RGBA/PMA writers should assign into getDataInternal() / _data directly.
 		const imageWidth: number = this._rect.width;
 		const inputWidth: number = rect.width | 0;
 		const inputHeight: number = rect.height | 0;
@@ -1540,10 +1536,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				? new Uint8ClampedArray(input)
 				: input;
 			for (let i = 0; i < data.length; i += 4) {
-				const a = src[i + 3];
-				data[i] = premultiplyChannel(src[i], a);
-				data[i + 1] = premultiplyChannel(src[i + 1], a);
-				data[i + 2] = premultiplyChannel(src[i + 2], a);
+				const a = src[i];
+				data[i] = premultiplyChannel(src[i + 1], a);
+				data[i + 1] = premultiplyChannel(src[i + 2], a);
+				data[i + 2] = premultiplyChannel(src[i + 3], a);
 				data[i + 3] = a;
 			}
 		} else {
@@ -1551,10 +1547,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				let src = j * inputWidth * 4;
 				let dst = (rect.x + (j + rect.y) * imageWidth) * 4;
 				for (let i = 0; i < inputWidth; ++i) {
-					const a = input[src + 3];
-					data[dst] = premultiplyChannel(input[src], a);
-					data[dst + 1] = premultiplyChannel(input[src + 1], a);
-					data[dst + 2] = premultiplyChannel(input[src + 2], a);
+					const a = input[src];
+					data[dst] = premultiplyChannel(input[src + 1], a);
+					data[dst + 1] = premultiplyChannel(input[src + 2], a);
+					data[dst + 2] = premultiplyChannel(input[src + 3], a);
 					data[dst + 3] = a;
 					src += 4;
 					dst += 4;
