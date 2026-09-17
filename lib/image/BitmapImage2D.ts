@@ -55,13 +55,12 @@ import { Settings } from './../Settings';
  * <code>Graphics.beginBitmapFill()</code> method.</p>
  *
  * <p>You can also use a BitmapImage2D object to perform batch tile rendering
- * using the <code>flash.display.Tilesheet</code> class.</p>
+ * using a tilesheet helper.</p>
  *
- * <p>In Flash Player 10, the maximum size for a BitmapImage2D object
- * is 8,191 pixels in width or height, and the total number of pixels cannot
- * exceed 16,777,215 pixels.(So, if a BitmapImage2D object is 8,191 pixels wide,
- * it can only be 2,048 pixels high.) In Flash Player 9 and earlier, the limitation
- * is 2,880 pixels in height and 2,880 in width.</p>
+ * <p>Maximum size for a BitmapImage2D object is 8,191 pixels in width or
+ * height, and the total number of pixels cannot exceed 16,777,215 pixels.
+ * (So, if a BitmapImage2D object is 8,191 pixels wide, it can only be 2,048
+ * pixels high.) Earlier runtimes limited this to 2,880×2,880.</p>
  */
 
 let HAS_REF = ('WeakRef' in window);
