@@ -937,7 +937,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	/**
-	 * Ruffle port of noise
+	 * Noise fill (legacy port)
 	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L326
 	 */
 	public noise(
@@ -980,7 +980,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	/**
-	 * Ruffle port of perlinNoise
+	 * Perlin noise fill (legacy port)
 	 * There are not guarantees that it valid =)
 	 * RESULT IS NOT EQUAL A FLASH RESULT, SEED IS WRONG!!
 	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L713
@@ -1077,7 +1077,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				for (let i = 0; i < 4; i++) {
 					let mapped = 0;
 
-					// This is precisely how Adobe Flash converts the -1..1 or 0..1 floats to u8.
+					// Convert -1..1 or 0..1 floats to u8 (legacy mapping).
 					// Please don't touch, it was difficult to figure out the exact method. :)
 					if (fractalNoise) {
 						// Yes, the + 0.5 for correct (nearest) rounding is done before the division by 2.0,
