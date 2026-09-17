@@ -55,7 +55,7 @@ import { Settings } from './../Settings';
  * <code>Graphics.beginBitmapFill()</code> method.</p>
  *
  * <p>You can also use a BitmapImage2D object to perform batch tile rendering
- * using the <code>flash.display.Tilesheet</code> class.</p>
+  * using the <code>flash.display.Tilesheet</code> class.</p>
  *
  * <p>In Flash Player 10, the maximum size for a BitmapImage2D object
  * is 8,191 pixels in width or height, and the total number of pixels cannot
@@ -487,7 +487,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public copyTo(target: BitmapImage2D): void {
-		target.setPixels(target.rect, this.data);
+		// Raw storage copy (preserves PMA vs straight); avoid setPixels which premuls.
+		const src = this.getDataInternal(true);
+		const dst = target.getDataInternal(true);
+		dst.set(src);
+		target._unpackPMA = this._unpackPMA;
 		target.invalidateGPU();
 	}
 
@@ -824,10 +828,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		let [newA, newR, newG, newB] = ColorUtils.float32ColorToARGB(color);
 
 		newA =  this._transparent ? newA : 0xff;
-		// premultiply
-		newR = newR * newA / 0xff | 0;
-		newG = newG * newA / 0xff | 0;
-		newB = newB * newA / 0xff | 0;
+		// 8-bit premul into PMA storage
+		newR = ((newR * newA + 0x7F) / 0xFF) | 0;
+		newG = ((newG * newA + 0x7F) / 0xFF) | 0;
+		newB = ((newB * newA + 0x7F) / 0xFF) | 0;
 
 		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
 
@@ -1109,13 +1113,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			let rgba = 0;
 			if (this._transparent) {
 				const [a, r, g, b] = ColorUtils.float32ColorToARGB(color);
-				// PMA
-				// we should FLIP bytes because a use UINT32
+				// 8-bit PMA; FLIP R/B because we use UINT32 view of RGBA
 				rgba = ColorUtils.ARGBtoFloat32(
 					a,
-					b * a / 0xff | 0,
-					g * a / 0xff | 0,
-					r * a / 0xff | 0) >>> 0;
+					((b * a + 0x7F) / 0xFF) | 0,
+					((g * a + 0x7F) / 0xFF) | 0,
+					((r * a + 0x7F) / 0xFF) | 0) >>> 0;
 
 				/**
 				 * TW2 has bug with transition over timeline when used a PMA
@@ -1210,7 +1213,15 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (!a)
 			return 0x0;
 
-		return (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a;
+		// PMA storage → unpremul; straight alpha → pack as-is
+		if (!this.unpackPMA) {
+			
+			return ((((r * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 16)
+				| (((g * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 8)
+				| ((b * ((0xFF << 8) / a | 0) + 0x7F) >> 8));
+		}
+
+		return (r << 16) | (g << 8) | b;
 	}
 
 	/**
@@ -1252,33 +1263,63 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (!a)
 			return 0x0;
 
-		return ((a << 24) | (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a) >>> 0;
-	}
-
-	public getPixels(rect: Rectangle): Uint8ClampedArray {
-		if (rect.equals(this._rect)) {
-			return this.getDataInternal(true);
+		// PMA storage → unpremul RGB into ARGB; straight alpha → pack without dividing
+		if (!this.unpackPMA) {
+			return ((a << 24)
+				| (((r * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 16)
+				| (((g * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 8)
+				| ((b * ((0xFF << 8) / a | 0) + 0x7F) >> 8));
 		}
 
-		const data = this.getDataInternal(true);
-		const target = new Uint8ClampedArray(rect.width * rect.height * 4);
+		return ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
+	}
 
+	/**
+	 * Returns unmultiplied ARGB bytes for a rectangular region:
+	 * packed as [A,R,G,B, A,R,G,B, ...] (same channel order as getPixel32 / ByteArray).
+	 * Always returns a copy - never aliases internal RGBA storage.
+	 */
+	public getPixels(rect: Rectangle): Uint8ClampedArray {
+		const data = this.getDataInternal(true);
+		const isPMA = !this.unpackPMA;
 		const x = rect.x | 0;
 		const y = rect.y | 0;
 		const width = rect.width | 0;
 		const height = rect.height | 0;
 
-		let index: number;
+		// Internal _data stays RGBA (PMA when !_unpackPMA). Copy out as ARGB.
+		const target = new Uint8ClampedArray(width * height * 4);
+
 		for (let j = 0; j < height; ++j) {
-
-			index = x + (j + y) * this._rect.width;
-
-			target.set(data.subarray(index * 4, (index + width) * 4), j * width * 4);
+			let src = (x + (j + y) * this._rect.width) * 4;
+			let dst = j * width * 4;
+			for (let i = 0; i < width; ++i) {
+				const r = data[src];
+				const g = data[src + 1];
+				const b = data[src + 2];
+				const a = data[src + 3];
+				target[dst] = a;
+				if (isPMA) {
+					target[dst + 1] = (r * ((0xFF << 8) / a | 0) + 0x7F) >> 8;
+					target[dst + 2] = (g * ((0xFF << 8) / a | 0) + 0x7F) >> 8;
+					target[dst + 3] = (b * ((0xFF << 8) / a | 0) + 0x7F) >> 8;
+				} else {
+					target[dst + 1] = r;
+					target[dst + 2] = g;
+					target[dst + 3] = b;
+				}
+				src += 4;
+				dst += 4;
+			}
 		}
 
 		return target;
 	}
 
+	/**
+	 * Raw storage RGBA for one pixel (PMA when !_unpackPMA). Internal use -
+	 * public unmultiplied ARGB reads should use getPixel32 / getPixels.
+	 */
 	public getPixelData(x, y, imagePixel: Uint8ClampedArray): void {
 		let index: number = (x + y * this._rect.width) * 4;
 		const data: Uint8ClampedArray = this.getDataInternal(true);
@@ -1387,10 +1428,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			index: number = (x + y * this._rect.width) * 4,
 			data: Uint8ClampedArray = this.getDataInternal(true);
 
-		data[index + 0] = colors[1] * colors[0] | 0;
-		data[index + 1] = colors[2] * colors[0] | 0;
-		data[index + 2] = colors[3] * colors[0] | 0;
-		data[index + 3] = colors[0] * 0xff | 0;
+		// colors: [alpha 0..1, r, g, b] unmultiplied - premul into PMA storage
+		const a = (colors[0] * 0xFF) | 0;
+		data[index + 0] = ((colors[1] * a + 0x7F) / 0xFF) | 0;
+		data[index + 1] = ((colors[2] * a + 0x7F) / 0xFF) | 0;
+		data[index + 2] = ((colors[3] * a + 0x7F) / 0xFF) | 0;
+		data[index + 3] = a;
 
 		this._unpackPMA = false;
 		this.invalidateGPU();
@@ -1460,23 +1503,37 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
 		const data = this.getDataInternal(true);
 
-		//fast path for full imageData
+		// Input is unmultiplied ARGB bytes [A,R,G,B,...]; convert to PMA RGBA storage.
+		// Raw RGBA/PMA writers should assign into getDataInternal() / _data directly.
+		const imageWidth: number = this._rect.width;
+		const inputWidth: number = rect.width | 0;
+		const inputHeight: number = rect.height | 0;
+
 		if (rect.equals(this._rect)) {
-			data.set(input);
-			this._unpackPMA = false;
+			for (let i = 0; i < data.length; i += 4) {
+				const a = input[i];
+				data[i] = ((input[i + 1] * a + 0x7F) / 0xFF) | 0;
+				data[i + 1] = ((input[i + 2] * a + 0x7F) / 0xFF) | 0;
+				data[i + 2] = ((input[i + 3] * a + 0x7F) / 0xFF) | 0;
+				data[i + 3] = a;
+			}
 		} else {
-			const
-				imageWidth: number = this._rect.width,
-				inputWidth: number = rect.width;
-
-			for (let i = 0; i < rect.height; ++i)
-				data.set(
-					input.subarray(i * inputWidth * 4, (i + 1) * inputWidth * 4),
-					(rect.x + (i + rect.y) * imageWidth) * 4);
-
-			console.warn('[BitmapImage2D] Mixed texture mode - array should be a PMA.', this.id);
+			for (let j = 0; j < inputHeight; ++j) {
+				let src = j * inputWidth * 4;
+				let dst = (rect.x + (j + rect.y) * imageWidth) * 4;
+				for (let i = 0; i < inputWidth; ++i) {
+					const a = input[src];
+					data[dst] = ((input[src + 1] * a + 0x7F) / 0xFF) | 0;
+					data[dst + 1] = ((input[src + 2] * a + 0x7F) / 0xFF) | 0;
+					data[dst + 2] = ((input[src + 3] * a + 0x7F) / 0xFF) | 0;
+					data[dst + 3] = a;
+					src += 4;
+					dst += 4;
+				}
+			}
 		}
 
+		this._unpackPMA = false;
 		this.invalidateGPU();
 	}
 
