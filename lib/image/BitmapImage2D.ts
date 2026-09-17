@@ -1215,7 +1215,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		// PMA storage → unpremul; straight alpha → pack as-is
 		if (!this.unpackPMA) {
-			
+
 			return ((((r * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 16)
 				| (((g * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 8)
 				| ((b * ((0xFF << 8) / a | 0) + 0x7F) >> 8));
