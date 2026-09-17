@@ -11,14 +11,12 @@ import { Settings } from './../Settings';
  * object. You can use the methods of the BitmapImage2D export class to create
  * arbitrarily sized transparent or opaque bitmap images and manipulate them
  * in various ways at runtime. You can also access the BitmapImage2D for a bitmap
- * image that you load with the <code>flash.Assets</code> or
- * <code>flash.display.Loader</code> classes.
+ * image that you load via an asset library or display loader.
  *
  * <p>This export class lets you separate bitmap rendering operations from the
- * internal display updating routines of flash. By manipulating a
- * BitmapImage2D object directly, you can create complex images without incurring
- * the per-frame overhead of constantly redrawing the content from vector
- * data.</p>
+ * internal display updating routines. By manipulating a BitmapImage2D object
+ * directly, you can create complex images without incurring the per-frame
+ * overhead of constantly redrawing the content from vector data.</p>
  *
  * <p>The methods of the BitmapImage2D export class support effects that are not
  * available through the filters available to non-bitmap display objects.</p>
