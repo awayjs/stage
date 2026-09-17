@@ -763,7 +763,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			}
 		}
 
-		//console.log("getColorBoundsRect not implemented yet in flash/BitmapData");
+		//console.log("getColorBoundsRect not implemented yet in BitmapImage2D");
 		const d = has
 			? new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1)
 			: new Rectangle(0, 0, 0, 0);
@@ -935,7 +935,6 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 	/**
 	 * Noise fill (legacy port)
-	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L326
 	 */
 	public noise(
 		randomSeed: number,
@@ -979,8 +978,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	/**
 	 * Perlin noise fill (legacy port)
 	 * There are not guarantees that it valid =)
-	 * RESULT IS NOT EQUAL A FLASH RESULT, SEED IS WRONG!!
-	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L713
+	 * RESULT IS NOT EQUAL TO REFERENCE PLAYER; SEED IS WRONG!!
 	 */
 	public perlinNoise (
 		baseX: number,
