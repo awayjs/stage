@@ -88,6 +88,33 @@ function fastARGB_to_ABGR(val: number, hasAlpha = true) {
 		| ((val & 0xff0000) >> 16) & 0xff) >>> 0;
 }
 
+
+/**
+ * 8-bit premultiply: unmultiplied channel → PMA.
+ * a==0 → 0; a==255 → c; else ((c*a+127)/255)|0
+ */
+function premultiplyChannel(value: number, alpha: number): number {
+	if (!alpha)
+		return 0;
+	if (alpha === 0xff)
+		return value;
+	return ((value * alpha + 127) / 255) | 0;
+}
+
+/**
+ * 8-bit unpremultiply: PMA channel → straight alpha.
+ * a==0 → 0; clamp c=min(c,a); (c * ((255<<8)/a|0) + 127) >> 8
+ * Bias is +127 (not +128) for bit-exact round-trip with premultiplyChannel.
+ */
+function unpremultiplyChannel(value: number, alpha: number): number {
+	if (!alpha)
+		return 0;
+	if (value > alpha)
+		value = alpha;
+	return (value * ((255 << 8) / alpha | 0) + 127) >> 8;
+}
+
+
 interface LazyImageSymbolTag {
 	needParse: boolean;
 	lazyParser(): LazyImageSymbolTag;
@@ -487,7 +514,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	public copyTo(target: BitmapImage2D): void {
-		target.setPixels(target.rect, this.data);
+		// Raw storage copy (preserves PMA vs straight); avoid setPixels which premuls.
+		const src = this.getDataInternal(true);
+		const dst = target.getDataInternal(true);
+		dst.set(src);
+		target._unpackPMA = this._unpackPMA;
 		target.invalidateGPU();
 	}
 
@@ -824,10 +855,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		let [newA, newR, newG, newB] = ColorUtils.float32ColorToARGB(color);
 
 		newA =  this._transparent ? newA : 0xff;
-		// premultiply
-		newR = newR * newA / 0xff | 0;
-		newG = newG * newA / 0xff | 0;
-		newB = newB * newA / 0xff | 0;
+		// 8-bit premul into PMA storage
+		newR = premultiplyChannel(newR, newA);
+		newG = premultiplyChannel(newG, newA);
+		newB = premultiplyChannel(newB, newA);
 
 		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
 
@@ -1109,13 +1140,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			let rgba = 0;
 			if (this._transparent) {
 				const [a, r, g, b] = ColorUtils.float32ColorToARGB(color);
-				// PMA
-				// we should FLIP bytes because a use UINT32
+				// 8-bit PMA; FLIP R/B because we use UINT32 view of RGBA
 				rgba = ColorUtils.ARGBtoFloat32(
 					a,
-					b * a / 0xff | 0,
-					g * a / 0xff | 0,
-					r * a / 0xff | 0) >>> 0;
+					premultiplyChannel(b, a),
+					premultiplyChannel(g, a),
+					premultiplyChannel(r, a)) >>> 0;
 
 				/**
 				 * TW2 has bug with transition over timeline when used a PMA
@@ -1210,7 +1240,14 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (!a)
 			return 0x0;
 
-		return (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a;
+		// PMA storage → unpremul; straight alpha → pack as-is
+		if (!this.unpackPMA) {
+			return (unpremultiplyChannel(r, a) << 16)
+				| (unpremultiplyChannel(g, a) << 8)
+				| unpremultiplyChannel(b, a);
+		}
+
+		return (r << 16) | (g << 8) | b;
 	}
 
 	/**
@@ -1252,33 +1289,66 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		if (!a)
 			return 0x0;
 
-		return ((a << 24) | (r * 0xFF / a << 16) | (g * 0xFF / a << 8) | b * 0xFF / a) >>> 0;
+		// PMA storage → unpremul RGB into ARGB; straight alpha → pack without dividing
+		if (!this.unpackPMA) {
+			return ((a << 24)
+				| (unpremultiplyChannel(r, a) << 16)
+				| (unpremultiplyChannel(g, a) << 8)
+				| unpremultiplyChannel(b, a)) >>> 0;
+		}
+
+		return ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
 	}
 
 	public getPixels(rect: Rectangle): Uint8ClampedArray {
-		if (rect.equals(this._rect)) {
-			return this.getDataInternal(true);
-		}
-
 		const data = this.getDataInternal(true);
-		const target = new Uint8ClampedArray(rect.width * rect.height * 4);
-
+		const isPMA = !this.unpackPMA;
 		const x = rect.x | 0;
 		const y = rect.y | 0;
 		const width = rect.width | 0;
 		const height = rect.height | 0;
 
-		let index: number;
+		// Straight-alpha full rect: return internal buffer (unchanged callers).
+		// PMA storage: always copy + unpremul so GPU PMA _data is not mutated.
+		if (rect.equals(this._rect) && !isPMA) {
+			return data;
+		}
+
+		const target = new Uint8ClampedArray(width * height * 4);
+
+		if (!isPMA) {
+			let index: number;
+			for (let j = 0; j < height; ++j) {
+				index = x + (j + y) * this._rect.width;
+				target.set(data.subarray(index * 4, (index + width) * 4), j * width * 4);
+			}
+			return target;
+		}
+
 		for (let j = 0; j < height; ++j) {
-
-			index = x + (j + y) * this._rect.width;
-
-			target.set(data.subarray(index * 4, (index + width) * 4), j * width * 4);
+			let src = (x + (j + y) * this._rect.width) * 4;
+			let dst = j * width * 4;
+			for (let i = 0; i < width; ++i) {
+				const r = data[src];
+				const g = data[src + 1];
+				const b = data[src + 2];
+				const a = data[src + 3];
+				target[dst] = unpremultiplyChannel(r, a);
+				target[dst + 1] = unpremultiplyChannel(g, a);
+				target[dst + 2] = unpremultiplyChannel(b, a);
+				target[dst + 3] = a;
+				src += 4;
+				dst += 4;
+			}
 		}
 
 		return target;
 	}
 
+	/**
+	 * Raw storage RGBA for one pixel (PMA when !_unpackPMA). Internal use —
+	 * public unmultiplied reads should use getPixel32 / getPixels.
+	 */
 	public getPixelData(x, y, imagePixel: Uint8ClampedArray): void {
 		let index: number = (x + y * this._rect.width) * 4;
 		const data: Uint8ClampedArray = this.getDataInternal(true);
@@ -1387,10 +1457,12 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			index: number = (x + y * this._rect.width) * 4,
 			data: Uint8ClampedArray = this.getDataInternal(true);
 
-		data[index + 0] = colors[1] * colors[0] | 0;
-		data[index + 1] = colors[2] * colors[0] | 0;
-		data[index + 2] = colors[3] * colors[0] | 0;
-		data[index + 3] = colors[0] * 0xff | 0;
+		// colors: [alpha 0..1, r, g, b] unmultiplied — premul into PMA storage
+		const a = (colors[0] * 0xff) | 0;
+		data[index + 0] = premultiplyChannel(colors[1] | 0, a);
+		data[index + 1] = premultiplyChannel(colors[2] | 0, a);
+		data[index + 2] = premultiplyChannel(colors[3] | 0, a);
+		data[index + 3] = a;
 
 		this._unpackPMA = false;
 		this.invalidateGPU();
@@ -1460,23 +1532,42 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	public setPixels(rect: Rectangle, input: Uint8ClampedArray): void {
 		const data = this.getDataInternal(true);
 
-		//fast path for full imageData
+		// Input is unmultiplied RGBA; convert to PMA for storage.
+		// Callers that previously passed already-PMA buffers will double-premul —
+		// raw PMA writers should assign into getDataInternal() / _data directly.
+		const imageWidth: number = this._rect.width;
+		const inputWidth: number = rect.width | 0;
+		const inputHeight: number = rect.height | 0;
+
 		if (rect.equals(this._rect)) {
-			data.set(input);
-			this._unpackPMA = false;
+			// Same-buffer safety: copy first if input aliases storage
+			const src = (input.buffer === data.buffer && input.byteOffset === data.byteOffset)
+				? new Uint8ClampedArray(input)
+				: input;
+			for (let i = 0; i < data.length; i += 4) {
+				const a = src[i + 3];
+				data[i] = premultiplyChannel(src[i], a);
+				data[i + 1] = premultiplyChannel(src[i + 1], a);
+				data[i + 2] = premultiplyChannel(src[i + 2], a);
+				data[i + 3] = a;
+			}
 		} else {
-			const
-				imageWidth: number = this._rect.width,
-				inputWidth: number = rect.width;
-
-			for (let i = 0; i < rect.height; ++i)
-				data.set(
-					input.subarray(i * inputWidth * 4, (i + 1) * inputWidth * 4),
-					(rect.x + (i + rect.y) * imageWidth) * 4);
-
-			console.warn('[BitmapImage2D] Mixed texture mode - array should be a PMA.', this.id);
+			for (let j = 0; j < inputHeight; ++j) {
+				let src = j * inputWidth * 4;
+				let dst = (rect.x + (j + rect.y) * imageWidth) * 4;
+				for (let i = 0; i < inputWidth; ++i) {
+					const a = input[src + 3];
+					data[dst] = premultiplyChannel(input[src], a);
+					data[dst + 1] = premultiplyChannel(input[src + 1], a);
+					data[dst + 2] = premultiplyChannel(input[src + 2], a);
+					data[dst + 3] = a;
+					src += 4;
+					dst += 4;
+				}
+			}
 		}
 
+		this._unpackPMA = false;
 		this.invalidateGPU();
 	}
 
