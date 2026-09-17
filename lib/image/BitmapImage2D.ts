@@ -11,12 +11,14 @@ import { Settings } from './../Settings';
  * object. You can use the methods of the BitmapImage2D export class to create
  * arbitrarily sized transparent or opaque bitmap images and manipulate them
  * in various ways at runtime. You can also access the BitmapImage2D for a bitmap
- * image that you load via an asset library or display loader.
+ * image that you load with the <code>flash.Assets</code> or
+ * <code>flash.display.Loader</code> classes.
  *
  * <p>This export class lets you separate bitmap rendering operations from the
- * internal display updating routines. By manipulating a BitmapImage2D object
- * directly, you can create complex images without incurring the per-frame
- * overhead of constantly redrawing the content from vector data.</p>
+ * internal display updating routines of flash. By manipulating a
+ * BitmapImage2D object directly, you can create complex images without incurring
+ * the per-frame overhead of constantly redrawing the content from vector
+ * data.</p>
  *
  * <p>The methods of the BitmapImage2D export class support effects that are not
  * available through the filters available to non-bitmap display objects.</p>
@@ -53,12 +55,13 @@ import { Settings } from './../Settings';
  * <code>Graphics.beginBitmapFill()</code> method.</p>
  *
  * <p>You can also use a BitmapImage2D object to perform batch tile rendering
- * using a tilesheet helper.</p>
+  * using the <code>flash.display.Tilesheet</code> class.</p>
  *
- * <p>Maximum size for a BitmapImage2D object is 8,191 pixels in width or
- * height, and the total number of pixels cannot exceed 16,777,215 pixels.
- * (So, if a BitmapImage2D object is 8,191 pixels wide, it can only be 2,048
- * pixels high.) Earlier runtimes limited this to 2,880×2,880.</p>
+ * <p>In Flash Player 10, the maximum size for a BitmapImage2D object
+ * is 8,191 pixels in width or height, and the total number of pixels cannot
+ * exceed 16,777,215 pixels.(So, if a BitmapImage2D object is 8,191 pixels wide,
+ * it can only be 2,048 pixels high.) In Flash Player 9 and earlier, the limitation
+ * is 2,880 pixels in height and 2,880 in width.</p>
  */
 
 let HAS_REF = ('WeakRef' in window);
@@ -84,33 +87,6 @@ function fastARGB_to_ABGR(val: number, hasAlpha = true) {
 		| (val & 0xff00)
 		| ((val & 0xff0000) >> 16) & 0xff) >>> 0;
 }
-
-
-/**
- * 8-bit premultiply: unmultiplied channel → PMA.
- * a==0 → 0; a==255 → c; else ((c*a+127)/255)|0
- */
-function premultiplyChannel(value: number, alpha: number): number {
-	if (!alpha)
-		return 0;
-	if (alpha === 0xff)
-		return value;
-	return ((value * alpha + 127) / 255) | 0;
-}
-
-/**
- * 8-bit unpremultiply: PMA channel → straight alpha.
- * a==0 → 0; clamp c=min(c,a); (c * ((255<<8)/a|0) + 127) >> 8
- * Bias is +127 (not +128) for bit-exact round-trip with premultiplyChannel.
- */
-function unpremultiplyChannel(value: number, alpha: number): number {
-	if (!alpha)
-		return 0;
-	if (value > alpha)
-		value = alpha;
-	return (value * ((255 << 8) / alpha | 0) + 127) >> 8;
-}
-
 
 interface LazyImageSymbolTag {
 	needParse: boolean;
@@ -763,7 +739,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			}
 		}
 
-		//console.log("getColorBoundsRect not implemented yet in BitmapImage2D");
+		//console.log("getColorBoundsRect not implemented yet in flash/BitmapData");
 		const d = has
 			? new Rectangle(minX, minY, maxX - minX + 1, maxY - minY + 1)
 			: new Rectangle(0, 0, 0, 0);
@@ -853,9 +829,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		newA =  this._transparent ? newA : 0xff;
 		// 8-bit premul into PMA storage
-		newR = premultiplyChannel(newR, newA);
-		newG = premultiplyChannel(newG, newA);
-		newB = premultiplyChannel(newB, newA);
+		newR = ((newR * newA + 0x7F) / 0xFF) | 0;
+		newG = ((newG * newA + 0x7F) / 0xFF) | 0;
+		newB = ((newB * newA + 0x7F) / 0xFF) | 0;
 
 		const newc32 = ((newA << 24) | (newB << 16) | (newG << 8) | (newR)) >>> 0;
 
@@ -934,7 +910,8 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	/**
-	 * Noise fill (legacy port)
+	 * Ruffle port of noise
+	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L326
 	 */
 	public noise(
 		randomSeed: number,
@@ -976,9 +953,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 	}
 
 	/**
-	 * Perlin noise fill (legacy port)
+	 * Ruffle port of perlinNoise
 	 * There are not guarantees that it valid =)
-	 * RESULT IS NOT EQUAL TO REFERENCE PLAYER; SEED IS WRONG!!
+	 * RESULT IS NOT EQUAL A FLASH RESULT, SEED IS WRONG!!
+	 * @see https://github.com/ruffle-rs/ruffle/blob/d43b033caa98ed201f37558c25f9ce5f2da189d0/core/src/avm1/object/bitmap_data.rs#L713
 	 */
 	public perlinNoise (
 		baseX: number,
@@ -1072,7 +1050,7 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				for (let i = 0; i < 4; i++) {
 					let mapped = 0;
 
-					// Convert -1..1 or 0..1 floats to u8 (legacy mapping).
+					// This is precisely how Adobe Flash converts the -1..1 or 0..1 floats to u8.
 					// Please don't touch, it was difficult to figure out the exact method. :)
 					if (fractalNoise) {
 						// Yes, the + 0.5 for correct (nearest) rounding is done before the division by 2.0,
@@ -1138,9 +1116,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				// 8-bit PMA; FLIP R/B because we use UINT32 view of RGBA
 				rgba = ColorUtils.ARGBtoFloat32(
 					a,
-					premultiplyChannel(b, a),
-					premultiplyChannel(g, a),
-					premultiplyChannel(r, a)) >>> 0;
+					((b * a + 0x7F) / 0xFF) | 0,
+					((g * a + 0x7F) / 0xFF) | 0,
+					((r * a + 0x7F) / 0xFF) | 0) >>> 0;
 
 				/**
 				 * TW2 has bug with transition over timeline when used a PMA
@@ -1237,9 +1215,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 
 		// PMA storage → unpremul; straight alpha → pack as-is
 		if (!this.unpackPMA) {
-			return (unpremultiplyChannel(r, a) << 16)
-				| (unpremultiplyChannel(g, a) << 8)
-				| unpremultiplyChannel(b, a);
+			
+			return ((((r * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 16)
+				| (((g * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 8)
+				| ((b * ((0xFF << 8) / a | 0) + 0x7F) >> 8));
 		}
 
 		return (r << 16) | (g << 8) | b;
@@ -1287,9 +1266,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		// PMA storage → unpremul RGB into ARGB; straight alpha → pack without dividing
 		if (!this.unpackPMA) {
 			return ((a << 24)
-				| (unpremultiplyChannel(r, a) << 16)
-				| (unpremultiplyChannel(g, a) << 8)
-				| unpremultiplyChannel(b, a)) >>> 0;
+				| (((r * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 16)
+				| (((g * ((0xFF << 8) / a | 0) + 0x7F) >> 8) << 8)
+				| ((b * ((0xFF << 8) / a | 0) + 0x7F) >> 8));
 		}
 
 		return ((a << 24) | (r << 16) | (g << 8) | b) >>> 0;
@@ -1321,9 +1300,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				const a = data[src + 3];
 				target[dst] = a;
 				if (isPMA) {
-					target[dst + 1] = unpremultiplyChannel(r, a);
-					target[dst + 2] = unpremultiplyChannel(g, a);
-					target[dst + 3] = unpremultiplyChannel(b, a);
+					target[dst + 1] = (r * ((0xFF << 8) / a | 0) + 0x7F) >> 8;
+					target[dst + 2] = (g * ((0xFF << 8) / a | 0) + 0x7F) >> 8;
+					target[dst + 3] = (b * ((0xFF << 8) / a | 0) + 0x7F) >> 8;
 				} else {
 					target[dst + 1] = r;
 					target[dst + 2] = g;
@@ -1450,10 +1429,10 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 			data: Uint8ClampedArray = this.getDataInternal(true);
 
 		// colors: [alpha 0..1, r, g, b] unmultiplied - premul into PMA storage
-		const a = (colors[0] * 0xff) | 0;
-		data[index + 0] = premultiplyChannel(colors[1] | 0, a);
-		data[index + 1] = premultiplyChannel(colors[2] | 0, a);
-		data[index + 2] = premultiplyChannel(colors[3] | 0, a);
+		const a = (colors[0] * 0xFF) | 0;
+		data[index + 0] = ((colors[1] * a + 0x7F) / 0xFF) | 0;
+		data[index + 1] = ((colors[2] * a + 0x7F) / 0xFF) | 0;
+		data[index + 2] = ((colors[3] * a + 0x7F) / 0xFF) | 0;
 		data[index + 3] = a;
 
 		this._unpackPMA = false;
@@ -1531,15 +1510,11 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 		const inputHeight: number = rect.height | 0;
 
 		if (rect.equals(this._rect)) {
-			// Same-buffer safety: copy first if input aliases storage
-			const src = (input.buffer === data.buffer && input.byteOffset === data.byteOffset)
-				? new Uint8ClampedArray(input)
-				: input;
 			for (let i = 0; i < data.length; i += 4) {
-				const a = src[i];
-				data[i] = premultiplyChannel(src[i + 1], a);
-				data[i + 1] = premultiplyChannel(src[i + 2], a);
-				data[i + 2] = premultiplyChannel(src[i + 3], a);
+				const a = input[i];
+				data[i] = ((input[i + 1] * a + 0x7F) / 0xFF) | 0;
+				data[i + 1] = ((input[i + 2] * a + 0x7F) / 0xFF) | 0;
+				data[i + 2] = ((input[i + 3] * a + 0x7F) / 0xFF) | 0;
 				data[i + 3] = a;
 			}
 		} else {
@@ -1548,9 +1523,9 @@ export class BitmapImage2D extends Image2D implements IUnloadable {
 				let dst = (rect.x + (j + rect.y) * imageWidth) * 4;
 				for (let i = 0; i < inputWidth; ++i) {
 					const a = input[src];
-					data[dst] = premultiplyChannel(input[src + 1], a);
-					data[dst + 1] = premultiplyChannel(input[src + 2], a);
-					data[dst + 2] = premultiplyChannel(input[src + 3], a);
+					data[dst] = ((input[src + 1] * a + 0x7F) / 0xFF) | 0;
+					data[dst + 1] = ((input[src + 2] * a + 0x7F) / 0xFF) | 0;
+					data[dst + 2] = ((input[src + 3] * a + 0x7F) / 0xFF) | 0;
 					data[dst + 3] = a;
 					src += 4;
 					dst += 4;
