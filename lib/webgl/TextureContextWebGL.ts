@@ -109,7 +109,6 @@ export class TextureContextWebGL {
 	public setTextureAt(sampler: number, texture: TextureWebGL): number {
 		const gl = this._context._gl;
 		const samplerState = this._samplerStates[sampler];
-		const textureType = GL_MAP.TEXTURE[texture.textureType];
 
 		if ((texture || samplerState.type)) {
 			gl.activeTexture(gl.TEXTURE0 + sampler);
@@ -131,6 +130,8 @@ export class TextureContextWebGL {
 
 			return -1;
 		}
+
+		const textureType = GL_MAP.TEXTURE[texture.textureType];
 
 		texture._state.id = sampler;
 

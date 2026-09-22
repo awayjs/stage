@@ -10,7 +10,7 @@ import { ContextGLProgramType } from '../../base/ContextGLProgramType';
 import { _Stage_ImageBase, Image2D } from '../../image';
 
 export class TaskBase {
-	protected _vertexConstantData = new Float32Array([
+	protected _vertexConstantData:Float32Array = new Float32Array([
 		0.0, 0.0, 0.0, 0.0,
 		0.0, 0.0, 0.0, 0.0
 	]);

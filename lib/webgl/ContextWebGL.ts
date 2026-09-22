@@ -25,6 +25,7 @@ import { Settings } from '../Settings';
 import { FenceContextWebGL } from './FenceContextWebGL';
 import * as GL_MAP from './ConstantsWebGL';
 import { StatsWebGL } from './StatsWebGL';
+import { IVertexBuffer } from '../base/IVertexBuffer';
 
 let _DEBUG_renderMode: '' | 'line' = '';
 
