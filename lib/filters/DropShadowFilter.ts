@@ -91,7 +91,9 @@ export class DropShadowFilter extends FilterBase implements IBitmapFilter<'dropS
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
-		target = this._blurFilter.meashurePad(input, target);
+		// Glow / drop-shadow expand the source rect earlier than BlurFilter
+		// (see FilterUtils.meashureBlurPad isBlurFilter flag).
+		target = this._blurFilter.meashurePad(input, target, false);
 
 		let offsetX = 0;
 		let offsetY = 0;
