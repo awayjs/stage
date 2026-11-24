@@ -103,8 +103,8 @@ export class DropShadowFilter extends FilterBase implements IBitmapFilter<'dropS
 		if (!this.inner && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
-			offsetX += Math.cos(rad) * dist * 2;
-			offsetY += Math.sin(rad) * dist * 2;
+			offsetX += Math.cos(rad) * dist * this.imageScale * 2;
+			offsetY += Math.sin(rad) * dist * this.imageScale * 2;
 		}
 
 		target.x -= offsetX;

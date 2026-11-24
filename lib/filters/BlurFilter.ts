@@ -194,10 +194,14 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 
 		target.copyFrom(input);
 
-		target.x -= pad.x * 2;
-		target.y -= pad.y * 2;
-		target.width += pad.x * 4;
-		target.height += pad.y * 4;
+		// Pad is in filter (stage-pixel) units; the blur shader offsets are
+		// stepSize * imageScale texels, so the pad must be scaled to cache pixels.
+		const scale = this.imageScale || 1;
+
+		target.x -= pad.x * 2 * scale;
+		target.y -= pad.y * 2 * scale;
+		target.width += pad.x * 4 * scale;
+		target.height += pad.y * 4 * scale;
 
 		return target;
 	}
