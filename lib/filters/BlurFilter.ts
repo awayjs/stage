@@ -21,6 +21,13 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 	protected _vBlurTask: BlurTask;
 	public quality: number = 1;
 
+	/**
+	 * The quality value supplied in filter props (typically 1-3).
+	 * <code>quality</code> is overwritten in applyProps with the internal
+	 * blur pass count used by the blur tasks, and must not be used for padding.
+	 */
+	private _paddingQuality: number = 1;
+
 	@serialisable
 	public imageScale: number = 1;
 
@@ -51,6 +58,10 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 		let blurX = this.blurX = props.blurX;
 		let blurY = this.blurY = props.blurY;
 		let quality = props.quality || 1;
+
+		// Keep the input quality for meashurePad; `quality` below is rewritten
+		// as the number of blur passes needed for the current blur amount.
+		this._paddingQuality = quality;
 
 		blurX = blurX > 1 ? blurX - 1 : 0;
 		blurY = blurY > 1 ? blurY - 1 : 0;
@@ -172,20 +183,25 @@ export class BlurFilter extends FilterBase implements IBitmapFilter<'blur', IBlu
 
 	}
 
-	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
+	public meashurePad(input: Rectangle, target: Rectangle = input, isBlurFilter: boolean = true): Rectangle {
+		const paddingQuality = Math.min(15, Math.max(1, this._paddingQuality | 0));
 		const pad = FilterUtils.meashureBlurPad(
 			this.blurX,
 			this.blurY,
-			this.quality,
-			true
+			paddingQuality,
+			isBlurFilter
 		);
 
 		target.copyFrom(input);
 
-		target.x -= pad.x * 2;
-		target.y -= pad.y * 2;
-		target.width += pad.x * 4;
-		target.height += pad.y * 4;
+		// Pad is in filter (stage-pixel) units; the blur shader offsets are
+		// stepSize * imageScale texels, so the pad must be scaled to cache pixels.
+		const scale = this.imageScale || 1;
+
+		target.x -= pad.x * 2 * scale;
+		target.y -= pad.y * 2 * scale;
+		target.width += pad.x * 4 * scale;
+		target.height += pad.y * 4 * scale;
 
 		return target;
 	}

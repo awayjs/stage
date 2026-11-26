@@ -102,7 +102,8 @@ export class BevelFilter extends FilterBase implements IBitmapFilter<'bevel', IB
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
-		target = this._blurFilter.meashurePad(input, target);
+		// Bevel is blur-based but uses the same source-rect expansion as glow / drop-shadow.
+		target = this._blurFilter.meashurePad(input, target, false);
 
 		let offsetX = 0;
 		let offsetY = 0;

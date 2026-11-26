@@ -91,7 +91,9 @@ export class DropShadowFilter extends FilterBase implements IBitmapFilter<'dropS
 	}
 
 	public meashurePad(input: Rectangle, target: Rectangle = input): Rectangle {
-		target = this._blurFilter.meashurePad(input, target);
+		// Glow / drop-shadow expand the source rect earlier than BlurFilter
+		// (see FilterUtils.meashureBlurPad isBlurFilter flag).
+		target = this._blurFilter.meashurePad(input, target, false);
 
 		let offsetX = 0;
 		let offsetY = 0;
@@ -101,8 +103,10 @@ export class DropShadowFilter extends FilterBase implements IBitmapFilter<'dropS
 		if (!this.inner && dist > 0) {
 			const rad = this.angle * Math.PI / 180;
 
-			offsetX += Math.cos(rad) * dist * 2;
-			offsetY += Math.sin(rad) * dist * 2;
+			// Absolute direction so the rect always grows: a signed offset
+			// would shrink the pad when cos or sin is negative.
+			offsetX += Math.abs(Math.cos(rad)) * dist * this.imageScale * 2;
+			offsetY += Math.abs(Math.sin(rad)) * dist * this.imageScale * 2;
 		}
 
 		target.x -= offsetX;
